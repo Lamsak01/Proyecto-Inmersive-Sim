@@ -60,11 +60,21 @@ func tiene_cuerpo(n: Node) -> bool:
 	return _de_quien.has(n)
 
 
-## Tamaño (radio, alto en m) del cuerpo de `n`, o Vector2.ZERO si no debe tenerlo (pequeño, dormido, muerto, caído).
+## Tamaño (radio, alto en m) del cuerpo de contacto de `n`, o Vector2.ZERO si no debe tenerlo: pequeño, dormido,
+## muerto, caído, o con cuerpo completo (opción B; ese cuerpo usa `tamano_de_pie` para apagarse cuando no está de pie).
 static func tamano(n: Node) -> Vector2:
+	if n.has_meta("cuerpo3d") and not n.is_in_group("player"):
+		return Vector2.ZERO
+	return tamano_de_pie(n)
+
+
+## Tamaño del cuerpo de `n` si está de pie; Vector2.ZERO si es pequeño o está dormido, muerto, caído o sentado.
+static func tamano_de_pie(n: Node) -> Vector2:
 	if _si(n, "is_dead") or _si(n, "is_downed") or _si(n, "is_sleeping") or _si(n, "is_at_poker_table"):
 		return Vector2.ZERO
-	if n.has_method("_is_seated_on_furniture") and bool(n.call("_is_seated_on_furniture", (n as Node2D).global_position)):
+	# Sentado solo si está quieto: las sillas del salón quedan bajo la galería de la posada y el mapa no distingue pisos
+	var quieto: bool = not ("velocity" in n) or (n.get("velocity") as Vector2).length_squared() < 4.0
+	if quieto and n.has_method("_is_seated_on_furniture") and bool(n.call("_is_seated_on_furniture", (n as Node2D).global_position)):
 		return Vector2.ZERO
 	if n.is_in_group("wild_animals"):
 		var vivo: bool = n.has_method("is_alive_in_ecosystem") and bool(n.call("is_alive_in_ecosystem"))

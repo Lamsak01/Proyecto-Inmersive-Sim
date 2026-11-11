@@ -1,5 +1,7 @@
 @tool
 extends "res://scripts/visuals/WorldStageTerrain3D.gd"
+const AguaScript = preload("res://scripts/fisica/Agua.gd") # paso 3b: ¿los ojos bajo el agua?
+var _fp_ojos_bajo_agua: bool = false
 const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## Escenario 3D principal: ciclo de vida, cámara en 1.ª persona y vista superior, brazos/armas 3D, HUD y cutaway.
@@ -889,6 +891,8 @@ func _update_fp_camera_transform() -> void:
 			var m_ctrl = pl.get_node_or_null("PlayerMovementController")
 			if m_ctrl != null and m_ctrl.get("is_stealthing") == true:
 				eye_h -= 3.5
+	# Paso 3b: ¿los ojos quedan bajo el agua? (buceando) → el escenario se tiñe y se enturbia
+	_fp_ojos_bajo_agua = is_instance_valid(pl) and AguaScript.en_agua(pl_pos) and Mapa3D.alto_a_3d(eye_h + terrain_height_px(pl_pos)) < AguaScript.superficie_y(pl_pos)
 	if is_nan(pies_px): # aún sin cuerpo 3D (primeros fotogramas): como antes
 		if FishingSpotScript.is_in_river_crossing(pl_pos, 3.0):
 			eye_h += surface_elevation_offset_px(pl_pos)
@@ -1146,6 +1150,8 @@ func _update_roof_cutaways_and_lighting() -> void:
 			var is_tav: bool = str(rec.get("id", "")) == "building_tavern"
 			var on_tavern_stairs: bool = is_tav and VillageTavern.elevation_height_for(pl_pos, elev) > 6.0
 			loft_root.visible = is_tav and (first_person_active or elev == 1 or on_tavern_stairs)
+	for altillo in get_tree().get_nodes_in_group("altillo_casa_3d"): # paso 2e: el piso alto de tu casa, igual que el de la posada
+		(altillo as Node3D).visible = first_person_active or elev == 1
 
 	# Casa mejorada del jugador: en primera persona conserva el tejado cerrado
 	if is_instance_valid(_player_house_roof):
@@ -1243,6 +1249,13 @@ func _update_roof_cutaways_and_lighting() -> void:
 			env.fog_enabled = (is_foggy_weather or is_dawn_mist) and not pl_indoors
 			env.fog_light_color = horizon_col
 			env.fog_density = (0.0055 if is_foggy_weather else 0.0028) / Mapa3D.K
+		if first_person_active and _fp_ojos_bajo_agua: # paso 3b: bajo el agua todo es verde-azul y turbio
+			env.fog_enabled = true
+			env.fog_light_color = Color(0.07, 0.28, 0.36)
+			env.fog_light_energy = 0.5
+			env.fog_sky_affect = 1.0
+			env.fog_density = 0.12 / Mapa3D.K
+			env.ambient_light_color = Color(0.20, 0.45, 0.50)
 
 	if is_instance_valid(fp_lantern_light):
 		if first_person_active:

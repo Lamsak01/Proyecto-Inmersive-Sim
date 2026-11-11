@@ -24,6 +24,7 @@ func _initialize() -> void:
 	await _paso2b_bajo_tierra()
 	await _paso2c_caidas()
 	await _paso3_nadar()
+	await _paso2e_casa()
 	await _paso4_vecino_sube()
 	await _paso4b_contacto()
 	await _paso4c_animales()
@@ -286,7 +287,7 @@ func _paso3_nadar() -> void:
 	var c: CharacterBody3D = mc.cuerpo()
 	# Un tramo del río en el pueblo sin puente ni rocas: de la orilla oeste a la este
 	var y_rio: float = _tramo_de_rio_libre(pl, FishingSpot)
-	_ok(not is_nan(y_rio), "3: hay un tramo de río sin puente ni rocas para cruzar")
+	_ok(not is_nan(y_rio), "3: hay un tramo de río sin puente ni rocas para cruzar (y %.0f)" % y_rio)
 	if is_nan(y_rio):
 		return
 	var orillas: Vector2 = FishingSpot.river_banks_at(y_rio)
@@ -300,7 +301,7 @@ func _paso3_nadar() -> void:
 		await physics_frame
 		if mc.estado_agua() == Cuerpo3D.EnAgua.NADANDO:
 			nado = true
-			if absf(c.global_position.y - (Agua.superficie_y(pl.global_position) - Cuerpo3D.FLOTA_M)) > 0.1:
+			if c.global_position.y < Agua.superficie_y(pl.global_position) - Cuerpo3D.FLOTA_M - 0.1: # se hunde más de lo que flota
 				break
 		if pl.global_position.x > orillas.y + 12.0:
 			break
@@ -315,9 +316,66 @@ func _paso3_nadar() -> void:
 	mc.is_stealthing = true
 	mc._handle_input(1.0 / 60.0)
 	_ok(not mc.is_stealthing, "3: en el agua no se puede ir agachado (los ojos quedarían bajo el agua)")
+	# Paso 3b: bucear en el lago. Baja al fondo, gasta aire y sin aire pierde vida; al salir, recupera.
+	var hc3 = pl.health_comp
+	hc3.current_health = hc3.max_health
+	var sup: float = Agua.superficie_y(pl.global_position)
+	mc.buceando = true
+	for _i in range(90):
+		mc._respirar(1.0 / 60.0)
+		await _andar(pl, mc, Vector2.ZERO, 0.0, 1.0 / 60.0)
+	_ok(c.global_position.y < sup - 2.0, "3b: buceando baja al fondo (%.1f m bajo la superficie)" % (sup - c.global_position.y))
+	_ok(mc.aire_s < mc.AIRE_S - 1.0, "3b: y gasta aire (%.1f s)" % mc.aire_s)
+	mc.aire_s = 0.0
+	for _i in range(130):
+		mc._respirar(1.0 / 60.0)
+	_ok(hc3.current_health < hc3.max_health, "3b: sin aire pierde vida (%.0f de %.0f)" % [hc3.current_health, hc3.max_health])
+	mc.buceando = false
+	for _i in range(30):
+		mc._respirar(1.0 / 60.0)
+		await _andar(pl, mc, Vector2.ZERO, 0.0, 1.0 / 60.0)
+	_ok(c.global_position.y > sup - 1.5 and mc.aire_s > 0.0, "3b: al salir a la superficie flota otra vez y recupera aire")
+	hc3.current_health = hc3.max_health
 	pl.global_position = Anclas.mover(Vector2(454.0, -100.0))
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	mc.set_physics_process(true)
+
+
+## Paso 2e: el piso alto y el sótano de tu casa tienen altura de verdad; con [E] cambias de piso sin caerte ni hacerte daño.
+func _paso2e_casa() -> void:
+	var pl = get_first_node_in_group("player")
+	var vm = get_first_node_in_group("village_manager")
+	var mc = pl.get_node("PlayerMovementController")
+	var Suelo = load("res://scripts/fisica/Suelo.gd")
+	var VillageLots = load("res://scripts/systems/VillageLots.gd")
+	var id: String = str(VillageLots.LOTS[0]["id"])
+	var st: Dictionary = VillageLots.lot(vm, id) # una casa del jugador de prueba, con las dos mejoras
+	var antes: Dictionary = st.duplicate(true)
+	st["payer"] = "player"
+	st["status"] = "built"
+	st["upgrades"] = {"upper_floor": true, "hidden_cellar": true}
+	var centro: Vector2 = VillageLots.lot_def(id)["center"]
+	_ok(Suelo.altura_px(centro, 1, vm) == Suelo.ALTILLO_CASA_PX, "2e: el piso alto de tu casa está a %.0f px de altura" % Suelo.altura_px(centro, 1, vm))
+	_ok(Suelo.altura_px(centro, -1, vm) == Suelo.PROFUNDIDAD_SOTANO_PX, "2e: y el sótano, bajo tierra (%.0f px)" % Suelo.altura_px(centro, -1, vm))
+	mc.set_physics_process(false)
+	var hc = pl.health_comp
+	hc.current_health = hc.max_health
+	vm.set_player_elevation_level(0)
+	pl.global_position = centro
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	vm.set_player_elevation_level(-1) # como con [E] en la trampilla
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.6)
+	_ok(absf(mc.altura_pies_px() - Suelo.PROFUNDIDAD_SOTANO_PX) < 1.0 and hc.current_health == hc.max_health, "2e: bajas al sótano de golpe, sin caer ni hacerte daño (pies a %.1f px)" % mc.altura_pies_px())
+	vm.set_player_elevation_level(1)
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.6)
+	_ok(absf(mc.altura_pies_px() - Suelo.ALTILLO_CASA_PX) < 1.0, "2e: y subes al piso alto (pies a %.1f px)" % mc.altura_pies_px())
+	vm.set_player_elevation_level(0)
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	for k in antes.keys():
+		st[k] = antes[k]
+	for k in st.keys().duplicate():
+		if not antes.has(k):
+			st.erase(k)
 
 
 ## Paso 4a: un vecino que va a una cama de arriba sube la escalera de la posada andando y su altura crece poco a poco.
@@ -387,9 +445,11 @@ func _paso4b_contacto() -> void:
 	pl.global_position = inicio
 	n.global_position = inicio + Vector2(30, 0)
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.1)
-	_ok(mc.cuerpo().cercanos().tiene_cuerpo(n), "4b: el vecino cercano tiene cuerpo de contacto")
+	_ok(n.has_meta("cuerpo3d"), "4b: el vecino cercano tiene cuerpo 3D completo (opción B)")
+	var sitio_vecino: Vector2 = n.global_position
 	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
-	_ok(pl.global_position.x < n.global_position.x - 5.0, "4b: no se le atraviesa (protagonista en x %.0f, vecino en x %.0f)" % [pl.global_position.x, n.global_position.x])
+	# Con cuerpo completo (opción B) chocas con él: o te quedas delante o lo vas apartando poco a poco (se desplaza)
+	_ok(pl.global_position.x < sitio_vecino.x - 5.0 or n.global_position.distance_to(sitio_vecino) > 3.0, "4b: no se le atraviesa sin más: choca y lo aparta (vecino desplazado %.1f px)" % n.global_position.distance_to(sitio_vecino))
 	# Dormido (o caído) no tiene cuerpo: se pasa
 	pl.global_position = inicio
 	n.is_sleeping = true
@@ -431,7 +491,8 @@ func _paso4c_animales() -> void:
 	pl.global_position = inicio
 	grande.global_position = inicio + Vector2(30, 0)
 	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
-	_ok(pl.global_position.x < grande.global_position.x - 5.0, "4c: no se atraviesa a un animal grande (protagonista en x %.0f, animal en x %.0f)" % [pl.global_position.x, grande.global_position.x])
+	# Con cuerpo de contacto: te para o lo apartas poco a poco (se desplaza)
+	_ok(pl.global_position.x < inicio.x + 25.0 or grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)) > 3.0, "4c: no se atraviesa a un animal grande sin más: choca y lo aparta (animal desplazado %.1f px)" % grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)))
 	grande.set_physics_process(true)
 	grande.set_process(true)
 

@@ -23,4 +23,5 @@ fuente: "Biblia §3.1"
   - **Higiene y Enfermedades (`E1–E2`):** La higiene baja cada día (`0..100`). Si cae por debajo de `30`, el vecino huele mal (`−2` de aprecio al charlar) y corre más riesgo de enfermar. Se recupera lavándose en los **pozos** o en el **Lavadero del Lago**. Existen dos enfermedades contagiosas por cercanía: **Resfriado** (leve, 3 días) y **Fiebre gris** (grave, 5 días; obliga a guardar cama o ir al hospital del **Dr. Valen**, y en ancianos o heridos puede ser mortal).
 
 ## Notas de diseño
+- 2026-11-11 (decisión del usuario, paso a 3D 3b): bucear da 30 s de aire; sin aire se pierden 8 de vida por segundo hasta morir; fuera del agua el aire vuelve en 5 s. Barra 🫧 solo mientras buceas o recuperas.
 -

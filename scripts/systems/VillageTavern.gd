@@ -528,7 +528,7 @@ static func elevation_height_for(pos: Vector2, elev_level: int) -> float:
 	if RECT.grow(10.0).has_point(pos) and STAIRS_RAMP_RECT.has_point(pos):
 		var t: float = clampf((pos.y - STAIRS_BOTTOM_POS.y) / maxf(1.0, STAIRS_TOP_POS.y - STAIRS_BOTTOM_POS.y), 0.0, 1.0)
 		return lerpf(2.95, FLOOR_1_H + 0.55, t)
-	if elev_level == 1:
+	if elev_level == 1 and RECT.grow(10.0).has_point(pos): # (2026-11-11: antes valía para cualquier sitio; ahora solo la posada)
 		return FLOOR_1_H + 0.55
 	if elev_level == 0 and RECT.grow(2.0).has_point(pos):
 		return 2.95

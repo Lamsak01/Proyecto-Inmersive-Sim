@@ -10,7 +10,7 @@
 
 | Carpeta | Qué hay | Tamaño |
 |---|---|---|
-| `scripts/fisica/` | **Nuevo (paso a 3D).** Todo lo físico del mundo 3D: conversión mapa ↔ 3D, cuerpo 3D del protagonista, choques y suelo | 7 archivos |
+| `scripts/fisica/` | **Nuevo (paso a 3D).** Todo lo físico del mundo 3D: conversión mapa ↔ 3D, cuerpo 3D del protagonista, choques y suelo | 8 archivos |
 | `scripts/` (sueltos) | El protagonista: moverse, pelear, el mundo principal | 4 archivos, ~2.800 líneas |
 | `scripts/enemies/` | Los vecinos (cerebro, trabajo, vida social, policía, diálogos), animales salvajes, mascotas, asaltantes | 12, ~10.100 |
 | `scripts/systems/` | Las reglas del pueblo: reloj, guardado, economía, casas, crimen, justicia, fe, familia, taberna… | 58, ~38.600 |
@@ -35,9 +35,10 @@
 ## Física y mundo 3D — `scripts/fisica/` (nuevo)
 - `Mapa3D.gd` [~55] — **el único sitio** que pasa una posición del mapa a 3D y al revés, en metros (1 unidad = 1 m,
   igual en todas direcciones desde el paso 0b). Lo usan el juego, el editor del mapa y las herramientas.
-- `Cuerpo3D.gd` [~250] — el cuerpo 3D del protagonista: anda, choca, cae, salta, se hace daño al caer, vadea y nada; escribe su sitio en el mapa.
+- `Cuerpo3D.gd` [~330] — el cuerpo 3D del protagonista y de los vecinos cercanos: anda, choca, cae, salta, cambia de piso; el protagonista además se hace daño al caer, vadea y nada; escribe su sitio en el mapa.
 - `ChoquesCercanos3D.gd` [~175] — copias 3D, levantadas como muros, de los choques del mapa que hay cerca de un cuerpo.
-- `CuerposCercanos3D.gd` [~135] — cuerpos 3D «de contacto» de los vecinos, bandidos y animales grandes cercanos al protagonista (no se les atraviesa).
+- `CuerposDelPueblo3D.gd` [~55] — reparte cuerpos 3D completos a los vecinos cercanos al protagonista y se los quita al alejarse (opción B, híbrida).
+- `CuerposCercanos3D.gd` [~140] — cuerpos 3D «de contacto» de los vecinos, bandidos y animales grandes cercanos al protagonista (no se les atraviesa).
 - `Vista.gd` [~70] — ¿quién ve a quién, cuánto le oye y si llega a golpearle? paredes y puertas del mapa más las losas de los suelos altos (pasos 5a–5c).
 - `Agua.gd` [~55] — dónde hay agua (río y lago), a qué altura está su superficie y cuánto cubre en cada punto.
 - `Suelo.gd` [~95] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.

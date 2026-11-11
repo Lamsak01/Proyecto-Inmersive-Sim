@@ -45,13 +45,54 @@ func _probar_puerta(pl, mc, vm, d: Dictionary) -> void:
 	var dentro: float = (pl.global_position - pos).dot(-fuera)
 	if not (rect.has_point(pl.global_position) and dentro > 10.0):
 		_fallos.append("%s: no entra (se queda en %s, %.0f px dentro)" % [id, str(pl.global_position.round()), dentro])
+		_que_hay_cerca(pl, id)
 	pl.global_position = pos - fuera * DESDE_PX
 	await _andar(pl, mc, vm, d, fuera)
 	var fuera_px: float = (pl.global_position - pos).dot(fuera)
 	if fuera_px < 10.0:
 		_fallos.append("%s: no sale (se queda en %s, %.0f px fuera)" % [id, str(pl.global_position.round()), fuera_px])
+		_que_hay_cerca(pl, id)
 	else:
 		print("  OK  %s" % id)
+
+
+## Al fallar: qué choques del mapa y qué vecinos hay pegados al protagonista (para saber qué lo para).
+func _que_hay_cerca(pl, id: String) -> void:
+	var q := PhysicsShapeQueryParameters2D.new()
+	var circ := CircleShape2D.new()
+	circ.radius = 14.0
+	q.shape = circ
+	q.transform = Transform2D(0.0, pl.global_position)
+	q.collision_mask = 1 | (1 << 19)
+	for r in pl.get_world_2d().direct_space_state.intersect_shape(q, 12):
+		var col = r["collider"]
+		print("    DBG %s: choque %s grupos %s en %s" % [id, col.name, str(col.get_groups()), str((col as Node2D).global_position.round()) if col is Node2D else "?"])
+	for n in get_nodes_in_group("village_npcs"):
+		if n.global_position.distance_to(pl.global_position) < 30.0:
+			print("    DBG %s: vecino %s en %s vel %s cuerpo %s" % [id, n.npc_name, str(n.global_position.round()), str(n.velocity.round()), str(n.has_meta("cuerpo3d"))])
+	var c = pl.get_node("PlayerMovementController").cuerpo()
+	print("    DBG %s: cuerpo 3D en %s suelo %.2f copias %d" % [id, str(c.global_position), c._suelo_y, c.choques_copiados()])
+	for n3 in _todos(c.get_parent()):
+		if n3 is CollisionObject3D and n3 != c and (n3 as Node3D).global_position.distance_to(c.global_position) < 1.0:
+			var forma = n3.get_child(0) if n3.get_child_count() > 0 else null
+			var padre: Node = n3.get_parent()
+			var guion: String = str(padre.get_script().resource_path).get_file() if padre.get_script() != null else "sin guion"
+			var origen: String = "?"
+			if padre.get("_copias") is Dictionary:
+				for k in (padre.get("_copias") as Dictionary).keys():
+					if (padre.get("_copias") as Dictionary)[k] == n3:
+						var rid_id: int = int(str(k).split(":")[0])
+						for cand in _todos(get_root()):
+							if cand is CollisionObject2D and (cand as CollisionObject2D).get_rid().get_id() == rid_id:
+								origen = "%s grupos %s en %s capa %d" % [cand.name, str(cand.get_groups()), str((cand as Node2D).global_position.round()), cand.collision_layer]
+			print("    DBG %s: pieza 3D %s (padre %s [%s]) a %.2f m, copia de: %s" % [id, n3.name, padre.name, guion, (n3 as Node3D).global_position.distance_to(c.global_position), origen])
+
+
+func _todos(n: Node) -> Array:
+	var out: Array = [n]
+	for ch in n.get_children():
+		out.append_array(_todos(ch))
+	return out
 
 
 func _andar(pl, mc, vm, d: Dictionary, dir: Vector2) -> void:

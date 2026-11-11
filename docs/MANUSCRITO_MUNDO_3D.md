@@ -6,6 +6,93 @@
 
 ---
 
+## Paso 3b — Bucear (noche del 2026-11-11, Claude Code, portátil)
+
+**Qué cambia en el juego:** nadando, la tecla de agacharse te hunde: buceas por el fondo del río o del lago, con la
+vista teñida de verde-azul y turbia en 1.ª persona. Tienes 30 s de aire (barra 🫧 que solo aparece al bucear y hasta
+que lo recuperas); sin aire pierdes 8 de vida cada segundo hasta morir (decisión del usuario). Al subir a la superficie
+(la misma tecla) o salir del agua, el aire vuelve en 5 s.
+
+**Archivos:**
+- `scripts/fisica/Cuerpo3D.gd`: `buceando` → nadando, el suelo es el fondo.
+- `scripts/PlayerMovementController.gd`: `buceando`, `aire_s`, `_respirar` (gasto, ahogo con `DamageData`
+  «Ahogamiento», recuperación); la tecla de agacharse nadando alterna bucear.
+- `scenes/ui_root.gd`: barra de aire `aire_bar` (`_refrescar_aire`).
+- `scripts/visuals/WorldStage3D.gd`: `_fp_ojos_bajo_agua` y la niebla verde-azul bajo el agua en 1.ª persona.
+- `tools/tests/fisica_3d.gd`: prueba 3b (baja al fondo, gasta aire, sin aire pierde vida, al subir recupera).
+- Pendiente (3c): pistas en el fondo, cuando el usuario decida cuáles.
+
+**Cómo se probó:** fisica_3d ✅ (4 comprobaciones en el lago) · puertas_3d 29/29 · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
+## Paso 2e — Piso alto y sótano de tu casa (noche del 2026-11-11, Claude Code, portátil)
+
+**Qué cambia en el juego:** el piso alto de tu casa (mejora «upper_floor») está de verdad a ~2,75 m y su sótano
+(«hidden_cellar») a ~3,2 m bajo tierra: al cambiar de piso con [E] en la escalera, tu cuerpo aparece en el suelo
+nuevo sin caer ni hacerse daño; la cámara y el muñeco van a esa altura. En 3D el piso alto es un suelo de madera sobre
+toda la casa (se ve en 1.ª persona o estando arriba, como el de la posada) y el sótano, una sala de piedra con techo de
+roca (solo en 1.ª persona). Las paredes de la casa cierran también el sótano.
+
+**Archivos:**
+- `scripts/systems/VillageHousing.gd`: `casa_del_jugador_con(vm, pos, mejora)`.
+- `scripts/fisica/Suelo.gd`: `ALTILLO_CASA_PX` (26); nivel 1 en tu casa → altillo; `es_bajo_tierra` incluye tu sótano.
+- `scripts/fisica/Cuerpo3D.gd`: `_nivel_visto`: si el piso cambia desde fuera ([E]), el cuerpo va al suelo nuevo de
+  golpe (vale también para el club y las alcantarillas).
+- `scripts/visuals/WorldStageProps3D.gd`: suelo del altillo (grupo «altillo_casa_3d») y sala del sótano con techo de roca.
+- `scripts/visuals/WorldStage3D.gd`: el altillo de tu casa se ve en 1.ª persona o estando arriba.
+- `tools/tests/fisica_3d.gd`: prueba 2e (alturas y cambio de piso sin daño), con una casa de prueba.
+
+**Cómo se probó:** fisica_3d ✅ (4 comprobaciones con una casa de prueba) · puertas_3d 29/29 · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
+## Opción B, trozo 1 — Cuerpo 3D completo para los vecinos cercanos (noche del 2026-11-11, Claude Code, portátil)
+
+**Qué cambia en el juego:** los vecinos que tienes cerca (a menos de ~8 m, hasta 24) andan con un cuerpo 3D de verdad,
+el mismo que el protagonista: chocan con paredes, muebles, puertas cerradas y el agua (no nadan), suben la escalera
+de la posada por su rampa y cambian de piso solos, y ya no hace falta recolocarlos a mano (los «empujones» viejos solo
+siguen para los lejanos). Chocan contigo (puedes apartarlos andando contra ellos) pero no entre sí (su propia
+separación los aparta). Dormidos, sentados o caídos, su cuerpo se apaga. Lo que hay justo en su destino (su cama, su
+silla, su mostrador) no les cierra el paso. Los lejanos siguen como antes (híbrido, decisión del usuario por
+rendimiento).
+
+**Archivos:**
+- `scripts/fisica/CuerposDelPueblo3D.gd` (nuevo, ~55 líneas): reparte y quita cuerpos según la distancia al
+  protagonista (CERCA 150 px, LEJOS 190, MAX 24); cada vecino lleva su cuerpo en la meta «cuerpo3d».
+- `scripts/fisica/Cuerpo3D.gd`: vale para cualquier actor (`es_prota`): piso propio del vecino (`_nivel`,
+  `_cambiar_nivel`), máscara de muros fija, choques en un radio menor, no nada, capas 3D (protagonista 1, vecinos 2;
+  los vecinos solo chocan con el protagonista y el mundo), cuerpo apagado si no está de pie, `destino_actor`, un
+  desplazamiento pequeño en el mapa (< 8 px, las rutas ajustan) solo mueve el cuerpo en vez de «teletransportarlo»;
+  si el actor desaparece, el cuerpo se borra; el protagonista aparta también a los cuerpos completos.
+- `scripts/fisica/ChoquesCercanos3D.gd`: `radio()`, `cruza_agua`, `excluir_destino` (lo que está justo en el destino
+  no se copia).
+- `scripts/fisica/CuerposCercanos3D.gd`: `tamano_de_pie` (sentado solo si está quieto: las sillas del salón quedan
+  bajo la galería); el cuerpo de contacto no se da a quien ya tiene cuerpo completo.
+- `scripts/enemies/VillageNPCSocial.gd`: `_finish_frame_movement` mueve con el cuerpo si lo tiene y salta las
+  recolocaciones a mano.
+- `tools/tests/fisica_3d.gd`: la prueba 4b espera cuerpo completo; chocar con un vecino (o un animal, 4c) lo aparta
+  o te para; la prueba del río admite que el cuerpo se hunda hasta flotar con su gravedad.
+
+**Tres cosas que salieron al probar y cómo quedaron:**
+1. **Fuera la losa del suelo.** El cuerpo pisaba una losa invisible de 3×3 m que lo seguía; las losas de los vecinos
+   (a la altura de su tarima) frenaban al protagonista en las puertas. Ahora el cuerpo no baja de la altura del suelo
+   que le dice Suelo.gd (`MOTION_MODE_FLOATING` + `_en_suelo`), sin pieza de suelo. Menos código y menos choques.
+2. **Muros invisibles.** Al irse el cuerpo de un vecino, sus copias de paredes se quedaban en el mundo (una era una
+   puerta abierta: nadie podía pasar). `Cuerpo3D._exit_tree` las borra con él.
+3. **Red de seguridad.** Si un vecino con cuerpo intenta andar 5 s sin avanzar, pierde el cuerpo 10 s y vuelve a las
+   rutas de siempre (`CuerposDelPueblo3D._atascado`). Visto con Don Vittorio en la posada (179 s clavado).
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ · atascos 6 h: 1 (Helena, 6 s, entre dos vecinos parados) ·
+atascos cena con cocinero y el protagonista en la puerta de la posada: 1 (Garrick, 14 s en la calle; antes del arreglo de
+la red de seguridad, Don Vittorio 179 s). Lo normal antes de esta noche eran 0; los dos son cortos y se sueltan solos.
+
+**Pendiente de la opción B:** animales y bandidos con cuerpo completo (hoy, cuerpo de contacto), borrar las
+recolocaciones a mano cuando todos tengan cuerpo, y un buscador de caminos 3D si hiciera falta (las rutas actuales
+no se atascan con cuerpos).
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Arreglo 2026-11-11 — Cuerpos de contacto de quien desaparece (Claude Code, portátil)
 
 **Qué pasaba:** si un bandido (o cualquiera con cuerpo de contacto, paso 4b–4c) moría o huía cerca del protagonista y

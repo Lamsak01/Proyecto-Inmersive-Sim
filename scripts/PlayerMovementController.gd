@@ -15,6 +15,10 @@ const CART_HORSE_SPEED_MULT: float = 0.80
 const AGUA_VADEO_MULT: float = 0.7
 const AGUA_NADO_MULT: float = 0.45
 const AGUA_NADO_AGOTADO_MULT: float = 0.2
+## Bucear (paso 3b, decisión del usuario 2026-11-11): 30 s de aire; al acabarse pierdes vida hasta morir.
+const AIRE_S: float = 30.0
+const AIRE_RECUPERA_POR_S: float = 6.0   ## fuera del agua (o en la superficie) el aire vuelve en 5 s
+const AHOGO_DANO_POR_S: float = 8.0      ## sin aire: 8 de vida por segundo (unos 12 s hasta morir)
 const NADO_COSTE_POR_SEG: float = 6.0
 @export var sprint_speed: float = 200.0
 @export var stealth_speed: float = 60.0
@@ -23,6 +27,9 @@ const NADO_COSTE_POR_SEG: float = 6.0
 
 var is_sprinting: bool = false
 var is_stealthing: bool = false
+var buceando: bool = false   ## bajo el agua (paso 3b); se entra y se sale con la tecla de agacharse nadando
+var aire_s: float = AIRE_S
+var _ahogo_acum: float = 0.0
 var current_speed: float = 120.0
 
 ## Rodar con V (COMBATE-1): distancia ~50 px en 0.35 s, invulnerable los primeros 0.25 s.
@@ -200,6 +207,7 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(anim):
 		return
 
+	_respirar(delta)
 	if roll_cooldown_timer > 0.0:
 		roll_cooldown_timer = maxf(0.0, roll_cooldown_timer - delta)
 	if roll_invuln_timer > 0.0:
@@ -309,9 +317,14 @@ func _unhandled_input(event: InputEvent) -> void:
 				if player.has_method("show_hint"):
 					player.show_hint("🛒 Tirando de la carreta no puedes ir en sigilo: suéltala con [E]")
 				return
+			if estado_agua() == Cuerpo3D.EnAgua.NADANDO: # nadando, agacharse es bucear
+				buceando = not buceando
+				if player.has_method("show_hint"):
+					player.show_hint("🫧 Buceas (%d s de aire)" % int(aire_s) if buceando else "🌊 Sales a la superficie")
+				return
 			if estado_agua() != Cuerpo3D.EnAgua.SECO:
 				if player.has_method("show_hint"):
-					player.show_hint("🌊 En el agua no puedes agacharte")
+					player.show_hint("🌊 Vadeando no puedes agacharte")
 				return
 			is_stealthing = not is_stealthing
 
@@ -400,6 +413,28 @@ func _handle_input(delta: float) -> void:
 ## Seco, vadeando o nadando (Cuerpo3D.EnAgua).
 func estado_agua() -> int:
 	return int(_cuerpo.en_agua) if is_instance_valid(_cuerpo) else Cuerpo3D.EnAgua.SECO
+
+## Aire (paso 3b): buceando se gasta; sin aire, te ahogas (pierdes vida cada segundo); fuera, se recupera.
+func _respirar(delta: float) -> void:
+	if estado_agua() != Cuerpo3D.EnAgua.NADANDO:
+		buceando = false
+	if is_instance_valid(_cuerpo):
+		_cuerpo.buceando = buceando
+	if not buceando:
+		aire_s = minf(AIRE_S, aire_s + AIRE_RECUPERA_POR_S * delta)
+		_ahogo_acum = 0.0
+		return
+	aire_s = maxf(0.0, aire_s - delta)
+	if aire_s > 0.0:
+		return
+	_ahogo_acum += delta
+	if _ahogo_acum >= 1.0:
+		_ahogo_acum -= 1.0
+		var d := DamageData.new()
+		d.amount = AHOGO_DANO_POR_S
+		d.type = CombatConstants.DamageType.BLUNT
+		d.weapon_tag = "Ahogamiento"
+		player.take_damage(d)
 
 ## Cuánto frena el agua (paso a 3D, paso 3). Nadando y moviéndote gastas aguante.
 func _freno_agua(moviendose: bool, delta: float) -> float:

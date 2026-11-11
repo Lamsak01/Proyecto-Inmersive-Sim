@@ -147,6 +147,18 @@ static func can_purge_wanted(vm) -> bool:
 static func mark_wanted_purge(vm) -> void:
 	state(vm)["last_hide_day"] = today()
 
+## Paso a 3D, paso 2e: ¿está `pos` dentro de una casa construida del jugador con la mejora `upg` («upper_floor»,
+## «hidden_cellar»)? Lo usa Suelo.gd para dar altura de verdad al piso alto y al sótano.
+static func casa_del_jugador_con(vm, pos: Vector2, upg: String) -> bool:
+	if vm == null:
+		return false
+	for id in player_lots(vm, true):
+		if bool((VillageLots.lot(vm, id).get("upgrades", {}) as Dictionary).get(upg, false)):
+			var d: Dictionary = VillageLots.lot_def(id)
+			if Rect2((d["center"] as Vector2) - (d["size"] as Vector2) * 0.5, d["size"]).grow(6.0).has_point(pos):
+				return true
+	return false
+
 ## Cambiar de piso solo tiene sentido dentro de tu casa: el jugador debe estar cerca de un solar suyo construido.
 const HOME_LEVEL_RADIUS: float = 90.0
 static func player_near_home(vm) -> bool:

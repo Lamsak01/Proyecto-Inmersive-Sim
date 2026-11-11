@@ -28,6 +28,8 @@ const ALTO_BARANDILLA_M: float = 1.0 ## las barandillas: a la cintura (se pueden
 const SEGMENTOS_CIRCULO: int = 12
 
 var _copias: Dictionary = {}       ## clave «rid:forma» → StaticBody3D
+var cruza_agua: bool = true        ## el protagonista entra en el agua (no se copia); un vecino no (se copia como muro)
+var excluir_destino: Vector2 = Vector2.INF ## (vecinos) lo que hay justo en su destino no se copia: así llegan a su cama o su silla
 var _consulta := PhysicsShapeQueryParameters2D.new()
 var _circulo := CircleShape2D.new()
 
@@ -47,13 +49,25 @@ func actualizar(espacio: PhysicsDirectSpaceState2D, centro: Vector2, mascara: in
 	_consulta.transform = Transform2D(0.0, centro)
 	_consulta.collision_mask = mascara
 	_consulta.exclude = excluir
+	var en_destino := {}
+	if excluir_destino != Vector2.INF:
+		var pq := PhysicsPointQueryParameters2D.new()
+		pq.position = excluir_destino
+		pq.collision_mask = mascara
+		for r in espacio.intersect_point(pq, 8):
+			en_destino["%d:%d" % [(r["rid"] as RID).get_id(), int(r["shape"])]] = true
 	var vistos := {}
 	for r in espacio.intersect_shape(_consulta, MAX_CHOQUES):
-		if r["collider"] is Node and ((r["collider"] as Node).is_in_group("agua_2d") or (r["collider"] as Node).is_in_group("village_npcs")):
-			continue
+		if r["collider"] is Node:
+			var nodo := r["collider"] as Node
+			# Ni el agua (si la cruza), ni los vecinos ni el protagonista: los personajes chocan entre sí con sus cuerpos 3D
+			if (cruza_agua and nodo.is_in_group("agua_2d")) or nodo.is_in_group("village_npcs") or nodo.is_in_group("player"):
+				continue
 		var rid: RID = r["rid"]
 		var idx: int = int(r["shape"])
 		var clave := "%d:%d" % [rid.get_id(), idx]
+		if en_destino.has(clave):
+			continue
 		vistos[clave] = true
 		var copia: StaticBody3D = _copias.get(clave)
 		if copia == null:
@@ -70,6 +84,11 @@ func actualizar(espacio: PhysicsDirectSpaceState2D, centro: Vector2, mascara: in
 
 func cuantas() -> int:
 	return _copias.size()
+
+
+## A qué distancia del cuerpo se copian los choques (un vecino necesita menos que el protagonista).
+func radio(px: float) -> void:
+	_circulo.radius = px
 
 
 func _crear_copia(rid: RID, idx: int) -> StaticBody3D:

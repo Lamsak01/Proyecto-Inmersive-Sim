@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-11 (noche) — Paso a 3D: bucear (Claude Code, portátil; rama `mundo-3d`)
+- Nadando, agacharse te hunde: buceas por el fondo con 30 s de aire (barra 🫧); sin aire pierdes vida hasta morir. Vista verde-azul bajo el agua.
+
+## 2026-11-11 (noche) — Paso a 3D: piso alto y sótano de tu casa de verdad (Claude Code, portátil; rama `mundo-3d`)
+- El piso alto de tu casa está de verdad arriba y el sótano bajo tierra; con [E] cambias sin caerte.
+
+## 2026-11-11 (noche) — Paso a 3D, opción B: los vecinos cercanos con cuerpo 3D completo (Claude Code, portátil; rama `mundo-3d`)
+- Los vecinos que tienes cerca chocan con paredes, muebles y puertas, suben escaleras y cambian de piso solos; chocan contigo (puedes apartarlos). Los lejanos siguen como antes.
+
 ## 2026-11-11 — Arreglos de la partida del usuario, 7b: manos de verdad en 1.ª persona (Claude Code, portátil; rama `mundo-3d`)
 - Las manos en 1.ª persona son ahora los brazos del muñeco de los aldeanos (piel y manga), en vez de bolas de color carne.
 

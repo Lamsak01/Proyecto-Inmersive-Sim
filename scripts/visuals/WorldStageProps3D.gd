@@ -482,6 +482,20 @@ func _sync_home_props_3d() -> void:
 			_add_box_2d(root, st_pos + Vector2(-3.2, 0), Vector2(4.2, 8.8), 2.2, 1.2, m_oak) # Tabla izq
 			_add_box_2d(root, st_pos + Vector2(3.4, -0.6), Vector2(4.2, 8.8), 2.6, 1.4, m_oak) # Tabla entreabierta der
 			_add_cyl_2d(root, st_pos + Vector2(0, 0.8), 2.2, 2.2, 1.2, m_gold, 2.2, 8) # Monedas ocultas
+		# Paso a 3D, paso 2e: el piso alto es un suelo de madera a Suelo.ALTILLO_CASA_PX sobre toda la casa (se ve en
+		# 1.ª persona o estando arriba: desde arriba taparía la planta baja) y el sótano, una sala de piedra bajo tierra.
+		var d_lot: Dictionary = VillageLots.lot_def(lid)
+		if bool(up.get("upper_floor", false)):
+			var altillo := _add_box_2d(root, d_lot["center"], (d_lot["size"] as Vector2) - Vector2(6.0, 6.0), Suelo.ALTILLO_CASA_PX - 1.4, 1.4, m_oak)
+			if altillo != null:
+				altillo.add_to_group("altillo_casa_3d")
+		if bool(up.get("hidden_cellar", false)):
+			var m_piedra: StandardMaterial3D = _mat("hp_piedra", Color(0.34, 0.33, 0.31), 0.95, 0.0)
+			var sotano := Node3D.new()
+			sotano.position.y = Mapa3D.alto_a_3d(Suelo.PROFUNDIDAD_SOTANO_PX)
+			root.add_child(sotano)
+			_add_box_2d(sotano, d_lot["center"], (d_lot["size"] as Vector2) - Vector2(6.0, 6.0), -1.0, 1.0, m_piedra) # suelo
+			_add_techo_roca(sotano, d_lot["center"], d_lot["size"], m_piedra)
 		if bool(up.get("upper_floor", false)) or bool(up.get("hidden_cellar", false)):
 			var sr_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_stairs")
 			_add_box_2d(root, sr_pos, Vector2(13.0, 14.0), 1.8, 1.2, m_dark) # Trampilla / base

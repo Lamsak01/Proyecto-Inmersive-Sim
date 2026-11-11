@@ -12,8 +12,13 @@ func _finish_frame_movement(delta: float, apply_yield: bool = true) -> void:
 	if lod_k > 1.0:
 		velocity *= lod_k # V2: un paso de varios fotogramas recorre la distancia de todos ellos
 	var prev_pos: Vector2 = global_position
-	move_and_slide()
-	if not is_sleeping and not is_at_poker_table and _cached_vm != null:
+	var cuerpo = get_meta("cuerpo3d") if has_meta("cuerpo3d") else null
+	if is_instance_valid(cuerpo):
+		cuerpo.destino_actor = _last_nav_dest # su cama o su silla no le cierran el paso
+		cuerpo.mover(velocity, delta) # paso a 3D (opción B): el cuerpo anda, choca y escribe la posición en el mapa
+	else:
+		move_and_slide()
+	if cuerpo == null and not is_sleeping and not is_at_poker_table and _cached_vm != null: # sin cuerpo: recolocar a mano como siempre
 		var in_door: bool = _cached_vm.has_method("get_doorway_clearance_nudge") and (_cached_vm.call("get_doorway_clearance_nudge", global_position, 22.0) as Vector2).length_squared() > 0.01
 		if not in_door:
 			if global_position.distance_squared_to(prev_pos) > 0.001 and _cached_vm.has_method("sanitize_npc_separation_pos"):

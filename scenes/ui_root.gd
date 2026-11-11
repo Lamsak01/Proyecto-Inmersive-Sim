@@ -3,6 +3,7 @@ extends Control
 @export var player: CharacterBody2D
 @export var health_bar: ProgressBar
 @export var stamina_bar: ProgressBar
+var aire_bar: ProgressBar = null ## paso 3b: solo se ve buceando o mientras recuperas el aire
 @export var blood_bar: ProgressBar
 @export var stun_bar: ProgressBar
 var hunger_bar: ProgressBar = null
@@ -82,6 +83,9 @@ func _ready() -> void:
 
 	if not stamina_bar:
 		stamina_bar = _create_paper_bar_row(stats_box, "⚡", Color(0.435, 0.604, 0.353, 1.0), true)
+
+	aire_bar = _create_paper_bar_row(stats_box, "🫧", Color(0.36, 0.62, 0.86, 1.0), false)
+	_set_bar_row_visible(aire_bar, false)
 
 	if not blood_bar:
 		blood_bar = _create_paper_bar_row(stats_box, "🩸", Color(0.70, 0.10, 0.16, 1.0), false)
@@ -1321,6 +1325,7 @@ func _refresh_hand_slots() -> void:
 
 func _process(_delta: float) -> void:
 	_refresh_hand_slots()
+	_refrescar_aire()
 	var hint := get_node_or_null("HintLabel") as Label
 	if hint:
 		hint.modulate.a = 0.0
@@ -1466,6 +1471,18 @@ func _on_health_changed(current: float, max_val: float) -> void:
 func _on_stamina_changed(current: float, max_val: float) -> void:
 	stamina_bar.value = current
 	stamina_bar.max_value = max_val
+
+## Paso 3b: la barra de aire aparece al bucear y hasta que se recupera del todo.
+func _refrescar_aire() -> void:
+	if aire_bar == null:
+		return
+	var pl = get_tree().get_first_node_in_group("player")
+	var mc = pl.get_node_or_null("PlayerMovementController") if pl != null else null
+	if mc == null:
+		return
+	aire_bar.max_value = mc.AIRE_S
+	aire_bar.value = mc.aire_s
+	_set_bar_row_visible(aire_bar, mc.buceando or mc.aire_s < mc.AIRE_S - 0.5)
 
 func _set_bar_row_visible(bar: ProgressBar, vis: bool) -> void:
 	if not bar:

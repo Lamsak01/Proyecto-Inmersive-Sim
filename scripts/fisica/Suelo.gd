@@ -9,11 +9,14 @@ extends RefCounted
 ##   3D pisa el que tiene debajo según su altura, y de ahí sale su piso. Los choques del mapa que son de un solo piso
 ##   (tabiques de la Planta 0, barandillas y cuartos de la Planta +1) se levantan solo a la altura de ese piso.
 ## - Paso 5a: `losas` dice qué suelos altos tapan la vista.
+## - Paso 2e (noche del 2026-11-11): el piso alto de tu casa está de verdad a ALTILLO_CASA_PX y su sótano a
+##   PROFUNDIDAD_SOTANO_PX; se sigue subiendo y bajando con [E] en la escalera.
 ## - Paso 2b: el club de peleas (bajo la posada) y las alcantarillas (bajo el centro) están de verdad bajo tierra, a
 ##   PROFUNDIDAD_SOTANO_PX. Se sigue llegando por la trampilla o la reja con [E]. El sótano de tu casa aún no (paso 2e).
 
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
+const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
 
 const TARIMA_EDIFICIO_PX: float = 2.65 ## suelo de madera dentro de los edificios
@@ -23,7 +26,8 @@ const TARIMA_TERRAZA_PX: float = 1.8  ## terraza del restaurante
 ## el protagonista está en otro piso. Solo la mira el cuerpo 3D, que los levanta a la altura de su piso.
 const CAPA_PISOS: int = 1 << 19
 const PISO_TODOS: int = -99 ## choque normal: de arriba abajo
-const PROFUNDIDAD_SOTANO_PX: float = -30.0 ## suelo del club y de las alcantarillas: ~3,2 m bajo la calle
+const PROFUNDIDAD_SOTANO_PX: float = -30.0 ## suelo del club, de las alcantarillas y del sótano de tu casa: ~3,2 m bajo la calle
+const ALTILLO_CASA_PX: float = 26.0        ## piso alto de tu casa: ~2,75 m sobre la calle
 
 
 ## Altura del suelo (píxeles de altura sobre el relieve) en `pos` para alguien en la capa `nivel`.
@@ -33,6 +37,8 @@ static func altura_px(pos: Vector2, nivel: int, vm: Node) -> float:
 	var h_taberna: float = VillageTavern.elevation_height_for(pos, nivel)
 	if h_taberna > 0.0:
 		return h_taberna
+	if nivel == 1 and VillageHousing.casa_del_jugador_con(vm, pos, "upper_floor"):
+		return ALTILLO_CASA_PX
 	if nivel != 0:
 		return 0.0
 	if vm != null and vm.has_method("_is_pos_inside_any_building") and bool(vm.call("_is_pos_inside_any_building", pos)):
@@ -49,7 +55,7 @@ static func es_bajo_tierra(pos: Vector2, vm: Node) -> bool:
 		return false
 	if Rect2(vm.VillageClub.CLUB_CENTER - vm.VillageClub.CLUB_SIZE * 0.5, vm.VillageClub.CLUB_SIZE).grow(12.0).has_point(pos):
 		return true
-	return vm.VillageUnderworld.zona_alcantarillas().has_point(pos)
+	return vm.VillageUnderworld.zona_alcantarillas().has_point(pos) or VillageHousing.casa_del_jugador_con(vm, pos, "hidden_cellar")
 
 
 ## Suelos que hay en `pos` uno encima de otro (px sobre el relieve, de abajo arriba). Vacío si ahí solo hay uno.
