@@ -6,6 +6,21 @@ extends "res://scripts/visuals/WorldStageBuildings3D.gd"
 # ==============================================================================
 # SUELO 3D Y NATURALEZA (2026-11-05): sustituyen a la hierba y a los pinos dibujados en 2D
 # ==============================================================================
+## Agua con movimiento (2026-11-11): material con el efecto `shaders/agua.gdshader` para el río y el lago. Sin ventana
+## (pruebas), un material normal.
+func _mat_agua(key: String, col: Color) -> Material:
+	if _mat_cache.has(key):
+		return _mat_cache[key]
+	if _is_headless:
+		return _mat(key + "_hl", col, 0.12, 0.14)
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://shaders/agua.gdshader")
+	sm.set_shader_parameter("tex", AssetLib.load_texture("town_textures/floor_ground_water.png"))
+	sm.set_shader_parameter("tinte", col)
+	_mat_cache[key] = sm
+	return sm
+
+
 func _make_ground_shader_mat(key: String, c_prim: Color, c_sec: Color, c_earth: Color, dirt_b: float) -> Material:
 	if _mat_cache.has(key):
 		return _mat_cache[key]
@@ -194,10 +209,8 @@ func _build_ground_foliage_3d() -> void:
 
 ## Lago 3D con abundante agua azul a cota -1.5 px, orillas suaves de hierba con juncos y piedras, y un único muelle a ras del agua.
 func _build_lake_3d() -> void:
-	var m_lake := _mat("lake_water", Color(0.24, 0.54, 0.82, 0.92), 0.12, 0.14, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
-	var m_deep := _mat("lake_deep", Color(0.14, 0.34, 0.60, 0.95), 0.10, 0.12, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.55)
-	for lm in [m_lake, m_deep]:
-		(lm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+	var m_lake := _mat_agua("lake_water", Color(0.24, 0.54, 0.82, 0.92))
+	var m_deep := _mat_agua("lake_deep", Color(0.14, 0.34, 0.60, 0.95))
 	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.12, 8.0), -1.0, m_lake, true)
 	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.66, 0.0), -0.8, m_deep, true)
 	# Un único muelle de madera en la orilla este del lago, a ras del agua (-1.0 px) y sin tablón suelto
@@ -862,11 +875,10 @@ func _build_river_and_arroyo_3d(
 	m_road: Material, m_wood: Material, m_dark_wood: Material,
 	m_stone: Material, m_iron: Material, m_pine: Material, m_pine_top: Material
 ) -> void:
-	var m_riv_water := _mat("river_water_3d", Color(0.18, 0.48, 0.76, 0.92), 0.12, 0.16, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.62)
-	var m_riv_deep := _mat("river_deep_3d", Color(0.09, 0.28, 0.52, 0.96), 0.10, 0.14, Color.BLACK, 0.0, "town_textures/floor_ground_water.png", "", 0.62)
+	var m_riv_water := _mat_agua("river_water_3d", Color(0.18, 0.48, 0.76, 0.92))
+	var m_riv_deep := _mat_agua("river_deep_3d", Color(0.09, 0.28, 0.52, 0.96))
 	var m_riv_foam := _mat("river_foam_3d", Color(0.76, 0.88, 0.96, 0.72), 0.22, 0.05)
-	for rm in [m_riv_water, m_riv_deep, m_riv_foam]:
-		(rm as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+	(m_riv_foam as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED # el agua ya lo lleva en su efecto
 
 	var m_bank_earth := _mat("river_bank_earth", Color(0.40, 0.31, 0.20), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.65)
 	var m_wet_mud := _mat("river_wet_mud", Color(0.25, 0.18, 0.12), 0.44, 0.08, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.72)

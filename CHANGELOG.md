@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-11 — Arreglos de la partida del usuario, 7a: el agua se mueve (Claude Code, portátil; rama `mundo-3d`)
+- El río y el lago tienen corriente y brillos que ondulan (efecto propio, sin descargar nada).
+
 ## 2026-11-11 — Arreglos de la partida del usuario, 6: los cuartos de la posada (Claude Code, portátil; rama `mundo-3d`)
 - La planta alta de la posada pasa de 5 cuartos minúsculos a 3 amplios: el de los dueños, el de huéspedes (3 camas) y el tuyo.
 - De paso: un bandido muerto o huido cerca de ti dejaba un error repetido cada fotograma (su cuerpo de contacto no se soltaba).

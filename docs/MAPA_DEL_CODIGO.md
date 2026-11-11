@@ -42,6 +42,9 @@
 - `Agua.gd` [~55] — dónde hay agua (río y lago), a qué altura está su superficie y cuánto cubre en cada punto.
 - `Suelo.gd` [~95] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.
 
+## Efectos — `shaders/`
+- `agua.gdshader` — el agua del río y el lago con corriente y brillos que ondulan (2026-11-11). Los demás: recorte de color, contorno, etalonaje retro.
+
 ## Lo que se ve en 3D — `scripts/visuals/`
 - `WorldStageBase3D.gd` [~1.000] ⚠ — base del escenario: relieve del suelo, materiales, cajas y cilindros 3D.
 - `WorldStageTerrain3D.gd` [1.663] ⚠ — suelo, caminos, plaza, río, lago, ciénaga, barrios, árboles y plantas.
