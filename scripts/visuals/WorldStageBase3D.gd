@@ -19,6 +19,12 @@ const VillageWorkScript = preload("res://scripts/systems/VillageWork.gd")
 const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousingScript = preload("res://scripts/systems/VillageHousing.gd")
 const FishingSpotScript = preload("res://scripts/obstacles/FishingSpot.gd")
+const AnclasScript = preload("res://mapa/anclas.gd")
+## Mapa ×E (2026-11-11): mientras se construye el terreno desde las listas del código (coordenadas del mapa original),
+## cada posición se estira E veces tal cual (`_add_box_2d`, `_add_cyl_2d`, `_add_model_2d`, polígonos y calles): el
+## terreno es el mapa original estirado y no sigue a las piezas movidas (como hasta ahora). Lo que viene del editor o de
+## nodos del juego ya está en el mundo actual y se añade con esto apagado.
+static var estirar_terreno: bool = false
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 const WORLD_SCALE: float = Mapa3D.ESCALA
@@ -601,17 +607,20 @@ static func olvidar_relieve() -> void:
 
 
 static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
-	var x: float = pos_2d.x
-	var y: float = pos_2d.y
+	# Mapa ×E: las lomas, cuencas y terrazas están escritas en el mapa original → se miran en `o` (el mundo encogido E
+	# veces); el río viene del editor (mundo actual) → se mira en `pos_2d`
+	var o: Vector2 = pos_2d / Mapa3D.E
+	var x: float = o.x
+	var y: float = o.y
 
 	# 0. Cuenca suave del Río y del Arroyo del Bosque Norte (y = -1180..940)
 	var river_cut_h: float = 0.0
 	# Editor del mapa (2026-11-09): el río puede llegar a lomas y bosque; ahí el relieve se allana en su cauce para que el agua no quede bajo tierra
 	var river_flat: float = 0.0
-	if y >= FishingSpotScript.river_y_start() and y <= FishingSpotScript.river_y_end() and not FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(pos_2d):
-		var riv_cx: float = FishingSpotScript.river_center_x(y)
-		var riv_hw: float = FishingSpotScript.river_half_width(y)
-		var d_riv: float = absf(x - riv_cx)
+	if pos_2d.y >= FishingSpotScript.river_y_start() and pos_2d.y <= FishingSpotScript.river_y_end() and not FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(o):
+		var riv_cx: float = FishingSpotScript.river_center_x(pos_2d.y)
+		var riv_hw: float = FishingSpotScript.river_half_width(pos_2d.y)
+		var d_riv: float = absf(pos_2d.x - riv_cx)
 		if d_riv < riv_hw + 20.0:
 			river_cut_h = -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
 		river_flat = 1.0 - smoothstep(riv_hw + 12.0, riv_hw + 90.0, d_riv)
@@ -663,11 +672,11 @@ static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
 
 	# Relieve suave dentro del casco del pueblo y sus terrazas (Fase B):
 	if d_village <= 0.001 and absf(lake_h) < 0.001:
-		return _village_terrace_height_px(pos_2d) + river_cut_h
+		return _village_terrace_height_px(o) + river_cut_h
 
 	var d_out: float = minf(d_village, minf(d_camp, d_cas))
 	var village_edge_h: float = _village_terrace_height_px(Vector2(clampf(x, -665.0, 1785.0), clampf(y, north_lim_y, 650.0))) * (1.0 - smoothstep(0.0, 160.0, d_village))
-	var outer_mask: float = smoothstep(0.0, 175.0, d_out) * _road_flat_mask(pos_2d)
+	var outer_mask: float = smoothstep(0.0, 175.0, d_out) * _road_flat_mask(o)
 
 	# 4. Lomas anchas y suaves en la Llanura Salvaje y borde exterior (sin montículos aislados; pendiente < 10°)
 	var plains_h: float = 0.0
@@ -858,6 +867,8 @@ func check_furniture_overlaps(warn_on_overlap: bool = true) -> Array[String]:
 	return overlaps
 
 func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_h_px: float, sz_2d: Vector2 = Vector2.ZERO, height_px: float = 24.0, rot_y_deg: float = 0.0) -> Node3D:
+	if estirar_terreno:
+		center_2d *= Mapa3D.E
 	if not _permitir_en_rio and es_vegetacion_en_rio(rel_path, center_2d):
 		return null
 	if _construyendo_estatico and not _permitir_en_rio and rel_path.begins_with("nature/") and (grabar_vegetacion or vegetacion_en_escena):
@@ -912,6 +923,8 @@ func _particulas_a_metros(p: CPUParticles3D) -> void:
 
 
 func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px: float, height_px: float, mat: Material, rot_y_deg: float = 0.0, absolute_h: bool = false) -> MeshInstance3D:
+	if estirar_terreno:
+		center_2d *= Mapa3D.E
 	var mi := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = size_3d(sz_2d, height_px)
@@ -925,6 +938,8 @@ func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px
 	return mi
 
 func _add_cyl_2d(parent: Node3D, center_2d: Vector2, radius_px: float, bottom_h_px: float, height_px: float, mat: Material, top_radius_px: float = -1.0, radial_segs: int = 12) -> MeshInstance3D:
+	if estirar_terreno:
+		center_2d *= Mapa3D.E
 	var mi := MeshInstance3D.new()
 	var cm := CylinderMesh.new()
 	cm.bottom_radius = maxf(0.01, radius_px * WORLD_SCALE)

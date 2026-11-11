@@ -16,6 +16,10 @@ const ALTO: float = ESCALA / 0.5299192642332049 ## 1 píxel de altura ≈ 10,6 c
 
 ## Escala del mundo antes del paso 0b (1 píxel = 0,02 unidades). Solo para los modelos y efectos que aún tienen medidas
 ## escritas a mano en la escala vieja: se agrandan con K. Se irá quitando según se reescriba cada uno.
+## Estiramiento del mapa (docs/specs/PLAN_MAPA_X3.md, 2026-11-11): cada pieza del mapa original se coloca a E veces su
+## distancia del centro, con su mismo tamaño; el campo abierto y las zonas (lago, plaza…) se estiran E veces. Con 1, el
+## mapa de siempre. Lo aplica mapa/anclas.gd; tools/estirar_mapa.py convierte la escena del editor con el mismo número.
+const E: float = 1.0
 const ESCALA_ANTIGUA: float = 0.02
 const K: float = ESCALA / ESCALA_ANTIGUA
 

@@ -463,7 +463,7 @@ static func build_sewers_world(vm) -> void:
 					old_n.queue_free()
 
 	var AN = load("res://mapa/anclas.gd")
-	desp_red = load("res://mapa/edificio.gd").desplazamiento("bajo_alcantarillas")
+	desp_red = AN.mover(Vector2(420.0, SEWER_Y)) - Vector2(420.0, SEWER_Y) # ancla de la red (mapa/anclas.gd): movido + estirado
 	SEWER_LOCATIONS = SEWER_LOCATIONS_BASE.duplicate(true)
 	for k in SEWER_LOCATIONS.keys():
 		var dl: Dictionary = SEWER_LOCATIONS[k]

@@ -1323,8 +1323,8 @@ func rebuild_lots_3d() -> void:
 		var status: String = str(st.get("status", "empty"))
 		if status == "built":
 			continue
-		var c: Vector2 = VillageLots.lot_def(id)["center"]
-		var sz_l: Vector2 = l_dict["size"]
+		var c: Vector2 = AnclasScript.mover(VillageLots.lot_def(id)["center"]) # mapa ×E
+		var sz_l: Vector2 = (l_dict["size"] as Vector2) * Mapa3D.E
 		var h: Vector2 = sz_l * 0.5 - Vector2(6, 6)
 		if status == "empty":
 			for p in [Vector2(-h.x, -h.y), Vector2(h.x, -h.y), Vector2(h.x, h.y), Vector2(-h.x, h.y)]:

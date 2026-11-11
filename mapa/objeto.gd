@@ -59,8 +59,8 @@ static func pos(clave_obj: String, por_defecto: Vector2) -> Vector2:
 	if not _leido:
 		_leido = true
 		_cache = _leer()
-	if not _cache.has(clave_obj):
-		return por_defecto
+	if not _cache.has(clave_obj) or Mapa3D.E != 1.0:
+		return por_defecto # mapa estirado: el ancla del objeto (mapa/anclas.gd) lo lleva a su sitio
 	return por_defecto + (_cache[clave_obj] as Vector2)
 
 

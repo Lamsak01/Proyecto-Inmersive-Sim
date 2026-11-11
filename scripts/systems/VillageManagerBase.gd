@@ -398,6 +398,7 @@ func _construct_solid_building(
 	var g_edif: float = EdificioEditor.giro(b_id)
 	Anclas.registrar_edificio(Rect2(center - size * 0.5, size), d_edif, g_edif)
 	var orig_info := {"rect_orig": Rect2(center - size * 0.5, size)}
+	d_edif = Anclas.mover(center) - center # con el mapa estirado incluye el estirado (E·c − c) además de lo movido
 	center += d_edif
 	Anclas.pausa += 1 # sus muros ya van desplazados; que las anclas no los muevan otra vez
 	var half := size * 0.5

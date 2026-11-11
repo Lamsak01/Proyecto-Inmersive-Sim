@@ -53,11 +53,11 @@ func _build_ground_3d() -> void:
 	var m_terrain := _make_ground_shader_mat("ground_terrain_heightfield_sh", Color(0.28, 0.40, 0.21), Color(0.20, 0.30, 0.15), Color(0.37, 0.29, 0.19), 0.26)
 	if m_terrain is ShaderMaterial:
 		(m_terrain as ShaderMaterial).set_shader_parameter("use_vertex_biomes", 1.0)
-	var min_x: float = -3450.0
-	var max_x: float = 3050.0
-	var min_y: float = -1850.0
-	var max_y: float = 3250.0
-	var step: float = 34.0
+	var min_x: float = -3450.0 * Mapa3D.E
+	var max_x: float = 3050.0 * Mapa3D.E
+	var min_y: float = -1850.0 * Mapa3D.E
+	var max_y: float = 3250.0 * Mapa3D.E
+	var step: float = 34.0 * maxf(1.0, Mapa3D.E * 0.4) # mapa ×E: celdas algo mayores para no multiplicar por E² los vértices
 	var nx: int = int(ceil((max_x - min_x) / step))
 	var ny: int = int(ceil((max_y - min_y) / step))
 	var st := SurfaceTool.new()
@@ -114,6 +114,8 @@ func _build_ground_3d() -> void:
 	_build_ground_foliage_3d()
 
 func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Material) -> MeshInstance3D:
+	if estirar_terreno:
+		rect = Rect2(rect.position * Mapa3D.E, rect.size * Mapa3D.E)
 	var step: float = 20.0
 	var nx: int = maxi(1, int(ceil(rect.size.x / step)))
 	var ny: int = maxi(1, int(ceil(rect.size.y / step)))
@@ -245,6 +247,8 @@ func _build_lake_3d() -> void:
 
 ## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (si absolute_h es true, no suma el relieve).
 func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat: Material, absolute_h: bool = false) -> MeshInstance3D:
+	if estirar_terreno:
+		pts = pts * Transform2D(0.0, Vector2.ONE * Mapa3D.E, 0.0, Vector2.ZERO)
 	var idx := Geometry2D.triangulate_polygon(pts)
 	if idx.is_empty():
 		return null
@@ -545,6 +549,7 @@ func _plain_static_materials(mi: MeshInstance3D) -> bool:
 # ==============================================================================
 func _build_static_terrain_3d() -> void:
 	_clear_children(terrain_root_3d)
+	estirar_terreno = true # mapa ×E: las listas del código están en el mapa original (ver WorldStageBase3D)
 	_build_ground_3d()
 	var m_road := _mat("road_dirt", Color(0.56, 0.46, 0.34), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.55)
 	var m_curb := _mat("road_curb", Color(0.62, 0.58, 0.52), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
@@ -567,8 +572,10 @@ func _build_static_terrain_3d() -> void:
 	var tramos_ed: Array = load("res://mapa/camino.gd").tramos()
 	if not tramos_ed.is_empty():
 		road_rects = []
+		estirar_terreno = false # los tramos del editor ya están en el mundo actual
 		for t in tramos_ed:
 			_add_tramo_3d(terrain_root_3d, t["a"], t["b"], float(t["ancho"]), 0.25, m_road)
+		estirar_terreno = true
 	for rr in road_rects:
 		_add_road_strip_3d(terrain_root_3d, rr, 0.25, m_road)
 	for lr in (VillageLots.ROADS if tramos_ed.is_empty() else []):
@@ -619,8 +626,8 @@ func _build_static_terrain_3d() -> void:
 	# Plaza Central Empedrada en plataforma ligeramente elevada (+2.4 px en terreno) con bordillos a ras de calzada y rampa empedrada suave en los 4 accesos
 	var plaza_r := Rect2(Vector2(388, 12), Vector2(154, 72))
 	_add_road_strip_3d(terrain_root_3d, plaza_r, 0.35, m_plaza)
-	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.position.y), Vector2(plaza_r.size.x, 4.0), -1.0, 1.45, m_plaza_trim)
-	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.end.y), Vector2(plaza_r.size.x, 4.0), -1.0, 1.45, m_plaza_trim)
+	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.position.y), Vector2(plaza_r.size.x * Mapa3D.E, 4.0), -1.0, 1.45, m_plaza_trim)
+	_add_box_2d(terrain_root_3d, Vector2(plaza_r.get_center().x, plaza_r.end.y), Vector2(plaza_r.size.x * Mapa3D.E, 4.0), -1.0, 1.45, m_plaza_trim)
 	# Bordillos de piedra de la rampa de subida en los 4 accesos de la Plaza y en la subida al barrio del Este
 	for access_curb in [
 		[Vector2(374.0, 34.0), Vector2(24.0, 2.8)],
@@ -718,13 +725,14 @@ func _build_static_terrain_3d() -> void:
 	# Parque del Roble ampliado (Rect2(168, 208, 272, 146)) con césped natural texturizado, bordillo bajo de piedra y bancos despejados
 	var park_r := Rect2(Vector2(168.0, 208.0), Vector2(272.0, 146.0))
 	var park_c: Vector2 = park_r.get_center()
-	_add_box_2d(terrain_root_3d, park_c, park_r.size, 0.0, 0.25, m_grass_park)
-	_add_box_2d(terrain_root_3d, Vector2(park_c.x, park_r.position.y), Vector2(park_r.size.x, 3.0), 0.0, 1.4, m_curb)
-	_add_box_2d(terrain_root_3d, Vector2(park_c.x, park_r.end.y), Vector2(park_r.size.x, 3.0), 0.0, 1.4, m_curb)
-	_add_box_2d(terrain_root_3d, Vector2(park_r.position.x, park_c.y), Vector2(3.0, park_r.size.y), 0.0, 1.4, m_curb)
-	_add_box_2d(terrain_root_3d, Vector2(park_r.end.x, park_c.y), Vector2(3.0, park_r.size.y), 0.0, 1.4, m_curb)
-	_add_box_2d(terrain_root_3d, Vector2(park_c.x, 280.0), Vector2(park_r.size.x - 16.0, 18.0), 0.0, 0.8, m_road)
-	_add_box_2d(terrain_root_3d, park_c, Vector2(18.0, park_r.size.y - 16.0), 0.0, 0.8, m_road)
+	var EE: float = Mapa3D.E # mapa ×E: el parque es una zona y crece entero
+	_add_box_2d(terrain_root_3d, park_c, park_r.size * EE, 0.0, 0.25, m_grass_park)
+	_add_box_2d(terrain_root_3d, Vector2(park_c.x, park_r.position.y), Vector2(park_r.size.x * EE, 3.0), 0.0, 1.4, m_curb)
+	_add_box_2d(terrain_root_3d, Vector2(park_c.x, park_r.end.y), Vector2(park_r.size.x * EE, 3.0), 0.0, 1.4, m_curb)
+	_add_box_2d(terrain_root_3d, Vector2(park_r.position.x, park_c.y), Vector2(3.0, park_r.size.y * EE), 0.0, 1.4, m_curb)
+	_add_box_2d(terrain_root_3d, Vector2(park_r.end.x, park_c.y), Vector2(3.0, park_r.size.y * EE), 0.0, 1.4, m_curb)
+	_add_box_2d(terrain_root_3d, Vector2(park_c.x, 280.0), Vector2((park_r.size.x - 16.0) * EE, 18.0), 0.0, 0.8, m_road)
+	_add_box_2d(terrain_root_3d, park_c, Vector2(18.0, (park_r.size.y - 16.0) * EE), 0.0, 0.8, m_road)
 	var tree_idx := 0
 	for tp in [Vector2(188.0, 224.0), Vector2(420.0, 224.0), Vector2(188.0, 338.0), Vector2(420.0, 338.0), Vector2(304.0, 228.0)]:
 		_build_tree_3d(terrain_root_3d, tp, m_dark_wood, m_pine, m_pine_top, 1.22 if tp == Vector2(304.0, 228.0) else 0.95, tree_idx)
@@ -869,6 +877,7 @@ func _build_static_terrain_3d() -> void:
 
 	# Río de norte a sur, Puente Viejo en el centro del pueblo, arroyo del bosque norte, Claro (barro pardo) y Molino Viejo (barro rojo / arcilla)
 	_build_river_and_arroyo_3d(m_road, m_wood, m_dark_wood, m_stone, m_iron, m_pine, m_pine_top)
+	estirar_terreno = false
 
 func _build_river_and_arroyo_3d(
 	m_road: Material, m_wood: Material, m_dark_wood: Material,

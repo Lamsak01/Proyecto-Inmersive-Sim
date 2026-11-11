@@ -74,7 +74,7 @@ static func _leer_escena() -> Dictionary:
 		if id.is_empty():
 			continue
 		var ahora := Mapa3D.a_mapa(xf.origin)
-		var d := ahora - centro
+		var d := ahora - centro * Mapa3D.E # mapa estirado: lo que el usuario movió la pieza, aparte del estirado
 		var g := fposmod(roundf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) / 90.0) * 90.0, 360.0)
 		if d.length() > 0.5 or g > 0.5:
 			out[id] = [d, g]
