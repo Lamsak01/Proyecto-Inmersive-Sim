@@ -12,7 +12,7 @@ extends Node3D
 ## los tabiques de abajo no estorban arriba y las barandillas de arriba no estorban abajo.
 ## Paso 3: el agua del río y del lago (grupo «agua_2d») no se copia: el cuerpo 3D entra en ella (vadea o nada). Para los
 ## vecinos, que aún andan por el mapa, sigue siendo un muro.
-## Paso 4b: los vecinos tampoco: tienen su propio cuerpo de contacto (CuerposVecinos3D).
+## Paso 4b: los vecinos tampoco: tienen su propio cuerpo de contacto (CuerposCercanos3D).
 ## Paso 2c: las barandillas (Suelo.es_barandilla) llegan a la cintura: se pueden saltar.
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")

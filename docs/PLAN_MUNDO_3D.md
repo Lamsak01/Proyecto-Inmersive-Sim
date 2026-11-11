@@ -185,7 +185,8 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 - Se borran `sanitize_npc_separation_pos`, `push_out_of_furniture` y los choques 2D que sustituye la física 3D.
 - **Trozos (aprobados por el usuario, 2026-11-10):** 4a vecinos por la escalera de la posada (hecho: ya subían andando;
   arreglado el escalón de golpe al final) · 4b cuerpo 3D solo para los vecinos cercanos al protagonista (los lejanos
-  siguen en el mapa) · 4c animales, caballo y carro · 4d quitar los empujones viejos cuando no hagan falta.
+  siguen en el mapa) · 4c animales, caballo y carro (hecho: cuerpo de contacto para bandidos y animales grandes,
+  decisión del usuario; caballo y carro ya iban con el cuerpo del protagonista) · 4d quitar los empujones viejos cuando no hagan falta.
 - **Decisión del usuario (2026-11-10): «A por ahora, pero quiero B luego».** Hallazgo: los vecinos no chocan con nada en
   el mapa (siguen sus rutas como un tren por sus vías y el pueblo los recoloca si se salen) y el protagonista los
   atravesaba. **A (hecho en 4b):** cuerpo 3D «de contacto» para los vecinos cercanos, que sigue al vecino; el
@@ -278,7 +279,8 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-10 | Claude Code (portátil) | Paso 2c | Daño por caída «realista» (decisión del usuario): desde 3 m (~9 %) hasta mortal a 8 m; hiere una parte del cuerpo (piernas sobre todo; desde 5 m las dos piernas; en caídas grandes también tronco y cabeza) con el sistema médico que ya había; `Player.reduccion_dano_caida` para mejoras futuras; barandillas de la posada a la cintura | fisica_3d ✅ (tabla de daño, caída de 4 m: −27 y herida, salto normal sin daño, mejora del 50 %) · verify_all ✅ | 38695e2c |
 | 2026-11-10 | Claude Code (portátil) | Paso 3a | Nadar: el río y el lago ya no son pared para el protagonista; vadea cerca de la orilla, nada donde no hace pie (más lento, sin correr ni saltar, gasta aguante), flota con la cabeza fuera y sale por la otra orilla; caer al agua honda no duele. Hondura de juego (`Agua.gd`): río del pueblo 2,2 m en el centro, arroyo 0,6 m, lago 3,5 m | fisica_3d ✅ (cruza un tramo del río nadando, flota en el lago, no salta nadando) · puertas_3d 29/29 · verify_all ✅ | 066b3a36 |
 | 2026-11-10 | Claude Code (portátil) | Paso 4a | Vecinos por la escalera de la posada: ya subían andando; ahora cambian de planta en el último peldaño (antes un escalón de golpe de ~24 cm) | fisica_3d ✅ · atascos_vecinos 6 h: 0 | a7906cc0 |
-| 2026-11-10 | Claude Code (portátil) | Paso 4b | Opción A del usuario: cuerpo 3D «de contacto» para los vecinos cercanos (hasta 16, a ~6 m); ya no se les atraviesa; dormidos, muertos o caídos no estorban; a la altura de su piso. Ellos siguen sus rutas como antes (B, cuerpos completos con buscador de caminos 3D, pendiente) | fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ | (este commit) |
+| 2026-11-10 | Claude Code (portátil) | Paso 4b | Opción A del usuario: cuerpo 3D «de contacto» para los vecinos cercanos (hasta 16, a ~6 m); ya no se les atraviesa; dormidos, muertos o caídos no estorban; a la altura de su piso. Ellos siguen sus rutas como antes (B, cuerpos completos con buscador de caminos 3D, pendiente) | fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ | 6fdc0955 |
+| 2026-11-10 | Claude Code (portátil) | Paso 4c | Cuerpo de contacto también para bandidos, enemigos, jabalíes, ciervos y ganado grande adulto (decisión del usuario); conejos, zorros, mascotas, gallinas y crías se atraviesan; caballo y carro ya iban con el protagonista. `CuerposVecinos3D` → `CuerposCercanos3D` | fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ | (este commit) |
 
 ### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.

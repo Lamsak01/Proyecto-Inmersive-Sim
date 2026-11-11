@@ -26,6 +26,7 @@ func _initialize() -> void:
 	await _paso3_nadar()
 	await _paso4_vecino_sube()
 	await _paso4b_contacto()
+	await _paso4c_animales()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -160,7 +161,8 @@ func _paso1_cuerpo() -> void:
 	var lejos: Vector2 = puerta["pos"] + fuera * 200.0
 	pl.global_position = lejos
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.1)
-	_ok(Mapa3D.a_mapa(c.global_position).distance_to(lejos) < 1.0, "1: el cuerpo sigue al protagonista cuando lo cambian de sitio")
+	# (si justo hay alguien de pie ahí, su cuerpo de contacto lo aparta un poco: paso 4b)
+	_ok(Mapa3D.a_mapa(c.global_position).distance_to(lejos) < 12.0, "1: el cuerpo sigue al protagonista cuando lo cambian de sitio (a %.1f px; %d cuerpos cerca)" % [Mapa3D.a_mapa(c.global_position).distance_to(lejos), c.cercanos().cuantos()])
 	mc.set_physics_process(true)
 
 
@@ -375,7 +377,7 @@ func _paso4b_contacto() -> void:
 	pl.global_position = inicio
 	n.global_position = inicio + Vector2(30, 0)
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.1)
-	_ok(mc.cuerpo().vecinos().tiene_cuerpo(n), "4b: el vecino cercano tiene cuerpo de contacto")
+	_ok(mc.cuerpo().cercanos().tiene_cuerpo(n), "4b: el vecino cercano tiene cuerpo de contacto")
 	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
 	_ok(pl.global_position.x < n.global_position.x - 5.0, "4b: no se le atraviesa (protagonista en x %.0f, vecino en x %.0f)" % [pl.global_position.x, n.global_position.x])
 	# Dormido (o caído) no tiene cuerpo: se pasa
@@ -386,6 +388,42 @@ func _paso4b_contacto() -> void:
 	n.is_sleeping = false
 	n.set_physics_process(true)
 	n.set_process(true)
+
+
+## Paso 4c: los animales grandes (ciervo, jabalí, ganado adulto) tienen cuerpo; los pequeños (conejo, zorro…) no.
+func _paso4c_animales() -> void:
+	var pl = get_first_node_in_group("player")
+	var mc = pl.get_node("PlayerMovementController")
+	var Cercanos = load("res://scripts/fisica/CuerposCercanos3D.gd")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	var grande = null
+	var pequeno = null
+	for a in get_nodes_in_group("wild_animals"):
+		if not a.is_alive_in_ecosystem():
+			continue
+		if int(a.species) in [1, 3] and grande == null:
+			grande = a
+		elif int(a.species) in [0, 2] and pequeno == null:
+			pequeno = a
+	_ok(grande != null and Cercanos.tamano(grande) == Cercanos.ANIMAL, "4c: un ciervo o jabalí tiene cuerpo")
+	_ok(pequeno != null and Cercanos.tamano(pequeno) == Vector2.ZERO, "4c: un conejo o zorro se atraviesa")
+	for g in get_nodes_in_group("livestock_animals"):
+		var t: Vector2 = Cercanos.tamano(g)
+		if str(g.species) == "chicken" or str(g.stage) == "chick":
+			_ok(t == Vector2.ZERO, "4c: gallinas y crías se atraviesan (%s, %s)" % [g.species, g.stage])
+			break
+	if grande == null:
+		return
+	# Un jabalí o ciervo delante para al protagonista
+	grande.set_physics_process(false)
+	grande.set_process(false)
+	var inicio: Vector2 = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(-20, 80)
+	pl.global_position = inicio
+	grande.global_position = inicio + Vector2(30, 0)
+	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
+	_ok(pl.global_position.x < grande.global_position.x - 5.0, "4c: no se atraviesa a un animal grande (protagonista en x %.0f, animal en x %.0f)" % [pl.global_position.x, grande.global_position.x])
+	grande.set_physics_process(true)
+	grande.set_process(true)
 
 
 ## La «y» de un tramo del río en el pueblo que se puede cruzar en línea recta (sin puente ni rocas). NAN si no hay.

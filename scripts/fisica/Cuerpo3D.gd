@@ -13,14 +13,15 @@ extends CharacterBody3D
 ##   llegando con [E].
 ## - Paso 3: en el río y el lago (scripts/fisica/Agua.gd) pisa el fondo si hace pie; si no, flota con la cabeza fuera
 ##   (nada). Caer al agua honda no hace daño.
-## - Paso 4b: los vecinos que tiene cerca tienen un cuerpo «de contacto» (CuerposVecinos3D): ya no se les atraviesa.
+## - Paso 4b–4c: los vecinos, bandidos y animales grandes que tiene cerca tienen un cuerpo «de contacto»
+##   (CuerposCercanos3D): ya no se les atraviesa.
 ## - Paso 2c: si cae desde 3 m o más, se hace daño al aterrizar (sobre todo en las piernas); a 8 m, mortal.
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const ChoquesCercanos3D = preload("res://scripts/fisica/ChoquesCercanos3D.gd")
 const Agua = preload("res://scripts/fisica/Agua.gd")
-const CuerposVecinos3D = preload("res://scripts/fisica/CuerposVecinos3D.gd")
+const CuerposCercanos3D = preload("res://scripts/fisica/CuerposCercanos3D.gd")
 const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
 
 const RADIO_M: float = 0.28        ## lo que ocupa el protagonista visto desde arriba (5 px del mapa)
@@ -41,7 +42,7 @@ enum EnAgua { SECO, VADEANDO, NADANDO }
 var actor: CharacterBody2D = null
 var _mascara_2d: int = 0
 var _choques: Node3D = null
-var _vecinos: Node3D = null        ## cuerpos de contacto de los vecinos cercanos
+var _cercanos: Node3D = null       ## cuerpos de contacto de los vecinos y animales grandes cercanos
 var _losa: StaticBody3D = null
 var _suelo_y: float = 0.0
 var _calle_y: float = 0.0          ## suelo de abajo (calle o Planta 0): desde ahí se levantan los muros
@@ -77,8 +78,8 @@ func _ready() -> void:
 	actor.collision_mask = 0
 	_choques = ChoquesCercanos3D.new()
 	get_parent().add_child.call_deferred(_choques)
-	_vecinos = CuerposVecinos3D.new()
-	get_parent().add_child.call_deferred(_vecinos)
+	_cercanos = CuerposCercanos3D.new()
+	get_parent().add_child.call_deferred(_cercanos)
 	_losa = StaticBody3D.new()
 	_losa.name = "LosaSuelo3D"
 	var cl := CollisionShape3D.new()
@@ -149,9 +150,9 @@ func choques_copiados() -> int:
 	return _choques.cuantas() if is_instance_valid(_choques) else 0
 
 
-## Los cuerpos de contacto de los vecinos cercanos (paso 4b).
-func vecinos() -> Node3D:
-	return _vecinos
+## Los cuerpos de contacto de quien tiene cerca (pasos 4b–4c).
+func cercanos() -> Node3D:
+	return _cercanos
 
 
 func _physics_process(delta: float) -> void:
@@ -174,8 +175,8 @@ func _preparar() -> void:
 		# Bajo tierra (capa −1) no cuentan los choques de los pisos de la posada de encima
 		var mascara: int = _mascara_2d if _nivel() == -1 else _mascara_2d | Suelo.CAPA_PISOS
 		_choques.actualizar(actor.get_world_2d().direct_space_state, p, mascara, excluir, _calle_y)
-	if is_instance_valid(_vecinos) and _vecinos.is_inside_tree():
-		_vecinos.actualizar(p, _vm())
+	if is_instance_valid(_cercanos) and _cercanos.is_inside_tree():
+		_cercanos.actualizar(p, _vm())
 
 
 func _vm() -> Node:

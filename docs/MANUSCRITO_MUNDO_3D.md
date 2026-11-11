@@ -6,6 +6,26 @@
 
 ---
 
+## Paso 4c — Animales grandes y bandidos también tienen cuerpo (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** como con los vecinos: ya no atraviesas a bandidos, enemigos, jabalíes, ciervos ni al ganado
+grande adulto (ovejas, vacas, toros, burros, caballos del corral). Conejos, zorros, mascotas, gallinas y crías se siguen
+atravesando (antes se atravesaba a todos a propósito). Tu caballo y tu carro no cambian: ya iban con tu cuerpo 3D.
+
+**Decisión del usuario:** «sí» a cuerpo para los grandes y no para los pequeños.
+
+**Archivos:**
+- `scripts/fisica/CuerposVecinos3D.gd` → `scripts/fisica/CuerposCercanos3D.gd` (renombrado: ya no son solo vecinos);
+  `tamano()` decide quién tiene cuerpo y de qué tamaño (persona 0,28 × 1,74 m; animal 0,4 × 1,3 m); `GRUPOS`.
+- `scripts/fisica/Cuerpo3D.gd`: `vecinos()` → `cercanos()`.
+- `tools/tests/fisica_3d.gd`: prueba del paso 4c; la del paso 1 («el cuerpo sigue al protagonista cuando lo cambian
+  de sitio») admite 12 px, porque si justo hay alguien de pie ahí su cuerpo lo aparta un poco (fallaba a veces).
+
+**Cómo se probó:** fisica_3d ✅ (ciervo o jabalí con cuerpo y para al protagonista; conejo, gallina y crías sin cuerpo) ·
+puertas_3d 29/29 · verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 4b — Ya no se atraviesa a los vecinos (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** antes el protagonista atravesaba a los vecinos (salvo si peleaban con él). Ahora los

@@ -37,7 +37,7 @@
   igual en todas direcciones desde el paso 0b). Lo usan el juego, el editor del mapa y las herramientas.
 - `Cuerpo3D.gd` [~250] — el cuerpo 3D del protagonista: anda, choca, cae, salta, se hace daño al caer, vadea y nada; escribe su sitio en el mapa.
 - `ChoquesCercanos3D.gd` [~175] — copias 3D, levantadas como muros, de los choques del mapa que hay cerca de un cuerpo.
-- `CuerposVecinos3D.gd` [~110] — cuerpos 3D «de contacto» de los vecinos cercanos al protagonista (no se les atraviesa).
+- `CuerposCercanos3D.gd` [~135] — cuerpos 3D «de contacto» de los vecinos, bandidos y animales grandes cercanos al protagonista (no se les atraviesa).
 - `Agua.gd` [~55] — dónde hay agua (río y lago), a qué altura está su superficie y cuánto cubre en cada punto.
 - `Suelo.gd` [~90] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.
 
