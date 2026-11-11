@@ -727,8 +727,9 @@ func interact(player: Node2D) -> void:
 			Color(0.84, 0.72, 0.54)
 		)
 		return
-	var y_puente: float = sitio(FishingSpot.OLD_BRIDGE_POS).y # mapa ×E: el río viene del editor (mundo), el puente del mapa original
-	var bridge_shoe_pos := Vector2(FishingSpot.river_center_x(y_puente) - 10.0, y_puente - 12.0)
+	# El zapato está donde lo puso VillageWorldBuilder (junto al cruce del río del editor): se mira su zona de verdad
+	var shoe_area: Node2D = entities_root.get_node_or_null("OldBridgeVictimShoeArea") as Node2D
+	var bridge_shoe_pos: Vector2 = shoe_area.global_position if shoe_area != null else sitio(Vector2(FishingSpot.river_center_x(FishingSpot.OLD_BRIDGE_POS.y) - 10.0, FishingSpot.OLD_BRIDGE_POS.y - 12.0))
 	if pos.distance_squared_to(bridge_shoe_pos) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,

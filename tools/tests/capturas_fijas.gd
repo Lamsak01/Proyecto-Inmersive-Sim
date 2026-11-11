@@ -7,7 +7,7 @@ extends SceneTree
 ## Con carpeta_referencia, compara foto a foto e imprime el % de píxeles distintos (CAPTURA <sitio> distinto=…%).
 
 const SITIOS: Array = [
-	["plaza", Vector2(412, 54), 0.0],
+	["plaza", Vector2(430, 76), 0.0],
 	["rio", Vector2(250, 0), PI],
 	["bosque", Vector2(138, -850), -PI / 2.0],
 	["molino", Vector2(190, -1040), -PI / 2.0],

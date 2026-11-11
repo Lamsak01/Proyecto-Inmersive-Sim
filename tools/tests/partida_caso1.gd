@@ -26,9 +26,9 @@ func _has_note_with_source(det_ui: Node, source_key: String) -> bool:
 			return true
 	return false
 
-func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vector2], arrive_dist: float = 8.0, max_frames_per_seg: int = 6000) -> bool:
+func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vector2], arrive_dist: float = 8.0, max_frames_per_seg: int = 6000, ya_mundo: bool = false) -> bool:
 	for wp0 in waypoints:
-		var wp: Vector2 = load("res://mapa/anclas.gd").mover(wp0) # los puntos de paso están en el mapa original (mapa ×E)
+		var wp: Vector2 = wp0 if ya_mundo else load("res://mapa/anclas.gd").mover(wp0) # los puntos de paso están en el mapa original (mapa ×E)
 		var frames: int = 0
 		var stuck_count: int = 0
 		var side_sign: float = 1.0
@@ -74,8 +74,9 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 	await physics_frame
 	return true
 
-func _aim_and_press_e(pl: CharacterBody2D, stage: Node, look_target: Vector2, pitch: float = -0.24, want_substr: String = "") -> Dictionary:
-	look_target = load("res://mapa/anclas.gd").mover(look_target) # mapa original → mundo (mapa ×E)
+func _aim_and_press_e(pl: CharacterBody2D, stage: Node, look_target: Vector2, pitch: float = -0.24, want_substr: String = "", ya_mundo: bool = false) -> Dictionary:
+	if not ya_mundo:
+		look_target = load("res://mapa/anclas.gd").mover(look_target) # mapa original → mundo (mapa ×E)
 	var dir: Vector2 = look_target - pl.global_position
 	if dir.length_squared() > 0.001 and stage != null:
 		stage.set("fp_yaw", dir.angle())
@@ -309,7 +310,7 @@ func _initialize() -> void:
 	# Salir del molino y bajar a pie hasta el Puente Viejo (zapato izquierdo)
 	# Mapa ×E: el zapato lo coloca el juego junto al cruce del río del editor; se apunta a donde esté de verdad (en el mapa original)
 	var shoe_area: Node2D = root.find_child("OldBridgeVictimShoeArea", true, false) as Node2D
-	var shoe_pos: Vector2 = load("res://mapa/anclas.gd").desmover(shoe_area.global_position) if shoe_area != null else Vector2(95.0, 38.0)
+	var shoe_mundo: Vector2 = shoe_area.global_position if shoe_area != null else load("res://mapa/anclas.gd").mover(Vector2(95.0, 38.0))
 	var path_to_bridge: Array[Vector2] = [
 		Vector2(188.0, -1028.0),
 		Vector2(188.0, -996.0),
@@ -320,10 +321,11 @@ func _initialize() -> void:
 		Vector2(682.0, 50.0),
 		Vector2(150.0, 50.0),
 		Vector2(105.0, 50.0),
-		shoe_pos + Vector2(0.0, 14.0), # hasta donde esté el zapato de verdad (el cruce del río lo decide el editor)
 	]
 	var walked_bridge: bool = await _walk_to_waypoints(pl, stage, path_to_bridge)
-	var e_shoe: Dictionary = await _aim_and_press_e(pl, stage, shoe_pos, -0.22, "zapato")
+	# hasta donde esté el zapato de verdad (el cruce del río lo decide el editor): punto ya del mundo
+	walked_bridge = await _walk_to_waypoints(pl, stage, [shoe_mundo + Vector2(0.0, 14.0)], 8.0, 6000, true) and walked_bridge
+	var e_shoe: Dictionary = await _aim_and_press_e(pl, stage, shoe_mundo, -0.22, "zapato", true)
 	var note_shoe: bool = _has_note_with_source(det_ui, "clue_old_bridge_left_shoe")
 	_record("B7_puente_viejo_zapato", walked_bridge and bool(e_shoe["ok"]) and note_shoe,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_bridge), str(e_shoe["label"]), str(note_shoe)])
