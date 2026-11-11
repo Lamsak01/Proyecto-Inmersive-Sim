@@ -6449,9 +6449,9 @@ func _initialize() -> void:
 			assert(not (b_r1["rect"] as Rect2).intersects(r1_fp["rect"]), "R1.2: The restaurant doesn't overlap %s" % str(b_r1["title"]))
 	assert(r1_rs.ROOMS.size() == 6 and r1_rs.room_of(r1_rs.STOVE_POS) == "cocina" and r1_rs.room_of(r1_rs.COLD_SHELF) == "camara" and r1_rs.room_of(r1_rs.BACKROOM_TABLE) == "reservado", "R1.3: Dining room, kitchen, cold room, cellar, owner's room and back room")
 	# Por dentro se cruza por los pasos: del comedor a la cámara se pasa por la cocina
-	var r1_w: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(80, 136), r1_rs.COLD_SHELF, null)
+	var r1_w: Vector2 = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(80, 136), M(r1_rs.COLD_SHELF), null)
 	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(183, 135)) < 3.0, "R1.4: From the dining room to the cold room you first head to the kitchen pass (%s)" % str(r1_w))
-	r1_w = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(235, 126), r1_rs.COLD_SHELF, null)
+	r1_w = vm.get_navigation_waypoint(M(r1_rs.BASE) + Vector2(235, 126), M(r1_rs.COLD_SHELF), null)
 	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(235, 92)) < 3.0, "R1.5: From the kitchen you head to the cold room door (%s)" % str(r1_w))
 	r1_w = vm.get_navigation_waypoint(r1_rs.COLD_SHELF, M(r1_rs.BASE) + Vector2(130, 266), null)
 	assert(r1_w.distance_to(M(r1_rs.BASE) + Vector2(235, 68)) < 3.0, "R1.6: Leaving the cold room you go back through its door (%s)" % str(r1_w))
