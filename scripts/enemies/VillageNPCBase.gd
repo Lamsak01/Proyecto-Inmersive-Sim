@@ -284,6 +284,11 @@ var _noise_witness_logged: bool = false
 var _last_seen_player_pos: Vector2 = Vector2.ZERO
 var _stuck_timer: float = 0.0
 var _last_frame_pos: Vector2 = Vector2.ZERO
+## Atasco lento (2026-11-11): cada segundo se mira cuánto avanzó de verdad; si es menos de un cuarto de su paso, está
+## corriendo en el sitio (empujado atrás y adelante) aunque cada fotograma se mueva un poco.
+var _avance_pos: Vector2 = Vector2.ZERO
+var _avance_t: float = 0.0
+var _atascado_lento: bool = false
 var facing_direction: Vector2 = Vector2.DOWN
 var facing_dir: Vector2:
 	get:

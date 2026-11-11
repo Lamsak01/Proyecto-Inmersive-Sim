@@ -905,7 +905,12 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 
 	var desired_vel: Vector2 = diff.normalized() * eff_speed
 
-	if global_position.distance_squared_to(_last_frame_pos) < 0.09 and eff_speed > 12.0:
+	_avance_t += delta
+	if _avance_t >= 1.0:
+		_atascado_lento = eff_speed > 12.0 and global_position.distance_to(_avance_pos) < eff_speed * 0.25
+		_avance_pos = global_position
+		_avance_t = 0.0
+	if (global_position.distance_squared_to(_last_frame_pos) < 0.09 and eff_speed > 12.0) or _atascado_lento:
 		_stuck_timer += delta
 		if _stuck_timer >= 0.40:
 			_nav_waypoint_timer = 0.0

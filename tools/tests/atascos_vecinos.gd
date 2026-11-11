@@ -2,7 +2,11 @@ extends SceneTree
 
 ## Vecinos atascados (Claude Code, 2026-11-09): simula unas horas del pueblo sin ventana y apunta a quien intenta andar
 ## (velocidad > 5) pero en 6 s no avanza ni 4 px. Uso:
-##   timeout 590 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/atascos_vecinos.gd -- [horas]
+##   timeout 590 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/atascos_vecinos.gd -- [horas] [hora_inicio]
+## (hora_inicio: a qué hora del juego empieza; 7 si no se dice. Con 18 se ve la cena del restaurante.)
+## Con un tercer argumento «cocinero», contrata a un vecino como cocinero antes de empezar (el puesto nace vacante).
+## Con un cuarto argumento «jugador:x,y» o «jugador:puerta:<edificio>», deja al protagonista parado ahí (o justo dentro
+## de esa puerta) toda la simulación.
 
 func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -15,7 +19,30 @@ func _initialize() -> void:
 	if gm != null and gm.has_method("set_demo_mode"):
 		gm.call("set_demo_mode", true)
 	var wc = root.get_node("/root/WorldClock")
-	wc.current_hour = 7
+	wc.current_hour = int(args[1]) if args.size() > 1 else 7
+	if args.size() > 2 and args[2] == "cocinero":
+		var vm = get_first_node_in_group("village_manager")
+		var rol: int = int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.RESTAURATEUR)
+		var cfg: Dictionary = vm.trade_configs[rol]
+		for n in get_nodes_in_group("village_npcs"):
+			if n.is_conscious() and int(n.trade_role) in [0, 1]: # sin oficio o familiar
+				n.promote_to_trade(rol, str(cfg["title"]), cfg["work_pos"], (cfg["stock"] as Dictionary).duplicate(), cfg["tex"], cfg["bed1_pos"], cfg["table_pos"], str(cfg["family_id"]), str(cfg["family_name"]))
+				vm.trade_npcs[rol] = n
+				print("COCINERO ", n.npc_name)
+				break
+	if args.size() > 3 and args[3].begins_with("jugador:"):
+		var pl = get_first_node_in_group("player")
+		pl.get_node("PlayerMovementController").set_physics_process(false)
+		var donde: String = args[3].trim_prefix("jugador:")
+		if donde.begins_with("puerta:"):
+			var vm2 = get_first_node_in_group("village_manager")
+			for d in vm2.building_doors:
+				if String(d.get("building_id", "")) == donde.trim_prefix("puerta:"):
+					pl.global_position = d["pos"] - vm2.get_door_outward_dir(d) * 10.0
+		else:
+			var xy: PackedStringArray = donde.split(",")
+			pl.global_position = Vector2(float(xy[0]), float(xy[1]))
+		print("JUGADOR en ", pl.global_position)
 	var FS = load("res://scripts/obstacles/FishingSpot.gd")
 	var spg: float = float(wc.real_seconds_per_game_hour)
 	var total_s: float = hours * spg
@@ -39,7 +66,9 @@ func _initialize() -> void:
 			var k: String = str(n.npc_name)
 			var p: Vector2 = n.global_position
 			var trying: bool = n.velocity.length() > 5.0
-			if last.has(k) and trying and p.distance_to(last[k]) < 0.7:
+			# Atascado: intenta andar pero avanza menos de un cuarto de lo que debería (antes: menos de 0,7 px; no veía a
+			# quien corre en el sitio empujado atrás y adelante, 2026-11-11)
+			if last.has(k) and trying and p.distance_to(last[k]) < n.velocity.length() * 0.25:
 				stuck_s[k] = float(stuck_s.get(k, 0.0)) + 1.0
 			else:
 				if float(stuck_s.get(k, 0.0)) >= 6.0:

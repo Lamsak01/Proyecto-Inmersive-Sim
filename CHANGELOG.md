@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-11 — Arreglos de la partida del usuario, 5: vecinos corriendo en el sitio (Claude Code, portátil; rama `mundo-3d`)
+- Un vecino empujado atrás y adelante (por otro vecino parado o por ti en una puerta) ya se da cuenta al segundo y rodea por un lado.
+- La simulación de atascos puede empezar a la hora que quieras, contratar un cocinero y dejarte parado en una puerta.
+
 ## 2026-11-11 — Arreglos de la partida del usuario, 4: bandidos (Claude Code, portátil; rama `mundo-3d`)
 - Los bandidos y jabalíes de las incursiones chocan con paredes y muebles; si huyendo se quedan contra un muro, se dan por huidos.
 
