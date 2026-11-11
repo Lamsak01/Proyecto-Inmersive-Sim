@@ -309,6 +309,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				if player.has_method("show_hint"):
 					player.show_hint("🛒 Tirando de la carreta no puedes ir en sigilo: suéltala con [E]")
 				return
+			if estado_agua() != Cuerpo3D.EnAgua.SECO:
+				if player.has_method("show_hint"):
+					player.show_hint("🌊 En el agua no puedes agacharte")
+				return
 			is_stealthing = not is_stealthing
 
 func apply_impulse(force: Vector2) -> void:
@@ -319,8 +323,8 @@ func _handle_input(delta: float) -> void:
 	var is_sprint_pressed = Input.is_action_pressed("sprint")
 	var input := WorldStage3DScript.map_wasd_to_world(Input.get_vector("move_left", "move_right", "move_up", "move_down"))
 	var pulling_hand: bool = bool(player.get("is_pulling_cart")) and not bool(player.get("is_mounted"))
-	if pulling_hand or bool(player.get("is_mounted")):
-		is_stealthing = false
+	if pulling_hand or bool(player.get("is_mounted")) or estado_agua() != Cuerpo3D.EnAgua.SECO:
+		is_stealthing = false # en el agua, agachado, los ojos quedarían bajo la superficie (hasta que haya buceo)
 
 	# Pressing sprint while moving breaks stealth automatically for fluid responsiveness
 	if is_stealthing and is_sprint_pressed and input != Vector2.ZERO:

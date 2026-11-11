@@ -309,6 +309,9 @@ func _paso3_nadar() -> void:
 	var cabeza: float = c.global_position.y + 1.74 - Agua.superficie_y(pl.global_position)
 	_ok(mc.estado_agua() == Cuerpo3D.EnAgua.NADANDO and cabeza > 0.2 and cabeza < 0.6, "3: en el lago flota con la cabeza fuera (%.2f m sobre el agua)" % cabeza)
 	_ok(not pl.start_jump(), "3: nadando no se puede saltar")
+	mc.is_stealthing = true
+	mc._handle_input(1.0 / 60.0)
+	_ok(not mc.is_stealthing, "3: en el agua no se puede ir agachado (los ojos quedarían bajo el agua)")
 	pl.global_position = Anclas.mover(Vector2(454.0, -100.0))
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	mc.set_physics_process(true)
