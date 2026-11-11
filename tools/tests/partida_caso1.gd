@@ -307,9 +307,9 @@ func _initialize() -> void:
 		"prompt='%s' anotada=%s" % [str(e_paper["label"]), str(note_paper)])
 
 	# Salir del molino y bajar a pie hasta el Puente Viejo (zapato izquierdo)
-	var fs_script = load("res://scripts/obstacles/FishingSpot.gd")
-	var ob_pos: Vector2 = fs_script.get("OLD_BRIDGE_POS")
-	var shoe_pos := Vector2(float(fs_script.call("river_center_x", ob_pos.y)) - 10.0, ob_pos.y - 12.0)
+	# Mapa ×E: el zapato lo coloca el juego junto al cruce del río del editor; se apunta a donde esté de verdad (en el mapa original)
+	var shoe_area: Node2D = root.find_child("OldBridgeVictimShoeArea", true, false) as Node2D
+	var shoe_pos: Vector2 = load("res://mapa/anclas.gd").desmover(shoe_area.global_position) if shoe_area != null else Vector2(95.0, 38.0)
 	var path_to_bridge: Array[Vector2] = [
 		Vector2(188.0, -1028.0),
 		Vector2(188.0, -996.0),
@@ -320,6 +320,7 @@ func _initialize() -> void:
 		Vector2(682.0, 50.0),
 		Vector2(150.0, 50.0),
 		Vector2(105.0, 50.0),
+		shoe_pos + Vector2(0.0, 14.0), # hasta donde esté el zapato de verdad (el cruce del río lo decide el editor)
 	]
 	var walked_bridge: bool = await _walk_to_waypoints(pl, stage, path_to_bridge)
 	var e_shoe: Dictionary = await _aim_and_press_e(pl, stage, shoe_pos, -0.22, "zapato")
@@ -524,7 +525,7 @@ func _initialize() -> void:
 		var pos_before: Vector2 = pl.global_position
 		pl.global_position = page_pos + Vector2(0.0, 18.0) # (sin ruta a pie fija: la casa depende del reparto)
 		await process_frame
-		var e_page: Dictionary = await _aim_and_press_e(pl, stage, page_pos, -0.25, "hoja")
+		var e_page: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/anclas.gd").desmover(page_pos), -0.25, "hoja") # page_pos ya es del mundo
 		page_label = str(e_page["label"])
 		page_ok = bool(e_page["ok"]) and _has_note_with_source(det_ui, "clue_case1_relative_page")
 		await _save_shot("03_casa_familiar_hoja_arrancada_v2")
@@ -539,7 +540,7 @@ func _initialize() -> void:
 	var kds: Array = get_nodes_in_group("case1_kidnappers")
 	var near_mill: int = 0
 	for kd in kds:
-		if is_instance_valid(kd) and (kd as Node2D).global_position.distance_to(Vector2(188.0, -1060.0)) < 80.0:
+		if is_instance_valid(kd) and (kd as Node2D).global_position.distance_to(load("res://mapa/anclas.gd").mover(Vector2(188.0, -1060.0))) < 80.0:
 			near_mill += 1
 	_record("D4d_secuestradores_en_el_molino", near_mill == 2, "forasteros_en_el_molino=%d (el tercero es el vecino de la lana azul)" % near_mill)
 	await _walk_to_waypoints(pl, stage, [

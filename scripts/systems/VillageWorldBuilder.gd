@@ -704,7 +704,8 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(water_span, 3.0))
 			vm._add_title_label(Vector2(deck_cx - 72.0, c_pos.y - 34.0), Vector2(144.0, 16.0), "🌉 Puente Viejo", Color(0.95, 0.88, 0.72), 8)
 			# Punto 6 (Caso I): Zapato izquierdo de la víctima en el Puente Viejo (`Vector2(deck_cx - 10, 38)`)
-			var shoe_pos := Vector2(deck_cx - 10.0, c_pos.y - 12.0)
+			# El cruce viene del editor (mundo actual); lo que se crea con _add_* parte del mapa original (mapa ×E)
+			var shoe_pos: Vector2 = load("res://mapa/anclas.gd").desmover(Vector2(deck_cx - 10.0, c_pos.y - 12.0))
 			var shoe_2d := vm._add_rect_poly(shoe_pos, Vector2(4.5, 2.4), Color(0.24, 0.14, 0.09, 0.98), 0)
 			if shoe_2d != null:
 				shoe_2d.add_to_group("ranch_fence_2d")

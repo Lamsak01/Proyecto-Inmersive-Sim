@@ -522,6 +522,7 @@ func interact(player: Node2D) -> void:
 	if not player or player_being_escorted_to_jail:
 		return
 	var pos := player.global_position
+	var o: Vector2 = _AN_SITIOS.desmover(pos) # mapa ×E: las pistas escritas a mano se comparan en el mapa original
 
 	# Caso I: si el jugador apunta a una pista o a la bandeja del caso, manda eso aunque haya una puerta o ventana cerca
 	var c1_sel0: Node = player.get("interaction_selector")
@@ -561,8 +562,8 @@ func interact(player: Node2D) -> void:
 	var sel_node: Node = player.get("interaction_selector") if player != null else null
 	var sel_cand: Dictionary = sel_node.call("selected") if (sel_node != null and sel_node.has_method("selected")) else {}
 	var sel_kind: String = str(sel_cand.get("station", ""))
-	if sel_kind == "library_secret_ledger" or (sel_kind != "library_torn_book" and pos.distance_squared_to(Vector2(944.0, -448.0)) <= 22.0 * 22.0 and pos.distance_squared_to(Vector2(944.0, -448.0)) <= pos.distance_squared_to(Vector2(959.0, -448.0))):
-		if pos.distance_squared_to(Vector2(944.0, -448.0)) <= 26.0 * 26.0:
+	if sel_kind == "library_secret_ledger" or (sel_kind != "library_torn_book" and o.distance_squared_to(Vector2(944.0, -448.0)) <= 22.0 * 22.0 and o.distance_squared_to(Vector2(944.0, -448.0)) <= o.distance_squared_to(Vector2(959.0, -448.0))):
+		if o.distance_squared_to(Vector2(944.0, -448.0)) <= 26.0 * 26.0:
 			_record_case_clue(
 				player,
 				"🖋️ Cuaderno",
@@ -573,8 +574,8 @@ func interact(player: Node2D) -> void:
 				Color(0.95, 0.88, 0.68)
 			)
 			return
-	if sel_kind == "library_torn_book" or pos.distance_squared_to(Vector2(959.0, -448.0)) <= 22.0 * 22.0:
-		if pos.distance_squared_to(Vector2(959.0, -448.0)) <= 26.0 * 26.0:
+	if sel_kind == "library_torn_book" or o.distance_squared_to(Vector2(959.0, -448.0)) <= 22.0 * 22.0:
+		if o.distance_squared_to(Vector2(959.0, -448.0)) <= 26.0 * 26.0:
 			_record_case_clue(
 				player,
 				"📖 Libro antiguo",
@@ -585,7 +586,7 @@ func interact(player: Node2D) -> void:
 				Color(0.88, 0.78, 0.96)
 			)
 			return
-	if pos.distance_squared_to(Vector2(951.0, -420.0)) <= 24.0 * 24.0:
+	if o.distance_squared_to(Vector2(951.0, -420.0)) <= 24.0 * 24.0:
 		_record_case_clue(
 			player,
 			"📕 Estantería",
@@ -609,7 +610,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 2. Tablón de Encargos de la Plaza
-	if pos.distance_squared_to(_notice_board_pos) <= 28.0 * 28.0:
+	if pos.distance_squared_to(sitio(_notice_board_pos)) <= 28.0 * 28.0:
 		_open_notice_board_ui()
 		return
 
@@ -629,7 +630,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 5. Celda de la Comisaría y Archivo de Pruebas (Caso I)
-	if pos.distance_squared_to(Vector2(934.0, 180.0)) <= 26.0 * 26.0 or pos.distance_squared_to(Vector2(856.0, 107.0)) <= 24.0 * 24.0:
+	if o.distance_squared_to(Vector2(934.0, 180.0)) <= 26.0 * 26.0 or o.distance_squared_to(Vector2(856.0, 107.0)) <= 24.0 * 24.0:
 		_record_case_clue(
 			player,
 			"📋 Carpeta de archivo",
@@ -646,7 +647,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 5b. Pistas del Caso I en el Molino Viejo Abandonado y Claro del Arroyo
-	if pos.distance_squared_to(Vector2(140.0, -1006.0)) <= 30.0 * 30.0:
+	if o.distance_squared_to(Vector2(140.0, -1006.0)) <= 30.0 * 30.0:
 		_record_case_clue(
 			player,
 			"🧱 Orilla de arcilla",
@@ -657,7 +658,7 @@ func interact(player: Node2D) -> void:
 			Color(0.92, 0.52, 0.42)
 		)
 		return
-	if pos.distance_squared_to(Vector2(138.0, -1061.0)) <= 28.0 * 28.0:
+	if o.distance_squared_to(Vector2(138.0, -1061.0)) <= 28.0 * 28.0:
 		_record_case_clue(
 			player,
 			"🔩 Reja de hierro",
@@ -668,7 +669,7 @@ func interact(player: Node2D) -> void:
 			Color(0.76, 0.88, 0.96)
 		)
 		return
-	if pos.distance_squared_to(Vector2(218.0, -1050.0)) <= 28.0 * 28.0 and pos.distance_squared_to(Vector2(218.0, -1050.0)) <= pos.distance_squared_to(Vector2(224.0, -1086.0)):
+	if o.distance_squared_to(Vector2(218.0, -1050.0)) <= 28.0 * 28.0 and o.distance_squared_to(Vector2(218.0, -1050.0)) <= o.distance_squared_to(Vector2(224.0, -1086.0)):
 		_record_case_clue(
 			player,
 			"📄 Papel sobre la mesa",
@@ -679,7 +680,7 @@ func interact(player: Node2D) -> void:
 			Color(0.96, 0.90, 0.72)
 		)
 		return
-	if pos.distance_squared_to(Vector2(150.0, -1040.0)) <= 26.0 * 26.0:
+	if o.distance_squared_to(Vector2(150.0, -1040.0)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🪢 Rollo de cordel",
@@ -690,7 +691,7 @@ func interact(player: Node2D) -> void:
 			Color(0.90, 0.80, 0.58)
 		)
 		return
-	if pos.distance_squared_to(Vector2(224.0, -1086.0)) <= 26.0 * 26.0:
+	if o.distance_squared_to(Vector2(224.0, -1086.0)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🪨 Hogar de piedra",
@@ -701,7 +702,7 @@ func interact(player: Node2D) -> void:
 			Color(0.78, 0.78, 0.82)
 		)
 		return
-	if pos.distance_squared_to(Vector2(152.0, -1084.0)) <= 26.0 * 26.0:
+	if o.distance_squared_to(Vector2(152.0, -1084.0)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🌾 Pajar",
@@ -712,7 +713,7 @@ func interact(player: Node2D) -> void:
 			Color(0.92, 0.82, 0.45)
 		)
 		return
-	if pos.distance_squared_to(FishingSpot.CASE1_CLEARING_POS) <= 28.0 * 28.0:
+	if o.distance_squared_to(FishingSpot.CASE1_CLEARING_POS) <= 28.0 * 28.0:
 		if not VillageCase1.empezado(): # día de margen: todavía no ha pasado nada aquí
 			_msg_player(player, "🌲 Un recodo tranquilo del arroyo. Nada llama la atención… por ahora.", Color(0.84, 0.72, 0.54))
 			return
@@ -726,7 +727,8 @@ func interact(player: Node2D) -> void:
 			Color(0.84, 0.72, 0.54)
 		)
 		return
-	var bridge_shoe_pos := Vector2(FishingSpot.river_center_x(FishingSpot.OLD_BRIDGE_POS.y) - 10.0, FishingSpot.OLD_BRIDGE_POS.y - 12.0)
+	var y_puente: float = sitio(FishingSpot.OLD_BRIDGE_POS).y # mapa ×E: el río viene del editor (mundo), el puente del mapa original
+	var bridge_shoe_pos := Vector2(FishingSpot.river_center_x(y_puente) - 10.0, y_puente - 12.0)
 	if pos.distance_squared_to(bridge_shoe_pos) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,

@@ -204,7 +204,7 @@ static func sync(vm) -> void:
 		vm.register_no_stand_furniture(cabinet_pos(), Vector2(16.0, 9.0))
 	var page_pos: Vector2 = relative_page_pos(vm)
 	if page_pos != Vector2.INF and vm.get_node_or_null("Case1RelativePageArea") == null:
-		vm._add_station_area("Case1RelativePageArea", page_pos, 18.0, "case1_relative_page")
+		vm._add_station_area("Case1RelativePageArea", load("res://mapa/anclas.gd").desmover(page_pos), 18.0, "case1_relative_page") # page_pos ya es del mundo; la zona se crea desde el mapa original
 		st["page_pos"] = [page_pos.x, page_pos.y]
 	if vm.get_node_or_null("Case1ReportArea") == null:
 		vm._add_station_area("Case1ReportArea", REPORT_POS, 20.0, "case1_report_desk")
@@ -248,10 +248,11 @@ static func _on_kidnapper_gone(vm, k: String, outcome: String) -> void:
 # ---------------------------------------------------------------- pistas con [E]
 static func try_interact(vm, player: Node2D, pos: Vector2, sel_kind: String) -> bool:
 	var st: Dictionary = state(vm)
-	if sel_kind == "case1_report_desk" or (sel_kind == "" and pos.distance_squared_to(REPORT_POS) <= 14.0 * 14.0):
+	var o: Vector2 = load("res://mapa/anclas.gd").desmover(pos) # la bandeja y el gabinete están escritos en el mapa original (mapa ×E)
+	if sel_kind == "case1_report_desk" or (sel_kind == "" and o.distance_squared_to(REPORT_POS) <= 14.0 * 14.0):
 		open_report(vm)
 		return true
-	if sel_kind == "case1_forced_cabinet" or (sel_kind == "" and pos.distance_squared_to(cabinet_pos()) <= 16.0 * 16.0):
+	if sel_kind == "case1_forced_cabinet" or (sel_kind == "" and o.distance_squared_to(cabinet_pos()) <= 16.0 * 16.0):
 		vm._record_case_clue(
 			player,
 			"🗄️ Gabinete",

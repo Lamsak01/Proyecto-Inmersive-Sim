@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://cgosm8o5xe26m"]
+[gd_scene format=3 uid="uid://css7bkhys5jqy"]
 
 [ext_resource type="Script" uid="uid://b1bua0j0ky7uo" path="res://mapa/editor_mapa.gd" id="1_vip4g"]
 [ext_resource type="Script" uid="uid://83uuvvk3n6o2" path="res://mapa/referencia.gd" id="2_yptke"]
