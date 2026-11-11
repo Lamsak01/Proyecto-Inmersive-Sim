@@ -8,6 +8,7 @@ extends RefCounted
 ## - Paso 2: donde hay varios suelos uno encima de otro (por ahora la posada: Planta 0, escalera y Planta +1), el cuerpo
 ##   3D pisa el que tiene debajo según su altura, y de ahí sale su piso. Los choques del mapa que son de un solo piso
 ##   (tabiques de la Planta 0, barandillas y cuartos de la Planta +1) se levantan solo a la altura de ese piso.
+## - Paso 5a: `losas` dice qué suelos altos tapan la vista.
 ## - Paso 2b: el club de peleas (bajo la posada) y las alcantarillas (bajo el centro) están de verdad bajo tierra, a
 ##   PROFUNDIDAD_SOTANO_PX. Se sigue llegando por la trampilla o la reja con [E]. El sótano de tu casa aún no (paso 2e).
 
@@ -54,6 +55,11 @@ static func es_bajo_tierra(pos: Vector2, vm: Node) -> bool:
 ## Suelos que hay en `pos` uno encima de otro (px sobre el relieve, de abajo arriba). Vacío si ahí solo hay uno.
 static func pisos_en(pos: Vector2) -> Array[float]:
 	return VillageTavern.floor_heights_at(pos)
+
+
+## Losas: suelos altos que tapan la vista (Vista.gd). Cada una: `rect` y `hueco` (mapa original) y `h` (px de altura).
+static func losas() -> Array[Dictionary]:
+	return [VillageTavern.losa_planta_1()]
 
 
 ## De los `pisos`, el que pisa alguien cuyos pies están a `alto_px`: el más alto al que llega subiendo como mucho

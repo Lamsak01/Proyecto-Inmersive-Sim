@@ -551,6 +551,11 @@ static func floor_heights_at(pos: Vector2) -> Array[float]:
 		out.append(FLOOR_1_SURFACE_H)
 	return out
 
+## Paso a 3D, paso 5a: el suelo de la Planta +1 como losa que tapa la vista (galería y cuartos; el hueco de la escalera no).
+static func losa_planta_1() -> Dictionary:
+	return {"rect": Rect2(RECT.position, Vector2(RECT.size.x, GALLERY_EDGE_Y - RECT.position.y)), "hueco": STAIRS_WELL_RECT, "h": FLOOR_1_SURFACE_H}
+
+
 ## Interacción con la escalera [E] para el jugador (subir al Piso +1 o bajar al Salón Planta 0).
 static func stairs_label(vm) -> String:
 	if vm != null and int(vm.player_elevation_level) == 1:

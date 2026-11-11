@@ -10,7 +10,7 @@
 
 | Carpeta | Qué hay | Tamaño |
 |---|---|---|
-| `scripts/fisica/` | **Nuevo (paso a 3D).** Todo lo físico del mundo 3D: conversión mapa ↔ 3D, cuerpo 3D del protagonista, choques y suelo | 6 archivos |
+| `scripts/fisica/` | **Nuevo (paso a 3D).** Todo lo físico del mundo 3D: conversión mapa ↔ 3D, cuerpo 3D del protagonista, choques y suelo | 7 archivos |
 | `scripts/` (sueltos) | El protagonista: moverse, pelear, el mundo principal | 4 archivos, ~2.800 líneas |
 | `scripts/enemies/` | Los vecinos (cerebro, trabajo, vida social, policía, diálogos), animales salvajes, mascotas, asaltantes | 12, ~10.100 |
 | `scripts/systems/` | Las reglas del pueblo: reloj, guardado, economía, casas, crimen, justicia, fe, familia, taberna… | 58, ~38.600 |
@@ -38,8 +38,9 @@
 - `Cuerpo3D.gd` [~250] — el cuerpo 3D del protagonista: anda, choca, cae, salta, se hace daño al caer, vadea y nada; escribe su sitio en el mapa.
 - `ChoquesCercanos3D.gd` [~175] — copias 3D, levantadas como muros, de los choques del mapa que hay cerca de un cuerpo.
 - `CuerposCercanos3D.gd` [~135] — cuerpos 3D «de contacto» de los vecinos, bandidos y animales grandes cercanos al protagonista (no se les atraviesa).
+- `Vista.gd` [~45] — ¿quién ve a quién? paredes y puertas del mapa más las losas de los suelos altos (paso 5a).
 - `Agua.gd` [~55] — dónde hay agua (río y lago), a qué altura está su superficie y cuánto cubre en cada punto.
-- `Suelo.gd` [~90] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.
+- `Suelo.gd` [~95] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.
 
 ## Lo que se ve en 3D — `scripts/visuals/`
 - `WorldStageBase3D.gd` [~1.000] ⚠ — base del escenario: relieve del suelo, materiales, cajas y cilindros 3D.

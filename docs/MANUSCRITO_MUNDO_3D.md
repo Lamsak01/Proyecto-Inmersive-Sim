@@ -6,6 +6,35 @@
 
 ---
 
+## Paso 5a — La vista con alturas de verdad (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** quién te ve (testigos, guardias y policías, y los testigos de una pelea) ya se decide con
+las alturas de verdad y no con «¿estamos en el mismo piso?». Las paredes y las puertas cerradas tapan como antes; además
+los suelos tapan de verdad: desde el salón de la posada se ve a quien está asomado al borde de la galería (y él te ve a
+ti), pero no a quien está justo encima de ti. Bajo tierra nadie te ve desde la calle. Donde todavía no hay alturas
+conocidas (pisos de las casas, hasta el paso 2e) dos pisos distintos siguen sin verse, como antes. Un policía que te ve
+desde otro piso ya te persigue.
+
+**Por qué:** primer trozo del paso 5 (sentidos). Pedido del usuario: código mínimo, eficiente y por funciones.
+
+**Archivos:**
+- `scripts/fisica/Vista.gd` (nuevo, ~40 líneas): `ve(vm, a, nivel_a, b, nivel_b)`: bajo tierra → no; sin alturas
+  conocidas y pisos distintos → no; paredes y puertas (`vm.has_line_of_sight`, como siempre); y `_tapa_un_suelo`: si
+  la recta entre los ojos de uno (`altura_ojos`) y los del otro cruza una losa, no se ven.
+- `scripts/fisica/Suelo.gd`: `losas()` (qué suelos altos tapan la vista). `scripts/systems/VillageTavern.gd`:
+  `losa_planta_1()` (galería y cuartos; el hueco de la escalera no).
+- `scripts/systems/VillageManagerBase.gd`: `ve(...)` (atajo a Vista para que nadie más tenga que cargarla);
+  `_find_conscious_witness_near` usa `ve` en vez de «mismo piso + línea de visión».
+- `scripts/enemies/VillageNPCDuties.gd` (policía), `scripts/systems/VillageUnderworld.gd` (guardia que vigila la
+  reja) y `scripts/systems/VillageSocialLife.gd` (testigos de una pelea): lo mismo.
+- `tools/tests/fisica_3d.gd`: prueba del paso 5a (6 comprobaciones).
+- Sin tocar: `are_on_same_elevation` sigue para lo que no es ver (alcance de golpes, letreros, charlas).
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅. Una vez falló la prueba del paso 1 «cruza la puerta de la taberna» (el protagonista se
+quedó en la puerta); al repetir pasó: seguramente un vecino parado en el umbral (cuerpo de contacto del paso 4b).
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 4c — Animales grandes y bandidos también tienen cuerpo (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** como con los vecinos: ya no atraviesas a bandidos, enemigos, jabalíes, ciervos ni al ganado

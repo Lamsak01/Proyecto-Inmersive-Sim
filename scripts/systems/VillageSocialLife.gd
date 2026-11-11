@@ -226,7 +226,7 @@ static func _finish_live_fight(vm: VillageManager, fight: Dictionary, a: Village
 		if n == a or n == b or not (n is VillageNPC) or witnesses >= 3:
 			continue
 		var w: VillageNPC = n as VillageNPC
-		if w.is_conscious() and vm.are_on_same_elevation(w.elevation_level, a.elevation_level) and w.global_position.distance_to(a.global_position) <= vm.FIGHT_WITNESS_RADIUS and (not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", w.global_position, a.global_position))):
+		if w.is_conscious() and w.global_position.distance_to(a.global_position) <= vm.FIGHT_WITNESS_RADIUS and vm.ve(w.global_position, w.elevation_level, a.global_position, a.elevation_level):
 			w.add_thought("Vi pelearse a %s y %s (-2)" % [a.npc_name, b.npc_name], -2.0)
 			knowers[w.get_person_key()] = true
 			witnesses += 1

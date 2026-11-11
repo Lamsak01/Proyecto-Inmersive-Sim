@@ -27,6 +27,7 @@ func _initialize() -> void:
 	await _paso4_vecino_sube()
 	await _paso4b_contacto()
 	await _paso4c_animales()
+	await _paso5_vista()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -424,6 +425,41 @@ func _paso4c_animales() -> void:
 	_ok(pl.global_position.x < grande.global_position.x - 5.0, "4c: no se atraviesa a un animal grande (protagonista en x %.0f, animal en x %.0f)" % [pl.global_position.x, grande.global_position.x])
 	grande.set_physics_process(true)
 	grande.set_process(true)
+
+
+## Paso 5a: la vista con alturas. Desde el salón se ve el borde de la galería; bajo la galería no se ve a quien está encima.
+func _paso5_vista() -> void:
+	var vm = get_first_node_in_group("village_manager")
+	var pl = get_first_node_in_group("player")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	# El salón (Planta 0) va de la galería (y -166) a la pared sur (y -132); x 440 evita un tabique en x 479
+	var borde_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+	var salon: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+	var bajo_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 30.0))
+	var fuera: Vector2 = Anclas.mover(Vector2(330.0, -100.0)) # al suroeste: la mirada cruza la pared sur lejos de la puerta
+	_ok(vm.ve(salon, 0, borde_galeria, 1), "5: desde el salón se ve a quien está en el borde de la galería")
+	_ok(vm.ve(borde_galeria, 1, salon, 0), "5: y desde la galería se ve el salón")
+	_ok(not vm.ve(bajo_galeria, 0, borde_galeria, 1), "5: bajo la galería no se ve a quien está encima")
+	_ok(not vm.ve(fuera, 0, salon, 0), "5: desde fuera la pared de la posada tapa el salón")
+	_ok(not vm.ve(salon, 0, salon + Vector2(10, 0), -1), "5: bajo tierra no se ve desde la calle")
+	# Un vecino en la galería es testigo de lo que pasa en el salón (antes, en otro piso, no lo era)
+	var n = null
+	for v in vm.VillageNeeds.living(vm):
+		if v.is_conscious() and not v.is_hostile and not v.is_sleeping:
+			n = v
+			break
+	if n == null:
+		_ok(false, "5: hay un vecino para la prueba")
+		return
+	n.set_physics_process(false)
+	n.global_position = borde_galeria
+	vm.set_npc_elevation_level(n, 1)
+	pl.global_position = salon
+	vm.set_player_elevation_level(0)
+	_ok(vm._find_conscious_witness_near(salon, 120.0, null) == n, "5: un vecino en la galería es testigo de lo que pasa en el salón")
+	n.global_position = fuera + Vector2(0, 400)
+	vm.set_npc_elevation_level(n, 0)
+	n.set_physics_process(true)
 
 
 ## La «y» de un tramo del río en el pueblo que se puede cruzar en línea recta (sin puente ni rocas). NAN si no hay.

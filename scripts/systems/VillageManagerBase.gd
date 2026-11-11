@@ -4,6 +4,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const Anclas = preload("res://mapa/anclas.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
+const Vista = preload("res://scripts/fisica/Vista.gd")
 
 ## Plan de sitios (docs/PLAN_SITIOS.md): traduce un punto escrito en coordenadas del mapa ORIGINAL a su sitio actual
 ## (edificio, mueble u objeto movido en el editor del mapa 3D). Úsalo una sola vez, donde se escribe el número fijo.
@@ -627,6 +628,10 @@ func has_line_of_sight(from_pos: Vector2, to_pos: Vector2) -> bool:
 			if _segment_intersects_rect(from_pos, to_pos, d_rect):
 				return false
 	return true
+
+## Paso a 3D, paso 5a: ¿desde `a` (piso `nivel_a`) se ve `b` (piso `nivel_b`)? Paredes, puertas y suelos de verdad (Vista.gd).
+func ve(a: Vector2, nivel_a: int, b: Vector2, nivel_b: int) -> bool:
+	return Vista.ve(self, a, nivel_a, b, nivel_b)
 
 ## Navegación inteligente por pasillos de puertas y tabiques internos (sin atascos ni giros contra muros)
 
@@ -1502,10 +1507,8 @@ func _find_conscious_witness_near(pos: Vector2, max_dist: float, exclude_npc: Vi
 			var v: VillageNPC = n as VillageNPC
 			if v.is_dead or v.is_downed or v.is_sleeping or v.is_stunned_flag or v.sedated_timer > 0.0:
 				continue
-			if not are_on_same_elevation(v.elevation_level, target_level):
-				continue
 			var d2: float = pos.distance_squared_to(v.global_position)
-			if d2 <= best_d2 and has_line_of_sight(v.global_position, pos):
+			if d2 <= best_d2 and ve(v.global_position, v.elevation_level, pos, target_level):
 				best_d2 = d2
 				best = v
 	return best

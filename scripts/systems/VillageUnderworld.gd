@@ -319,10 +319,8 @@ static func _check_sewer_witness(vm, check_pos: Vector2) -> Dictionary:
 				var v: VillageNPC = n as VillageNPC
 				if v.is_dead or v.is_downed or v.is_sleeping or v.is_stunned_flag or v.sedated_timer > 0.0:
 					continue
-				if not vm.are_on_same_elevation(v.elevation_level, vm.player_elevation_level):
-					continue
 				var d2: float = check_pos.distance_squared_to(v.global_position)
-				if d2 <= best_d2 and vm.has_line_of_sight(v.global_position, check_pos):
+				if d2 <= best_d2 and vm.ve(v.global_position, v.elevation_level, check_pos, vm.player_elevation_level):
 					best_d2 = d2
 					best_law = v
 		if best_law != null:

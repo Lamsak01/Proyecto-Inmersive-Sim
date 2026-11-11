@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Paso a 3D de verdad: paso 5a, la vista con alturas (Claude Code, portátil; rama `mundo-3d`)
+- Testigos, policías y guardias te ven según paredes, puertas y suelos de verdad: desde el salón de la posada se ve a quien se asoma a la galería, no a quien está encima de ti.
+
 ## 2026-11-10 — Paso a 3D de verdad: paso 4c, animales grandes y bandidos (Claude Code, portátil; rama `mundo-3d`)
 - Ya no atraviesas a bandidos, jabalíes, ciervos ni al ganado grande; conejos, zorros, mascotas, gallinas y crías sí.
 

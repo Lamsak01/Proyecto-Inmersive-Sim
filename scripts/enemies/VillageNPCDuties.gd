@@ -539,7 +539,8 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 	var player = _cached_player
 	if not is_instance_valid(player):
 		return false
-	if vm and vm.has_method("are_on_same_elevation") and not bool(vm.call("are_on_same_elevation", elevation_level, vm.player_elevation_level)):
+	var can_see_player: bool = vm.ve(global_position, elevation_level, player.global_position, vm.player_elevation_level)
+	if not can_see_player and int(elevation_level) != int(vm.player_elevation_level):
 		_police_baton_windup_timer = 0.0
 		velocity = Vector2.ZERO
 		return false
@@ -550,7 +551,6 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 	var eff_pol: float = get_job_efficiency()
 	var amb_pol_vis: float = float(vm.call("get_ambient_vision_multiplier_at", player.global_position, self)) if (vm and vm.has_method("get_ambient_vision_multiplier_at")) else (float(WorldClock.call("get_weather_vision_multiplier")) if WorldClock else 1.0)
 	var detect_range: float = (95.0 if in_stealth else 235.0) * cloak_mult * lerpf(0.68, 1.0, eff_pol) * get_sleep_vision_multiplier() * amb_pol_vis
-	var can_see_player: bool = (not vm.has_method("has_line_of_sight")) or bool(vm.call("has_line_of_sight", global_position, player.global_position))
 
 	if can_see_player and dist_p <= detect_range:
 		_police_alerted_timer = 5.5
