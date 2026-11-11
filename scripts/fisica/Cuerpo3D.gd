@@ -9,7 +9,8 @@ extends CharacterBody3D
 ## - El suelo es una losa invisible que va bajo los pies a la altura que dice Suelo.gd.
 ## - Paso 2: donde hay varios suelos uno encima de otro (la posada), pisa el que tiene debajo según su altura (sube la
 ##   escalera andando) y avisa al pueblo de en qué piso está (`player_elevation_level`, que sigue usando el resto del juego).
-##   Los sótanos, alcantarillas y pisos de las casas siguen siendo «capas» a las que se llega con [E].
+##   Al club de peleas y a las alcantarillas (de verdad bajo tierra desde el paso 2b) y a los pisos de tu casa se sigue
+##   llegando con [E].
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
@@ -134,7 +135,7 @@ func _preparar() -> void:
 		_losa.global_position = Vector3(b.x, _suelo_y, b.z)
 	if is_instance_valid(_choques) and _choques.is_inside_tree():
 		var excluir: Array[RID] = [actor.get_rid()]
-		# Bajo tierra (capa −1, a la misma altura por ahora) no cuentan los choques de los pisos de encima
+		# Bajo tierra (capa −1) no cuentan los choques de los pisos de la posada de encima
 		var mascara: int = _mascara_2d if _nivel() == -1 else _mascara_2d | Suelo.CAPA_PISOS
 		_choques.actualizar(actor.get_world_2d().direct_space_state, p, mascara, excluir, _calle_y)
 
@@ -156,8 +157,10 @@ func _altura_suelo(p: Vector2, de_golpe: bool) -> float:
 	var relieve: float = WorldStageBase3D.terrain_height_px(p)
 	var pisos: Array[float] = Suelo.pisos_en(p) if nivel != -1 else ([] as Array[float])
 	if pisos.is_empty():
-		_calle_y = Mapa3D.a_3d(p, relieve + Suelo.altura_px(p, 0, vm)).y
-		return Mapa3D.a_3d(p, relieve + Suelo.altura_px(p, nivel, vm)).y
+		var suelo_y: float = Mapa3D.a_3d(p, relieve + Suelo.altura_px(p, nivel, vm)).y
+		# Bajo tierra (club, alcantarillas) los muros se levantan desde su propio suelo
+		_calle_y = suelo_y if nivel == -1 else Mapa3D.a_3d(p, relieve + Suelo.altura_px(p, 0, vm)).y
+		return suelo_y
 	_calle_y = Mapa3D.a_3d(p, relieve + pisos[0]).y
 	var h: float
 	if de_golpe:

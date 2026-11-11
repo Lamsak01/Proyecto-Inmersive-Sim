@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-10 — Paso a 3D de verdad: paso 2b, club y alcantarillas bajo tierra (Claude Code, portátil; rama `mundo-3d`)
+- El club de peleas y las alcantarillas están de verdad unos 3 m bajo la calle; en 1.ª persona hay techo de roca.
+
 ## 2026-11-10 — Paso a 3D de verdad: paso 2a, la posada con dos plantas de verdad (Claude Code, portátil; rama `mundo-3d`)
 - Al subir la escalera de la posada andando estás de verdad más alto; tu piso sale de tu altura.
 - Abajo no estorban las barandillas de arriba, ni arriba los muebles de abajo. La cámara va sobre tu cuerpo.

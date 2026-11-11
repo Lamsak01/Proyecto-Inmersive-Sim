@@ -21,6 +21,7 @@ func _initialize() -> void:
 	await _paso0_escenario()
 	await _paso1_cuerpo()
 	await _paso2_pisos()
+	await _paso2b_bajo_tierra()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -192,6 +193,28 @@ func _paso2_pisos() -> void:
 	pl.global_position = bajo_barandilla
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	_ok(pl.global_position.distance_to(bajo_barandilla) < 0.5 and int(vm.player_elevation_level) == 0, "2: en la Planta 0 la barandilla de arriba no estorba (" + str(pl.global_position.round()) + ")")
+	mc.set_physics_process(true)
+
+
+## Paso 2b: las alcantarillas (y el club) están de verdad bajo tierra; se baja y se sube con la reja.
+func _paso2b_bajo_tierra() -> void:
+	var pl = get_first_node_in_group("player")
+	var vm = get_first_node_in_group("village_manager")
+	var mc = pl.get_node("PlayerMovementController")
+	mc.set_physics_process(false)
+	var Suelo = load("res://scripts/fisica/Suelo.gd")
+	var Red = vm.VillageUnderworld
+	_ok(Suelo.es_bajo_tierra(vm.VillageClub.CLUB_CENTER, vm), "2b: el club de peleas está bajo tierra")
+	Red.sewers_state(vm)["unlocked"] = true
+	_ok(Red.enter_sewer_location(vm, "cistern", pl), "2b: entra en las alcantarillas")
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.5)
+	var hondo: float = mc.altura_pies_px()
+	_ok(int(vm.player_elevation_level) == -1 and absf(hondo - Suelo.PROFUNDIDAD_SOTANO_PX) < 1.0, "2b: abajo pisa %.1f px bajo la calle (%.1f esperado)" % [hondo, Suelo.PROFUNDIDAD_SOTANO_PX])
+	await _andar(pl, mc, Vector2.LEFT, 80.0, 0.6)
+	_ok(absf(mc.altura_pies_px() - Suelo.PROFUNDIDAD_SOTANO_PX) < 1.0, "2b: anda por el túnel sin subir ni caer (" + str(pl.global_position.round()) + ")")
+	Red.exit_sewers_to_surface(vm)
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.5)
+	_ok(int(vm.player_elevation_level) == 0 and mc.altura_pies_px() > -1.0, "2b: al salir por la reja vuelve a la calle (%.1f px)" % mc.altura_pies_px())
 	mc.set_physics_process(true)
 
 

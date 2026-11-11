@@ -946,8 +946,8 @@ func _update_fp_camera_transform() -> void:
 	var pl := get_tree().get_first_node_in_group("player") as Node2D if is_inside_tree() else null
 	var pl_pos: Vector2 = pl.global_position if is_instance_valid(pl) else Vector2(465, 48)
 	var eye_h: float = FP_EYE_HEIGHT_PX
-	var pies_px: float = float(pl.call("get_altura_pies_px")) if is_instance_valid(pl) and pl.has_method("get_altura_pies_px") else -1.0
-	if pies_px >= 0.0:
+	var pies_px: float = float(pl.call("get_altura_pies_px")) if is_instance_valid(pl) and pl.has_method("get_altura_pies_px") else NAN
+	if not is_nan(pies_px):
 		eye_h += pies_px # paso a 3D: los ojos van sobre el cuerpo 3D (suelo que pisa: tarima, escalera, Planta +1… + salto)
 	if is_instance_valid(pl):
 		if pl.get("is_mounted") == true:
@@ -956,7 +956,7 @@ func _update_fp_camera_transform() -> void:
 			var m_ctrl = pl.get_node_or_null("PlayerMovementController")
 			if m_ctrl != null and m_ctrl.get("is_stealthing") == true:
 				eye_h -= 3.5
-	if pies_px < 0.0: # aún sin cuerpo 3D (primeros fotogramas): como antes
+	if is_nan(pies_px): # aún sin cuerpo 3D (primeros fotogramas): como antes
 		if FishingSpotScript.is_in_river_crossing(pl_pos, 3.0):
 			eye_h += surface_elevation_offset_px(pl_pos)
 		if vm != null and VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level)) > 3.0:

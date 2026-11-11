@@ -193,8 +193,8 @@ func _sync_holder_position() -> void:
 	var pos_2d: Vector2 = _smoothed_entity_pos()
 	var tav_gd = preload("res://scripts/systems/VillageTavern.gd")
 	var rest_gd = preload("res://scripts/systems/VillageRestaurant.gd")
-	var pies_px: float = float(target_entity.call("get_altura_pies_px")) if is_player_avatar and target_entity.has_method("get_altura_pies_px") else -1.0
-	if pies_px >= 0.0:
+	var pies_px: float = float(target_entity.call("get_altura_pies_px")) if is_player_avatar and target_entity.has_method("get_altura_pies_px") else NAN
+	if not is_nan(pies_px):
 		seat_h += pies_px # el protagonista: donde está su cuerpo 3D (suelo + salto)
 	else:
 		seat_h += Suelo.altura_px(pos_2d, elev_lvl, vm_node) # misma regla que el cuerpo 3D (scripts/fisica/Suelo.gd)
@@ -203,7 +203,7 @@ func _sync_holder_position() -> void:
 		var v_chk: Vector2 = target_entity.get("velocity") if "velocity" in target_entity else Vector2.ZERO
 		if v_chk.length_squared() < 4.0:
 			foot_off = Vector2(0.0, 1.0)
-	if is_player_avatar and pies_px < 0.0 and target_entity.has_method("get_jump_height"):
+	if is_player_avatar and is_nan(pies_px) and target_entity.has_method("get_jump_height"):
 		seat_h += float(target_entity.call("get_jump_height"))
 	var base_pos_3d: Vector3 = _stage.call("to_3d", pos_2d + foot_off, seat_h)
 	var rec_rot := Vector3.ZERO

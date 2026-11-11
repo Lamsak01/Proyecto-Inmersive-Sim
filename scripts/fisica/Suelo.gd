@@ -8,6 +8,8 @@ extends RefCounted
 ## - Paso 2: donde hay varios suelos uno encima de otro (por ahora la posada: Planta 0, escalera y Planta +1), el cuerpo
 ##   3D pisa el que tiene debajo según su altura, y de ahí sale su piso. Los choques del mapa que son de un solo piso
 ##   (tabiques de la Planta 0, barandillas y cuartos de la Planta +1) se levantan solo a la altura de ese piso.
+## - Paso 2b: el club de peleas (bajo la posada) y las alcantarillas (bajo el centro) están de verdad bajo tierra, a
+##   PROFUNDIDAD_SOTANO_PX. Se sigue llegando por la trampilla o la reja con [E]. El sótano de tu casa aún no (paso 2e).
 
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
@@ -20,10 +22,13 @@ const TARIMA_TERRAZA_PX: float = 1.8  ## terraza del restaurante
 ## el protagonista está en otro piso. Solo la mira el cuerpo 3D, que los levanta a la altura de su piso.
 const CAPA_PISOS: int = 1 << 19
 const PISO_TODOS: int = -99 ## choque normal: de arriba abajo
+const PROFUNDIDAD_SOTANO_PX: float = -30.0 ## suelo del club y de las alcantarillas: ~3,2 m bajo la calle
 
 
 ## Altura del suelo (píxeles de altura sobre el relieve) en `pos` para alguien en la capa `nivel`.
 static func altura_px(pos: Vector2, nivel: int, vm: Node) -> float:
+	if nivel == -1:
+		return PROFUNDIDAD_SOTANO_PX if es_bajo_tierra(pos, vm) else 0.0
 	var h_taberna: float = VillageTavern.elevation_height_for(pos, nivel)
 	if h_taberna > 0.0:
 		return h_taberna
@@ -34,6 +39,16 @@ static func altura_px(pos: Vector2, nivel: int, vm: Node) -> float:
 	if VillageRestaurant.TERRACE.grow(6.0).has_point(pos):
 		return TARIMA_TERRAZA_PX
 	return WorldStageBase3D.surface_elevation_offset_px(pos)
+
+
+## ¿Está `pos` en un sitio que de verdad está bajo tierra (club de peleas o alcantarillas)? Se mira a través del pueblo
+## (`vm`) para no atar este archivo a esos sistemas.
+static func es_bajo_tierra(pos: Vector2, vm: Node) -> bool:
+	if vm == null or not ("VillageClub" in vm) or not ("VillageUnderworld" in vm):
+		return false
+	if Rect2(vm.VillageClub.CLUB_CENTER - vm.VillageClub.CLUB_SIZE * 0.5, vm.VillageClub.CLUB_SIZE).grow(12.0).has_point(pos):
+		return true
+	return vm.VillageUnderworld.zona_alcantarillas().has_point(pos)
 
 
 ## Suelos que hay en `pos` uno encima de otro (px sobre el relieve, de abajo arriba). Vacío si ahí solo hay uno.

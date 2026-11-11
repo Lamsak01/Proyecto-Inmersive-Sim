@@ -1,5 +1,6 @@
 @tool
 extends "res://scripts/visuals/WorldStageBase3D.gd"
+const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 
 ## Puesto del Paso, cementerio, alcantarillas, objetos de la época, farolas y objetos/props dinámicos 3D.
 
@@ -112,11 +113,14 @@ func _build_sewers_3d() -> void:
 	var m_torch := _mat("sewer_torch", Color(1.0, 0.76, 0.32), 0.20, 0.0, Color(1.0, 0.68, 0.22), 2.8)
 
 	var sy: float = VillageUnderworldScript.SEWER_Y
-	# Losa oscura de roca subterránea para cubrir el entorno exterior alrededor de la red de túneles bajo el pueblo (y = SEWER_Y)
-	_add_box_2d(sewers_root_3d, Vector2(420.0, sy), Vector2(720.0, 320.0), 1.2, 0.8, m_bedrock)
 	# Editor del mapa 3D: la red entera se desplaza lo que el usuario la movió (VillageUnderworld.desp_red)
 	var d_red: Vector2 = VillageUnderworldScript.desp_red
-	sewers_root_3d.position = Mapa3D.a_3d(d_red)
+	# Losa oscura de roca subterránea para cubrir el entorno exterior alrededor de la red de túneles bajo el pueblo (y = SEWER_Y)
+	var zona: Rect2 = VillageUnderworldScript.zona_alcantarillas()
+	_add_box_2d(sewers_root_3d, zona.get_center() - d_red, zona.size, 1.2, 0.8, m_bedrock)
+	_add_techo_roca(sewers_root_3d, zona.get_center() - d_red, zona.size, m_bedrock)
+	# Paso a 3D, paso 2b: la red está de verdad bajo tierra (Suelo.PROFUNDIDAD_SOTANO_PX bajo la calle)
+	sewers_root_3d.position = Mapa3D.a_3d(d_red, Suelo.PROFUNDIDAD_SOTANO_PX)
 
 	# 3 cámaras conectadas bajo el centro del pueblo: Bóveda Inundada (260, SEWER_Y), Pasadizo del Contrabandista (420, SEWER_Y) y Cisterna (580, SEWER_Y)
 	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
@@ -391,6 +395,8 @@ func _sync_dynamic_props_3d() -> void:
 	var underground_view: bool = in_sewers or in_club
 	if is_instance_valid(sewers_root_3d):
 		sewers_root_3d.visible = in_sewers
+	for techo in get_tree().get_nodes_in_group("techo_bajo_tierra_3d"):
+		(techo as Node3D).visible = first_person_active
 	_sync_club_3d()
 	if is_instance_valid(buildings_root_3d):
 		buildings_root_3d.visible = not underground_view
@@ -506,6 +512,15 @@ func _sync_home_props_3d() -> void:
 				if int(ps.get("stock", 0)) >= 2:
 					_add_box_2d(root, sc_pos + Vector2(-1.2, 0.4), Vector2(3.6, 3.4), 9.8, 2.2, m_gold) # Mercancía expuesta 2
 
+## Paso a 3D, paso 2b: techo de roca justo bajo la calle sobre una sala subterránea (dentro de `raiz`, que ya está
+## bajada Suelo.PROFUNDIDAD_SOTANO_PX). Solo se ve en 1.ª persona: desde arriba taparía la sala.
+func _add_techo_roca(raiz: Node3D, centro: Vector2, tam: Vector2, mat: Material) -> void:
+	var grosor: float = 2.0
+	var techo := _add_box_2d(raiz, centro, tam, -Suelo.PROFUNDIDAD_SOTANO_PX - grosor - 0.5, grosor, mat)
+	if techo != null:
+		techo.add_to_group("techo_bajo_tierra_3d")
+
+
 ## P6: sala del club de pelea (se construye una vez; solo se ve estando dentro).
 func _sync_club_3d() -> void:
 	if vm == null or stage_root_3d == null:
@@ -514,6 +529,7 @@ func _sync_club_3d() -> void:
 	if not is_instance_valid(_club_root_3d):
 		_club_root_3d = Node3D.new()
 		_club_root_3d.name = "FightClub3D"
+		_club_root_3d.position.y = Mapa3D.alto_a_3d(Suelo.PROFUNDIDAD_SOTANO_PX) # paso a 3D, paso 2b: de verdad bajo tierra
 		stage_root_3d.add_child(_club_root_3d)
 		var m_rock := _mat("sewer_bedrock", Color(0.08, 0.10, 0.09), 0.96, 0.0)
 		var m_dirt := _mat("club_dirt", Color(0.36, 0.27, 0.18), 0.95, 0.0)
@@ -525,6 +541,7 @@ func _sync_club_3d() -> void:
 		var c: Vector2 = Club.CLUB_CENTER
 		var sz: Vector2 = Club.CLUB_SIZE
 		_add_box_2d(_club_root_3d, c, sz + Vector2(80, 80), 0.0, 1.0, m_rock)
+		_add_techo_roca(_club_root_3d, c, sz + Vector2(80, 80), m_rock)
 		_add_box_2d(_club_root_3d, c, sz, 1.0, 1.2, m_dirt)
 		_add_box_2d(_club_root_3d, c + Vector2(0, -sz.y * 0.5 - 3), Vector2(sz.x + 12, 6), 2.0, 22.0, m_stone) # muro norte alto
 		_add_box_2d(_club_root_3d, c + Vector2(0, sz.y * 0.5 + 3), Vector2(sz.x + 12, 6), 2.0, 5.0, m_stone) # zócalo sur bajo

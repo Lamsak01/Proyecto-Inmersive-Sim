@@ -266,6 +266,11 @@ static func unlock_sewers(vm, npc, inv) -> bool:
 	VillageChronicle.add(vm, "sewers_unlocked", "Obtuviste la llave maestra y el plano de las alcantarillas bajo el pueblo (-%d de oro)" % SEWER_KEY_COST, false)
 	return true
 
+## Todo lo que ocupa la red de alcantarillas en el mapa (cámaras, pasillos y la roca de alrededor), ya movida si el
+## usuario la movió en el editor. Paso a 3D, paso 2b: ahí el suelo está bajo tierra.
+static func zona_alcantarillas() -> Rect2:
+	return Rect2(Vector2(420.0, SEWER_Y) - Vector2(360.0, 160.0) + desp_red, Vector2(720.0, 320.0))
+
 static func enter_sewer_location(vm, loc_id: String, player: Node2D = null) -> bool:
 	var sw: Dictionary = sewers_state(vm)
 	if not bool(sw.get("unlocked", false)) or not SEWER_LOCATIONS.has(loc_id):

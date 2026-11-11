@@ -6,6 +6,32 @@
 
 ---
 
+## Paso 2b — Club de peleas y alcantarillas de verdad bajo tierra (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** al bajar por la trampilla del club o por una reja de alcantarilla estás de verdad unos 3,2 m
+bajo la calle (antes estabas a la altura de la calle y se escondía lo de arriba). Se ve igual que antes, pero en
+1.ª persona hay un techo de roca en lugar de cielo. Se sigue bajando y subiendo con [E].
+
+**Por qué:** segundo trozo del paso 2; deja preparado el sitio para cuevas (un lugar bajo tierra con su entrada).
+
+**Archivos:**
+- `scripts/fisica/Suelo.gd`: `PROFUNDIDAD_SOTANO_PX` (−30 px de altura ≈ 3,2 m) y `es_bajo_tierra` (club o alcantarillas,
+  mirando a través del pueblo para no atar este archivo a esos sistemas). En la capa −1 fuera de esos sitios (sótano de tu
+  casa) el suelo sigue a ras de calle (trozo 2e).
+- `scripts/systems/VillageUnderworld.gd`: `zona_alcantarillas()` (lo que ocupa la red; antes el tamaño estaba escrito a
+  mano en el dibujo 3D).
+- `scripts/visuals/WorldStageProps3D.gd`: el club y las alcantarillas se dibujan bajados; `_add_techo_roca` (solo en
+  1.ª persona, desde arriba taparía la sala).
+- `scripts/fisica/Cuerpo3D.gd`: bajo tierra los muros se levantan desde el suelo de abajo.
+- `Player.gd`, `WorldStage3D.gd`, `CharacterAvatar3D.gd`: «sin cuerpo todavía» pasa a ser NAN (con −1 la cámara creía que
+  bajo tierra no había cuerpo y se quedaba en la calle; visto en las fotos).
+- `tools/tests/fisica_3d.gd`: prueba del paso 2b. Fotos: `docs/capturas_mundo3d/paso2b/`.
+
+**Cómo se probó:** fisica_3d ✅ · fotos en 1.ª persona comparadas con la versión anterior (iguales salvo el techo) ·
+verify_all ✅.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 2a — La posada con dos plantas de verdad (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** en la posada, al subir la escalera andando estás de verdad más alto (3,3 m); el piso (Planta 0
