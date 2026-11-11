@@ -82,11 +82,14 @@ static func crear(p_actor: CharacterBody2D, padre: Node) -> CharacterBody3D:
 
 func _ready() -> void:
 	var forma := CapsuleShape3D.new()
-	forma.radius = RADIO_M
-	forma.height = ALTO_M
+	var tam: Vector2 = Vector2(RADIO_M, ALTO_M) if es_prota else CuerposCercanos3D.tamano_de_pie(actor) # animales: más bajos y anchos
+	if tam == Vector2.ZERO:
+		tam = Vector2(RADIO_M, ALTO_M)
+	forma.radius = tam.x
+	forma.height = tam.y
 	_forma = CollisionShape3D.new()
 	_forma.shape = forma
-	_forma.position.y = ALTO_M * 0.5
+	_forma.position.y = tam.y * 0.5
 	add_child(_forma)
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING # el suelo lo pone él mismo; los choques solo son muros y cuerpos
 	safe_margin = 0.01

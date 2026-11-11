@@ -118,6 +118,9 @@ func refresh() -> void:
 				continue
 			if pl_b_id != "" and tgt.is_in_group("sewer_grate"):
 				continue
+			# Paso a 3D, paso 3c: lo que está en el fondo del agua (meta «bajo_el_agua») solo se alcanza buceando
+			if a.has_meta("bajo_el_agua") and not _buceando():
+				continue
 			# Paso a 3D, paso 5d: se llega a lo que está a tu altura (Vista.alcanza), no «a lo de tu piso»
 			if vm_chk != null and not vm_chk.alcanza(pp, int(vm_chk.player_elevation_level), (a as Node2D).global_position, _nivel_de(a, tgt, int(vm_chk.player_elevation_level))):
 				continue
@@ -250,6 +253,12 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 	return horiz_cos * 100.0 - lateral_px * 2.8 - dist_px * 0.5 - absf(pitch) * 12.0
 
 
+## ¿El protagonista está buceando? (paso 3b)
+func _buceando() -> bool:
+	var mc = player.get_node_or_null("PlayerMovementController")
+	return mc != null and mc.get("buceando") == true
+
+
 ## Piso de un objeto interactuable: el suyo si lo tiene (vecinos); los sitios fijos de la posada, según estén en la galería o
 ## en el salón; lo demás, el del protagonista (está donde estás tú).
 func _nivel_de(a: Area2D, tgt: Node, nivel_prota: int) -> int:
@@ -263,6 +272,8 @@ func _nivel_de(a: Area2D, tgt: Node, nivel_prota: int) -> int:
 
 ## La opción que se usará al pulsar [E]: la que está bajo el ratón (o bajo la cruz central en 1.ª persona), o la elegida con la rueda.
 func selected() -> Dictionary:
+	# Un sitio que acaba de desaparecer (objeto recogido, pista cogida) puede seguir en la lista hasta el siguiente repaso
+	candidates = candidates.filter(func(c): return is_instance_valid(c.get("area")) and is_instance_valid(c.get("target")))
 	if candidates.is_empty():
 		return {}
 	if WorldStage3DScript.first_person_active:

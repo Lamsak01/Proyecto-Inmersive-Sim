@@ -336,6 +336,19 @@ func _paso3_nadar() -> void:
 		await _andar(pl, mc, Vector2.ZERO, 0.0, 1.0 / 60.0)
 	_ok(c.global_position.y > sup - 1.5 and mc.aire_s > 0.0, "3b: al salir a la superficie flota otra vez y recupera aire")
 	hc3.current_health = hc3.max_health
+	# Paso 3c: un sitio marcado «bajo el agua» en el fondo del lago solo sale con [E] buceando
+	var sel = pl.interaction_selector
+	var fondo_area: Area2D = vm.marcar_bajo_el_agua(vm._add_station_area("PruebaFondoLago", pl.global_position, 20.0, "notice_board"))
+	await physics_frame
+	await physics_frame
+	sel.refresh()
+	var en_superficie: bool = sel.candidates.any(func(cd): return cd["area"] == fondo_area)
+	mc.buceando = true
+	sel.refresh()
+	var buceando_ve: bool = sel.candidates.any(func(cd): return cd["area"] == fondo_area)
+	mc.buceando = false
+	_ok(not en_superficie and buceando_ve, "3c: lo del fondo solo se alcanza buceando (superficie %s, buceando %s)" % [str(en_superficie), str(buceando_ve)])
+	fondo_area.queue_free()
 	pl.global_position = Anclas.mover(Vector2(454.0, -100.0))
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	mc.set_physics_process(true)
@@ -493,6 +506,19 @@ func _paso4c_animales() -> void:
 	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
 	# Con cuerpo de contacto: te para o lo apartas poco a poco (se desplaza)
 	_ok(pl.global_position.x < inicio.x + 25.0 or grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)) > 3.0, "4c: no se atraviesa a un animal grande sin más: choca y lo aparta (animal desplazado %.1f px)" % grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)))
+	# Opción B: el ciervo cercano tiene cuerpo completo y, andando contra la pared de la posada, se para
+	var AndarMapa = load("res://scripts/fisica/AndarMapa.gd")
+	var pared: Vector2 = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(-60.0, 40.0) # al suroeste de la puerta, delante de la pared sur
+	grande.global_position = pared
+	pl.global_position = pared + Vector2(0.0, 40.0)
+	for _i in range(12):
+		await physics_frame
+	_ok(grande.has_meta("cuerpo3d"), "B: un ciervo cerca del protagonista tiene cuerpo 3D completo")
+	for _i in range(90):
+		grande.velocity = Vector2.UP * 60.0
+		AndarMapa.paso(grande, 1.0 / 60.0)
+		await physics_frame
+	_ok(Anclas.desmover(grande.global_position).y > VillageTavern.RECT.end.y - 2.0, "B: y la pared de la posada lo para (y %.0f; pared en %.0f)" % [Anclas.desmover(grande.global_position).y, VillageTavern.RECT.end.y])
 	grande.set_physics_process(true)
 	grande.set_process(true)
 

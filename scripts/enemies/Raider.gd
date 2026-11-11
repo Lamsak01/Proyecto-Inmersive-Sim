@@ -1,4 +1,5 @@
 extends CharacterBody2D
+const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, opción B: cuerpo completo cerca del protagonista
 const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
 
 ## Asaltante de una incursión (2026-11-05, Regla «todo es físico»). Bandidos o jabalíes que entran de verdad por el
@@ -237,14 +238,14 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 
-func _move_to(p: Vector2, spd: float, _delta: float) -> void:
+func _move_to(p: Vector2, spd: float, delta: float) -> void:
 	var dir: Vector2 = p - global_position
 	if dir.length() < 1.0:
 		velocity = Vector2.ZERO
 		return
 	velocity = dir.normalized() * spd
 	facing = velocity.normalized()
-	move_and_slide() # choca con paredes y muebles
+	AndarMapa.paso(self, delta) # choca con paredes y muebles; con cuerpo 3D si está cerca del protagonista
 	if sprite:
 		sprite.flip_h = velocity.x > 0.0
 

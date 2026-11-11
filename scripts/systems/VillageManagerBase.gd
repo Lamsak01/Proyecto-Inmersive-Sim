@@ -1339,6 +1339,12 @@ func _spawn_decor_prop(tex_path: String, pos: Vector2, sc: Vector2 = Vector2.ONE
 		if fname in ["round_table_0.png", "table_chairs_0.png", "table_chairs_1.png", "big_round_table_chairs_0.png", "piano.png", "drinks_shelf_0.png", "drinks_shelf_1.png", "fireplace_0.png", "stand-1_part5.png"]:
 			register_no_stand_furniture(pos, col_sz)
 
+## Paso a 3D, paso 3c: un sitio con [E] en el fondo del río o del lago: solo se alcanza buceando (InteractionSelector).
+## Para las pistas de los casos que el usuario decida; se usa como `_add_station_area` y luego `marcar_bajo_el_agua`.
+func marcar_bajo_el_agua(area: Area2D) -> Area2D:
+	area.set_meta("bajo_el_agua", true)
+	return area
+
 func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
 	pos = Anclas.mover(pos, "zona", area_name)
 	var area := Area2D.new()

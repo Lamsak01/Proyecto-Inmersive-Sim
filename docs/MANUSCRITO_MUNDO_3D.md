@@ -6,6 +6,47 @@
 
 ---
 
+## Paso 3c — Sitios en el fondo del agua (2026-11-12, Claude Code, portátil)
+
+**Qué cambia en el juego:** nada todavía a la vista: queda preparado el mecanismo para las pistas de los casos que el
+usuario decida poner en el fondo del río o del lago. Un sitio con [E] marcado «bajo el agua» no sale nadando ni desde
+la orilla: solo buceando a su lado.
+
+**Archivos:**
+- `scripts/systems/VillageManagerBase.gd`: `marcar_bajo_el_agua(area)` (se crea el sitio con `_add_station_area` y
+  se marca).
+- `scripts/ui/InteractionSelector.gd`: salta los sitios marcados si el protagonista no bucea (`_buceando`).
+- `tools/tests/fisica_3d.gd`: prueba 3c (un sitio en el fondo del lago: en la superficie no, buceando sí).
+- De paso, `InteractionSelector.selected` deja fuera los sitios que acaban de desaparecer (daba avisos de «objeto
+  liberado» al recoger algo).
+
+**Cómo se probó:** fisica_3d ✅ (y sin avisos).
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
+## Opción B, trozo 2 — Animales, mascotas, bandidos y enemigos con cuerpo completo (2026-11-12, Claude Code, portátil)
+
+**Qué cambia en el juego:** los ciervos, jabalíes, mascotas grandes, bandidos y enemigos que tienes cerca andan con
+cuerpo 3D completo, como los vecinos: chocan con paredes y muebles en 3D, no entran en el agua y chocas con ellos.
+Los pequeños (conejos, zorros, gallinas, crías) siguen por el mapa. Con esto, el cuerpo de contacto ya solo lo usan los
+que no tienen cuerpo completo.
+
+**Archivos:**
+- `scripts/fisica/AndarMapa.gd` (nuevo, ~15 líneas): `paso(actor, delta)`: con cuerpo, anda con él; si no,
+  `move_and_slide` como siempre. Sin cargar nada (los guiones de los animales lo usan sin ciclos de carga).
+- `scripts/enemies/WildAnimal.gd`, `DomesticPet.gd`, `DummyEnemy.gd`, `Raider.gd`: cada `move_and_slide()` pasa a
+  `AndarMapa.paso(self, delta)` (9 sitios).
+- `scripts/fisica/CuerposDelPueblo3D.gd`: reparte también a «wild_animals», «domestic_pets», «raiders» y «enemies»,
+  solo a quien está de pie y es grande (`tamano_de_pie`).
+- `scripts/fisica/Cuerpo3D.gd`: la cápsula se hace del tamaño del actor (animal: 0,4 × 1,3 m).
+- `scripts/fisica/CuerposCercanos3D.gd`: `_si` compara con `== true` (en los animales «is_dead» puede ser una función).
+- `tools/tests/fisica_3d.gd`: un ciervo cerca tiene cuerpo y la pared de la posada lo para.
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ · atascos 6 h: 0 · cena en la posada con el
+protagonista en la puerta: 0.
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Rendimiento (noche del 2026-11-11, Claude Code, portátil)
 
 **Qué cambia en el juego:** va más fluido donde más costaba (plaza 20 → 25 fps, río 18 → 21; el resto igual o algo

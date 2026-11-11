@@ -89,7 +89,7 @@ static func tamano_de_pie(n: Node) -> Vector2:
 
 ## ¿Tiene `n` la propiedad `prop` y está a true? (no todos tienen las mismas: el ganado no duerme ni cae)
 static func _si(n: Node, prop: String) -> bool:
-	return prop in n and bool(n.get(prop))
+	return n.get(prop) == true # (si no existe da null; si es una función, no es true)
 
 
 ## Los que deben tener cuerpo, del más cercano al más lejano (como mucho MAX_CUERPOS).

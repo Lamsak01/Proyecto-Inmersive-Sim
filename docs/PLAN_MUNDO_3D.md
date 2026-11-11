@@ -175,8 +175,8 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 - Nadar en superficie (más lento, gasta aguante), bucear (cámara bajo el agua, aire limitado, ahogarse), salir por la orilla.
 - **Pistas en el fondo:** objetos que solo se encuentran buceando (preparado para los casos; el usuario decide cuáles).
 - Se borran las colisiones 2D del río y del lago.
-- **Trozos:** 3a nadar en superficie (hecho) · 3b bucear (aire, ahogarse) · 3c pistas en el fondo: **aplazados por el usuario** (2026-11-10, «déjalo para luego»;
-  falta su decisión sobre cuánto aire y si al acabarse te desmayas o mueres).
+- **Trozos:** 3a nadar en superficie (hecho) · 3b bucear (hecho: 30 s de aire, sin aire pierdes vida hasta morir) · 3c sitios en el
+  fondo (mecanismo hecho; las pistas concretas, cuando el usuario decida cuáles).
   Los choques 2D del agua se quedan hasta el paso 4: el cuerpo 3D ya no los copia, pero frenan a los vecinos.
 - **Terminado cuando:** se puede cruzar el río nadando, bucear en el lago y recoger un objeto del fondo; pruebas en verde.
 
@@ -188,6 +188,7 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
   arreglado el escalón de golpe al final) · 4b cuerpo 3D solo para los vecinos cercanos al protagonista (los lejanos
   siguen en el mapa) · 4c animales, caballo y carro (hecho: cuerpo de contacto para bandidos y animales grandes,
   decisión del usuario; caballo y carro ya iban con el cuerpo del protagonista) · 4d quitar los empujones viejos cuando no hagan falta.
+- **Opción B hecha en dos trozos (noche del 2026-11-11 y 2026-11-12), híbrida:** cuerpo completo para vecinos, animales grandes, mascotas, bandidos y enemigos cercanos al protagonista; los lejanos y los pequeños siguen por el mapa.
 - **Decisión del usuario (2026-11-10): «A por ahora, pero quiero B luego».** Hallazgo: los vecinos no chocan con nada en
   el mapa (siguen sus rutas como un tren por sus vías y el pueblo los recoloca si se salen) y el protagonista los
   atravesaba. **A (hecho en 4b):** cuerpo 3D «de contacto» para los vecinos cercanos, que sigue al vecino; el
@@ -305,6 +306,8 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-11 (noche) | Claude Code (portátil) | Paso 2e | Piso alto (26 px ≈ 2,75 m) y sótano (−30 px) de tu casa con altura de verdad; con [E] el cuerpo va al suelo nuevo sin caer ni daño; suelo de madera del altillo (visible en 1.ª persona o arriba) y sala de piedra del sótano con techo de roca. La altura de la Planta +1 de la posada ya solo vale dentro de la posada | fisica_3d ✅ (4 comprobaciones con una casa de prueba) | (este commit) |
 | 2026-11-11 (noche) | Claude Code (portátil) | Paso 3b | Bucear: nadando, agacharse te hunde al fondo; 30 s de aire (barra 🫧); sin aire, 8 de vida por segundo hasta morir (decisión del usuario); al subir o salir, el aire vuelve; en 1.ª persona la vista bajo el agua es verde-azul y turbia | fisica_3d ✅ (4 comprobaciones en el lago) | (este commit) |
 | 2026-11-11 (noche) | Claude Code (portátil) | Rendimiento | Medido con la CPU ya a 2,9 GHz (el freno de ayer desapareció). Antes de tocar nada esta noche (`perf_zonas`, 1.ª persona): afueras 31, plaza 20, río 23→18, bosque 34, molino 38, mansión 40 fps; en la plaza, 50 ms por fotograma (lógica 43, física 16). Lo que más pesaba: el relieve del terreno (`terrain_height_px`) calculado cientos de veces por fotograma (cuerpos, muñecos, animales, vista), los 43 muñecos de vecinos y los 54 modelos de animales al día cada fotograma, y los cuerpos de los vecinos repasando las paredes cada paso. Hecho: memoria del relieve por celdas de 4 px (`olvidar_relieve` al cambiar el río), muñecos y animales a más de 240 px 1 de cada 3 fotogramas, paredes de los vecinos 1 de cada 3 pasos, cuerpos de contacto 1 de cada 2, reparto de cuerpos 1 de cada 6. Después: afueras 31, plaza 25, río 21, bosque 35, molino 40, mansión 43 fps (plaza 40 ms: lógica 30, física 13). Lo que queda: la lógica de los vecinos cercanos (≈30 ms) y el dibujo (GPU 17–26 ms en plaza y río, sombras) | perf_zonas, perf_fisica (con ventana) · fisica_3d ✅ · puertas_3d · verify_all | (este commit) |
+| 2026-11-12 | Claude Code (portátil) | Opción B, trozo 2 | Animales grandes, mascotas grandes, bandidos y enemigos cercanos con cuerpo 3D completo (`AndarMapa.paso` en sus guiones; `CuerposDelPueblo3D` reparte a 5 grupos, solo a quien está de pie y es grande) | fisica_3d ✅ (ciervo con cuerpo parado por la pared) · puertas_3d 29/29 · verify_all ✅ · atascos 6 h: 0 · cena posada: 0 | (este commit) |
+| 2026-11-12 | Claude Code (portátil) | Paso 3c | Mecanismo de sitios en el fondo del agua (`marcar_bajo_el_agua`): solo salen con [E] buceando. Las pistas concretas, cuando el usuario decida | fisica_3d ✅ | (este commit) |
 
 ### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.

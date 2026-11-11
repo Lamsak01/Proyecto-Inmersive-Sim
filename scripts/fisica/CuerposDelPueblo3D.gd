@@ -1,6 +1,7 @@
 extends Node3D
 
-## CuerposDelPueblo3D: reparte cuerpos 3D completos (Cuerpo3D) a los vecinos que el protagonista tiene cerca y se los
+## CuerposDelPueblo3D: reparte cuerpos 3D completos (Cuerpo3D) a los vecinos, animales grandes, bandidos y enemigos que
+## el protagonista tiene cerca y se los
 ## quita cuando se alejan. Paso del mundo a 3D, opción B (paso 4), noche del 2026-11-11.
 ## - Híbrido por rendimiento (decisión del usuario): solo los vecinos a menos de CERCA_PX llevan cuerpo completo; los
 ##   lejanos siguen andando por el mapa como siempre (y con la simulación simplificada que ya tenían).
@@ -13,7 +14,7 @@ const Cuerpo3D = preload("res://scripts/fisica/Cuerpo3D.gd")
 const CERCA_PX: float = 150.0      ## a esta distancia del protagonista un vecino lleva cuerpo completo
 const LEJOS_PX: float = 190.0      ## y a esta lo pierde (margen para no ponerlo y quitarlo sin parar)
 const MAX_CUERPOS: int = 24
-const GRUPOS: Array[String] = ["village_npcs"]
+const GRUPOS: Array[String] = ["village_npcs", "wild_animals", "domestic_pets", "raiders", "enemies"]
 const ATASCO_S: float = 5.0
 const SIN_CUERPO_S: float = 10.0
 
@@ -30,7 +31,7 @@ func _init() -> void:
 func actualizar(centro: Vector2) -> void:
 	var ahora: float = Time.get_ticks_msec() / 1000.0
 	for n in _con_cuerpo.duplicate():
-		if not is_instance_valid(n) or (n as Node2D).global_position.distance_to(centro) > LEJOS_PX or bool(n.get("is_dead")):
+		if not is_instance_valid(n) or (n as Node2D).global_position.distance_to(centro) > LEJOS_PX or n.get("is_dead") == true:
 			_quitar(n)
 		elif _atascado(n):
 			_quitar(n)
@@ -39,7 +40,8 @@ func actualizar(centro: Vector2) -> void:
 		return
 	for g in GRUPOS:
 		for n in get_tree().get_nodes_in_group(g):
-			if n is CharacterBody2D and not n.has_meta("cuerpo3d") and not bool(n.get("is_dead")) and (n as Node2D).global_position.distance_to(centro) <= CERCA_PX:
+			# Solo a quien está de pie y es grande (los conejos, zorros y gallinas siguen por el mapa)
+			if n is CharacterBody2D and not n.has_meta("cuerpo3d") and not n.get("is_dead") == true and (n as Node2D).global_position.distance_to(centro) <= CERCA_PX and Cuerpo3D.CuerposCercanos3D.tamano_de_pie(n) != Vector2.ZERO:
 				if n.has_meta("sin_cuerpo_hasta") and float(n.get_meta("sin_cuerpo_hasta")) > ahora:
 					continue
 				_dar(n)

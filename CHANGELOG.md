@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-12 — Paso a 3D: sitios en el fondo del agua (Claude Code, portátil; rama `mundo-3d`)
+- Preparado para pistas en el fondo del río o del lago: solo se alcanzan buceando. Falta decidir cuáles.
+
+## 2026-11-12 — Paso a 3D, opción B (2): animales grandes, mascotas, bandidos y enemigos con cuerpo completo (Claude Code, portátil; rama `mundo-3d`)
+- Cerca de ti, ciervos, jabalíes, perros, bandidos y sapos chocan con paredes y muebles en 3D y contigo; los pequeños siguen igual.
+
 ## 2026-11-11 (noche) — Más fluido (Claude Code, portátil; rama `mundo-3d`)
 - Plaza 20 → 25 fps, río 18 → 21: el relieve del terreno se recuerda en vez de recalcularse, y los vecinos y animales lejanos se ponen al día menos a menudo.
 

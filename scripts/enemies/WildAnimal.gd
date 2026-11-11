@@ -1,6 +1,7 @@
 @tool
 extends CharacterBody2D
 class_name WildAnimal
+const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, opción B: cuerpo completo cerca del protagonista
 const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
 
 ## Fauna Silvestre con Simulación de Vida (Estilo RDR2), Sigilo/Salto de Cazador y Saciedad de 2 Niveles — Fase 3.5
@@ -249,7 +250,7 @@ func _physics_process(delta: float) -> void:
 		if far_offscreen:
 			global_position += velocity * delta
 		else:
-			move_and_slide()
+			AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
 			_update_sprite_motion(delta)
 		return
 
@@ -288,7 +289,7 @@ func _physics_process(delta: float) -> void:
 				var away: Vector2 = (global_position - _cached_player.global_position) / maxf(0.01, d) if d >= 0.01 else Vector2.RIGHT
 				var push_spd: float = 60.0 if (species == SpeciesType.RABBIT or species == SpeciesType.FOX) else 38.0
 				velocity += away * ((min_r - d) / min_r) * push_spd
-		move_and_slide()
+		AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
 		_update_sprite_motion(delta)
 
 func _update_sprite_motion(delta: float) -> void:

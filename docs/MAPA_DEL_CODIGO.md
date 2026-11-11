@@ -10,7 +10,7 @@
 
 | Carpeta | Qué hay | Tamaño |
 |---|---|---|
-| `scripts/fisica/` | **Nuevo (paso a 3D).** Todo lo físico del mundo 3D: conversión mapa ↔ 3D, cuerpo 3D del protagonista, choques y suelo | 8 archivos |
+| `scripts/fisica/` | **Nuevo (paso a 3D).** Todo lo físico del mundo 3D: conversión mapa ↔ 3D, cuerpo 3D del protagonista, choques y suelo | 9 archivos |
 | `scripts/` (sueltos) | El protagonista: moverse, pelear, el mundo principal | 4 archivos, ~2.800 líneas |
 | `scripts/enemies/` | Los vecinos (cerebro, trabajo, vida social, policía, diálogos), animales salvajes, mascotas, asaltantes | 12, ~10.100 |
 | `scripts/systems/` | Las reglas del pueblo: reloj, guardado, economía, casas, crimen, justicia, fe, familia, taberna… | 58, ~38.600 |
@@ -37,7 +37,8 @@
   igual en todas direcciones desde el paso 0b). Lo usan el juego, el editor del mapa y las herramientas.
 - `Cuerpo3D.gd` [~360] — el cuerpo 3D del protagonista y de los vecinos cercanos: anda, choca, cae, salta, cambia de piso; el protagonista además se hace daño al caer, vadea y nada; escribe su sitio en el mapa.
 - `ChoquesCercanos3D.gd` [~175] — copias 3D, levantadas como muros, de los choques del mapa que hay cerca de un cuerpo.
-- `CuerposDelPueblo3D.gd` [~55] — reparte cuerpos 3D completos a los vecinos cercanos al protagonista y se los quita al alejarse (opción B, híbrida).
+- `AndarMapa.gd` [~15] — el paso de animales, mascotas, bandidos y enemigos: con cuerpo 3D si lo tienen, si no por el mapa.
+- `CuerposDelPueblo3D.gd` [~80] — reparte cuerpos 3D completos a los vecinos cercanos al protagonista y se los quita al alejarse (opción B, híbrida).
 - `CuerposCercanos3D.gd` [~140] — cuerpos 3D «de contacto» de los vecinos, bandidos y animales grandes cercanos al protagonista (no se les atraviesa).
 - `Vista.gd` [~70] — ¿quién ve a quién, cuánto le oye y si llega a golpearle? paredes y puertas del mapa más las losas de los suelos altos (pasos 5a–5c).
 - `Agua.gd` [~55] — dónde hay agua (río y lago), a qué altura está su superficie y cuánto cubre en cada punto.

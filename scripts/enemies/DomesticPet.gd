@@ -1,6 +1,7 @@
 @tool
 extends CharacterBody2D
 class_name DomesticPet
+const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, opción B: cuerpo completo cerca del protagonista
 
 const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 
@@ -215,7 +216,7 @@ func _physics_process(delta: float) -> void:
 		if away.length_squared() < 0.01:
 			away = Vector2.RIGHT
 		velocity = away * 74.0
-		move_and_slide()
+		AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
 		if sprite:
 			sprite.rotation_degrees = 0.0
 			sprite.flip_h = velocity.x < -1.0
@@ -263,7 +264,7 @@ func _physics_process(delta: float) -> void:
 			var dist_p: float = global_position.distance_to(player.global_position)
 			if dist_p > 18.0:
 				velocity = (player.global_position - global_position).normalized() * (68.0 * pet_spd_mult)
-				move_and_slide()
+				AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
 			else:
 				velocity = Vector2.ZERO
 				if _attack_cooldown <= 0.0:
@@ -291,7 +292,7 @@ func _physics_process(delta: float) -> void:
 		if not is_sleeping and to_home.length() > 16.0 and _sleep_walk_timer < 3.2 and need_energy > 2.0:
 			_sleep_walk_timer += delta
 			velocity = to_home.normalized() * 36.0
-			move_and_slide()
+			AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
 			if sprite:
 				sprite.flip_h = velocity.x < -1.0
 		else:
@@ -326,7 +327,7 @@ func _physics_process(delta: float) -> void:
 		var spd: float = (36.0 if pet_type == PetType.DOG else 30.0) * pet_spd_mult
 		var base_vel: Vector2 = diff.normalized() * spd if diff.length() > 4.0 else Vector2.ZERO
 		velocity = base_vel + soft_push
-		move_and_slide()
+		AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
 		if sprite:
 			if absf(velocity.x) > 1.0:
 				sprite.flip_h = velocity.x < -1.0
