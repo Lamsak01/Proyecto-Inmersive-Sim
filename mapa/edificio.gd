@@ -10,6 +10,16 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 const VISTA_DIR := "res://mapa/edificios_vista/"
 const ESCENA := "res://mapa/Mundo3D.tscn"
+const REFERENCIA := "res://mapa/referencia_mapa.json"
+const PREFIJO_SOLAR := "house_family_lot_"
+const PRIMER_EMOJI: int = 0x2000 ## de aquí en adelante, símbolos y emojis que el letrero 3D no sabe dibujar
+const LETRERO_ALTURA_M: float = 14.0 ## por encima del tejado de casi todos los edificios
+const LETRERO_TAM_PIXEL: float = 0.03 ## metros por píxel de letra: letras de ~2 m, como el ancho de una casa
+const LETRERO_TAM_LETRA: int = 64
+const LETRERO_BORDE: int = 16
+const LETRERO_VISTO_HASTA_M: float = 700.0 ## más lejos se esconden: desde muy arriba se amontonarían
+
+static var _nombres: Dictionary = {}
 
 ## Nombre interno del edificio en el juego (no lo cambies).
 @export var id_edificio: String = ""
@@ -34,7 +44,55 @@ func _poner_vista() -> void:
 	var v: Node3D = (load(ruta) as PackedScene).instantiate()
 	v.set_meta("vista_edificio", true)
 	v.position = -origen_3d # la foto está en coordenadas del mundo; así queda pegada a la pieza
+	_quitar_luces(v)
 	add_child(v) # sin «owner»: no se guarda en la escena
+	add_child(_letrero())
+
+
+## Las luces de dentro de la foto el editor las dibuja como aros de colores que tapan el edificio visto desde
+## arriba; en la foto no hacen falta (el juego pone sus propias luces).
+func _quitar_luces(nodo: Node) -> void:
+	for c in nodo.get_children():
+		if c is Light3D:
+			nodo.remove_child(c)
+			c.free()
+		else:
+			_quitar_luces(c)
+
+
+## Nombre flotando encima del edificio, con tamaño fijo en el mundo (de cerca grande, de lejos pequeño) (solo en el editor).
+func _letrero() -> Label3D:
+	var l := Label3D.new()
+	l.set_meta("vista_edificio", true)
+	l.text = nombre_legible(id_edificio)
+	l.pixel_size = LETRERO_TAM_PIXEL
+	l.font_size = LETRERO_TAM_LETRA
+	l.outline_size = LETRERO_BORDE
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.no_depth_test = true # se lee aunque lo tape un árbol o el tejado
+	l.visibility_range_end = LETRERO_VISTO_HASTA_M
+	l.position = Vector3(0.0, LETRERO_ALTURA_M, 0.0)
+	return l
+
+
+## Nombre del edificio para las personas: el título del juego sin emojis (Godot no los dibuja en 3D);
+## las casas de recién llegados y lo de bajo tierra no tienen título.
+static func nombre_legible(id: String) -> String:
+	if _nombres.is_empty() and FileAccess.file_exists(REFERENCIA):
+		var datos: Variant = JSON.parse_string(FileAccess.get_file_as_string(REFERENCIA))
+		if datos is Dictionary:
+			for e: Variant in (datos as Dictionary).get("edificios", []):
+				if e is Dictionary:
+					_nombres[String(e.get("id", ""))] = String(e.get("nombre", ""))
+	if id.begins_with(PREFIJO_SOLAR):
+		return "Casa del solar " + id.trim_prefix(PREFIJO_SOLAR).to_upper()
+	if id == "bajo_alcantarillas":
+		return "Alcantarillas"
+	var limpio := ""
+	for ch: String in String(_nombres.get(id, id)):
+		if ch.unicode_at(0) < PRIMER_EMOJI:
+			limpio += ch
+	return limpio.strip_edges()
 
 
 ## Cuánto se ha movido cada edificio en el mapa 2D (id → Vector2). Lo usa VillageManagerBase al construirlos.

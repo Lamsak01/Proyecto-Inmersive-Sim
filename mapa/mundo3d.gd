@@ -13,6 +13,11 @@ const WB = preload("res://scripts/visuals/WorldStageBase3D.gd")
 const FS = preload("res://scripts/obstacles/FishingSpot.gd")
 const REFERENCIA := "res://mapa/referencia_mapa.json"
 const PASO_SUELO: float = 40.0
+const SOL_GIRO := Vector3(-50.0, 35.0, 0.0)
+const SOL_FUERZA: float = 1.3
+const LUZ_AMBIENTE: float = 0.8
+const CIELO_ARRIBA := Color(0.36, 0.54, 0.80)
+const CIELO_HORIZONTE := Color(0.72, 0.80, 0.88)
 
 ## Marca esta casilla para rehacer la maqueta (por ejemplo, después de mover el río en el editor 2D).
 @export var regenerar: bool = false:
@@ -62,9 +67,31 @@ func _construir() -> void:
 			_cono(vista, Vector2(t[0], t[1]) * E, 9.0, 46.0, Color(0.18, 0.45, 0.20))
 		for r in ref.get("rocas", []):
 			_cono(vista, Vector2(r[0], r[1]) * E, 7.0, 8.0, Color(0.5, 0.5, 0.5))
+	_luz_y_cielo(vista)
+
+
+## Sol y cielo solo para el editor: sin ellos Godot apaga su luz de muestra y todo se ve oscuro y plano.
+## Van dentro de «Vista», así que no se guardan ni salen en el juego (el juego pone su propio cielo).
+func _luz_y_cielo(vista: Node3D) -> void:
 	var luz := DirectionalLight3D.new()
-	luz.rotation_degrees = Vector3(-50, 35, 0)
+	luz.rotation_degrees = SOL_GIRO
+	luz.light_energy = SOL_FUERZA
 	vista.add_child(luz)
+	var cielo := ProceduralSkyMaterial.new()
+	cielo.sky_top_color = CIELO_ARRIBA
+	cielo.sky_horizon_color = CIELO_HORIZONTE
+	cielo.ground_horizon_color = CIELO_HORIZONTE
+	cielo.ground_bottom_color = CIELO_HORIZONTE # sin franja marrón por encima del borde del mapa
+	var env := Environment.new()
+	env.background_mode = Environment.BG_SKY
+	env.sky = Sky.new()
+	env.sky.sky_material = cielo
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY # las caras a la sombra se ven, no salen negras
+	env.ambient_light_energy = LUZ_AMBIENTE
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	var we := WorldEnvironment.new()
+	we.environment = env
+	vista.add_child(we)
 
 
 ## Polígonos de la referencia (mapa original) estirados E veces.

@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Editor del mapa 3D más claro (Claude Code, sobremesa)
+- La maqueta del editor tiene su propio sol y cielo (antes todo se veía oscuro y plano); solo en el editor, el juego no cambia.
+- Fuera los aros de colores sobre los edificios (eran las luces interiores de sus fotos).
+- Cada edificio lleva su nombre flotando encima (tamaño fijo en el mundo; se esconden a más de 700 m). Las casas de recién llegados salen como «Casa del solar N0», etc.
+- Apuntados en `docs/FALLOS_VISIBLES.md` los 9 fallos de la segunda partida del usuario en 1.ª persona (pendientes).
+
 ## 2026-11-11 — Mapa ×5 (Claude Code, portátil; rama `mapa-x5`)
 - El valle es cinco veces más grande: pueblo, campamento, lago, bosque y llanura separados; río el doble de ancho; bosques repoblados. Las partidas guardadas anteriores no valen (partida nueva). Rendimiento en el portátil: plaza 21 fps, río 24, bosque 23.
 - Más sitios fijos al mundo ×5: cofres, terminales, hospital, molino, estudio de la mansión, generador y cables en 3D; cantera, campos, corral y troncos pegados a su edificio; barro del lago y la ciénaga y bandas del bosque en su sitio.

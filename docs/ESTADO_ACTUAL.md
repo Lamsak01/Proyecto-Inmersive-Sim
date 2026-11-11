@@ -11,6 +11,7 @@ usuario), sombra larga de los edificios, y la vista desde arriba enseña poco (z
 el editor, sus sillas y la mesa se solapan (aviso amarillo, no rompe nada).
 
 ## b) Último avance completado
+- 2026-11-11 (sobremesa): editor del mapa 3D más claro (sol y cielo en la maqueta, sin aros de luces, nombres sobre los edificios). 9 fallos nuevos de la partida en 1.ª persona apuntados en `FALLOS_VISIBLES.md` («Segunda partida»), sin arreglar: el usuario los deja para después.
 - 2026-11-11/12: mapa ×5 con el mecanismo de estiramiento por anclas y repaso de ~45 sitios fijos que seguían en el mapa antiguo (pozos, camas, celda, carro, corral, tienda del jugador…); antes, los 6 puntos del plan del día (posada, bandidos, Caso I día 2, césped, animales, reñidero) y la reorganización del repositorio.
 - 2026-11-12 (noche anterior): conversión a 3D terminada y en `main` (etiqueta `fin-paso-a-3d`): cuerpos 3D de
   protagonista y vecinos, pisos y sótanos reales, nadar y bucear (30 s de aire), vista/oído con alturas, manos en 1.ª
