@@ -7388,26 +7388,28 @@ func _initialize() -> void:
 	# Verify tavern doorway double-lane and no threshold oscillation when exiting to north/east destinations
 	for tx in [440.0, 448.0, 454.0, 462.5, 468.0]:
 		for ty in [-142.0, -133.0, -131.5, -124.0]:
-			var wp_exit: Vector2 = vm.get_navigation_waypoint(Vector2(tx, ty), M(Vector2(570.0, -456.0)), null)
-			assert(wp_exit.y > -150.0, "Tavern doorway exit must never route an exiting villager back inside to casino/north rooms! Got wp=" + str(wp_exit) + " from (" + str(tx) + "," + str(ty) + ")")
+			var wp_exit: Vector2 = vm.get_navigation_waypoint(M(Vector2(tx, ty)), M(Vector2(570.0, -456.0)), null)
+			assert(D(wp_exit).y > -150.0, "Tavern doorway exit must never route an exiting villager back inside to casino/north rooms! Got wp=" + str(wp_exit) + " from (" + str(tx) + "," + str(ty) + ")")
 	var wp_out_lane: Vector2 = vm.get_navigation_waypoint(M(Vector2(454.0, -140.0)), M(Vector2(454.0, -60.0)), null)
 	var wp_in_lane: Vector2 = vm.get_navigation_waypoint(M(Vector2(454.0, -100.0)), M(Vector2(420.0, -198.0)), null)
-	assert(wp_out_lane.x < 450.0 and wp_in_lane.x > 458.0, "Tavern doorway must separate exiting lane (<450) and entering lane (>458)! Got out=" + str(wp_out_lane) + " in=" + str(wp_in_lane))
+	assert(D(wp_out_lane).x < 450.0 and D(wp_in_lane).x > 458.0, "Tavern doorway must separate exiting lane (<450) and entering lane (>458)! Got out=" + str(wp_out_lane) + " in=" + str(wp_in_lane))
 	var door_lane_issues: Array = vm.check_all_building_doors_and_lanes()
 	assert(door_lane_issues.is_empty(), "All building doors must be >=2-person wide with registered direction and unobstructed dual lanes! Found: " + str(door_lane_issues))
 	# Verify East and West door dual-lane routing works identically to North/South
-	var east_test_b: Dictionary = {"id": "test_east_b", "rect": Rect2(M(Vector2(2200.0, 2200.0)), Vector2(100.0, 80.0)), "door_pos": M(Vector2(2300.0, 2240.0)), "door_south": false, "door_dir": "east", "door_width": 40.0}
-	var west_test_b: Dictionary = {"id": "test_west_b", "rect": Rect2(M(Vector2(2500.0, 2200.0)), Vector2(100.0, 80.0)), "door_pos": M(Vector2(2500.0, 2240.0)), "door_south": false, "door_dir": "west", "door_width": 40.0}
+	# Edificios de prueba en campo abierto: con el mapa ×E todo se escribe como desplazamientos desde un punto base
+	var pb: Vector2 = M(Vector2(2200.0, 2200.0))
+	var east_test_b: Dictionary = {"id": "test_east_b", "rect": Rect2(pb, Vector2(100.0, 80.0)), "door_pos": pb + Vector2(100.0, 40.0), "door_south": false, "door_dir": "east", "door_width": 40.0}
+	var west_test_b: Dictionary = {"id": "test_west_b", "rect": Rect2(pb + Vector2(300.0, 0.0), Vector2(100.0, 80.0)), "door_pos": pb + Vector2(300.0, 40.0), "door_south": false, "door_dir": "west", "door_width": 40.0}
 	vm.building_footprints.append(east_test_b)
 	vm.building_footprints.append(west_test_b)
-	var wp_east_out: Vector2 = vm.get_navigation_waypoint(M(Vector2(2290.0, 2247.5)), M(Vector2(2360.0, 2240.0)), null)
-	var wp_east_in: Vector2 = vm.get_navigation_waypoint(M(Vector2(2330.0, 2240.0)), M(Vector2(2250.0, 2240.0)), null)
-	var wp_west_out: Vector2 = vm.get_navigation_waypoint(M(Vector2(2510.0, 2232.5)), M(Vector2(2440.0, 2240.0)), null)
-	var wp_west_in: Vector2 = vm.get_navigation_waypoint(M(Vector2(2470.0, 2240.0)), M(Vector2(2550.0, 2240.0)), null)
+	var wp_east_out: Vector2 = vm.get_navigation_waypoint(pb + Vector2(90.0, 47.5), pb + Vector2(160.0, 40.0), null)
+	var wp_east_in: Vector2 = vm.get_navigation_waypoint(pb + Vector2(130.0, 40.0), pb + Vector2(50.0, 40.0), null)
+	var wp_west_out: Vector2 = vm.get_navigation_waypoint(pb + Vector2(310.0, 32.5), pb + Vector2(240.0, 40.0), null)
+	var wp_west_in: Vector2 = vm.get_navigation_waypoint(pb + Vector2(270.0, 40.0), pb + Vector2(350.0, 40.0), null)
 	vm.building_footprints.erase(east_test_b)
 	vm.building_footprints.erase(west_test_b)
-	assert(wp_east_out.y > 2244.0 and wp_east_in.y < 2236.0, "East-facing door must separate exiting lane (+Y) and entering lane (-Y)! Got out=" + str(wp_east_out) + " in=" + str(wp_east_in))
-	assert(wp_west_out.y < 2236.0 and wp_west_in.y > 2244.0, "West-facing door must separate exiting lane (-Y) and entering lane (+Y)! Got out=" + str(wp_west_out) + " in=" + str(wp_west_in))
+	assert(wp_east_out.y > pb.y + 44.0 and wp_east_in.y < pb.y + 36.0, "East-facing door must separate exiting lane (+Y) and entering lane (-Y)! Got out=" + str(wp_east_out) + " in=" + str(wp_east_in))
+	assert(wp_west_out.y < pb.y + 36.0 and wp_west_in.y > pb.y + 44.0, "West-facing door must separate exiting lane (-Y) and entering lane (+Y)! Got out=" + str(wp_west_out) + " in=" + str(wp_west_in))
 	print("All Building Doors & 4-Direction Dual-Lane Check OK")
 
 	var wc_test = root.get_node_or_null("/root/WorldClock")
