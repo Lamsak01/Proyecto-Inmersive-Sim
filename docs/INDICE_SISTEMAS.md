@@ -32,7 +32,7 @@
 | Convenciones y trampas del código | `CONVENCIONES_CODIGO.md` |
 | Decisiones de diseño cerradas | `DECISIONES_DISENO.md` |
 | Física 3D, pisos, agua, cuerpos | `MUNDO_3D.md` |
-| Editor del mapa 3D (registro y plan) | `REGISTRO_EDITOR_3D.md`, `PLAN_EDITOR_MAPA.md` |
+| Editor del mapa 3D (registro y plan) · mapa ×3 | `REGISTRO_EDITOR_3D.md`, `PLAN_EDITOR_MAPA.md` · `PLAN_MAPA_X3.md` |
 | Época (tecnofeudal) | `REVISION_EPOCA.md` |
 | Caso I y demo | `PLAN_PARTIDA_CASO1.md`, `PLAN_BETA_MISTERIO.md` |
 | Vida social, relaciones, secretos, deseos, recuerdos, crónica | `PLAN_VIDA_SOCIAL.md`, `PLAN_RELACIONES.md`, `PLAN_SECRETOS.md`, `PLAN_DESEOS.md`, `PLAN_RECUERDOS.md`, `PLAN_CRONICA.md` |

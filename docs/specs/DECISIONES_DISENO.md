@@ -11,7 +11,7 @@
 - **Historia principal antigua DESCARTADA** (2026-11-08): el «experimento vigilado desde fuera» y sus capítulos no se usan.
   La nueva se diseña con el usuario (probablemente resistencia contra los gobernantes). **Nunca inventar lore de la secta.**
 - **Escaleras sin botón** (2026-11-07): se sube andando por los peldaños; barandillas sólidas; nadie flota.
-- **Tamaño:** empezar pequeño; objetivo una ciudad de 100+ vecinos y un mapa ~3 veces más grande. Sótanos y pisos con capas
+- **Tamaño:** empezar pequeño; objetivo una ciudad de 100+ vecinos. **Mapa ×3 decidido (2026-11-11)**, antes que rehacer los edificios antiguos; plan en `PLAN_MAPA_X3.md`. Edificios después, con huella ×2; las familias artesanas dormirán encima de su tienda y sus 4 casas las ocuparán vecinos nuevos desde el día 1. Sótanos y pisos con capas
   (tipo Project Zomboid). Todo sistema con distancias pasa por `Vista.gd`.
 - **Visión a largo plazo:** pueblo realista con lo bueno y lo malo, profundidad tipo Dwarf Fortress / RimWorld / Song of Syx
   (`docs/VISION_Y_FUTURO.md`). Foco actual: fallos visibles → Caso I jugable; lo demás congelado.

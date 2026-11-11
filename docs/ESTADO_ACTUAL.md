@@ -12,7 +12,7 @@ Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`)
 6. ✅ Animales con vida propia en modo demo (hecho).
 7. ✅ Reñidero en las alcantarillas (decorado; las peleas reales siguen bajo la posada).
 
-**Bloque nuevo: rehacer los 11 edificios antiguos.** Boceto en `docs/specs/BOCETO_EDIFICIOS_ANTIGUOS.md`, a la espera de las correcciones del usuario (camino A/B/C del tamaño, residencias).
+**Bloque nuevo: mapa ×3** (`docs/specs/PLAN_MAPA_X3.md`), a la espera de que el usuario apruebe el plan. Después, los 11 edificios antiguos (`BOCETO_EDIFICIOS_ANTIGUOS.md`, camino B: edificios más grandes tras el mapa).
 
 ## b) Último avance completado
 - 2026-11-11: los 6 puntos del plan del día (posada, bandidos, Caso I día 2, césped, animales, reñidero) y la reorganización del repositorio (nuevo `CLAUDE.md`, `docs/specs/`, `docs/archivo/`, filtros de IA).
@@ -21,7 +21,7 @@ Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`)
   persona, agua con movimiento, modo 2D borrado, rendimiento (plaza ~25 fps en el portátil).
 
 ## c) Siguiente paso técnico inmediato
-Cuando el usuario apruebe el boceto: mecanismo común «planta alta con escalera» reutilizable (generalizar lo de la posada: `Suelo.losas`, rutas de `VillageTavern.route_floor_*`), y después las 4 tiendas-taller.
+Cuando el usuario apruebe el plan: paso 1, factor de estiramiento E en `mapa/anclas.gd` (`mover`/`desmover`/`aplicar`), con E = 1 idéntico (sondeo, verify_all, fisica_3d, puertas, Caso I).
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).

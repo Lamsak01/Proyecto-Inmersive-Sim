@@ -84,7 +84,7 @@ queda como almacén.
    El Candil: poco–medio. 5. Plantilla de casa de vecino + tu casa: poco–medio.
 Cada edificio se cierra con foto por dentro y por fuera, prueba de puertas y la simulación de atascos.
 
-## 7. Lo que necesito que decidas
-- Camino **A / B / C** del §0.
-- Residencias de las familias (§2): alquiler (a) o se quedan como casas (b).
-- Cualquier sala, mueble o uso que quieras cambiar, quitar o añadir en §1–§5.
+## 7. Decidido por el usuario (2026-11-11)
+- **Camino B**: primero el mapa ×3 (`PLAN_MAPA_X3.md`); después los edificios, con huella ×2 y varias salas por planta.
+- Las familias artesanas **duermen encima de su tienda**; las 4 residencias libres las ocupan **vecinos nuevos desde el día 1** (no se alquilan). Oficios por decidir.
+- Los edificios se planificarán con el usuario (salas y usos de §1–§5 como punto de partida) cuando el mapa esté estirado.
