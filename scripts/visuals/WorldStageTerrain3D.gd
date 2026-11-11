@@ -502,9 +502,11 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 ## bancos, vallas…) se juntan por zonas de 256 px: muchas menos llamadas de dibujo y las zonas fuera de cámara siguen sin
 ## dibujarse. No se tocan las piezas grandes (suelo, caminos, agua), las de shader propio ni las que miran a cámara.
 const TERRAIN_MERGE_CHUNK_PX: float = 256.0
+## Las sondas (tools/tests/inventario_mundo.gd) lo apagan para ver cada pieza por separado y saber de dónde sale.
+static var juntar_por_zonas: bool = true
 
 func _merge_terrain_by_chunks() -> void:
-	if _is_headless or terrain_root_3d == null:
+	if _is_headless or terrain_root_3d == null or not juntar_por_zonas:
 		return
 	var found: Array = []
 	_collect_merge_meshes(terrain_root_3d, terrain_root_3d, {}, found)

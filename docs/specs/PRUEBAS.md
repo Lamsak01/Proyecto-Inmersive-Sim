@@ -26,6 +26,9 @@ timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests
 # Cobertura de diálogos (0 «SCRIPT ERROR») · Guardado y carga 7 días (<10 min) → «GUARDADO LARGO PASSED»
 timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd 2>&1 | grep -c "SCRIPT ERROR"
 timeout 540 flatpak run org.godotengine.Godot --headless --path . --fixed-fps 60 -s tools/tests/guardado_largo.gd 2>&1 | tail -2
+# Inventario del mundo (con ventana, ~25 s cada una): qué sigue a las piezas del editor → docs/INVENTARIO_MUNDO.md
+flatpak run org.godotengine.Godot --path . -s tools/tests/inventario_mundo.gd -- quieto   # y luego -- movido
+timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/inventario_mundo.gd -- comparar
 # Rendimiento con ventana: tools/tests/perf_fisica.gd, perf_zonas.gd. Fotos sueltas: tools/screenshot_3d.gd
 ```
 
