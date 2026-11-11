@@ -6,6 +6,27 @@
 
 ---
 
+## Paso 5d — Con [E] se llega a lo que está a tu altura (2026-11-10, Claude Code, portátil)
+
+**Qué cambia en el juego:** lo que puedes usar o con quien puedes hablar con [E] se decide por altura (los pies a menos
+de ~1,3 m), no por «mismo piso»: en la escalera de la posada hablas con quien va unos peldaños más arriba; desde el
+salón no llegas a quien está en la galería ni a las camas de arriba, y desde la galería no llegas a la mesa de póker ni a
+la puerta. Lo demás sigue igual (la cruz en 1.ª persona ya tenía en cuenta hacia dónde miras).
+
+**Por qué:** último trozo del paso 5; además quita listas a mano (qué sitios de la posada valen en cada piso).
+
+**Archivos:**
+- `scripts/ui/InteractionSelector.gd`: `refresh` usa `vm.alcanza`; `_nivel_de` da el piso de cada objeto (el suyo si lo
+  tiene; los sitios fijos de la posada según estén en la galería o en el salón; lo demás, el tuyo). Fuera las listas
+  «tavern_games / tavern_pool / building_door / tavern_bed».
+- `tools/tests/fisica_3d.gd`: prueba del paso 5d (3 comprobaciones).
+
+**Cómo se probó:** fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ (una vez falló su comprobación de vecinos encimados,
+dos vecinos a 7,8 px en la calle tras simular a todo el pueblo andando; al repetir pasó. No lo causa este paso, que solo
+toca la tecla E; es el azar del pueblo. Si se repite, mirar `_enforce_npc_personal_space`).
+
+**Cómo deshacerlo:** `git revert` de este commit.
+
 ## Paso 5c — Golpes, flechas y balas con altura (2026-11-10, Claude Code, portátil)
 
 **Qué cambia en el juego:** tus golpes y empujones alcanzan a quien tenga los pies a menos de ~1,3 m de los tuyos

@@ -30,6 +30,7 @@ func _initialize() -> void:
 	await _paso5_vista()
 	_paso5b_oido()
 	await _paso5c_golpes()
+	await _paso5d_alcance()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
 
@@ -510,6 +511,45 @@ func _paso5c_golpes() -> void:
 	var f = await _flechazo(pl, sitio, -0.6)
 	_ok(ciervo.current_hp == vida and f._is_grounded, "5c: apuntando al suelo se clava antes de llegar")
 	ciervo.set_physics_process(true)
+
+
+## Paso 5d: con [E] se llega a lo que está a tu altura: a un vecino unos peldaños más arriba sí; a uno en la galería, desde
+## el salón, no; y a la cama de arriba desde abajo tampoco.
+func _paso5d_alcance() -> void:
+	var vm = get_first_node_in_group("village_manager")
+	var pl = get_first_node_in_group("player")
+	var sel = pl.interaction_selector
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	var n = null
+	for v in vm.VillageNeeds.living(vm):
+		if v.is_conscious() and not v.is_hostile and not v.is_sleeping:
+			n = v
+			break
+	if n == null:
+		_ok(false, "5d: hay un vecino para la prueba")
+		return
+	n.set_physics_process(false)
+	var pie: Vector2 = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, 6))
+	vm.set_player_elevation_level(0)
+	pl.global_position = pie
+	n.global_position = pie + Vector2(0, 14) # unos peldaños más arriba (la rampa sube hacia el sur)
+	vm.set_npc_elevation_level(n, 0)
+	await physics_frame
+	await physics_frame
+	sel.refresh()
+	_ok(sel.candidates.any(func(c): return c["target"] == n), "5d: en la escalera se llega a hablar con quien va unos peldaños más arriba")
+	var salon: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+	pl.global_position = salon
+	n.global_position = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+	vm.set_npc_elevation_level(n, 1)
+	await physics_frame
+	await physics_frame
+	sel.refresh()
+	_ok(not sel.candidates.any(func(c): return c["target"] == n), "5d: desde el salón no se llega a quien está en la galería")
+	_ok(not sel.candidates.any(func(c): return c["station"] == "tavern_bed"), "5d: ni a las camas de arriba")
+	n.global_position = salon + Vector2(0, 300)
+	vm.set_npc_elevation_level(n, 0)
+	n.set_physics_process(true)
 
 
 ## Dispara una flecha desde `desde` hacia el este con la `pendiente` dada y espera a que acabe su vuelo.

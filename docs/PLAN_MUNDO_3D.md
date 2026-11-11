@@ -7,7 +7,7 @@
 > **Estado (2026-11-10):** plan aprobado por el usuario. **Pasos 0, 0b, 1, 2a–2c, 3a, 4 y 5a hechos** en la rama `mundo-3d` (mundo 3D
 > uniforme y en metros; cuerpo 3D; posada de dos plantas; club y alcantarillas bajo tierra; daño por caída; nadar; cuerpos
 > de contacto de vecinos y animales; vista con alturas). Aplazados por el usuario: 2d (guardado v4), 2e (casa) y 3b–3c
-> (bucear). El paso 4 se hizo como opción A (la B, cuerpos completos y caminos 3D, queda pendiente). Siguiente: 5d interacción con lo que miras.
+> (bucear). El paso 4 se hizo como opción A (la B, cuerpos completos y caminos 3D, queda pendiente). Paso 5 hecho. Siguiente: paso 6 (limpieza) o lo aplazado (2e casa, 3b bucear, 4 opción B), según el usuario.
 > Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
 > cada paso en el **Registro** (§10).
 
@@ -203,7 +203,7 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 - Vista con alturas (una pared o un piso tapan de verdad), oído con oclusión 3D, conos de visión.
 - **Trozos (2026-11-10):** 5a vista (hecho: `Vista.gd`; sin rayos 3D: paredes y puertas del mapa + losas de los suelos
   altos, que es lo mínimo y vale mientras el único sitio con dos plantas de verdad sea la posada) · 5b oído (hecho: a través de un suelo un tercio, bajo tierra un décimo) · 5c golpes,
-  flechas y balas (hecho: golpes por altura de los pies; flechas y balas con altura y pendiente de la mirada) · 5d interacción con lo que miras.
+  flechas y balas (hecho: golpes por altura de los pies; flechas y balas con altura y pendiente de la mirada) · 5d interacción con lo que miras (hecho: con [E] se llega a lo que está a tu altura).
 - Golpes, empujones, bloqueo, flechas y balas en 3D (se puede disparar hacia arriba o abajo).
 - Interacción con lo que está bajo la mira en 3D; recoger, cosechar, pescar, romper; huellas y sangre con altura.
 - **Terminado cuando:** sigilo, combate, robo, testigos y el Caso I se comportan como antes (pruebas de bloques de crimen
@@ -287,7 +287,8 @@ Es una estimación: se apuntará el gasto real de cada paso en el Registro para 
 | 2026-11-10 | Claude Code (portátil) | Paso 4c | Cuerpo de contacto también para bandidos, enemigos, jabalíes, ciervos y ganado grande adulto (decisión del usuario); conejos, zorros, mascotas, gallinas y crías se atraviesan; caballo y carro ya iban con el protagonista. `CuerposVecinos3D` → `CuerposCercanos3D` | fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ | 01b9d98e |
 | 2026-11-10 | Claude Code (portátil) | Paso 5a | Vista con alturas (`Vista.gd`): testigos, policías, guardia de la reja y testigos de peleas ven según paredes, puertas y losas de los suelos altos; desde el salón se ve el borde de la galería y no a quien está encima; bajo tierra no se ve | fisica_3d ✅ (6 comprobaciones) · puertas_3d 29/29 · verify_all ✅ | 545f4734 |
 | 2026-11-10 | Claude Code (portátil) | Paso 5b | Oído con alturas (`Vista.oye`): un ruido llega a otro piso a un tercio (galería abierta: entero), entre la calle y bajo tierra a un décimo; antes no llegaba. Los testigos de un ruido solo cuentan si lo ven. De paso: andando contra un vecino con cuerpo lo apartas poco a poco; los sentados no tienen cuerpo | fisica_3d ✅ · puertas_3d 29/29 · verify_all ✅ | 11dae2a9 |
-| 2026-11-10 | Claude Code (portátil) | Paso 5c | Golpes y empujones por altura de los pies (`Vista.alcanza`, ~1,3 m); flechas y balas con altura: salen del pecho, en 1.ª persona con la pendiente de la mirada, solo hieren a quien está a esa altura, se clavan al bajar al suelo y un suelo alto las para | fisica_3d ✅ (5 comprobaciones) · puertas_3d 29/29 · verify_all ✅ | (este commit) |
+| 2026-11-10 | Claude Code (portátil) | Paso 5c | Golpes y empujones por altura de los pies (`Vista.alcanza`, ~1,3 m); flechas y balas con altura: salen del pecho, en 1.ª persona con la pendiente de la mirada, solo hieren a quien está a esa altura, se clavan al bajar al suelo y un suelo alto las para | fisica_3d ✅ (5 comprobaciones) · puertas_3d 29/29 · verify_all ✅ | adb51221 |
+| 2026-11-10 | Claude Code (portátil) | Paso 5d | Con [E] se llega a lo que está a tu altura (`vm.alcanza`), no a lo de tu piso; fuera las listas a mano de sitios de la posada por piso | fisica_3d ✅ (3 comprobaciones) · puertas_3d 29/29 · verify_all ✅ | (este commit) |
 
 ### Medidas de referencia (antes del paso 1, portátil, 2026-11-10)
 - **fps en 1.ª persona** (`perf_zonas.gd`): afueras 33, plaza 29, río 23, bosque 38, molino 40, mansión 43.

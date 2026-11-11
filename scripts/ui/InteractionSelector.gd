@@ -1,6 +1,8 @@
 extends Node2D
 
 const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
+const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
+const Anclas = preload("res://mapa/anclas.gd")
 
 ## Selector de la tecla [E] (2026-11-05). Antes, con varias cosas cerca (puerta, mostrador, vecino, cofre, caballo…),
 ## el juego elegía una por su cuenta. Ahora:
@@ -116,16 +118,9 @@ func refresh() -> void:
 				continue
 			if pl_b_id != "" and tgt.is_in_group("sewer_grate"):
 				continue
-			if vm_chk != null:
-				var pl_elev: int = int(vm_chk.player_elevation_level)
-				if "elevation_level" in tgt and int(tgt.get("elevation_level")) != pl_elev:
-					continue
-				if a.has_meta("village_station"):
-					var st_tag_chk: String = str(a.get_meta("village_station"))
-					if pl_elev == 1 and st_tag_chk in ["tavern_games", "tavern_pool", "building_door"]:
-						continue
-					if pl_elev == 0 and st_tag_chk == "tavern_bed":
-						continue
+			# Paso a 3D, paso 5d: se llega a lo que está a tu altura (Vista.alcanza), no «a lo de tu piso»
+			if vm_chk != null and not vm_chk.alcanza(pp, int(vm_chk.player_elevation_level), (a as Node2D).global_position, _nivel_de(a, tgt, int(vm_chk.player_elevation_level))):
+				continue
 			var lbl: String = _label_for(a, tgt)
 			if lbl == "":
 				continue
@@ -253,6 +248,17 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 			return -1.0
 
 	return horiz_cos * 100.0 - lateral_px * 2.8 - dist_px * 0.5 - absf(pitch) * 12.0
+
+
+## Piso de un objeto interactuable: el suyo si lo tiene (vecinos); los sitios fijos de la posada, según estén en la galería o
+## en el salón; lo demás, el del protagonista (está donde estás tú).
+func _nivel_de(a: Area2D, tgt: Node, nivel_prota: int) -> int:
+	if "elevation_level" in tgt:
+		return int(tgt.get("elevation_level"))
+	var pos: Vector2 = Anclas.desmover(a.global_position)
+	if a.has_meta("village_station") and VillageTavern.RECT.has_point(pos):
+		return 1 if VillageTavern.is_upper_floor_target(pos) else 0
+	return nivel_prota
 
 
 ## La opción que se usará al pulsar [E]: la que está bajo el ratón (o bajo la cruz central en 1.ª persona), o la elegida con la rueda.
