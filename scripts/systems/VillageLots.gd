@@ -240,6 +240,13 @@ static func building_center(id: String) -> Vector2:
 	var d: Dictionary = lot_def(id)
 	return (d["center"] as Vector2) + (d.get("offset", Vector2.ZERO) as Vector2)
 
+## Un anexo del solar (campo, corral, cantera, troncos) va pegado a su edificio: su sitio en el mundo es el del
+## edificio más el desplazamiento original (mapa ×E: el campo abierto se estira, el anexo no).
+static func anexo(vm, id: String, p: Vector2) -> Vector2:
+	var c: Vector2 = building_center(id)
+	return vm.sitio(c) + (p - c)
+
+
 static func site_work_pos(id: String) -> Vector2:
 	var d: Dictionary = lot_def(id)
 	var off: float = float((d["size"] as Vector2).y) * 0.5 + 12.0

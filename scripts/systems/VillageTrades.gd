@@ -72,8 +72,10 @@ static func setup_world(vm) -> void:
 		}
 		if str(c.get("extras", "")) in ["quarry", "farm", "ranch"]: # K1: el cantero, granjero y ganadero trabajan (y venden) en la roca, campo o corral, a la vista
 			vm.trade_configs[role_of(key)]["work_pos"] = yard_pos(str(c["lot"]))
+			vm.trade_configs[role_of(key)]["anexo_lot"] = str(c["lot"]) # el puesto va pegado al edificio, no se estira con el campo
 		elif str(c.get("extras", "")) == "woods":
 			vm.trade_configs[role_of(key)]["work_pos"] = VillageLots.building_center(str(c["lot"])) + Vector2(82, 14)
+			vm.trade_configs[role_of(key)]["anexo_lot"] = str(c["lot"])
 		vm.trade_configs[role_of(key)]["shop_center"] = VillageLots.building_center(str(c["lot"]))
 		vm.trade_configs[role_of(key)]["house_center"] = VillageLots.building_center(str(c["lot"]))
 		if not vm.house_pantry.has(str(c["family_id"])):
@@ -94,9 +96,9 @@ static func fix_quarry_post(vm) -> void:
 		var q = vm.trade_npcs.get(role_of(key))
 		if q != null and is_instance_valid(q) and not q.is_dead:
 			if key == "woodcutter":
-				q.work_position = vm.sitio(VillageLots.building_center(str(CONFIG[key]["lot"])) + Vector2(82, 14))
+				q.work_position = VillageLots.anexo(vm, str(CONFIG[key]["lot"]), VillageLots.building_center(str(CONFIG[key]["lot"])) + Vector2(82, 14))
 			else:
-				q.work_position = vm.sitio(yard_pos(str(CONFIG[key]["lot"])))
+				q.work_position = VillageLots.anexo(vm, str(CONFIG[key]["lot"]), yard_pos(str(CONFIG[key]["lot"])))
 
 ## Lo que puede abastecer cada negocio nuevo (lo usa VillageManager al registrar el puesto).
 static func supply_items_for(role_id: int) -> Array[String]:
@@ -147,8 +149,19 @@ static func build_extras(vm, id: String) -> void:
 	var half: Vector2 = (d["size"] as Vector2) * 0.5
 	var props: String = "res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/"
 	var is_fields_lot: bool = str(c.get("fields_lot", "")) == id
+	# Mapa ×E: el anexo va pegado al edificio (desplazamiento dc) y se dibuja ya en el mundo (anclas en pausa)
+	var AN = load("res://mapa/anclas.gd")
+	var dc: Vector2 = VillageLots.anexo(vm, id, Vector2.ZERO)
+	lc += dc
+	AN.pausa += 1
+	_build_extras_en_mundo(vm, id, c, lc, half, is_fields_lot, props)
+	AN.pausa -= 1
+
+
+static func _build_extras_en_mundo(vm, id: String, c: Dictionary, lc: Vector2, half: Vector2, is_fields_lot: bool, props: String) -> void:
+	var dc: Vector2 = VillageLots.anexo(vm, id, Vector2.ZERO)
 	# Franja libre del solar (a la derecha del edificio, o el solar entero si es solo de campos)
-	var x0: float = lc.x - half.x + 8.0 if is_fields_lot else VillageLots.building_center(id).x + 70.0
+	var x0: float = lc.x - half.x + 8.0 if is_fields_lot else VillageLots.building_center(id).x + dc.x + 70.0
 	var x1: float = lc.x + half.x - 8.0
 	var y0: float = lc.y - half.y + 10.0
 	var y1: float = lc.y + half.y - 10.0
@@ -189,7 +202,7 @@ static func build_extras(vm, id: String) -> void:
 				vm._add_sprite_prop(rock, rp, Vector2(0.8, 0.8), 0)
 		"woods":
 			for lp in [Vector2(-82, 10), Vector2(82, 14)]:
-				vm._spawn_decor_prop(props + "logs_0.png", VillageLots.building_center(id) + lp, Vector2(0.7, 0.7))
+				vm._spawn_decor_prop(props + "logs_0.png", VillageLots.building_center(id) + dc + lp, Vector2(0.7, 0.7))
 
 static func _rect(x0: float, y0: float, x1: float, y1: float) -> PackedVector2Array:
 	return PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1)])

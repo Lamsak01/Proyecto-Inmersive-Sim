@@ -737,16 +737,19 @@ func terrain_normal_3d(pos_2d: Vector2, step_px: float = 10.0) -> Vector3:
 
 
 func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
-	var x: float = pos_2d.x
-	var y: float = pos_2d.y
+	# Mapa ×E: bosque, llanura, lago y ciénaga están escritos en el mapa original → se miran en el mundo encogido E veces;
+	# el río viene del editor (mundo actual) → se mira en `pos_2d`
+	var o: Vector2 = pos_2d / Mapa3D.E
+	var x: float = o.x
+	var y: float = o.y
 	var edge_wave: float = sin(x * 0.009 + 1.2) * 32.0 + cos(x * 0.021 - 0.5) * 16.0
 	var w_forest: float = maxf(smoothstep(665.0 + edge_wave, 775.0 + edge_wave, y), smoothstep(-735.0, -830.0, y))
 	var w_plains: float = smoothstep(-940.0, -1180.0, x) * smoothstep(20.0, -90.0, y)
 	var w_mud: float = 0.0
-	if y >= FishingSpotScript.river_y_start() and y <= FishingSpotScript.river_y_end():
-		var riv_cx: float = FishingSpotScript.river_center_x(y)
-		var riv_hw: float = FishingSpotScript.river_half_width(y)
-		var d_riv: float = absf(x - riv_cx)
+	if pos_2d.y >= FishingSpotScript.river_y_start() and pos_2d.y <= FishingSpotScript.river_y_end():
+		var riv_cx: float = FishingSpotScript.river_center_x(pos_2d.y)
+		var riv_hw: float = FishingSpotScript.river_half_width(pos_2d.y)
+		var d_riv: float = absf(pos_2d.x - riv_cx)
 		if d_riv < riv_hw + 9.0:
 			w_mud = maxf(w_mud, (1.0 - smoothstep(riv_hw * 0.65, riv_hw + 9.0, d_riv)) * 0.62)
 	# Lecho húmedo solo bajo el agua del Lago del Oeste (la orilla exterior queda de hierba verde)
