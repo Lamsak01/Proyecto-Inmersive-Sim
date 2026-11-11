@@ -44,7 +44,10 @@ que lo recuperas); sin aire pierdes 8 de vida cada segundo hasta morir (decisió
 - `tools/tests/fisica_3d.gd`: prueba 3b (baja al fondo, gasta aire, sin aire pierde vida, al subir recupera).
 - Pendiente (3c): pistas en el fondo, cuando el usuario decida cuáles.
 
-**Cómo se probó:** fisica_3d ✅ (4 comprobaciones en el lago) · puertas_3d 29/29 · verify_all ✅.
+**Cómo se probó:** fisica_3d ✅ (4 comprobaciones en el lago) · puertas_3d 29/29 · verify_all ✅ · foto buceando en el lago
+(`docs/capturas_arreglos/2026-11-11_buceo_lago.png`: vista verde-azul y barra de aire). Las fotos fijas (`capturas_fijas`)
+difieren de la referencia del paso 1 (hasta 41 %) por las manos nuevas, los cuartos de la posada y el agua en movimiento;
+revisadas a ojo: nada roto (la plancha marrón de la foto de la plaza ya estaba en la referencia).
 
 **Cómo deshacerlo:** `git revert` de este commit.
 
