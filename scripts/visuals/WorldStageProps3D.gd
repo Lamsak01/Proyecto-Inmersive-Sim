@@ -162,6 +162,9 @@ func _build_sewers_3d() -> void:
 			_add_box_2d(sewers_root_3d, chs_p, Vector2(13.0, 9.0), 6.0, 5.5, m_wood)
 			_add_box_2d(sewers_root_3d, chs_p, Vector2(13.4, 9.4), 11.5, 2.5, m_iron)
 		_add_box_2d(sewers_root_3d, chs_p + Vector2(0.0, 4.6), Vector2(2.4, 1.4), 8.5, 2.6, m_brass)
+		if loc_id == "cistern":
+			_vestir_renidero_3d(ch_p, m_wood, m_iron, m_brass)
+			continue
 		_add_model_2d(sewers_root_3d, "props/Barrel.gltf", ch_p + Vector2(-38.0, 6.0), 4.6, Vector2(9.0, 9.0), 9.5)
 		_add_model_2d(sewers_root_3d, "props/Crate_Wooden.gltf", ch_p + Vector2(38.0, 6.0), 4.6, Vector2(11.0, 11.0), 8.5)
 
@@ -538,6 +541,62 @@ func _add_techo_roca(raiz: Node3D, centro: Vector2, tam: Vector2, mat: Material)
 
 
 ## P6: sala del club de pelea (se construye una vez; solo se ve estando dentro).
+## Reñidero de la Cisterna (fallo visible «alcantarillas vacías», 2026-11-11): un cuadrilátero de cuerdas con sus postes,
+## bancos, la mesa del apostador con su pizarra y una pintada que manda a las peleas de verdad (el club bajo la posada).
+## Solo se ve: nada choca (la cámara es estrecha y los vecinos no bajan aquí).
+func _vestir_renidero_3d(c: Vector2, m_wood: Material, m_iron: Material, m_brass: Material) -> void:
+	var r := sewers_root_3d
+	var suelo: float = 4.6
+	var m_cuerda := _mat("sewer_rope", Color(0.72, 0.60, 0.36), 0.92, 0.0)
+	var m_serrin := _mat("sewer_sawdust", Color(0.46, 0.33, 0.20), 0.95, 0.0)
+	var m_sangre := _mat("sewer_blood", Color(0.30, 0.08, 0.06), 0.90, 0.0)
+	var m_pizarra := _mat("sewer_slate", Color(0.10, 0.11, 0.10), 0.85, 0.0)
+	var m_tiza := _mat("sewer_chalk", Color(0.92, 0.92, 0.88), 0.80, 0.0)
+	# Cuadrilátero: serrín, manchas, 4 postes y 2 alturas de cuerda
+	_add_box_2d(r, c + Vector2(0.0, -8.0), Vector2(34.0, 26.0), suelo, 0.3, m_serrin)
+	for mancha in [Vector2(-5.0, -12.0), Vector2(7.0, -3.0), Vector2(2.0, 2.0)]:
+		_add_box_2d(r, c + mancha, Vector2(3.5, 2.5), suelo + 0.32, 0.1, m_sangre, randf() * 60.0)
+	for px in [-17.0, 17.0]:
+		for py in [-21.0, 5.0]:
+			_add_cyl_2d(r, c + Vector2(px, py), 1.1, suelo, 11.0, m_wood, 1.1, 6)
+		for h in [suelo + 5.0, suelo + 9.0]:
+			_add_box_2d(r, c + Vector2(px, -8.0), Vector2(0.7, 26.0), h, 0.7, m_cuerda)
+	for py in [-21.0, 5.0]:
+		for h in [suelo + 5.0, suelo + 9.0]:
+			_add_box_2d(r, c + Vector2(0.0, py), Vector2(34.0, 0.7), h, 0.7, m_cuerda)
+	# Bancos del público: uno pegado al muro norte, otro en el lado oeste
+	for banco in [[Vector2(0.0, -34.0), Vector2(26.0, 5.0)], [Vector2(-38.0, -8.0), Vector2(5.0, 24.0)]]:
+		_add_box_2d(r, banco[0], banco[1], suelo + 3.5, 1.2, m_wood)
+		var hb: Vector2 = (banco[1] as Vector2) * 0.5 - Vector2(1.5, 1.5)
+		for esquina in [Vector2(-hb.x, -hb.y), Vector2(hb.x, -hb.y), Vector2(-hb.x, hb.y), Vector2(hb.x, hb.y)]:
+			_add_box_2d(r, (banco[0] as Vector2) + esquina, Vector2(1.4, 1.4), suelo, 3.5, m_wood)
+	# Mesa del apostador (lado este) con monedas, y pizarra de apuestas en el muro
+	var mesa: Vector2 = c + Vector2(37.0, -6.0)
+	_add_box_2d(r, mesa, Vector2(12.0, 9.0), suelo + 6.0, 1.0, m_wood)
+	for pata in [Vector2(-5.0, -3.5), Vector2(5.0, -3.5), Vector2(-5.0, 3.5), Vector2(5.0, 3.5)]:
+		_add_box_2d(r, mesa + pata, Vector2(1.2, 1.2), suelo, 6.0, m_wood)
+	for moneda in [Vector2(-2.5, -1.0), Vector2(1.0, 1.5), Vector2(3.0, -2.0)]:
+		_add_cyl_2d(r, mesa + moneda, 0.9, suelo + 7.0, 0.3, m_brass, 0.9, 8)
+	_add_box_2d(r, mesa + Vector2(0.0, 2.0), Vector2(3.0, 2.0), suelo + 7.0, 1.2, m_iron) # caja de apuestas
+	_add_box_2d(r, c + Vector2(53.0, -8.0), Vector2(1.0, 16.0), suelo + 8.0, 10.0, m_pizarra)
+	for raya in range(4):
+		_add_box_2d(r, c + Vector2(52.3, -13.0 + float(raya) * 3.2), Vector2(0.4, 8.0 - float(raya) * 1.5), suelo + 15.5 - float(raya) * 2.0, 0.5, m_tiza)
+	if _is_headless:
+		return
+	var pintada := Label3D.new()
+	pintada.text = "PELEAS · SÓTANO DEL JABALÍ\nNOCHES PARES · A LAS 23"
+	pintada.font_size = 48
+	pintada.pixel_size = 0.0022 * Mapa3D.K
+	pintada.modulate = Color(0.90, 0.88, 0.80, 0.85)
+	pintada.position = to_3d(c + Vector2(0.0, -39.0), suelo + 12.0) # en el muro norte, mirando al sur (hacia el reñidero)
+	r.add_child(pintada)
+	var luz := OmniLight3D.new()
+	luz.position = to_3d(c + Vector2(0.0, -8.0), 18.0)
+	luz.light_color = Color(1.0, 0.72, 0.40)
+	luz.light_energy = 1.2
+	luz.omni_range = 3.0 * Mapa3D.K
+	r.add_child(luz)
+
 func _sync_club_3d() -> void:
 	if vm == null or stage_root_3d == null:
 		return

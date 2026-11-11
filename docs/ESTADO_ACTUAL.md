@@ -10,16 +10,18 @@ Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`)
 4. ✅ Caso I con un día de margen (hecho).
 5. ✅ Césped sin dibujo repetido (hecho).
 6. ✅ Animales con vida propia en modo demo (hecho).
-7. **Siguiente:** sala de peleas clandestinas en las alcantarillas.
+7. ✅ Reñidero en las alcantarillas (decorado; las peleas reales siguen bajo la posada).
+
+**Plan del 2026-11-11 terminado.** Siguiente bloque: lo que decida el usuario (pistas en el agua, edificios antiguos, mapa 3× o historia).
 
 ## b) Último avance completado
-- 2026-11-11: reorganización del repositorio (nuevo `CLAUDE.md`, `docs/specs/`, `docs/archivo/`, filtros de IA).
+- 2026-11-11: los 6 puntos del plan del día (posada, bandidos, Caso I día 2, césped, animales, reñidero) y la reorganización del repositorio (nuevo `CLAUDE.md`, `docs/specs/`, `docs/archivo/`, filtros de IA).
 - 2026-11-12 (noche anterior): conversión a 3D terminada y en `main` (etiqueta `fin-paso-a-3d`): cuerpos 3D de
   protagonista y vecinos, pisos y sótanos reales, nadar y bucear (30 s de aire), vista/oído con alturas, manos en 1.ª
   persona, agua con movimiento, modo 2D borrado, rendimiento (plaza ~25 fps en el portátil).
 
 ## c) Siguiente paso técnico inmediato
-Alcantarillas: sala de peleas básica (ring, bancos, apostador) en `VillageUnderworld`/`WorldStageProps3D` (zona bajo tierra).
+Ninguno en marcha: esperar al usuario. Candidatos: pistas en el fondo del agua (mecanismo listo, faltan cuáles), rehacer edificios antiguos uno a uno, mapa 3× más grande.
 
 ## d) Bloqueos activos
 - Pistas en el fondo del agua: mecanismo listo; el usuario decide cuáles.
