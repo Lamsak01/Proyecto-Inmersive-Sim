@@ -106,7 +106,7 @@ static func wash_threshold(npc) -> float:
 static func wash_spot(vm, npc) -> Vector2:
 	if str(npc.family_id) not in ["", "none"] and npc.home_table_pos != Vector2.ZERO and (abs(npc.get_person_key().hash()) % 2) == 0:
 		return npc.home_table_pos
-	var best: Vector2 = vm._plaza_well_pos
+	var best: Vector2 = vm.sitio(vm._plaza_well_pos)
 	for w in vm._well_positions:
 		if npc.global_position.distance_to(w) < npc.global_position.distance_to(best):
 			best = w
@@ -139,7 +139,7 @@ static func class_of(npc) -> String:
 	return "pobre"
 
 static func beg_spot(vm, npc) -> Vector2:
-	return vm._plaza_well_pos + Vector2(-26.0 + float(abs(npc.get_person_key().hash()) % 3) * 13.0, 22.0)
+	return vm.sitio(vm._plaza_well_pos) + Vector2(-26.0 + float(abs(npc.get_person_key().hash()) % 3) * 13.0, 22.0)
 
 # ---------------------------------------------------------------- B4.3 paseos nocturnos (Noctámbulo, Insomne, Sonámbulo)
 

@@ -842,7 +842,7 @@ static func _spawn_electric_streetlights(vm: VillageManager) -> void:
 
 static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
 	var well_tex := vm._load_tex("res://assests/world/village/water_well.png")
-	vm._well_positions = [vm._well_pos, vm._tavern_well_pos, vm._plaza_well_pos]
+	vm._well_positions = [vm.sitio(vm._well_pos), vm.sitio(vm._tavern_well_pos), vm.sitio(vm._plaza_well_pos)] # del mundo: se compara con posiciones reales
 
 	vm._add_sprite_prop(well_tex, vm._well_pos, Vector2(1.25, 1.25), 0)
 	vm._add_station_area("WaterWellArea", vm._well_pos, 24.0, "well")

@@ -94,9 +94,9 @@ static func fix_quarry_post(vm) -> void:
 		var q = vm.trade_npcs.get(role_of(key))
 		if q != null and is_instance_valid(q) and not q.is_dead:
 			if key == "woodcutter":
-				q.work_position = VillageLots.building_center(str(CONFIG[key]["lot"])) + Vector2(82, 14)
+				q.work_position = vm.sitio(VillageLots.building_center(str(CONFIG[key]["lot"])) + Vector2(82, 14))
 			else:
-				q.work_position = yard_pos(str(CONFIG[key]["lot"]))
+				q.work_position = vm.sitio(yard_pos(str(CONFIG[key]["lot"])))
 
 ## Lo que puede abastecer cada negocio nuevo (lo usa VillageManager al registrar el puesto).
 static func supply_items_for(role_id: int) -> Array[String]:

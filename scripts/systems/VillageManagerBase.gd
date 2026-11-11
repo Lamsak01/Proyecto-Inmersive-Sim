@@ -243,7 +243,9 @@ var _tavern_pool_pos := VillageTavern.POOL_POS
 var _well_pos := Vector2(184, 82)
 var _tavern_well_pos := VillageTavern.WELL_POS
 var _plaza_well_pos := Vector2(416, 62)
-var _well_positions: Array[Vector2] = [Vector2(184, 82), VillageTavern.WELL_POS, Vector2(416, 62)]
+var _well_positions: Array[Vector2] = [Vector2(184, 82), VillageTavern.WELL_POS, Vector2(416, 62)] # en el mundo tras construir
+var _tablon_mundo_cache := Vector2.ZERO
+var _tablon_mundo_de := Vector2.ZERO
 var _compost_pos := Vector2(-706, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
@@ -920,6 +922,14 @@ func _slide_or_stay(prev_pos: Vector2, candidate_pos: Vector2, elev: int, allow_
 	return prev_pos
 
 ## Garantiza que el empuje de separación entre vecinos nunca meta a nadie dentro de un muro, edificio o pozo.
+## Tablón de la plaza en el mundo, cacheado: se consulta cada cuadro por cada vecino que anda.
+func _tablon_mundo() -> Vector2:
+	if _tablon_mundo_de != _notice_board_pos:
+		_tablon_mundo_de = _notice_board_pos
+		_tablon_mundo_cache = sitio(_notice_board_pos)
+	return _tablon_mundo_cache
+
+
 func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0, allow_slide: bool = true) -> Vector2:
 	if elev == 1:
 		var r_up: Rect2 = VillageTavern.RECT.grow(-13.0)
@@ -981,16 +991,16 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 	for w_rect in _wall_occluder_rects:
 		if w_rect.grow(2.5).has_point(candidate_pos):
 			return prev_pos
-	for w_pos in [_plaza_well_pos, _well_pos, _tavern_well_pos]:
+	for w_pos in _well_positions: # del mundo, como candidate_pos
 		if w_pos != Vector2.ZERO and candidate_pos.distance_squared_to(w_pos) < 18.0 * 18.0:
 			var away_w: Vector2 = candidate_pos - w_pos
 			if away_w.length_squared() > 0.01:
 				return w_pos + away_w.normalized() * 18.0
 			return prev_pos
-	if _notice_board_pos != Vector2.ZERO and candidate_pos.distance_squared_to(_notice_board_pos) < 14.0 * 14.0:
-		var away_nb: Vector2 = candidate_pos - _notice_board_pos
+	if _notice_board_pos != Vector2.ZERO and candidate_pos.distance_squared_to(_tablon_mundo()) < 14.0 * 14.0:
+		var away_nb: Vector2 = candidate_pos - _tablon_mundo()
 		if away_nb.length_squared() > 0.01:
-			return _notice_board_pos + away_nb.normalized() * 14.0
+			return _tablon_mundo() + away_nb.normalized() * 14.0
 		return prev_pos
 	return candidate_pos
 

@@ -1554,11 +1554,11 @@ func _sitios_repaso(AN) -> void:
 				cfg[campo] = AN.mover(cfg[campo])
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		sitios_traducir_npc(n)
-	# Pozos: ya en su sitio actual (mapa/objeto.gd), la lista de pozos los repite en coordenadas originales
+	# Pozos: la lista de pozos es del mundo (se compara con posiciones reales); los tres fijos van por las anclas
 	if _well_positions.size() >= 3:
-		_well_positions[0] = _well_pos
-		_well_positions[1] = _tavern_well_pos
-		_well_positions[2] = _plaza_well_pos
+		_well_positions[0] = sitio(_well_pos)
+		_well_positions[1] = sitio(_tavern_well_pos)
+		_well_positions[2] = sitio(_plaza_well_pos)
 
 
 ## Traduce una vez los sitios de un vecino creado con coordenadas del mapa original.

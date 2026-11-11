@@ -699,7 +699,7 @@ func _sync_club_3d() -> void:
 func _sync_town_ledger_3d() -> void:
 	if vm == null or stage_root_3d == null or is_instance_valid(_town_ledger_3d):
 		return
-	var pos: Vector2 = load("res://scripts/systems/VillageCollections.gd").ledger_pos()
+	var pos: Vector2 = vm.sitio(load("res://scripts/systems/VillageCollections.gd").ledger_pos()) # en el mundo (mapa ×E)
 	var root := Node3D.new()
 	root.name = "TownLedger3D"
 	stage_root_3d.add_child(root)

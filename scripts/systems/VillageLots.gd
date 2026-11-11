@@ -276,8 +276,8 @@ static func _build_gap_pockets(vm) -> void:
 			"well":
 				vm._add_sprite_prop(vm._load_tex("res://assests/world/village/water_well.png"), p, Vector2(1.25, 1.25), 0)
 				vm._add_station_area("RondaWaterWellArea", p, 24.0, "well")
-				if not p in vm._well_positions:
-					vm._well_positions.append(p)
+				if not vm.sitio(p) in vm._well_positions:
+					vm._well_positions.append(vm.sitio(p))
 				var wl: Label = vm._make_station_label(p + Vector2(-135, -28), str(g["title"]))
 				vm.entities_root.add_child(wl)
 				vm._extra_station_labels.append([wl, p])

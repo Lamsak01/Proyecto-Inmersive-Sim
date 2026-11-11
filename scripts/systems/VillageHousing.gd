@@ -166,7 +166,7 @@ static func player_near_home(vm) -> bool:
 	if pl == null:
 		return true
 	for id in player_lots(vm, true):
-		if pl.global_position.distance_to(VillageLots.lot_def(id)["center"]) <= HOME_LEVEL_RADIUS:
+		if pl.global_position.distance_to(vm.sitio(VillageLots.lot_def(id)["center"])) <= HOME_LEVEL_RADIUS:
 			return true
 	return false
 
@@ -939,7 +939,7 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 				return true
 		# 2. Dentro de una casa construida tuya: dormir en tu cama o estudiar en tu estantería
 		if str(st.get("status", "")) == "built" and str(st.get("payer", "")) == "player":
-			var c: Vector2 = VillageLots.lot_def(id)["center"]
+			var c: Vector2 = vm.sitio(VillageLots.lot_def(id)["center"])
 			if pos.distance_to(c) <= 46.0:
 				var hs: Dictionary = state(vm)
 				var up: Dictionary = st.get("upgrades", {})
@@ -1484,8 +1484,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			buyer.lodging = "house:" + arg
 			var beds_s: Array = VillageLots._house_beds(arg)
 			if not beds_s.is_empty():
-				buyer.bed_position = beds_s[0]
-			buyer.home_table_pos = VillageLots.lot_def(arg)["center"] + Vector2(0, -2)
+				buyer.bed_position = vm.sitio(beds_s[0])
+			buyer.home_table_pos = vm.sitio(VillageLots.lot_def(arg)["center"] + Vector2(0, -2))
 			VillageLots.add_resident(vm, arg, buyer.get_person_key())
 		else:
 			st_sell["payer"] = "town"

@@ -234,7 +234,7 @@ static func free_shelter_bed(vm) -> Vector2:
 		if n.in_shelter:
 			used.append(n.bed_position)
 	for b in shelter_beds():
-		if not b in used:
+		if not vm.sitio(b) in used: # las camas ocupadas están en el mundo
 			return b
 	return Vector2.ZERO
 
@@ -268,7 +268,7 @@ static func free_inn_bed(vm) -> Vector2:
 		if n.lodging == "candil":
 			used.append(n.bed_position)
 	for b in inn_guest_beds():
-		if not b in used:
+		if not vm.sitio(b) in used: # las camas ocupadas están en el mundo
 			return b
 	return Vector2.ZERO
 

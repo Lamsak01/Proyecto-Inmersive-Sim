@@ -556,10 +556,10 @@ func get_hangout_spots() -> Array:
 	var spots: Array = []
 	if not is_building_door_blocked("tavern"):
 		spots.append({"id": "tavern", "pos": sitio(_tavern_social_pos + Vector2(0, 14)), "kind": "tavern", "label": "la Taberna"})
-	spots.append({"id": "plaza_well", "pos": _plaza_well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Plaza"})
+	spots.append({"id": "plaza_well", "pos": sitio(_plaza_well_pos + Vector2(0, 24)), "kind": "well", "label": "el Pozo de la Plaza"})
 	spots.append({"id": "plaza_bench", "pos": sitio(Vector2(468, 54)), "kind": "bench", "label": "el Rincón de la Plaza"})
-	spots.append({"id": "plaza_board", "pos": _notice_board_pos + Vector2(0, 26), "kind": "plaza", "label": "la Plaza Central"})
-	spots.append({"id": "farm_well", "pos": _well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Granja"})
+	spots.append({"id": "plaza_board", "pos": sitio(_notice_board_pos + Vector2(0, 26)), "kind": "plaza", "label": "la Plaza Central"})
+	spots.append({"id": "farm_well", "pos": sitio(_well_pos + Vector2(0, 24)), "kind": "well", "label": "el Pozo de la Granja"})
 	spots.append_array(VillagePlaces.hangout_spots()) # V5c
 	return spots
 
