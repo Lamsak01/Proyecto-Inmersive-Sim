@@ -396,114 +396,50 @@ func _sync_player_aim_from_fp() -> void:
 		pl.last_dir = "down" if dir_2d.y >= 0.0 else "up"
 
 
-func _add_fp_arm_limb(arm_root: Node3D, is_right: bool, mat_sleeve: Material, mat_cuff: Material, mat_skin: Material, mat_gold: Material) -> void:
-	# Antebrazo redondeado con manga de paño y codo suave (compacto tras la muñeca para no invadir la vista al girar)
-	var sleeve_mi := MeshInstance3D.new()
-	var sleeve_cyl := CylinderMesh.new()
-	sleeve_cyl.top_radius = 0.026
-	sleeve_cyl.bottom_radius = 0.033
-	sleeve_cyl.height = 0.16
-	sleeve_cyl.radial_segments = 16
-	sleeve_mi.mesh = sleeve_cyl
-	sleeve_mi.position = Vector3(0.0, -0.004, 0.055)
-	sleeve_mi.rotation_degrees = Vector3(90.0, 0.0, 0.0)
-	sleeve_mi.material_override = mat_sleeve
-	sleeve_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	arm_root.add_child(sleeve_mi)
+## Brazo del protagonista en 1.ª persona (2026-11-11, opción A del usuario: «manos feas»): el brazo del muñeco de
+## los aldeanos (Quaternius, ya en el proyecto), solo su malla de brazos, con el brazo que no toca encogido a nada.
+## Cuelga de `arm_root` como el antiguo de cilindros y bolas, así los gestos (golpe, arco, escudo) no cambian.
+const BRAZO_FP_ESCALA: float = 0.5
+const BRAZO_FP_HOMBRO := Vector3(0.0, 0.02, 0.2)        # dónde queda el hombro respecto a la raíz del brazo (detrás de la cámara)
+const BRAZO_FP_PIEL := "characters/T_Superhero_Male_Ligh.png" # la piel clara de los aldeanos (así se llama el archivo)
 
-	var elbow_mi := MeshInstance3D.new()
-	var elbow_sph := SphereMesh.new()
-	elbow_sph.radius = 0.032
-	elbow_sph.height = 0.064
-	elbow_mi.mesh = elbow_sph
-	elbow_mi.position = Vector3(0.0, -0.004, 0.135)
-	elbow_mi.material_override = mat_sleeve
-	elbow_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	arm_root.add_child(elbow_mi)
-
-	# Muñequera / puño de cuero redondeado con pasador de latón
-	var cuff_mi := MeshInstance3D.new()
-	var cuff_cyl := CylinderMesh.new()
-	cuff_cyl.top_radius = 0.026
-	cuff_cyl.bottom_radius = 0.030
-	cuff_cyl.height = 0.052
-	cuff_cyl.radial_segments = 16
-	cuff_mi.mesh = cuff_cyl
-	cuff_mi.position = Vector3(0.0, -0.003, -0.022)
-	cuff_mi.rotation_degrees = Vector3(90.0, 0.0, 0.0)
-	cuff_mi.material_override = mat_cuff
-	cuff_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	arm_root.add_child(cuff_mi)
-
-	var ring_mi := MeshInstance3D.new()
-	var ring_cyl := CylinderMesh.new()
-	ring_cyl.top_radius = 0.0285
-	ring_cyl.bottom_radius = 0.0285
-	ring_cyl.height = 0.008
-	ring_cyl.radial_segments = 16
-	ring_mi.mesh = ring_cyl
-	ring_mi.position = Vector3(0.0, -0.003, -0.040)
-	ring_mi.rotation_degrees = Vector3(90.0, 0.0, 0.0)
-	ring_mi.material_override = mat_gold
-	ring_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	arm_root.add_child(ring_mi)
-
-	# Muñeca y palma orgánica (esfera achatada / cápsula anatómica, no caja)
-	var wrist_mi := MeshInstance3D.new()
-	var wrist_sph := SphereMesh.new()
-	wrist_sph.radius = 0.023
-	wrist_sph.height = 0.046
-	wrist_mi.mesh = wrist_sph
-	wrist_mi.position = Vector3(0.0, -0.002, -0.054)
-	wrist_mi.material_override = mat_skin
-	wrist_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	arm_root.add_child(wrist_mi)
-
-	var palm_mi := MeshInstance3D.new()
-	var palm_sph := SphereMesh.new()
-	palm_sph.radius = 0.029
-	palm_sph.height = 0.058
-	palm_mi.mesh = palm_sph
-	palm_mi.position = Vector3(0.0, -0.002, -0.084)
-	palm_mi.scale = Vector3(1.08, 0.72, 1.24)
-	palm_mi.material_override = mat_skin
-	palm_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	arm_root.add_child(palm_mi)
-
-	# Pulgar e hilera de 4 dedos articulados con cápsulas redondeadas
-	var s_dir: float = -1.0 if is_right else 1.0
-	var thumb_mi := MeshInstance3D.new()
-	var thumb_cap := CapsuleMesh.new()
-	thumb_cap.radius = 0.0082
-	thumb_cap.height = 0.036
-	thumb_mi.mesh = thumb_cap
-	thumb_mi.position = Vector3(s_dir * 0.024, 0.010, -0.092)
-	thumb_mi.rotation_degrees = Vector3(32.0, s_dir * -24.0, s_dir * -36.0)
-	thumb_mi.material_override = mat_skin
-	thumb_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	arm_root.add_child(thumb_mi)
-
-	var finger_x_offsets: Array[float] = [-0.019, -0.006, 0.007, 0.019]
-	var finger_lengths: Array[float] = [0.032, 0.035, 0.033, 0.028]
-	for f_idx in range(4):
-		var fx: float = finger_x_offsets[f_idx] * (-1.0 if is_right else 1.0)
-		var flen: float = finger_lengths[f_idx]
-		var f_mi := MeshInstance3D.new()
-		var f_cap := CapsuleMesh.new()
-		f_cap.radius = 0.0068
-		f_cap.height = flen
-		f_mi.mesh = f_cap
-		if is_right:
-			# Dedos cerrados empuñando el mango
-			f_mi.position = Vector3(fx, 0.006, -0.114)
-			f_mi.rotation_degrees = Vector3(18.0, 0.0, -68.0)
+func _add_fp_arm_limb(arm_root: Node3D, is_right: bool) -> void:
+	var tmpl := AssetLib.load_gltf_template("characters/Male_Peasant.gltf")
+	if tmpl == null:
+		return
+	var rig := tmpl.duplicate() as Node3D
+	var skel := rig.find_child("Skeleton3D", true, false) as Skeleton3D
+	if skel == null:
+		return
+	var piel := AssetLib.load_texture(BRAZO_FP_PIEL)
+	for c in skel.get_children():
+		var nm := c.name.to_lower()
+		if c is MeshInstance3D and nm.find("arms") != -1 and nm.find("bracer") == -1:
+			var mi := c as MeshInstance3D
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mi.custom_aabb = AABB(Vector3(-3.0, -3.0, -3.0), Vector3(6.0, 6.0, 6.0)) # la caja de la malla en «T» queda detrás de la cámara y la recortaría
+			for s in range(mi.mesh.get_surface_count()): # como CharacterRig3D._tint_arms_mesh: piel con su textura, manga teñida
+				var sm := StandardMaterial3D.new()
+				var es_piel: bool = str(mi.mesh.surface_get_material(s).resource_name).to_lower().find("regular") != -1
+				if es_piel and piel != null:
+					sm.albedo_texture = piel
+				sm.albedo_color = Color(0.84, 0.67, 0.54).lerp(Color.WHITE, 0.55) if es_piel else Color(0.24, 0.22, 0.19)
+				mi.set_surface_override_material(s, sm)
 		else:
-			# Dedos semicurvados de la mano izquierda de apoyo
-			f_mi.position = Vector3(fx, 0.002, -0.116)
-			f_mi.rotation_degrees = Vector3(52.0, 0.0, 22.0)
-		f_mi.material_override = mat_skin
-		f_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		arm_root.add_child(f_mi)
+			c.free()
+	# El muñeco está en «T»: el brazo derecho apunta a −X y el izquierdo a +X. Se gira para que el que toca apunte hacia
+	# delante (−Z) y se coloca su hombro en BRAZO_FP_HOMBRO; el otro brazo se encoge a nada.
+	var lado: String = "r" if is_right else "l"
+	var otro: int = skel.find_bone("upperarm_l" if is_right else "upperarm_r")
+	if otro >= 0:
+		skel.set_bone_pose_scale(otro, Vector3(0.001, 0.001, 0.001))
+	rig.scale = Vector3.ONE * BRAZO_FP_ESCALA
+	rig.rotation_degrees = Vector3(0.0, -90.0 if is_right else 90.0, 0.0)
+	if is_right: # la derecha gira sobre el brazo para que la palma mire hacia dentro y empuñe el arma (el pulgar arriba)
+		rig.rotation = (Basis(Vector3.BACK, deg_to_rad(-90.0)) * rig.basis.orthonormalized()).get_euler()
+	var hombro: Vector3 = skel.get_bone_global_rest(skel.find_bone("upperarm_" + lado)).origin
+	rig.position = BRAZO_FP_HOMBRO - rig.transform.basis * hombro
+	arm_root.add_child(rig)
 
 func _setup_fp_viewmodel() -> void:
 	if cam_3d == null or _is_headless:
@@ -513,29 +449,26 @@ func _setup_fp_viewmodel() -> void:
 	_fp_viewmodel_root.visible = false
 	cam_3d.add_child(_fp_viewmodel_root)
 
-	var mat_sleeve := _mat("fp_vm_sleeve", Color(0.24, 0.22, 0.19), 0.90)
-	var mat_cuff := _mat("fp_vm_cuff", Color(0.36, 0.26, 0.17), 0.85)
-	var mat_skin := _mat("fp_vm_skin", Color(0.84, 0.67, 0.54), 0.78)
 	var mat_steel := _mat("fp_vm_steel", Color(0.74, 0.77, 0.82), 0.35, 0.65)
 	var mat_dark_iron := _mat("fp_vm_iron", Color(0.26, 0.28, 0.31), 0.50, 0.55)
 	var mat_wood := _mat("fp_vm_wood", Color(0.44, 0.29, 0.16), 0.86)
 	var mat_gold := _mat("fp_vm_gold", Color(0.76, 0.62, 0.26), 0.42, 0.55)
 
-	# Brazo izquierdo (guardia / equilibrio / arco) con antebrazo cilíndrico, palma redondeada y dedos
+	# Brazo izquierdo (guardia / equilibrio / arco): el brazo del muñeco de los aldeanos
 	_fp_left_arm = Node3D.new()
 	_fp_left_arm.name = "FPLeftArm"
 	_fp_left_arm.position = Vector3(-0.22, -0.21, -0.34)
 	_fp_left_arm.rotation_degrees = Vector3(18.0, 16.0, -14.0)
 	_fp_viewmodel_root.add_child(_fp_left_arm)
-	_add_fp_arm_limb(_fp_left_arm, false, mat_sleeve, mat_cuff, mat_skin, mat_gold)
+	_add_fp_arm_limb(_fp_left_arm, false)
 
-	# Brazo derecho (empuña el arma activa) con antebrazo cilíndrico, palma redondeada y dedos
+	# Brazo derecho (empuña el arma activa): ídem, con la palma hacia dentro
 	_fp_right_arm = Node3D.new()
 	_fp_right_arm.name = "FPRightArm"
 	_fp_right_arm.position = Vector3(0.23, -0.20, -0.36)
 	_fp_right_arm.rotation_degrees = Vector3(14.0, -14.0, 10.0)
 	_fp_viewmodel_root.add_child(_fp_right_arm)
-	_add_fp_arm_limb(_fp_right_arm, true, mat_sleeve, mat_cuff, mat_skin, mat_gold)
+	_add_fp_arm_limb(_fp_right_arm, true)
 
 	_fp_weapon_mount = Node3D.new()
 	_fp_weapon_mount.name = "FPWeaponMount"

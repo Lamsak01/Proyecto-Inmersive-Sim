@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El detalle técnico está en `docs/HANDOFF.md` (sección 7) y el historial completo en `git log`. Lo anterior a B0.1 está en `AUDIT_LOG.md` y `SESSION_CONTEXT_LOG.md`.
 
 
+## 2026-11-11 — Arreglos de la partida del usuario, 7b: manos de verdad en 1.ª persona (Claude Code, portátil; rama `mundo-3d`)
+- Las manos en 1.ª persona son ahora los brazos del muñeco de los aldeanos (piel y manga), en vez de bolas de color carne.
+
 ## 2026-11-11 — Arreglos de la partida del usuario, 7a: el agua se mueve (Claude Code, portátil; rama `mundo-3d`)
 - El río y el lago tienen corriente y brillos que ondulan (efecto propio, sin descargar nada).
 
