@@ -589,32 +589,32 @@ static func build_tinker_stations(vm) -> void:
 				old_c.queue_free()
 	var armory_rack: Node2D = PropScript.new()
 	armory_rack.name = "ArmoryWeaponRack"
-	armory_rack.global_position = ARMORY_RACK_POS
+	armory_rack.global_position = _AN_SITIOS.mover(ARMORY_RACK_POS)
 	vm.entities_root.add_child(armory_rack)
 	armory_rack.setup_prop(vm, "armory_rack", "smith", "Expositor de Armas y Munición")
 
 	var term: Node2D = PropScript.new()
 	term.name = "TinkerLogicTerminal"
-	term.global_position = TINKER_TERMINAL_POS
+	term.global_position = _AN_SITIOS.mover(TINKER_TERMINAL_POS)
 	vm.entities_root.add_child(term)
 	term.setup_prop(vm, "terminal")
 
 	var p_term: Node2D = PropScript.new()
 	p_term.name = "PoliceLogicTerminal"
-	p_term.global_position = POLICE_TERMINAL_POS
+	p_term.global_position = _AN_SITIOS.mover(POLICE_TERMINAL_POS)
 	vm.entities_root.add_child(p_term)
 	p_term.setup_prop(vm, "terminal", "police", "Terminal Policial de Fósforo Verde")
 
 	if VillageLots.lot(vm, "n4").get("kind", "") == "town_hall":
 		var th_term: Node2D = PropScript.new()
 		th_term.name = "TownHallLogicTerminal"
-		th_term.global_position = TOWN_HALL_TERMINAL_POS
+		th_term.global_position = _AN_SITIOS.mover(TOWN_HALL_TERMINAL_POS)
 		vm.entities_root.add_child(th_term)
 		th_term.setup_prop(vm, "terminal", "town_hall", "Terminal Municipal de Fósforo Verde")
 
 	var panel: Node2D = PropScript.new()
 	panel.name = "TinkerElectricPanel"
-	panel.global_position = TINKER_GRID_PANEL_POS
+	panel.global_position = _AN_SITIOS.mover(TINKER_GRID_PANEL_POS)
 	vm.entities_root.add_child(panel)
 	panel.setup_prop(vm, "grid_panel")
 

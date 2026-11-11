@@ -1327,9 +1327,12 @@ func _spawn_decor_prop(tex_path: String, pos: Vector2, sc: Vector2 = Vector2.ONE
 		return
 	var spr := Sprite2D.new()
 	spr.texture = tex
-	spr.global_position = pos
+	var g_ancla: float = Anclas.giro(pos)
+	spr.global_position = Anclas.mover(pos, "decorado", tex_path.get_file().get_basename()) # número fijo del mapa: sigue a su edificio
 	spr.scale = sc
 	spr.z_index = -1
+	if absf(g_ancla) > 0.5:
+		spr.set_meta("giro_3d", g_ancla)
 	entities_root.add_child(spr)
 	var fname: String = tex_path.get_file()
 	var col_sz := Vector2.ZERO

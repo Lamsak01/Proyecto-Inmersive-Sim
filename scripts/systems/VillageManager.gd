@@ -62,6 +62,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageHousing.sync_home_props(self) # FIS-P1 y P1: objetos físicos en tu casa y mostrador de tu tienda
 	_spawn_domestic_pets()
 	VillageSecrets.seed_founder_history(self) # B6: rasgos con variante, red de amistades/rencores y 2–3 secretos por fundador
+	_sitios_cfg(load("res://mapa/anclas.gd")) # las fichas de oficio ya en el mundo ANTES de repartir oficios a los recién llegados (su cama y su puesto)
 	if not in_editor and DisplayServer.get_name() != "headless":
 		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
 		VillageTavern.seed_initial_patrons(self) # Paso 3: clientes sentados en el salón y partida de póker en curso al abrir la taberna
@@ -1543,7 +1544,7 @@ func reconcile_npc_registries_after_load() -> void:
 const SITIOS_CAMPOS_CFG: Array[String] = ["work_pos", "kin_work_pos", "bed1_pos", "bed2_pos", "table_pos", "stall_pos"]
 const SITIOS_CAMPOS_NPC: Array[String] = ["bed_position", "home_table_pos", "work_position", "tavern_social_pos"]
 
-func _sitios_repaso(AN) -> void:
+func _sitios_cfg(AN) -> void:
 	for k in trade_configs.keys():
 		var cfg: Dictionary = trade_configs[k]
 		if cfg.get("_sitios", false):
@@ -1552,6 +1553,10 @@ func _sitios_repaso(AN) -> void:
 		for campo in SITIOS_CAMPOS_CFG:
 			if cfg.get(campo) is Vector2 and cfg[campo] != Vector2.ZERO:
 				cfg[campo] = AN.mover(cfg[campo])
+
+
+func _sitios_repaso(AN) -> void:
+	_sitios_cfg(AN)
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		sitios_traducir_npc(n)
 	# Pozos: la lista de pozos es del mundo (se compara con posiciones reales); los tres fijos van por las anclas

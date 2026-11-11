@@ -459,7 +459,7 @@ func _spawn_domestic_pets() -> void:
 	for pdef in pet_defs:
 		if is_demo and str(pdef["fam"]) == "player_farm":
 			continue
-		var p_pos: Vector2 = pdef["pos"]
+		var p_pos: Vector2 = sitio(pdef["pos"]) # casa de la mascota: número fijo del mapa, al mundo
 		_spawn_pet_bed_and_bowl(p_pos, pdef["type"], str(pdef["name"]))
 		var pet := DomesticPet.new()
 		pet.name = "Pet_" + str(pdef["name"])

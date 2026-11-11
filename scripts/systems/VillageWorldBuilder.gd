@@ -352,7 +352,7 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 
 	vm._jail_cell_gate_body = StaticBody2D.new()
 	vm._jail_cell_gate_body.name = "JailCellGateBody"
-	vm._jail_cell_gate_body.global_position = Vector2(902, 152)
+	vm._jail_cell_gate_body.global_position = vm.sitio(Vector2(902, 152)) # la celda sigue a la comisaría
 	vm._jail_cell_gate_body.collision_layer = 1
 	vm._jail_cell_gate_body.collision_mask = 0
 	vm._jail_cell_gate_col = CollisionShape2D.new()
@@ -734,13 +734,14 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 				st_idx += 1
 
 	# 5. Punto de pesca en la orilla este del río dentro del pueblo (y = 188)
-	var fish_banks: Vector2 = FishingSpot.river_banks_at(188.0)
+	var y_pesca: float = vm.sitio(Vector2(0.0, 188.0)).y # el río ya está dibujado en el mundo (mapa ×E)
+	var fish_banks: Vector2 = FishingSpot.river_banks_at(y_pesca)
 	var river_fish_spot := FishingSpot.new()
 	river_fish_spot.name = "RiverFishingSpot"
 	river_fish_spot.is_river_spot = true
 	river_fish_spot.spot_title = "🎣 Ribera de Pesca del Río"
 	river_fish_spot.dock_pos = Vector2(18.0, 0.0)
-	river_fish_spot.position = Vector2(fish_banks.y - 10.0, 188.0)
+	river_fish_spot.position = Vector2(fish_banks.y - 10.0, y_pesca)
 	vm.entities_root.add_child(river_fish_spot)
 
 	# 6. Claro del Arroyo (Caso I) — etiqueta y área de inspección del lugar
