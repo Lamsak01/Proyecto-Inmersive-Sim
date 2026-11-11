@@ -1,5 +1,6 @@
 @tool
 extends "res://scripts/systems/VillageManagerBase.gd"
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
 
 
 func _register_authority_npc(node_name: String, npc_name_str: String, title: String, role: VillageNPC.TradeRole, tex_path: String, work_pos: Vector2, bed_pos: Vector2, table_pos: Vector2, stock: Dictionary, fam_id: String, fam_name: String, name_pool: Array) -> VillageNPC:
@@ -523,11 +524,12 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	for spot in get_tree().get_nodes_in_group("fishing_spots"):
 		if spot is Node2D:
 			var s_pos: Vector2 = (spot as Node2D).global_position
-			# El Lago del Oeste tiene radio ~48 px alrededor de su centro + muelle en `Vector2(36, 0)`
-			var lake_r: float = 48.0 + max_meters * 16.0
-			if world_pos.distance_squared_to(s_pos) <= lake_r * lake_r:
-				return true
-			if world_pos.distance_squared_to(s_pos + Vector2(36, 0)) <= max_well_dist * max_well_dist:
+			if not bool(spot.get("is_river_spot")):
+				# El Lago del Oeste: su contorno (mapa ×E) más el margen en metros
+				var orilla: PackedVector2Array = FishingSpot.lake_scaled(1.0, max_meters * 16.0 + 6.0) * Transform2D(0.0, Vector2.ONE * Mapa3D.E, 0.0, Vector2.ZERO)
+				if Geometry2D.is_point_in_polygon(world_pos, orilla):
+					return true
+			if world_pos.distance_squared_to(s_pos + (spot.get("dock_pos") as Vector2)) <= max_well_dist * max_well_dist:
 				return true
 	# Charca de agua de la Ciénaga del Suroeste
 	if Rect2(Vector2(-1910, 165), Vector2(710, 320)).grow(max_meters * 16.0).has_point(world_pos):

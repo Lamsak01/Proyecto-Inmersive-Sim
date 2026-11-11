@@ -20859,8 +20859,8 @@ surface_material_override/0 = SubResource("StandardMaterial3D_5gio6")
 surface_material_override/1 = SubResource("StandardMaterial3D_xdqoj")
 
 [node name="Caja_130" type="Node3D" parent="Decorado/Zona_-2_0" unique_id=160219288]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -191.24, 0.010567647, 29.4)
-metadata/pos_original = Vector2(-683, 105)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -187.7785, 0.010567647, 29.4)
+metadata/pos_original = Vector2(-670.6376, 105)
 metadata/radio = 24.552956
 
 [node name="@MeshInstance3D@4701" type="MeshInstance3D" parent="Decorado/Zona_-2_0/Caja_130" unique_id=182142824]

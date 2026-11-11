@@ -609,6 +609,16 @@ static func olvidar_relieve() -> void:
 	_relieve_cache.clear()
 
 
+## Distancia (px del mapa original) de `o` al contorno del lago: negativa dentro del agua.
+static func _lake_signed_dist_px(o: Vector2) -> float:
+	var poli: PackedVector2Array = FishingSpotScript.lake_outline()
+	var d: float = INF
+	for i in range(poli.size()):
+		var q: Vector2 = Geometry2D.get_closest_point_to_segment(o, poli[i], poli[(i + 1) % poli.size()])
+		d = minf(d, o.distance_to(q))
+	return -d if Geometry2D.is_point_in_polygon(o, poli) else d
+
+
 static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
 	# Mapa ×E: las lomas, cuencas y terrazas están escritas en el mapa original → se miran en `o` (el mundo encogido E
 	# veces); el río viene del editor (mundo actual) → se mira en `pos_2d`
@@ -628,20 +638,15 @@ static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
 			river_cut_h = -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
 		river_flat = 1.0 - smoothstep(riv_hw + 12.0, riv_hw + 90.0, d_riv)
 
-	# 1. Cuenca baja y de orillas suaves del Lago del Oeste (x ~ -1080..-665, y ~ 75..245)
+	# 1. Cuenca baja y de orillas suaves del Lago del Oeste: sigue el contorno del agua (FishingSpot.lake_outline), así la
+	#    orilla que se ve es la misma que la de nadar, chocar y el muelle (mapa ×E: antes la cuenca era una elipse a ojo)
 	var lake_h: float = 0.0
-	if x < -645.0 and x > -1180.0 and y > 56.0 and y < 295.0:
-		var t_east: float = smoothstep(-940.0, -730.0, x)
-		var lake_cy: float = lerpf(152.0, 108.0, t_east)
-		var lake_ry: float = lerpf(92.0, 44.0, t_east)
-		var ld := Vector2((x + 872.0) / 238.0, (y - lake_cy) / lake_ry)
-		var lr: float = ld.length()
-		if lr < 1.30:
-			# Lecho suave (-5.8 px) bajo la lámina de agua (-0.8 px); orillas muy tendidas sin escalón ni zanja
-			var basin: float = -5.8 * (1.0 - smoothstep(0.80, 1.26, lr))
-			var north_fade: float = smoothstep(56.0, 76.0, y)
-			var east_fade: float = clampf((-646.0 - x) / 26.0, 0.0, 1.0)
-			lake_h = basin * north_fade * east_fade
+	if x < -600.0 and x > -1180.0 and y > 30.0 and y < 300.0:
+		var d_in: float = _lake_signed_dist_px(o) # negativo dentro del agua
+		if d_in < 11.0:
+			# Lecho suave (-5.8 px) bajo la lámina de agua (-0.8 px); la lámina (-1 px) corta justo en el contorno y la orilla
+			# sube tendida en los 11 px de fuera
+			lake_h = -5.8 * (1.0 - smoothstep(-29.0, 11.0, d_in))
 
 	# 2. Cuenca baja de la Ciénaga de las Ranas (x ~ -1960..-1100, y ~ 135..520)
 	var marsh_h: float = 0.0

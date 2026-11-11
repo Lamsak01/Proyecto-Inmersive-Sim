@@ -218,7 +218,7 @@ func _spawn_player_garden(entities_root: Node) -> void:
 	var lake := FishingSpot.new()
 	lake.name = "WestFishingLake"
 	entities_root.add_child(lake)
-	lake.global_position = FishingSpot.LAKE_NODE_POS
+	lake.global_position = load("res://mapa/anclas.gd").mover(FishingSpot.LAKE_NODE_POS) # mapa ×E
 
 func _unhandled_input(event: InputEvent) -> void:
 	var player := get_node_or_null("Entities/PlayerGood")

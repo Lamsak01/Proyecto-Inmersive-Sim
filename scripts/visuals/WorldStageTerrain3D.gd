@@ -217,7 +217,7 @@ func _build_lake_3d() -> void:
 	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.66, 0.0), -0.8, m_deep, true)
 	# Un único muelle de madera en la orilla este del lago, a ras del agua (-1.0 px) y sin tablón suelto
 	var m_dock := _mat("dock_wood", Color(0.62, 0.44, 0.28), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
-	var dock_c: Vector2 = FishingSpotScript.LAKE_NODE_POS + Vector2(32.0, 0.0)
+	var dock_c: Vector2 = FishingSpotScript.lake_dock_center() # en el mundo (mapa ×E): orilla este del lago
 	var dock_mi := MeshInstance3D.new()
 	var dock_bm := BoxMesh.new()
 	dock_bm.size = size_3d(Vector2(44.0, 16.0), 1.6)
@@ -238,7 +238,7 @@ func _build_lake_3d() -> void:
 	var shore_pts: PackedVector2Array = FishingSpotScript.lake_scaled(1.15, 8.0)
 	for si in range(shore_pts.size()):
 		var sp: Vector2 = shore_pts[si]
-		if sp.distance_to(dock_c) < 28.0:
+		if (sp * Mapa3D.E).distance_to(dock_c) < 40.0: # sp está en el mapa original (estirar_terreno)
 			continue
 		if (si % 3) == 0:
 			_add_model_2d(terrain_root_3d, "nature/Rock_1.obj" if (si % 2) == 0 else "nature/Rock_2.obj", sp, -0.6, Vector2.ZERO, 7.5, float(si * 53))

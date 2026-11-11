@@ -13,6 +13,8 @@ var SPOTS := {
 	"plaza": Vector2(465, 48),
 	"iglesia": Vector2(650, 150),
 	"lago": Vector2(-65, 140),
+	"lago_oeste": Vector2(-700, 105), # Lago del Oeste (el sitio «muelle_lago» va al muelle de verdad)
+	"muelle_lago": Vector2.ZERO,
 	"cementerio": Vector2(930, 300),
 	"cerca": Vector2(470, 70),
 	"retrato": Vector2(470, 60),
@@ -182,7 +184,9 @@ func _initialize() -> void:
 						vun_loop.enter_sewer_location(vm_loop, "smuggler_tunnel", player)
 					elif vun_loop.is_player_in_sewers(vm_loop):
 						vun_loop.exit_sewers_to_surface(vm_loop)
-				player.global_position = SPOTS[s]
+				player.global_position = load("res://mapa/anclas.gd").mover(SPOTS[s]) # sitios escritos en el mapa original (mapa ×E)
+				if s == "muelle_lago":
+					player.global_position = load("res://scripts/obstacles/FishingSpot.gd").lake_dock_center() + Vector2(0.0, 20.0)
 				var horse_n = get_first_node_in_group("player_horse")
 				if horse_n != null:
 					if s == "montado" and not bool(player.get("is_mounted")):
@@ -191,7 +195,7 @@ func _initialize() -> void:
 						horse_n.dismount(player)
 				if cam != null:
 					cam.zoom = Vector2(8.0, 8.0) if s == "retrato" else (Vector2(5.0, 5.0) if s in ["ciervo", "zorro", "perro", "jabali", "caballo", "montado", "asalto", "robo", "trampilla", "corral"] else (Vector2(4.2, 4.2) if s in ["cerca", "taller", "tunel", "rancho"] else Vector2(2.4, 2.4)))
-					if String(s).begins_with("r_") or s == "lago" or s == "norte":
+					if String(s).begins_with("r_") or s == "lago" or s == "lago_oeste" or s == "muelle_lago" or s == "norte":
 						cam.zoom = Vector2(1.4, 1.4)
 					cam.reset_smoothing()
 			# En «cerca», el ratón se pone sobre el vecino más cercano para ver su ficha.
@@ -208,5 +212,5 @@ func _initialize() -> void:
 			var img: Image = root.get_texture().get_image()
 			var p := "%s/%s_%02dh.png" % [out_dir, s, int(h)]
 			img.save_png(p)
-			print("SHOT ", p, " fps=", Engine.get_frames_per_second())
+			print("SHOT ", p, " fps=", Engine.get_frames_per_second(), " jugador=", str(player.global_position) if player != null else "?")
 	quit(0)

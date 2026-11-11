@@ -15,12 +15,19 @@ const HONDO_RIO_M: float = 2.2         ## en el centro del río ancho (pueblo): 
 const HONDO_ARROYO_M: float = 0.6      ## en el centro del arroyo estrecho (bosque norte): se vadea
 const HONDO_LAGO_M: float = 3.5        ## en el centro del lago
 const ORILLA_LAGO_PX: float = 60.0     ## distancia a la orilla a la que el lago ya es hondo del todo
-const MUELLE_LAGO: Rect2 = Rect2(Vector2(-703.0, 94.0), Vector2(38.0, 22.0)) ## el muelle de madera no es agua
+const MUELLE_LAGO: Rect2 = Rect2(Vector2(-703.0, 94.0), Vector2(38.0, 22.0)) ## el muelle de madera no es agua (mapa original)
+
+## El muelle en coordenadas del mapa original, donde esté la orilla este del agua dibujada (mapa ×E).
+static func muelle_lago() -> Rect2:
+	if Mapa3D.E == 1.0:
+		return MUELLE_LAGO
+	var c: Vector2 = FishingSpot.lake_dock_center() / Mapa3D.E
+	return Rect2(c - Vector2(22.0, 8.0) / Mapa3D.E, Vector2(44.0, 16.0) / Mapa3D.E).grow(2.0)
 
 
 static func en_lago(pos: Vector2) -> bool:
 	var o: Vector2 = pos / Mapa3D.E # el lago está escrito en el mapa original (mapa ×E)
-	return Geometry2D.is_point_in_polygon(o, PackedVector2Array(FishingSpot.LAKE_WATER_WORLD)) and not MUELLE_LAGO.has_point(o)
+	return Geometry2D.is_point_in_polygon(o, FishingSpot.lake_water()) and not muelle_lago().has_point(o)
 
 
 static func en_rio(pos: Vector2) -> bool:
@@ -41,7 +48,7 @@ static func superficie_y(pos: Vector2) -> float:
 ## Cuánta agua hay en `pos` (metros de la superficie al fondo). 0 fuera del agua.
 static func hondura_m(pos: Vector2) -> float:
 	if en_lago(pos):
-		var poli := PackedVector2Array(FishingSpot.LAKE_WATER_WORLD) * Transform2D(0.0, Vector2.ONE * Mapa3D.E, 0.0, Vector2.ZERO) # mapa ×E
+		var poli: PackedVector2Array = FishingSpot.lake_water_world() # mapa ×E, el agua tal como se dibuja
 		var a_orilla: float = INF
 		for i in range(poli.size()):
 			var cerca: Vector2 = Geometry2D.get_closest_point_to_segment(pos, poli[i], poli[(i + 1) % poli.size()])
