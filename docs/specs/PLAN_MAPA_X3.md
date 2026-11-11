@@ -90,3 +90,7 @@ Coste total estimado: **2–3 sesiones de trabajo** (unas 12–18 horas), más l
   cama alta sin traducir dos veces; copias de paredes por cuerpo. Resultados: física 0 fallos, puertas 29/29, atascos 3 h = 0,
   Caso I a pie 24/25 → 25/25 (zapato por su sitio real), rendimiento plaza 21 / río 24 / bosque 23 fps (la lógica de los
   vecinos manda, no el 3D). Fotos de referencia nuevas: `docs/capturas_mundo3d/referencia_x5/`.
+- Repaso final (noche): `verify_all.gd` destapó ~40 sitios fijos del código que se comparaban con posiciones del mundo
+  o se daban a vecinos ya creados (pozos, tablón, solares, camas, arcas, casa del jugador, celda, caravana, golpe…):
+  todos por `sitio`/`mover` o comparados por `desmover`. Regla para las pruebas: dos vecinos «juntos» se colocan como
+  distancia (`a.global_position + Vector2(12, 0)`), nunca como dos puntos fijos (con ×5 se separan ×5).
