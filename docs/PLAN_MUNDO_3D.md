@@ -6,7 +6,7 @@
 >
 > **Estado (2026-11-10):** plan aprobado por el usuario. **Pasos 0, 0b, 1, 2a–2c y 3a hechos** en la rama `mundo-3d` (mundo 3D
 > uniforme y en metros; cuerpo 3D; posada de dos plantas; club y alcantarillas bajo tierra; daño por caída; nadar).
-> Aplazados por el usuario: 2d (guardado v4) y 2e (casa). Siguiente: 3b bucear (falta su decisión sobre el aire).
+> Aplazados por el usuario: 2d (guardado v4) y 2e (casa). 3b–3c (bucear) aplazados por el usuario. Siguiente: paso 4 (vecinos y animales).
 > Autor: Claude Code (portátil). Cualquier agente que siga: lee este documento entero antes de tocar nada y apunta
 > cada paso en el **Registro** (§10).
 
@@ -174,7 +174,8 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 - Nadar en superficie (más lento, gasta aguante), bucear (cámara bajo el agua, aire limitado, ahogarse), salir por la orilla.
 - **Pistas en el fondo:** objetos que solo se encuentran buceando (preparado para los casos; el usuario decide cuáles).
 - Se borran las colisiones 2D del río y del lago.
-- **Trozos:** 3a nadar en superficie (hecho) · 3b bucear (aire, ahogarse; falta decisión del usuario) · 3c pistas en el fondo.
+- **Trozos:** 3a nadar en superficie (hecho) · 3b bucear (aire, ahogarse) · 3c pistas en el fondo: **aplazados por el usuario** (2026-11-10, «déjalo para luego»;
+  falta su decisión sobre cuánto aire y si al acabarse te desmayas o mueres).
   Los choques 2D del agua se quedan hasta el paso 4: el cuerpo 3D ya no los copia, pero frenan a los vecinos.
 - **Terminado cuando:** se puede cruzar el río nadando, bucear en el lago y recoger un objeto del fondo; pruebas en verde.
 
