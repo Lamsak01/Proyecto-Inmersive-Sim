@@ -231,10 +231,15 @@ para metros (gravedad 9,8, márgenes de choque) y hoy una persona mide menos de 
 ## 7. Decisiones que tiene que tomar el usuario (preguntar en su paso, no antes)
 
 1. **Escala** (paso 0): ~~A o B~~ → **B, uniforme** (usuario, 2026-11-10). Ver paso 0b.
-2. **Vista desde arriba** (paso 6): ¿se mantiene la cámara cenital 3D (F9) o el juego es solo en 1.ª persona?
+2. **Vista desde arriba** (paso 6): ~~¿se mantiene?~~ → **se queda por ahora** (usuario, 2026-11-11).
 3. **Daño por caída** (paso 2): ~~cuánto~~ → **realista** (usuario, 2026-11-10): duele desde 3 m, mata a 8 m; además hiere partes del cuerpo (piernas sobre todo); habrá mejoras que lo reduzcan.
-4. **Aire bajo el agua** (paso 3): cuánto dura y qué pasa al ahogarse (desmayo o muerte).
+4. **Aire bajo el agua** (paso 3): ~~cuánto~~ → **30 segundos; al acabarse pierdes vida hasta morir** (usuario, 2026-11-11).
 5. **Cuevas** (después del paso 2): dónde y cuántas; es diseño de mapa, no de esta transición.
+
+6. **Noche del 2026-11-11 (usuario, antes de acostarse):** terminar la conversión sin él: opción B de vecinos (si los 44 con
+   cuerpo completo bajan la fluidez, híbrido: cuerpo completo solo los cercanos), piso alto y sótano de su casa (2e),
+   bucear (3b) y la limpieza (paso 6) que no necesite decisiones. **Mejorar el rendimiento todo lo posible y dejarlo
+   todo anotado.** Nada a `main` hasta que lo pruebe.
 
 ## 8. Riesgos y cómo se evitan
 
