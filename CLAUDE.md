@@ -1,78 +1,85 @@
 # La Placa de Petri
 
-Immersive sim 2D en pixel art hecho con Godot 4.7.2 (GDScript). El usuario no programa: háblale siempre en español, breve y sin jerga.
+Immersive sim **3D** en primera persona (con vista desde arriba opcional) hecho con **Godot 4.7.2** (GDScript, Flatpak).
+Un forastero llega a un valle con ~17 vecinos con rutina propia; el bucle principal es **detective** (Caso I). El usuario
+no programa (audita leyendo la lógica general) y trabaja en **dos ordenadores Linux sincronizados por GitHub**.
+Este archivo lo leen por igual Claude Code, Gemini y Antigravity (`GEMINI.md` y `AGENTS.md` son enlaces a él).
 
-## Reparto de trabajo (desde 2026-11-05)
+## 1. Reparto de trabajo (desde 2026-11-11)
 
-- **Antigravity escribe el código**; **Claude Code supervisa**: prepara el encargo en `docs/ENCARGO_SIGUIENTE.md` (cómo supervisar: `docs/DIRECTIVAS_CLAUDE.md`, «Cómo supervisar a Antigravity»),
-  revisa lo que Antigravity suba (y su informe en `docs/INFORME_ANTIGRAVITY.md`) y le dice al usuario si está bien.
-- **Desde 2026-11-09 el usuario lanza y habla con Antigravity él mismo.** Claude Code nunca lo lanza ni relanza; el vigilante automático está desactivado.
+- **Claude Code — programador y arquitecto principal (85 %):** escribe el GDScript, diseña componentes desacoplados,
+  mantiene limpio el repositorio y GitHub.
+- **Gemini / Antigravity — especialista y auditor bajo demanda (15 %):** solo lo abre el usuario para álgebra 3D compleja
+  (Transform3D, cuaterniones, conos de visión), shaders (`.gdshader`) o auditar el repositorio si Claude falla dos veces
+  en el mismo fallo. **Nadie lanza, relanza ni para a otro agente**; el vigilante nocturno sigue desactivado.
+- **Cero intermediarios:** nada de informes largos ni «prompts puente» para el otro agente en tareas rutinarias.
 
-## Antes de trabajar
+## 2. Protocolo de sesión y cambio de ordenador
 
-- **⚠ Paso del mundo a 3D de verdad (2026-11-10, decisión del usuario):** plan, inventario, reglas y registro en `docs/PLAN_MUNDO_3D.md`. Léelo entero antes de tocar movimiento, física, choques, pisos, agua o el mapa, y apunta cada bloque en su Registro.
-- **Código ordenado y reducido (orden permanente del usuario, 2026-11-10):** todo archivo que toques se deja ordenado por lo que hace (carpetas por tema, archivos de menos de ~600 líneas, una función = una tarea, cabecera en español sencillo), sin código muerto ni repetido. Explica cada cambio en `docs/MANUSCRITO_MUNDO_3D.md` y mantén `docs/MAPA_DEL_CODIGO.md`. El usuario no tiene que recordarlo en cada mensaje.
-- **Lógica que sigue al mapa (2026-11-10):** plan y registro en `docs/PLAN_SITIOS.md`; actualízalo al cerrar cada paso.
-- **Claude Code en otro ordenador:** lee primero `docs/CONTEXTO_PARA_OTRA_PC.md` (todo lo hablado con el usuario hasta el 2026-11-09).
-- **Controles (2026-11-09):** todas las teclas están en `docs/CONTROLES.md`. Mírala antes de asignar o recomendar una tecla y actualízala si cambias alguna.
-- **Editor del mapa 3D (2026-11-10):** el mundo se edita en `mapa/Mundo3D.tscn`. Lee `docs/REGISTRO_EDITOR_3D.md` (qué se hizo, qué decidió el usuario, qué falta) antes de tocar el mapa.
-- **Editor del mapa (2026-11-09):** si el usuario quiere editar el mapa, lee antes `docs/PLAN_EDITOR_MAPA.md`, sobre todo «Cómo explicárselo al usuario»: no conoce Godot, guíale paso a paso.
+1. `git pull` antes de nada. Lee **solo** este archivo y `docs/ESTADO_ACTUAL.md`. No abras `docs/specs/` ni scripts
+   hasta saber qué tarea se toca; luego abre **solo** la especificación y los archivos de esa tarea (`docs/INDICE_SISTEMAS.md`
+   dice cuál es cada uno). Busca con grep/glob antes de leer; lee por trozos; edita con diffs parciales.
+2. Si un cambio toca más de 2 scripts o la arquitectura: plan de máximo 6 líneas y esperar confirmación.
+3. **Cierre de tarea:** `godot --headless --quit` sin errores (comando en `docs/specs/PRUEBAS.md`) y **una sola prueba**,
+   la que toca lo cambiado; línea en `CHANGELOG.md`; reescribir `docs/ESTADO_ACTUAL.md` (máximo 45 líneas, nunca
+   historial); `git pull --rebase`, commit y push a `main`. Resumen al usuario de 3 líneas.
+4. **Bóveda de Obsidian (`GameVault/`):** es el espacio del usuario. **Bloqueada por defecto:** no se lee ni se actualiza
+   salvo que el usuario lo pida explícitamente (igual `docs/archivo/`, el historial). No tocar nunca `GameVault/03_La_Secta/`,
+   el «Lore provisional», `GameVault/99_Archivo/` ni `GameVault/.obsidian/`. La exportación a Obsidian
+   (`docs/archivo/Exportar_a_Obsidian.md`) solo bajo petición expresa.
+5. Al cerrar un bloque de diseño, apúntalo en `docs/FALLOS_VISIBLES.md` (si era un fallo) o `docs/VISION_Y_FUTURO.md`
+   (si era una idea). Las dudas de diseño con el usuario ausente van a `docs/PREGUNTAS_PENDIENTES.md`; lo técnico se decide
+   sin preguntar.
 
-**Directivas por papel (valen en cualquier ordenador):** Claude Code lee `docs/DIRECTIVAS_CLAUDE.md`; Antigravity lee `docs/DIRECTIVAS_ANTIGRAVITY.md`. Las pruebas automáticas no ven los fallos visibles: mira capturas y `docs/FALLOS_VISIBLES.md`.
+## 3. Cómo hablar al usuario (obligatorio en TODOS los mensajes)
 
-0. Si eres un agente nuevo (Antigravity u otro), empieza por `docs/PROMPT_SIGUIENTE_AGENTE.md`. Si ya trabajaste aquí, lee antes `docs/NOTA_PARA_OTRO_AGENTE.md`.
-   - **Base de datos de Obsidian (`GameVault/`):** Dentro del repositorio vive la bóveda de Obsidian del proyecto (`GameVault/00_MOC/La Placa de Petri.md` y subcarpetas `01_Vision_y_Reglas` a `06_Diario`). Cualquier agente de IA (Claude Code, Antigravity u otro futuro) debe consultarla y **mantenerla actualizada y sincronizada en GitHub** en cada bloque que modifique sistemas, misiones, censo, pendientes o el diario.
+1. **Español, corto, sin jerga**; si usas una palabra técnica, explícala en la misma frase con una comparación.
+2. **Cero código en los mensajes:** no nombres archivos, funciones, variables ni líneas, salvo que lo pida. Habla del JUEGO.
+3. **Cada problema o propuesta:** qué pasa (en palabras de jugador) · qué notaría el jugador (o «no se nota, es para el
+   futuro») · qué pasa si no se hace · recomendación (ya / más adelante / no) y coste (poco / medio / mucho).
+4. **Máximo 10–12 líneas por mensaje.** Varias cosas: la más importante primero y pregunta si quiere oír el resto.
+5. **Permiso antes de cualquier prueba o partida de prueba**, diciendo cuánto tarda.
+6. **Cierre:** una sola pregunta clara de lo que necesitas. Evalúa las ideas con honestidad; no des la razón por defecto.
+7. Distingue lo probado de lo supuesto. **Una prueba verde no significa que esté bien:** mira capturas de verdad
+   (`docs/FALLOS_VISIBLES.md` es la lista del usuario; apunta ahí lo que te cuente).
 
-1. Lee `docs/HANDOFF.md`: reglas de trabajo, mapa del código, trampas conocidas, estado de los bloques (sección 7) y decisiones de diseño ya tomadas (sección 8). No vuelvas a preguntar lo ya decidido.
-2. Comprueba `git status` y `git log --oneline -5`. Si la documentación y git no coinciden, manda git.
-3. Si la tarea toca la vida social, lee también `docs/PLAN_VIDA_SOCIAL.md`.
-4. Antes de proponer un sistema nuevo, lee `docs/VISION_Y_FUTURO.md`: la aspiración del juego, el orden acordado y el banco de ideas del usuario. Añade ahí las ideas nuevas que proponga; no borres ninguna sin que lo pida.
+## 4. Calidad del código (intocable) y economía de tokens
 
-## Vault de diseño (Obsidian) — `GameVault/`
+- **Prohibido degradar** arquitectura, tipado, validaciones o legibilidad para ahorrar tokens. El ahorro viene de cero
+  relleno conversacional, búsqueda quirúrgica, ediciones parciales y lectura bajo demanda.
+- **Godot 4 estricto:** nada de sintaxis de Godot 3. Tipado estático al 100 % (variables, constantes, arrays tipados,
+  parámetros y retornos, `-> void`). Evitar ciclos de `preload()` (ayudantes sin preloads, como `scripts/fisica/AndarMapa.gd`).
+- **Tamaño:** archivos **nuevos** de 50–150 líneas (si pasan de 180, proponer partirlos); los **existentes** hasta ~600
+  (muchos las superan; se parten **solo cuando se tocan** por una tarea, nunca de golpe). Un script = una responsabilidad;
+  una función = una tarea; carpetas por tema; cabecera de 2–3 líneas en español sencillo en cada archivo.
+- **Arquitectura desacoplada:** composición sobre herencia; `@export` para hijos directos; señales o autoload para hablar
+  con otros sistemas; nada de rutas frágiles `get_node("../../..")`; datos de ítems, estados y estadísticas en Resources
+  propios (`@export`). Sin código muerto ni repetido.
+- **Legibilidad para auditoría humana:** nombres descriptivos, cláusulas de guarda al principio (`return` temprano,
+  `is_instance_valid()`), máximo 2 niveles de `if`, cero números mágicos (`const` o `@export_group`), comentarios breves
+  en español explicando **por qué** existe cada bloque.
+- **Escenas 3D:** se editan con las herramientas del flujo (`tools/hornear_*.gd`, `tools/esparcir_arboles.gd`, el editor
+  del mapa en Godot) o con ediciones controladas; prohibido retocar a ciegas coordenadas o subrecursos gigantes de un
+  `.tscn` a mano cuando toca hacerlo por código o herramienta. Tras cambiar una escena, `godot --headless --quit`.
+- Si el usuario tiene el editor de Godot abierto, no lo cierres; no uses `pkill`/`pgrep -f` con un patrón de tu propio
+  comando. Archivos temporales en la carpeta de trabajo del agente, no en `/tmp` compartido.
 
-El usuario organiza el diseño en Obsidian. Reparto: el vault es su espacio de diseño; `docs/` sigue siendo la guía técnica de los agentes. Si se contradicen, pregunta al usuario.
+## 5. Reglas del juego que no se discuten (detalle en `docs/specs/DECISIONES_DISENO.md`)
 
-- **Antes de diseñar o tocar un sistema:** lee su nota en `GameVault/02_Sistemas/` (o `03_La_Secta/`, `04_Censo_y_Misiones/`) y `GameVault/01_Vision_y_Reglas/Las 7 Reglas de las Auditorías.md`.
-- **Al cerrar cada bloque**, además de lo de siempre:
-  1. Actualiza la nota del sistema afectado (`estado`: idea / parcial / implementado; añade lo nuevo en «Notas de diseño»).
-  2. Mueve o marca la tarjeta en `GameVault/05_Roadmap_y_Lore/Tablero.md` (formato del plugin Kanban: no cambies su cabecera ni el bloque final de ajustes).
-  3. Añade una línea al diario del día en `GameVault/06_Diario/AAAA-MM-DD.md` (créalo con la estructura de `GameVault/Plantillas/Diario.md` si no existe).
-- **Sistemas o vecinos nuevos:** crea su nota a partir de `GameVault/Plantillas/`.
-- Respeta el frontmatter (`tipo`, `area`, `estado`, `codigo`): lo usan las tablas del panel.
-- **No modifiques** `GameVault/03_La_Secta/` ni el `Lore provisional` sin orden expresa, ni `GameVault/99_Archivo/` (copia histórica).
-- No toques `GameVault/.obsidian/`.
+- **Mundo 3D de verdad**, ya terminado (2026-11-12): física, pisos, agua, buceo; el modo 2D antiguo está borrado. Reglas
+  de la física y sus pruebas en `docs/specs/MUNDO_3D.md`. Léelo antes de tocar movimiento, choques, pisos, agua o mapa.
+- **Época definitiva:** tecnofeudal / medieval-balística (`docs/specs/REVISION_EPOCA.md`). Historia principal antigua
+  descartada; la nueva se diseña con el usuario. **Nunca inventar lore de la secta.**
+- **Foco:** primero fallos visibles y estabilidad; el Caso I jugable después; todo lo demás congelado.
+- Texto y lore son provisionales (se pueden reescribir). Controles en `docs/CONTROLES.md` (mírala antes de asignar teclas).
+- Mapa editable en `mapa/Mundo3D.tscn` (`docs/specs/REGISTRO_EDITOR_3D.md` antes de tocarlo; guía para el usuario en
+  `docs/EDITOR_MAPA_GUIA.md` y `docs/PINCEL_MAPA_GUIA.md`).
+- Ideas nuevas del usuario: a `docs/VISION_Y_FUTURO.md`; no borrar ninguna sin que lo pida. Antes de proponer un sistema
+  nuevo, plan corto y aprobación; sin refactors grandes ni cambios visibles sin avisar.
 
-## Reglas clave de comunicación (obligatorias en TODOS los mensajes)
+## 6. Git
 
-1. **Cero código en los mensajes:** nunca nombres archivos, funciones, variables ni líneas de código, salvo que el usuario lo pida. Habla del JUEGO (vecinos, tiendas, misiones, la cantera, el mapa...).
-2. **Formato de cada problema o propuesta (pocas líneas):**
-   - Qué pasa (en palabras de jugador).
-   - Qué notaría el jugador en el juego (o «no se nota, es para el futuro»).
-   - Qué pasa si no lo hacemos.
-   - Recomendación: hacerlo ya / más adelante / no hacerlo, y cuánto cuesta (poco / medio / mucho).
-3. **Máximo 10–12 líneas por mensaje.** Si hay varias cosas, empieza por la más importante y pregunta si quiere oír el resto.
-4. **Sin jerga:** si usas una palabra técnica, explícala en la misma frase con una comparación sencilla.
-5. **Permiso antes de cualquier prueba:** pregunta SIEMPRE antes de lanzar pruebas o partidas de prueba, diciendo cuánto tardan.
-6. **Cierre claro:** termina cada mensaje con lo que necesitas del usuario, en una sola pregunta clara.
-
-## Reglas de trabajo
-
-- Evalúa las ideas con honestidad; no des la razón por defecto.
-- Antes de una mecánica o sistema nuevo, presenta un plan corto y espera aprobación.
-- Trabaja en bloques pequeños. Al cerrar cada uno: marca `docs/HANDOFF.md`, añade una entrada a `CHANGELOG.md`, haz commit y push a `main`.
-- Sin refactors grandes ni cambios de comportamiento visible sin avisar.
-- Distingue lo probado de lo supuesto.
-
-## Ahorro de tokens
-
-- Mientras trabajas, pasa solo el test afectado.
-- **Una sola prueba por bloque** (orden del usuario, 2026-11-06): al cerrar el bloque, arranque sin errores y **solo la prueba
-  que toca lo cambiado**, con `timeout`. Las cuatro pruebas se pasan solo en las **rondas de auditoría** que pide el usuario.
-- Un solo test por comportamiento nuevo.
-- Nada de comprobaciones repetidas ni revisiones grandes sin avisar antes.
-- Resúmenes de 3 líneas por bloque.
-
-## Tests
-
-Los comandos están en la sección 3 de `docs/HANDOFF.md`. Godot se ejecuta con Flatpak (`flatpak run org.godotengine.Godot`).
-No uses `pkill` ni `pgrep -f` con un patrón que aparezca en tu propio comando, y no cierres el editor de Godot del usuario si está abierto.
+- Rama de trabajo: `main` (ramas aparte solo para cambios grandes, con permiso; se mezclan al acabar con pruebas en verde).
+- Nunca `*.import` ni `*.uid` en `.gitignore` (rompen `uid://` en el otro ordenador). `.claude/settings.json` se comparte;
+  `settings.local.json` no.
+- Respaldo de la reorganización del 2026-11-11: rama `backup-antes-reorg`.

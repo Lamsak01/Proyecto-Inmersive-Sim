@@ -40,6 +40,9 @@ assests/Assets 3d/
 # Godot genera estos .import al abrir el editor; los modelos de curated_3d se cargan en tiempo de ejecución
 assests/curated_3d/**/*.import
 
-# Capturas de la documentación: Godot genera estos .import al abrir el editor
-docs/capturas/*.import
-.claude/
+# docs/ lleva .gdignore (Godot no la mira); por si acaso
+docs/**/*.import
+
+# Claude Code: solo se comparte settings.json (permisos comunes entre los dos PC)
+.claude/*
+!.claude/settings.json

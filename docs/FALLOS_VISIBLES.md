@@ -26,7 +26,7 @@
 - [x] ✅ (2026-11-09) **El campamento inicial está en medio del pueblo** (tienda, hoguera y tronco pegados a las casas); las texturas
   se aprietan entre sí · 1.ª persona, de noche. *(Retirado el campamento y huerto del pueblo en modo demo; el jugador empieza en las afueras, en el camino de entrada al valle `Vector2(-920, 50)`, con la pantalla de la carta de contratación al inicio).*
 - [ ] **Todo está demasiado comprimido** (petición grande del usuario): pueblo, campamento, lago, bosque y llanura
-  están pegados. Quiere **un mapa unas 3 veces más grande**, con todo más separado y más largo (ver `ENCARGO_SIGUIENTE.md`).
+  están pegados. Quiere **un mapa unas 3 veces más grande**, con todo más separado y más largo (ver `docs/VISION_Y_FUTURO.md`).
 - [x] ✅ (2026-11-09) **El bosque parece un parque:** demasiado cerca del pueblo, poca vegetación, y su borde (dónde empieza y acaba)
   es recto y mecánico; saca de la inmersión · 3D, de día. *(Añadido bosque denso y oscuro de pinos, sauces y robles con borde irregular, penumbra bajo las copas y sotobosque espeso de arbustos, zarzas, helechos, musgo y troncos caídos alrededor del arroyo y el claro del cuerpo en `WorldStageTerrain3D.gd`).*
 - [ ] **Los animales solo rondan sus nidos/madrigueras** y siempre van todos juntos; no hacen nada más · bosque.
@@ -43,7 +43,7 @@
   la cuadrícula pasó a ser un dibujo de rombos que se repite por todo el suelo; no es natural y no le gusta. Arreglarlo
   más adelante con una hierba sin patrón visible (manchas irregulares, variación de tono).
 
-> Los arreglados están en `docs/FALLOS_ARREGLADOS.md` (no hace falta leerlos). Al arreglar uno, márcalo con ✅ aquí; el supervisor lo archiva.
+> Al arreglar uno, márcalo con ✅ aquí; de vez en cuando los ✅ se pasan a `docs/archivo/FALLOS_ARREGLADOS.md`.
 
 ## 2026-11-11 — La prueba «S2: un testigo convierte la infidelidad en chisme» falla al azar (detectado por Claude Code)
 - En `verify_all` esa comprobación falló 3 veces (2026-11-10 noche y 2026-11-11 noche) y pasó al repetir, sin cambiar nada. No es un fallo del juego visible; es la prueba: el testigo se coloca encima del infiel y tiene 40 oportunidades al 50 %, así que no debería fallar por azar. Sospecha: el testigo elegido deja de ser válido (dormido o sentado) o `discover` no lo apunta. Pendiente de mirar con calma; mientras, si sale, repetir la prueba.

@@ -1,0 +1,31 @@
+# Lo que no aporta lógica de código (ahorro de tokens). Igual que .antigravityignore y que .claude/settings.json.
+.godot/
+*.import
+*.uid
+*.translation
+*.scn
+*.res
+addons/
+builds/
+export/
+*.glb
+*.gltf
+*.fbx
+*.obj
+*.blend
+*.blend1
+*.hdr
+*.exr
+*.wav
+*.ogg
+*.mp3
+*.png
+*.jpg
+*.jpeg
+*.webp
+!docs/capturas_usuario/**
+!docs/capturas_arreglos/**
+assests/Assets 3d/
+# Bóveda de Obsidian (del usuario) y archivo histórico: solo si el usuario lo pide
+GameVault/
+docs/archivo/

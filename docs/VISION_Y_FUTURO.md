@@ -25,7 +25,7 @@
 Documento permanente con la aspiración del juego y la lluvia de ideas del usuario.
 **Cualquier asistente (sea el modelo que sea) debe leerlo antes de proponer sistemas nuevos.**
 Nada de esta lista está aprobado para construir: cada idea necesita su plan corto y la aprobación del usuario
-(ver reglas en `docs/HANDOFF.md`). No se borra ninguna idea sin que el usuario lo pida; se pueden marcar como
+(ver reglas en `CLAUDE.md`). No se borra ninguna idea sin que el usuario lo pida; se pueden marcar como
 descartadas o aplazadas con el motivo.
 
 Última actualización: 2026-11-04 (revisado punto por punto contra el juego tras el bloque N).

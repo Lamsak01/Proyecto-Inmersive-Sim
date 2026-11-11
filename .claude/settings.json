@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.godot/**)",
+      "Read(./**/*.import)",
+      "Read(./**/*.uid)",
+      "Read(./**/*.translation)",
+      "Read(./**/*.scn)",
+      "Read(./**/*.res)",
+      "Read(./**/*.glb)",
+      "Read(./**/*.gltf)",
+      "Read(./**/*.fbx)",
+      "Read(./**/*.obj)",
+      "Read(./**/*.blend)",
+      "Read(./**/*.blend1)",
+      "Read(./**/*.hdr)",
+      "Read(./**/*.exr)",
+      "Read(./**/*.wav)",
+      "Read(./**/*.ogg)",
+      "Read(./**/*.mp3)",
+      "Read(./addons/**)",
+      "Read(./builds/**)",
+      "Read(./export/**)",
+      "Read(./assests/Assets 3d/**)"
+    ],
+    "ask": [
+      "Read(./GameVault/**)",
+      "Read(./docs/archivo/**)"
+    ]
+  }
+}

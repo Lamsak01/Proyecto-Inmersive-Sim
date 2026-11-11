@@ -1,7 +1,7 @@
 # Mapa del código (para el usuario y cualquier agente)
 
 > Para qué sirve: saber **dónde está lo que quieres arreglar** sin saber programar. Cada carpeta y cada archivo, en una
-> línea. Creado el 2026-11-10 (paso 0 del paso a 3D, `docs/PLAN_MUNDO_3D.md`). **Se actualiza en cada bloque que mueva,
+> línea. Creado el 2026-11-10 (paso 0 del paso a 3D; resumen corto en `docs/INDICE_SISTEMAS.md`). **Se actualiza en cada bloque que mueva,
 > parta o borre archivos.** Entre corchetes, las líneas que tiene; ⚠ = demasiado grande, se ordenará cuando le toque.
 >
 > Cómo leer un archivo: los de Godot (`.gd`) empiezan con unas líneas con `##` que dicen para qué sirven.
@@ -102,7 +102,7 @@
 `verify_all.gd` (todo el juego, ~15 min), `fisica_3d.gd` (paso a 3D), `puertas_3d.gd` (entrar y salir por todas las puertas), `capturas_fijas.gd` (fotos para comparar, también
 desde arriba),
 `menu_probe.gd`, `atascos_vecinos.gd`, `guardado_largo.gd`, `social_sim.gd`, `names_check.gd`, `dialogue_coverage.gd`,
-`perf_*.gd` (rendimiento). Cómo lanzarlas: `docs/HANDOFF.md` §3 y `docs/PLAN_MUNDO_3D.md` §6.
+`perf_*.gd` (rendimiento). Cómo lanzarlas: `docs/specs/PRUEBAS.md`.
 
 ## Herramientas del mapa — `tools/`
 `hornear_*.gd` (pasan al mapa editable lo que colocaba el código), `esparcir_arboles.gd` (quita árboles con el tronco pegado a otro, por zonas), `crear_editor_mapa.gd`, `screenshot_3d.gd`.

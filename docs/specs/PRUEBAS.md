@@ -1,0 +1,37 @@
+# Pruebas y comandos de Godot
+
+Godot 4.7.2 por Flatpak, desde la raíz del proyecto. **Una sola prueba por tarea** (la que toca lo cambiado); las grandes
+solo en rondas de auditoría que pida el usuario. Lanzar de una en una, con `timeout`; las largas en segundo plano.
+Pide permiso al usuario antes de cualquier prueba, diciendo cuánto tarda.
+
+```bash
+# Arranque sin errores (tras editar código o escenas; ~20 s). Los autoloads no existen en --check-only: no lo uses.
+timeout 120 flatpak run org.godotengine.Godot --headless --path . --quit 2>&1 | grep -c "SCRIPT ERROR"
+
+# Física 3D (cuerpos, pisos, agua, buceo, vista; ~2 min) → «FISICA 3D: PASSED»
+timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/fisica_3d.gd 2>&1 | grep "FISICA 3D"
+# Entrar y salir por las 29 puertas (~2 min) → «PUERTAS 3D: PASSED»
+timeout 600 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/puertas_3d.gd 2>&1 | grep "PUERTAS 3D"
+# Todo el juego (~8–15 min) → «...TESTS PASSED!». La sección «S2: un testigo convierte la infidelidad en chisme» falla al azar: repite.
+timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd 2>&1 | grep -c "TESTS PASSED"
+# Fotos fijas con ventana (~2 min) y comparación con una carpeta de referencia → «CAPTURAS_FIN peor=…%» (ruido normal < 1 %)
+flatpak run org.godotengine.Godot --path . -s tools/tests/capturas_fijas.gd -- <carpeta_salida> [carpeta_referencia]
+# Vecinos atascados: simulación de N horas (~1 min por hora) → «ATASCOS: 0»
+flatpak run org.godotengine.Godot --headless --path . -s tools/tests/atascos_vecinos.gd -- [horas] [hora_inicio] [cocinero] [jugador:x,y|jugador:puerta:<id>]
+# Menú, ajustes, teclas, guardado y pausa (~2 min) → «MENU PROBE: PASSED»
+timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/menu_probe.gd 2>&1 | grep "MENU PROBE"
+# Nombres (~2 s) → «NAMES CHECK PASSED» · Simulador social de 60 días → «SOCIAL SIM CHECK PASSED»
+timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3
+timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd 2>&1 | tail -3
+# Cobertura de diálogos (0 «SCRIPT ERROR») · Guardado y carga 7 días (<10 min) → «GUARDADO LARGO PASSED»
+timeout 80 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dialogue_coverage.gd 2>&1 | grep -c "SCRIPT ERROR"
+timeout 540 flatpak run org.godotengine.Godot --headless --path . --fixed-fps 60 -s tools/tests/guardado_largo.gd 2>&1 | tail -2
+# Rendimiento con ventana: tools/tests/perf_fisica.gd, perf_zonas.gd. Fotos sueltas: tools/screenshot_3d.gd
+```
+
+- Las pruebas automáticas **no ven los fallos visibles**: mira las fotos de verdad y pregúntate «¿esto lo encontraría un
+  jugador?». Un sistema que existe pero el jugador no puede encontrar cuenta como fallo.
+- Fotos de referencia del mundo 3D en `docs/capturas_mundo3d/`; fotos de arreglos en `docs/capturas_arreglos/`
+  (`AAAA-MM-DD_tema_antes/despues.png`); capturas del usuario en `docs/capturas_usuario/AAAA-MM-DD/`.
+- Avisos amarillos del editor solo los ve el usuario: pídele captura con archivo y línea.
+- Nunca `pkill`/`pgrep -f` con un patrón que aparezca en tu propio comando; no cierres el editor del usuario.
