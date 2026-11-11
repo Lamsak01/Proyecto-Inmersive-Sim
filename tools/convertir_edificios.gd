@@ -85,7 +85,7 @@ func _convertir(escenario: Node, id: String, centro: Vector2) -> bool:
 		_podar_hijos(grupo)
 		construido.remove_child(grupo)
 		raiz.add_child(grupo)
-	_dejar_en_reposo(raiz, origen)
+	_dejar_en_reposo(raiz)
 	raiz.add_child(_muebles(id, escenario.get("muebles_grabados"), origen, centro))
 	var marcas := Node3D.new()
 	marcas.name = Partes.MARCAS
@@ -126,24 +126,18 @@ func _podar_hijos(nodo: Node) -> void:
 			hijo.free()
 
 
-## Estado de reposo de lo que se mueve (así se ve en el editor; jugando lo pone el juego a cada momento), huecos de las
-## puertas de cuarto en metros del edificio, y ningún resto de «esto era una copia de un modelo».
-func _dejar_en_reposo(raiz: Node3D, origen: Vector3) -> void:
-	var anclas: Script = load("res://mapa/anclas.gd")
+## Estado de reposo de lo que se mueve (así se ve en el editor; jugando lo pone el juego a cada momento) y ningún
+## resto de «esto era una copia de un modelo».
+func _dejar_en_reposo(raiz: Node3D) -> void:
 	for parte: Node in Partes.con_rol(raiz):
 		var parte_3d := parte as Node3D
 		match String(parte.get_meta(Partes.ROL)):
-			Partes.PUERTA:
+			Partes.PUERTA, Partes.PUERTA_CUARTO:
 				parte_3d.rotation = Vector3.ZERO
 			Partes.CANDADO, Partes.POSTIGO, Partes.CUERPO_MORGUE:
 				parte_3d.visible = false
 			Partes.LUZ_NOCHE:
 				parte_3d.visible = true
-			Partes.PUERTA_CUARTO:
-				parte_3d.rotation = Vector3.ZERO
-				var hueco_px: Vector2 = anclas.call("mover", parte.get_meta(Partes.HUECO_PX))
-				parte.set_meta(Partes.HUECO, Mapa3D.a_3d(hueco_px) - Vector3(origen.x, 0.0, origen.z))
-				parte.remove_meta(Partes.HUECO_PX)
 	for nodo: Node in raiz.find_children("*", "", true, false):
 		nodo.scene_file_path = ""
 

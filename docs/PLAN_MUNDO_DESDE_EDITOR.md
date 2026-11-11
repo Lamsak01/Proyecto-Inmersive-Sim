@@ -42,7 +42,11 @@ moviendo piezas, no con un factor.
    (`tools/tests/inventario_mundo.gd`, ver «Cómo medir»). Era: Prueba nueva que construye el mundo y lista todo lo que aparece (dibujos 2D, piezas 3D,
    choques, zonas de uso) y todos los destinos de los vecinos, diciendo de dónde sale cada uno: pieza del editor o número
    del código. Da la cifra exacta de lo que falta y será la vara de medir de los pasos siguientes. *Jugable: sin cambios.*
-1. **Edificios completos en el editor**, por grupos (casas → oficios → públicos: iglesia, ayuntamiento, escuela…): muros,
+1. 🔶 (2026-11-11, en curso) Hecho: los 29 edificios fijos son escenas (`mapa/edificios/<id>.tscn`, creadas con
+   `tools/convertir_edificios.gd`) y el juego las carga; su código de dibujo está borrado; «dobles» del inventario 885 → 0.
+   Falta: marcas para la lógica (camas, mesas, puestos, salas: `VillageTavern`, `VillageRestaurant`, `VillageWorldBuilder`…),
+   muebles de la capilla, casas de recién llegados con escena base, y planta/puerta leídas de la escena. Era:
+   **Edificios completos en el editor**, por grupos (casas → oficios → públicos: iglesia, ayuntamiento, escuela…): muros,
    puerta, muebles, camas, mesas y puestos de trabajo como marcas dentro de cada edificio; el código las lee en vez de sus
    constantes. *Jugable tras cada grupo.* Prueba: inventario del grupo a 0 + sondeo de edificios movidos.
 2. **Exteriores**: cementerio, lavadero, campamento, corrales, huertos, pozos, decorado suelto y grupos hechos por código

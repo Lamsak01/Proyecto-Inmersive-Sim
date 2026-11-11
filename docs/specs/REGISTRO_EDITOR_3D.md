@@ -110,6 +110,19 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   esos px de otro ya conservado (solo dentro del rectángulo; sin él, todo el mapa). Pasado una vez con 24 px en el bosque
   del Caso I (19 quitados). Si Godot tenía Mundo3D abierto: recargar la escena sin guardar.
 
+## Edificios como escenas (2026-11-11, paso 1 de `docs/PLAN_MUNDO_DESDE_EDITOR.md`)
+- Los 29 edificios fijos son escenas en `mapa/edificios/<id>.tscn` (mallas y texturas compartidas en `comun/`); en
+  Mundo3D → «Edificios» cada pieza es una copia de su escena. Grupos fijos (`scripts/visuals/PartesEdificio3D.gd`):
+  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (vacío aún).
+- Para cambiar un edificio por dentro: abrir su escena (doble clic en `mapa/edificios/…`), mover muebles, guardar.
+- Lo que se mueve jugando (puerta, postigo, luces de noche, reja de la celda, puertas de cuarto, cuerpos de la morgue)
+  lleva una etiqueta (metadato `rol`); el juego lo busca por la etiqueta, no por nombre ni posición.
+- El juego (`WorldStageBuildings3D._poner_edificio_de_escena`) cuelga la escena en el centro de la planta, con su giro.
+- Las casas de recién llegados (`house_family_lot_*`) siguen con foto en `mapa/edificios_vista/` y dibujo por código.
+- `tools/convertir_edificios.gd` convierte lo que el código aún dibuje y no tenga escena; lo ya convertido no se rehace
+  (su código ya no existe: la escena es el original). `tools/hornear_edificios.gd` está borrado.
+- Las texturas de los muros pueden verse corridas unos centímetros respecto a antes (se pegan al edificio, no al mundo).
+
 ## Mapa ×5 (2026-11-11/12)
 - Las escenas `mapa/Mundo3D.tscn` y `mapa/EditorMapa.tscn` se convirtieron con `tools/estirar_mapa.py` y
   `estirar_mapa_objetos.py` (copias `*.antes-x5.tscn`). Las piezas siguen la regla de las anclas: edificio a E·centro con

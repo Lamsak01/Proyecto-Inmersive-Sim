@@ -89,6 +89,7 @@ var _door_nodes_3d: Array[Dictionary] = []
 var _window_nodes_3d: Array[Dictionary] = []
 var _chest_nodes_3d: Array[Dictionary] = []
 var _building_furniture_rects: Dictionary = {} # key "b_id#floor" -> Array[Dictionary] {name, rect}
+var _edificios_de_escena: Dictionary = {} ## id → true de los edificios cargados de su escena (mapa/edificios/)
 var _current_building_id: String = ""
 var _current_building_floor: int = 0
 var _morgue_body_nodes_3d: Array[Node3D] = []
@@ -867,7 +868,9 @@ func check_furniture_overlaps(warn_on_overlap: bool = true) -> Array[String]:
 						if d2 < best_d2:
 							best_d2 = d2
 							best_tbl = cand
-				if best_tbl.is_empty():
+				if best_tbl.is_empty() and _edificios_de_escena.has(str(key).get_slice("#", 0)):
+					pass # en una escena las mesas hechas de cajas (póker, veladores) no son piezas: no se puede saber
+				elif best_tbl.is_empty():
 					var msg_no_t := "[WorldStage3D] Silla sin mesa cercana en %s: '%s' en %s" % [str(key), str(a["name"]), str(c_pos)]
 					overlaps.append(msg_no_t)
 					if warn_on_overlap:

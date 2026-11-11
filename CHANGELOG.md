@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 1, primera tanda: los 29 edificios fijos son escenas propias (Claude Code)
+- Cada edificio fijo (posada, casa de comidas, hospital, comisaría, iglesia, molino, tiendas, casas de oficio…) es ahora una escena, `mapa/edificios/<id>.tscn`, con sus grupos Muros, Interior, PisoAlto, Tejado, Muebles y Marcas en metros respecto al edificio. El juego la carga donde esté su pieza del editor; jugando se ve igual (51 fotos de antes y después comparadas a ojo).
+- Borrado el código que los dibujaba con números (`WorldStageBuildings3D.gd`: de 2.720 a 540 líneas); queda solo el dibujo genérico de las casas de recién llegados y de lo que se levante en un solar. Borradas las «fotos» viejas de esos 29 edificios y `tools/hornear_edificios.gd` (la sustituye `tools/convertir_edificios.gd`).
+- Inventario: las piezas «traducidas dos veces» bajan de 885 a 0 (mover un edificio ya no descoloca su interior). Pruebas: puertas 29/29, sondeo de edificios movidos 29/29.
+- Pendiente del paso 1: sitios de los vecinos como marcas (camas, mesas, puestos), muebles de la capilla fuera de sitio y casas de recién llegados con una escena base.
+
 ## 2026-11-11 — Plan aprobado: el mundo sale solo del editor; paso 0 (Claude Code, sobremesa)
 - Aprobado el plan para dejar de construir el mundo con el plano 2D viejo y su traductor (`docs/PLAN_MUNDO_DESDE_EDITOR.md`), con las reglas de un profesional consultado por el usuario. Lo hace solo la sesión del sobremesa.
 - Paso 0: inventario automático que mueve todas las piezas del editor y mira qué las sigue (`tools/tests/inventario_mundo.gd` → `docs/INVENTARIO_MUNDO.md`). De 6.783 cosas: 5.098 siguen al editor, 697 se quedan en el sitio viejo, 885 se mueven el doble (interiores de 8 edificios) y 103 acaban en otro sitio; 14 muebles de la capilla están hoy fuera de todo edificio. El juego no cambia.

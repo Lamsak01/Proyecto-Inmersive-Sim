@@ -24,7 +24,6 @@ const BOMBILLA_CUADRO: String = "bombilla_cuadro" ## piloto del cuadro eléctric
 const COFRE: String = "cofre"                   ## cofre de la casa: lo pone el juego aparte, no va en la escena
 
 const HUECO: StringName = &"hueco"     ## puerta de cuarto: centro del hueco, en metros respecto al edificio
-const HUECO_PX: StringName = &"hueco_px" ## lo mismo en el mapa, solo mientras el edificio se construye por código
 const NIVEL: StringName = &"nivel"     ## puerta de cuarto: en qué planta está
 
 
