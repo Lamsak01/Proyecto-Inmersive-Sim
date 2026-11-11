@@ -79,7 +79,7 @@ static func _spawn_western_plains_and_frog_marsh(vm: VillageManager) -> void:
 	vm._add_poly(marsh_water, Color(0.16, 0.44, 0.42, 0.82), -2)
 
 	_spawn_world_signpost(vm, Vector2(-1140, -22), "🌾 Llanura Salvaje del Noroeste — ⚠️ Ruinas y Bandidos", Color(1.0, 0.78, 0.36))
-	_spawn_world_signpost(vm, Vector2(-1480, 108), "🐸 Ciénaga de las Ranas del Suroeste", Color(0.62, 0.96, 0.68))
+	_spawn_world_signpost(vm, Vector2(-1480, 108), "🌫️ Ciénaga del Suroeste — ⚠️ Bandidos escondidos", Color(0.62, 0.96, 0.68))
 
 static func _add_road_rect(vm: VillageManager, rect: Rect2, col: Color) -> void:
 	vm._add_poly(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]), col, -3)

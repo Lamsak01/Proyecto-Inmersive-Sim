@@ -79,7 +79,9 @@ func _process(delta: float) -> void:
 	_holder.visible = _entity.is_visible_in_tree()
 	if not _holder.visible:
 		return
-	_holder.position = _stage.call("to_3d", _entity.global_position + Vector2(0.0, CharacterAvatar3DScript.FOOT_OFFSET_PX), 0.0)
+	var pies: Vector2 = _entity.global_position + Vector2(0.0, CharacterAvatar3DScript.FOOT_OFFSET_PX)
+	# 2026-11-11: con el relieve del suelo; a altura cero los bandidos de la llanura quedaban enterrados
+	_holder.position = _stage.call("to_3d", pies, float(_stage.call("terrain_height_px", pies)))
 	var vel: Vector2 = _entity.get("velocity") if "velocity" in _entity else Vector2.ZERO
 	var facing: Vector2 = vel.normalized() if vel.length_squared() > 4.0 else Vector2(_entity.get("facing"))
 	_rig.call("update_pose", delta, {

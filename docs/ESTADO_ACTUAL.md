@@ -6,8 +6,8 @@
 Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`), en el orden aprobado:
 1. ✅ Bosque del Caso I: árboles separados (hecho).
 2. ✅ Posada: puertas en los 3 cuartos y camas de adulto (hecho).
-3. **Siguiente:** los sapos de la Llanura Salvaje pasan a ser bandidos (decisión del usuario, 2026-11-11).
-4. Caso I con un día de margen (decidido: llegas, conoces el pueblo, el caso estalla al día siguiente).
+3. ✅ Los sapos de la Llanura Salvaje son ahora bandidos (hecho).
+4. **Siguiente:** Caso I con un día de margen (decidido: llegas, conoces el pueblo, el caso estalla al día siguiente).
 5. Césped sin dibujo repetido · 6. Animales con vida propia · 7. Sala de peleas en las alcantarillas.
 
 ## b) Último avance completado
@@ -17,7 +17,7 @@ Fallos visibles pendientes de la partida del usuario (`docs/FALLOS_VISIBLES.md`)
   persona, agua con movimiento, modo 2D borrado, rendimiento (plaza ~25 fps en el portátil).
 
 ## c) Siguiente paso técnico inmediato
-Sustituir los sapos (`DummyEnemy` con modelo de rana) por bandidos en la Llanura Salvaje, reutilizando `Raider`/`BanditModel3D`.
+Caso I con un día de margen: retrasar el arranque del caso (`VillageCase1`/`ObjectiveManager`) al día 2 y avisar al jugador el primer día.
 
 ## d) Bloqueos activos
 - Pistas en el fondo del agua: mecanismo listo; el usuario decide cuáles.

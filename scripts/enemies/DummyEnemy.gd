@@ -13,7 +13,7 @@ const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, opci
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 
 @export var weight: float = 10.0
-@export var enemy_id: String = "generic_enemy"
+@export var enemy_id: String = "bandit"
 
 var push_velocity: Vector2 = Vector2.ZERO
 var is_stunned_flag: bool = false
@@ -36,10 +36,7 @@ func _ready() -> void:
 	sprite = anim
 	add_to_group("enemies")
 	add_to_group("plains_hostiles")
-	if enemy_id == "frog":
-		load("res://scripts/visuals/AnimalModel3D.gd").attach(self, "animals/Frog.glb", 9.0, 3.0, Color(0.45, 0.85, 0.42))
-	else:
-		load("res://scripts/visuals/BanditModel3D.gd").attach(self)
+	load("res://scripts/visuals/BanditModel3D.gd").attach(self) # 2026-11-11: los sapos de la ciénaga pasaron a ser bandidos (usuario)
 
 	if WorldClock and not WorldClock.day_passed.is_connected(_on_day_passed):
 		WorldClock.day_passed.connect(_on_day_passed)
@@ -252,15 +249,9 @@ func _grant_plains_loot() -> void:
 	if not player or not ("inventory" in player) or not player.inventory:
 		return
 	var inv: SimpleInventory = player.inventory
-	var is_frog: bool = (enemy_id == "frog" or name.begins_with("Frog"))
-	if is_frog:
-		inv.add_item("frog_legs", 2)
-		inv.add_gold(6)
-		_spawn_floating_text("🐸 Botín Ciénaga: +2 Ancas de Rana, +6 Oro", Color.SPRING_GREEN, -46.0)
-	else:
-		inv.add_item("bandit_scrap", 1)
-		inv.add_gold(15)
-		_spawn_floating_text("⚔️ Botín Llanura: +1 Chatarra/Reliquia, +15 Oro", Color.GOLD, -46.0)
+	inv.add_item("bandit_scrap", 1)
+	inv.add_gold(15)
+	_spawn_floating_text("⚔️ Botín de bandido: +1 Chatarra/Reliquia, +15 Oro", Color.GOLD, -46.0)
 
 func _on_day_passed(new_day: int) -> void:
 	if is_dead_flag and respawn_on_day > 0 and new_day >= respawn_on_day:

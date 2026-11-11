@@ -30,8 +30,7 @@
 - [x] ✅ (2026-11-09) **El bosque parece un parque:** demasiado cerca del pueblo, poca vegetación, y su borde (dónde empieza y acaba)
   es recto y mecánico; saca de la inmersión · 3D, de día. *(Añadido bosque denso y oscuro de pinos, sauces y robles con borde irregular, penumbra bajo las copas y sotobosque espeso de arbustos, zarzas, helechos, musgo y troncos caídos alrededor del arroyo y el claro del cuerpo en `WorldStageTerrain3D.gd`).*
 - [ ] **Los animales solo rondan sus nidos/madrigueras** y siempre van todos juntos; no hacen nada más · bosque.
-- [ ] **Enemigos todavía en 2D** (los sapos de la Llanura Salvaje) · de día. *(2026-11-12: ya tienen modelo 3D de rana (`animals/Frog.glb`); falta el diseño pedido, sapo de pie con ropa roja.)* **Petición:** mantener los sapos, pero con **modelo 3D basado en su
-  sprite** (mismo diseño: sapo verde de pie con ropa roja). *(✅ 2026-11-07: ocultados por defecto los conos de visión de depuración en `VisionCone2D.gd` y `DummyEnemy.gd`)*.
+- [x] ✅ (2026-11-11) **Enemigos todavía en 2D** (los sapos de la Llanura Salvaje) · de día. *(El usuario descartó los sapos: los 4 enemigos de la llanura y la ciénaga son ahora bandidos con el muñeco 3D de los asaltantes; su botín es chatarra y oro. De paso, los muñecos de bandido se ponían a altura cero y en la llanura quedaban enterrados bajo el relieve: ya pisan el suelo. Foto: `docs/capturas_arreglos/2026-11-11_llanura_bandido_despues.png`.)*
 - [ ] **Los edificios antiguos son diminutos y feos:** cuartos de una sala, muebles arrinconados, sprites sin sentido
   (p. ej. la comisaría: rejas verdes gigantes, cajón suelto, cepo). **Petición del usuario:** que TODOS los edificios
   tengan el nivel de detalle de la trattoria (varias salas con sentido, muebles 3D colocados, luces). Es un proyecto
