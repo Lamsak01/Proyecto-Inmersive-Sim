@@ -6,35 +6,34 @@
 
 | Resultado | Cosas |
 |---|---:|
-| sigue al editor | 4006 |
-| se queda en el sitio viejo | 553 |
+| sigue al editor | 4068 |
+| se queda en el sitio viejo | 486 |
 | se mueve el doble (traducido dos veces) | 0 |
-| acaba en otro sitio o no aparece | 106 |
+| acaba en otro sitio o no aparece | 111 |
 
 ## Por familia (las 60 con más restos)
 
 | Familia | Sigue | Quieto | Doble | Otro sitio | Ejemplo de resto |
 |---|---:|---:|---:|---:|---|
 | 3D · Nature3D / Nature3D / Lote | 0 | 434 | 0 | 0 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
-| 3D · Streetlights3D / Streetlights3D / MeshInstance3D | 85 | 58 | 0 | 4 | a 4 m de Comisaría de Policía y  Cárcel del Valle |
 | 3D · Terrain3D / Terrain3D / MeshInstance3D | 0 | 42 | 0 | 0 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
 | 3D · Nature3D / Nature3D / MeshInstance3D | 914 | 0 | 0 | 18 | a 56 m de Casa Grande de los Rentistas |
 | Lógica 2D ·  /  / ShopBusinessStall | 0 | 0 | 0 | 15 | a 554 m de Mansión del Señor del Valle |
-| Sitio de vecino: work_position | 33 | 0 | 0 | 9 | a 47 m de Panadería 'La Espiga' |
-| 3D · Outpost3D / Outpost3D / MeshInstance3D | 0 | 7 | 0 | 0 | a 15 m de Herrería y Armería 'Yunque Gris' |
-| Sitio de vecino: bed_position | 36 | 0 | 0 | 6 | a 2 m de Gran Posada, Taberna y Casino 'El Jabalí Dorado' |
-| 3D · Buildings3D / Node3D / MeshInstance3D | 108 | 0 | 0 | 6 | a 57 m de Granja del Sur |
-| Sitio de vecino: home_table_pos | 37 | 0 | 0 | 5 | a 1 m de Gran Posada, Taberna y Casino 'El Jabalí Dorado' |
+| Sitio de vecino: work_position | 33 | 0 | 0 | 9 | a 81 m de Cabaña del Leñador |
+| 3D · Streetlights3D / Streetlights3D / MeshInstance3D | 139 | 0 | 0 | 8 | a 4 m de Comisaría de Policía y  Cárcel del Valle |
+| 3D · Buildings3D / Node3D / MeshInstance3D | 107 | 0 | 0 | 7 | a 57 m de Granja del Sur |
+| 3D · Buildings3D / Node3D / Face | 67 | 0 | 0 | 5 | a 55 m de Granja del Sur |
+| 3D · Buildings3D / Node3D / FaceBack | 67 | 0 | 0 | 5 | a 56 m de Granja del Sur |
+| Sitio de vecino: bed_position | 38 | 0 | 0 | 4 | a 57 m de Granja del Sur |
+| Sitio de vecino: home_table_pos | 38 | 0 | 0 | 4 | a 58 m de Granja del Sur |
 | 3D · Lots3D / Lots3D / MeshInstance3D | 52 | 0 | 0 | 4 | a 61 m de Biblioteca |
 | 3D · Buildings3D / Bed_Twin12 / Bed_Twin1 | 60 | 0 | 0 | 4 | a 56 m de Granja del Sur |
-| 3D · Buildings3D / Node3D / Face | 68 | 0 | 0 | 4 | a 55 m de Granja del Sur |
-| 3D · Buildings3D / Node3D / FaceBack | 68 | 0 | 0 | 4 | a 56 m de Granja del Sur |
 | 3D · Nature3D / Prop3D_weak_wall / MeshInstance3D | 0 | 3 | 0 | 0 | a 56 m de Casa de Comidas 'El Fogón del Valle' |
+| 3D · Buildings3D / Puerta / MeshInstance3D | 102 | 0 | 0 | 3 | a 55 m de Granja del Sur |
 | 3D · Buildings3D / Skeleton3D / Chest_Wood_Base | 32 | 0 | 0 | 2 | a 57 m de Granja del Sur |
 | 3D · Buildings3D / Skeleton3D / Chest_Wood_Lid | 32 | 0 | 0 | 2 | a 57 m de Granja del Sur |
 | 3D · Buildings3D / Muros / MeshInstance3D | 36 | 0 | 0 | 2 | a 55 m de Granja del Sur |
 | 3D · Buildings3D / Muros / Juntado | 38 | 0 | 0 | 2 | a 56 m de Granja del Sur |
-| 3D · Buildings3D / Puerta / MeshInstance3D | 103 | 0 | 0 | 2 | a 55 m de Granja del Sur |
 | 3D · Buildings3D / Tejado / Juntado | 38 | 0 | 0 | 2 | a 56 m de Granja del Sur |
 | 3D · Buildings3D / Bookcase / Bookcase | 23 | 0 | 0 | 2 | a 56 m de Granja del Sur |
 | 3D · Buildings3D / Chair / Chair | 72 | 0 | 0 | 2 | a 55 m de Granja del Sur |
@@ -42,18 +41,16 @@
 | 3D · Buildings3D / Table_Large2 / Table_Large | 45 | 0 | 0 | 2 | a 56 m de Granja del Sur |
 | 3D · Nature3D / Prop3D_weapon_sword / MeshInstance3D | 0 | 2 | 0 | 0 | a 74 m de Casa de Comidas 'El Fogón del Valle' |
 | Lógica 2D ·  /  / Area2D | 31 | 0 | 0 | 2 | a 57 m de Granja del Sur |
-| 3D · Streetlights3D / Streetlights3D / OmniLight3D | 7 | 1 | 0 | 0 | a 39 m de Escuela |
-| 3D · Streetlights3D / Streetlights3D / SpotLight3D | 1 | 1 | 0 | 0 | a 41 m de Escuela |
 | 3D ·  / StageRoot3D / SunLight3D | 0 | 1 | 0 | 0 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
 | Lógica 2D ·  /  / OldBridgeVictimShoeArea | 0 | 1 | 0 | 0 | a 63 m de Herrería y Armería 'Yunque Gris' |
-| 3D · Sewers3D / Sewers3D / MeshInstance3D | 113 | 0 | 0 | 1 | a 24 m de Pescadería y Molino 'Aguas Claras' |
 | Lógica 2D ·  /  / WindowArea_house_family_lot_m6 | 0 | 0 | 0 | 1 | a 60 m de Biblioteca |
+| 3D · Sewers3D / Sewers3D / MeshInstance3D | 113 | 0 | 0 | 1 | a 24 m de Pescadería y Molino 'Aguas Claras' |
 | Lógica 2D ·  /  / DoorArea_house_family_lot_l3 | 0 | 0 | 0 | 1 | a 54 m de Granja del Sur |
 | 3D · Nature3D / Sword_Bronze2 / Sword_Bronze | 0 | 1 | 0 | 0 | a 74 m de Casa de Comidas 'El Fogón del Valle' |
 | Lógica 2D ·  /  / WindowArea_house_family_lot_l3 | 0 | 0 | 0 | 1 | a 55 m de Granja del Sur |
-| Lógica 2D ·  /  / DoorArea_house_family_lot_m6 | 0 | 0 | 0 | 1 | a 61 m de Biblioteca |
-| 3D ·  / StageRoot3D / FillLight3D | 0 | 1 | 0 | 0 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
 | 3D · Terrain3D / Terrain3D / TerrainHeightfield3D | 0 | 1 | 0 | 0 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
+| 3D ·  / StageRoot3D / FillLight3D | 0 | 1 | 0 | 0 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
+| Lógica 2D ·  /  / DoorArea_house_family_lot_m6 | 0 | 0 | 0 | 1 | a 61 m de Biblioteca |
 
 ## Muebles fuera de todo edificio hoy (sin mover nada)
 

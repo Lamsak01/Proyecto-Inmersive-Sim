@@ -14011,6 +14011,13 @@ id_solar = "f2"
 centro_original = Vector2(40, -560)
 terreno_m = Vector2(14, 10.08)
 
+[node name="solar_puesto_del_paso" type="Node3D" parent="Solares" unique_id=815861718]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 446.04, 0.55, 13.16)
+script = ExtResource("33_nou5s")
+id_solar = "puesto_del_paso"
+centro_original = Vector2(1593, 47)
+terreno_m = Vector2(13.552, 9.968)
+
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 
 [node name="Zona_3_0" type="Node3D" parent="Decorado" unique_id=1449909008]
@@ -22031,16 +22038,6 @@ nombre_visible = "CompostBinArea (26)"
 es_ancla = true
 radio_ancla = 12.0
 
-[node name="🏕️_Solar_Fronterizo_«Puesto_del_Paso»__E_(27)" type="Node3D" parent="Objetos" unique_id=270026771]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 452.2, 0.5495177, -8.68)
-script = ExtResource("29_bojho")
-clave = "ancla_27"
-pos_original = Vector2(1615, -31)
-alto = 10.0
-nombre_visible = "🏕️ Solar Fronterizo «Puesto del Paso»  E (27)"
-es_ancla = true
-radio_ancla = 12.0
-
 [node name="RondaWaterWellArea_(28)" type="Node3D" parent="Objetos" unique_id=1814565116]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 170.8, 0.99335885, -205.8)
 script = ExtResource("29_bojho")
@@ -22062,316 +22059,6 @@ nombre_visible = "🌾 Molino del Este (29)"
 es_ancla = true
 radio_ancla = 12.0
 
-[node name="sign_1_(30)" type="Node3D" parent="Objetos" unique_id=1958741644]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.08, 0.4438412, -102.2)
-script = ExtResource("29_bojho")
-clave = "ancla_30"
-pos_original = Vector2(186, -365)
-alto = 10.0
-nombre_visible = "sign_1 (30)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(31)" type="Node3D" parent="Objetos" unique_id=1718280532]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.08, 0.4438412, -107.52)
-script = ExtResource("29_bojho")
-clave = "ancla_31"
-pos_original = Vector2(186, -384)
-alto = 10.0
-nombre_visible = "📜 Solar libre (31)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(32)" type="Node3D" parent="Objetos" unique_id=963904879]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.4438412, -102.2)
-script = ExtResource("29_bojho")
-clave = "ancla_32"
-pos_original = Vector2(330, -365)
-alto = 10.0
-nombre_visible = "sign_1 (32)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(33)" type="Node3D" parent="Objetos" unique_id=1563253186]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.4438412, -107.52)
-script = ExtResource("29_bojho")
-clave = "ancla_33"
-pos_original = Vector2(330, -384)
-alto = 10.0
-nombre_visible = "📜 Solar libre (33)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(34)" type="Node3D" parent="Objetos" unique_id=258363456]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.4438412, -105)
-script = ExtResource("29_bojho")
-clave = "ancla_34"
-pos_original = Vector2(1066, -375)
-alto = 10.0
-nombre_visible = "sign_1 (34)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(35)" type="Node3D" parent="Objetos" unique_id=1576757901]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.4438412, -110.32)
-script = ExtResource("29_bojho")
-clave = "ancla_35"
-pos_original = Vector2(1066, -394)
-alto = 10.0
-nombre_visible = "📜 Solar libre (35)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(36)" type="Node3D" parent="Objetos" unique_id=1068010259]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.7092108, -144.49103)
-script = ExtResource("29_bojho")
-clave = "ancla_36"
-pos_original = Vector2(330, -516.0394)
-alto = 10.0
-nombre_visible = "sign_1 (36)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(37)" type="Node3D" parent="Objetos" unique_id=1741442178]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.7397353, -149.81104)
-script = ExtResource("29_bojho")
-clave = "ancla_37"
-pos_original = Vector2(330, -535.0394)
-alto = 10.0
-nombre_visible = "📜 Solar libre (37)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(38)" type="Node3D" parent="Objetos" unique_id=1805691267]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.72, 0.6598554, -123.73989)
-script = ExtResource("29_bojho")
-clave = "ancla_38"
-pos_original = Vector2(474, -509.64093)
-alto = 10.0
-nombre_visible = "sign_1 (38)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(39)" type="Node3D" parent="Objetos" unique_id=262595218]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.72, 0.7397353, -148.01945)
-script = ExtResource("29_bojho")
-clave = "ancla_39"
-pos_original = Vector2(474, -528.6409)
-alto = 10.0
-nombre_visible = "📜 Solar libre (39)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(40)" type="Node3D" parent="Objetos" unique_id=646643721]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 169.68, 0.6911446, -125.07232)
-script = ExtResource("29_bojho")
-clave = "ancla_40"
-pos_original = Vector2(606, -513.43427)
-alto = 10.0
-nombre_visible = "sign_1 (40)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(41)" type="Node3D" parent="Objetos" unique_id=1938705114]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 169.68, 0.7397353, -149.0816)
-script = ExtResource("29_bojho")
-clave = "ancla_41"
-pos_original = Vector2(606, -532.43427)
-alto = 10.0
-nombre_visible = "📜 Solar libre (41)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(42)" type="Node3D" parent="Objetos" unique_id=1661252994]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.73474157, -146.02971)
-script = ExtResource("29_bojho")
-clave = "ancla_42"
-pos_original = Vector2(760, -521.53467)
-alto = 10.0
-nombre_visible = "sign_1 (42)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(43)" type="Node3D" parent="Objetos" unique_id=109462463]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.7397353, -151.34972)
-script = ExtResource("29_bojho")
-clave = "ancla_43"
-pos_original = Vector2(760, -540.53467)
-alto = 10.0
-nombre_visible = "📜 Solar libre (43)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(44)" type="Node3D" parent="Objetos" unique_id=444351511]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.7397353, -148.62183)
-script = ExtResource("29_bojho")
-clave = "ancla_44"
-pos_original = Vector2(914, -530.79224)
-alto = 10.0
-nombre_visible = "sign_1 (44)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(45)" type="Node3D" parent="Objetos" unique_id=1331378897]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.7397353, -153.94183)
-script = ExtResource("29_bojho")
-clave = "ancla_45"
-pos_original = Vector2(914, -549.79224)
-alto = 10.0
-nombre_visible = "📜 Solar libre (45)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(46)" type="Node3D" parent="Objetos" unique_id=1812896486]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.7397353, -150.29945)
-script = ExtResource("29_bojho")
-clave = "ancla_46"
-pos_original = Vector2(1066, -536.78375)
-alto = 10.0
-nombre_visible = "sign_1 (46)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(47)" type="Node3D" parent="Objetos" unique_id=1274576631]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.7397353, -155.61945)
-script = ExtResource("29_bojho")
-clave = "ancla_47"
-pos_original = Vector2(1066, -555.78375)
-alto = 10.0
-nombre_visible = "📜 Solar libre (47)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(48)" type="Node3D" parent="Objetos" unique_id=80862712]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.08, 0.96540004, -189.1991)
-script = ExtResource("29_bojho")
-clave = "ancla_48"
-pos_original = Vector2(186, -675.71106)
-alto = 10.0
-nombre_visible = "sign_1 (48)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(49)" type="Node3D" parent="Objetos" unique_id=408487332]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.08, 0.99335885, -194.5191)
-script = ExtResource("29_bojho")
-clave = "ancla_49"
-pos_original = Vector2(186, -694.71106)
-alto = 10.0
-nombre_visible = "📜 Solar libre (49)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(50)" type="Node3D" parent="Objetos" unique_id=1507802465]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.9921422, -191.2892)
-script = ExtResource("29_bojho")
-clave = "ancla_50"
-pos_original = Vector2(330, -683.1757)
-alto = 10.0
-nombre_visible = "sign_1 (50)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(51)" type="Node3D" parent="Objetos" unique_id=624107672]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.99335885, -196.6092)
-script = ExtResource("29_bojho")
-clave = "ancla_51"
-pos_original = Vector2(330, -702.1757)
-alto = 10.0
-nombre_visible = "📜 Solar libre (51)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(52)" type="Node3D" parent="Objetos" unique_id=498872966]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.72, 0.99335885, -193.35353)
-script = ExtResource("29_bojho")
-clave = "ancla_52"
-pos_original = Vector2(474, -690.54834)
-alto = 10.0
-nombre_visible = "sign_1 (52)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(53)" type="Node3D" parent="Objetos" unique_id=617473093]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.72, 0.99335885, -198.67352)
-script = ExtResource("29_bojho")
-clave = "ancla_53"
-pos_original = Vector2(474, -709.54834)
-alto = 10.0
-nombre_visible = "📜 Solar libre (53)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(54)" type="Node3D" parent="Objetos" unique_id=2119180862]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.99335885, -194.3977)
-script = ExtResource("29_bojho")
-clave = "ancla_54"
-pos_original = Vector2(760, -694.2775)
-alto = 10.0
-nombre_visible = "sign_1 (54)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(55)" type="Node3D" parent="Objetos" unique_id=1656427945]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.99335885, -199.7177)
-script = ExtResource("29_bojho")
-clave = "ancla_55"
-pos_original = Vector2(760, -713.2775)
-alto = 10.0
-nombre_visible = "📜 Solar libre (55)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(56)" type="Node3D" parent="Objetos" unique_id=53472911]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.99335885, -192.26062)
-script = ExtResource("29_bojho")
-clave = "ancla_56"
-pos_original = Vector2(914, -686.6451)
-alto = 10.0
-nombre_visible = "sign_1 (56)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(57)" type="Node3D" parent="Objetos" unique_id=270718383]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.99335885, -197.58063)
-script = ExtResource("29_bojho")
-clave = "ancla_57"
-pos_original = Vector2(914, -705.6451)
-alto = 10.0
-nombre_visible = "📜 Solar libre (57)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(58)" type="Node3D" parent="Objetos" unique_id=2082441815]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.94351625, -188.21782)
-script = ExtResource("29_bojho")
-clave = "ancla_58"
-pos_original = Vector2(1066, -672.2065)
-alto = 10.0
-nombre_visible = "sign_1 (58)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(59)" type="Node3D" parent="Objetos" unique_id=2061893365]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.99335885, -193.53783)
-script = ExtResource("29_bojho")
-clave = "ancla_59"
-pos_original = Vector2(1066, -691.2065)
-alto = 10.0
-nombre_visible = "📜 Solar libre (59)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(60)" type="Node3D" parent="Objetos" unique_id=1138936097]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 392, 0.5495177, 22.4)
-script = ExtResource("29_bojho")
-clave = "ancla_60"
-pos_original = Vector2(1400, 80)
-alto = 10.0
-nombre_visible = "sign_1 (60)"
-es_ancla = true
-radio_ancla = 12.0
-
 [node name="📜_Solar_libre_(61)" type="Node3D" parent="Objetos" unique_id=320020646]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 392, 0.5495177, 17.08)
 script = ExtResource("29_bojho")
@@ -22379,96 +22066,6 @@ clave = "ancla_61"
 pos_original = Vector2(1400, 61)
 alto = 10.0
 nombre_visible = "📜 Solar libre (61)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(62)" type="Node3D" parent="Objetos" unique_id=501703516]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109.2, -0.19021766, 98.56)
-script = ExtResource("29_bojho")
-clave = "ancla_62"
-pos_original = Vector2(-390, 352)
-alto = 10.0
-nombre_visible = "sign_1 (62)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(63)" type="Node3D" parent="Objetos" unique_id=110052890]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109.2, -0.19021766, 93.24)
-script = ExtResource("29_bojho")
-clave = "ancla_63"
-pos_original = Vector2(-390, 333)
-alto = 10.0
-nombre_visible = "📜 Solar libre (63)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(64)" type="Node3D" parent="Objetos" unique_id=1197250689]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78.4, -0.19021766, 102.2)
-script = ExtResource("29_bojho")
-clave = "ancla_64"
-pos_original = Vector2(-280, 365)
-alto = 10.0
-nombre_visible = "sign_1 (64)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(65)" type="Node3D" parent="Objetos" unique_id=200689685]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78.4, -0.19021766, 96.88)
-script = ExtResource("29_bojho")
-clave = "ancla_65"
-pos_original = Vector2(-280, 346)
-alto = 10.0
-nombre_visible = "📜 Solar libre (65)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(66)" type="Node3D" parent="Objetos" unique_id=1863746745]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.2, -0.19021766, 98)
-script = ExtResource("29_bojho")
-clave = "ancla_66"
-pos_original = Vector2(-165, 350)
-alto = 10.0
-nombre_visible = "sign_1 (66)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(67)" type="Node3D" parent="Objetos" unique_id=595001948]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.2, -0.19021766, 92.68)
-script = ExtResource("29_bojho")
-clave = "ancla_67"
-pos_original = Vector2(-165, 331)
-alto = 10.0
-nombre_visible = "📜 Solar libre (67)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(68)" type="Node3D" parent="Objetos" unique_id=2013588528]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.4, -0.19021766, 100.24)
-script = ExtResource("29_bojho")
-clave = "ancla_68"
-pos_original = Vector2(-55, 358)
-alto = 10.0
-nombre_visible = "sign_1 (68)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(69)" type="Node3D" parent="Objetos" unique_id=1416953767]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.4, -0.19021766, 94.92)
-script = ExtResource("29_bojho")
-clave = "ancla_69"
-pos_original = Vector2(-55, 339)
-alto = 10.0
-nombre_visible = "📜 Solar libre (69)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(70)" type="Node3D" parent="Objetos" unique_id=312810512]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -170.8, 0, 172.48)
-script = ExtResource("29_bojho")
-clave = "ancla_70"
-pos_original = Vector2(-610, 616)
-alto = 10.0
-nombre_visible = "sign_1 (70)"
 es_ancla = true
 radio_ancla = 12.0
 
@@ -22482,16 +22079,6 @@ nombre_visible = "📜 Solar libre (71)"
 es_ancla = true
 radio_ancla = 12.0
 
-[node name="sign_1_(72)" type="Node3D" parent="Objetos" unique_id=460517005]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -168, 0, 208.04)
-script = ExtResource("29_bojho")
-clave = "ancla_72"
-pos_original = Vector2(-600, 743)
-alto = 10.0
-nombre_visible = "sign_1 (72)"
-es_ancla = true
-radio_ancla = 12.0
-
 [node name="📜_Solar_libre_(73)" type="Node3D" parent="Objetos" unique_id=2009315549]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -168, 0, 202.72)
 script = ExtResource("29_bojho")
@@ -22502,36 +22089,6 @@ nombre_visible = "📜 Solar libre (73)"
 es_ancla = true
 radio_ancla = 12.0
 
-[node name="sign_1_(74)" type="Node3D" parent="Objetos" unique_id=394366109]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -169.4, 0, 245.84)
-script = ExtResource("29_bojho")
-clave = "ancla_74"
-pos_original = Vector2(-605, 878)
-alto = 10.0
-nombre_visible = "sign_1 (74)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(75)" type="Node3D" parent="Objetos" unique_id=1569987907]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -169.4, 0, 240.52)
-script = ExtResource("29_bojho")
-clave = "ancla_75"
-pos_original = Vector2(-605, 859)
-alto = 10.0
-nombre_visible = "📜 Solar libre (75)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(76)" type="Node3D" parent="Objetos" unique_id=1389069595]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 439.6, 0.5495177, 52.64)
-script = ExtResource("29_bojho")
-clave = "ancla_76"
-pos_original = Vector2(1570, 188)
-alto = 10.0
-nombre_visible = "sign_1 (76)"
-es_ancla = true
-radio_ancla = 12.0
-
 [node name="📜_Solar_libre_(77)" type="Node3D" parent="Objetos" unique_id=1704626979]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 439.6, 0.5495177, 47.32)
 script = ExtResource("29_bojho")
@@ -22539,16 +22096,6 @@ clave = "ancla_77"
 pos_original = Vector2(1570, 169)
 alto = 10.0
 nombre_visible = "📜 Solar libre (77)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(78)" type="Node3D" parent="Objetos" unique_id=1190090567]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 473.2, 0.5495177, 51.24)
-script = ExtResource("29_bojho")
-clave = "ancla_78"
-pos_original = Vector2(1690, 183)
-alto = 10.0
-nombre_visible = "sign_1 (78)"
 es_ancla = true
 radio_ancla = 12.0
 

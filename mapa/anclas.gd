@@ -16,6 +16,7 @@ const ESCENA := "res://mapa/Mundo3D.tscn"
 const E: float = Mapa3D.E
 const CELDA: float = 256.0    ## tamaño de las celdas del índice de anclas (mapa original y mundo)
 const CERCA_PX: float = 40.0  ## lo que hay pegado a un edificio (terraza, puesto, letrero) se queda con él
+const SOLAR_LETRERO_PX: float = 16.0 ## franja al norte y al sur del terreno de un solar: ahí va su letrero de «solar libre»
 
 ## Grupos compactos: trozos del mapa hechos por código, sin pieza en el editor, que deben estirarse como una pieza
 ## (conservan su forma por dentro): coordenadas del mapa original.
@@ -78,7 +79,8 @@ static func _leer() -> void:
 		if es_solar:
 			# Solar (mapa/solar.gd): todo lo que el juego crea en su terreno va con él; lo construido gira de 90 en 90
 			var g_solar: float = fposmod(roundf(g / 90.0) * 90.0, 360.0)
-			_anadir({"rect": Rect2(orig - terreno * 0.5, terreno), "c": orig, "d": d, "g": g_solar, "m": matriz(g_solar), "solar": true})
+			var rect_solar: Rect2 = Rect2(orig - terreno * 0.5, terreno).grow_individual(0.0, SOLAR_LETRERO_PX, 0.0, SOLAR_LETRERO_PX)
+			_anadir({"rect": rect_solar, "c": orig, "d": d, "g": g_solar, "m": matriz(g_solar), "solar": true})
 			continue
 		if es_bajo:
 			# Las alcantarillas enteras (zona de VillageUnderworld) se estiran como una pieza

@@ -138,6 +138,11 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   edificio sin pieza propia (`EdificioEditor.tiene_pieza`) hereda sitio y giro del ancla de su solar en
   `_construct_solid_building`. Estacas y obra (`rebuild_lots_3d`) se escriben en el mapa original y siguen al solar.
   Los datos del solar (zona, tamaño de casa, lado de la puerta) siguen en `VillageLots.LOTS`: pendiente de pasar.
+  El ancla cubre además `SOLAR_LETRERO_PX` (16 px) al norte y al sur del terreno: ahí va el letrero de solar libre
+  (`VillageLots.site_work_pos`), que ya no tiene ancla propia en «Objetos».
+- **Puesto del Paso** (tanda 2, 2026-11-11): pieza `solar_puesto_del_paso` (centro original (1593, 47), 242×178 px).
+  Camino, estacas, empalizada, sacos, foco y letrero están escritos en el mapa original (`VillageCulture.OUTPOST_*`,
+  `rebuild_outpost_3d` con `mover_posiciones`) y van con la pieza.
 - Ya no queda dibujo de edificios por código (2026-11-11): un edificio sin escena da un error al arrancar y no se
   dibuja. Las herramientas de conversión (`convertir_edificios.gd`, `guardar_recursos_comunes.gd`) se borraron al
   terminar; un edificio nuevo se hace copiando una escena de `mapa/edificios/` en el editor.

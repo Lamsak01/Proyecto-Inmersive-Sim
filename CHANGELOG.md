@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 2, tanda 2: el Puesto del Paso es una pieza y los letreros van con su solar (Claude Code)
+- Lo que el inventario llamaba «farolas y cables quietos» era el **Puesto del Paso** (dos barreras de sacos, un foco y el propio puesto): no tenía pieza. Pieza nueva `solar_puesto_del_paso` en «Solares» (41 piezas); camino, estacas, empalizada, sacos, foco, sitios de trabajo y letrero van con ella. `rebuild_outpost_3d` se escribe en el mapa original y sigue a la pieza.
+- **Fallo visible arreglado:** el dibujo 3D del puesto salía en medio del pueblo (en coordenadas sin estirar) y su lógica en la frontera, cinco veces más grande. Ahora dibujo y lógica coinciden en la frontera este, a su tamaño.
+- Fuera de «Objetos» 46 anclas (45 letreros de solar vacío y la del puesto): el ancla de cada solar cubre una franja de 16 px al norte y al sur (`SOLAR_LETRERO_PX`), así el letrero «solar libre» va con su solar. Cambio visible: esos letreros quedan pegados a su solar (antes, a unos 13 m).
+- Comprobado: sitios de vecinos idénticos; inventario sigue 4.006 → 4.068, quieto 553 → 486; sondeo 29 de 29; fotos (sitio nuevo `puesto_paso`); `verify_all`.
+
 ## 2026-11-11 — Paso 2, tanda 1: los solares son piezas del editor (Claude Code)
 - Carpeta nueva «Solares» en `mapa/Mundo3D.tscn` con 40 piezas (`mapa/solar.gd`). Lo que el juego crea en el terreno de un solar (estacas, obra, letrero, campos, la casa que se construya) va con su pieza; los edificios y objetos con pieza propia mandan sobre el solar.
 - Las 9 piezas de casa de recién llegados de «Edificios» se quitan: una casa de solar no tiene pieza, hereda sitio y giro de su solar (también las que se construyen jugando). Fuera `giro_de_fabrica` de `mapa/edificio.gd`.

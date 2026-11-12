@@ -16,7 +16,12 @@ func rebuild_outpost_3d() -> void:
 	var upgs: Dictionary = op.get("upgrades", {})
 	var c: Vector2 = VillageCulture.OUTPOST_CENTER
 	var gate_p: Vector2 = VillageCulture.OUTPOST_GATE_POS
+	mover_posiciones = true # el puesto está escrito en el mapa original: sigue a su pieza de «Solares»
+	_dibujar_puesto(founded, upgs, c, gate_p)
+	mover_posiciones = false
 
+
+func _dibujar_puesto(founded: bool, upgs: Dictionary, c: Vector2, gate_p: Vector2) -> void:
 	var m_road := _mat("road_dirt", Color(0.46, 0.37, 0.25), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.35)
 	var m_log := _mat("outpost_log", Color(0.55, 0.40, 0.26), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/floor_wood_planks.png", "", 0.45)
 	var m_plank := _mat("outpost_plank", Color(0.68, 0.50, 0.32), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/floor_wood_planks.png", "", 0.45)
