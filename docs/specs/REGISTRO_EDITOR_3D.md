@@ -85,8 +85,8 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   trazos y la escena no se guarda sola. Prueba: `PINCEL_PRUEBA=1` (ver final de `pincel_plugin.gd`). El panel va en la
   barra de abajo («Pincel del mapa», junto a Output) y se abre solo al abrir Mundo3D. Pendiente menor: no evita suelos
   de adorno del Decorado (terrazas empedradas).
-- Aviso aparte: `tools/hornear_decorado.gd` da error al cargar en Godot 4.7.2 del portátil (`PackedByteArray.hash()` no
-  existe); solo afecta a esa herramienta.
+- «Decorado» es ya la única fuente de los adornos del terreno: el código dejó de dibujarlos y `tools/hornear_decorado.gd`
+  se borró (2026-11-12). `WorldStageTerrain3D` solo hace suelo, caminos, plaza y agua.
 - Para sumar los modelos del usuario a las mezclas fijas: añadirlos a `pincel_mezclas.gd` (ruta «res://mis_recursos/…»).
 
 ## Lo que falta (en orden)

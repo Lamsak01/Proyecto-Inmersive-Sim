@@ -981,8 +981,9 @@ func _sync_props_3d(only_update: bool) -> void:
 
 func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 	var pos: Vector2 = spr.global_position
-	var m_wood := _mat("prop_wood", Color(0.62, 0.46, 0.30), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
-	var m_dark := _mat("prop_dark_wood", Color(0.40, 0.28, 0.18), 0.9, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78)
+	# Mismos valores que tenía la madera del terreno, que antes se creaba primero con este nombre y era la que salía
+	var m_wood := _mat("prop_wood", Color(0.54, 0.36, 0.20), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
+	var m_dark := _mat("prop_dark_wood", Color(0.38, 0.24, 0.13), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
 	var m_iron := _mat("prop_iron", Color(0.30, 0.31, 0.33), 0.6, 0.5)
 	match kind:
 		"well":

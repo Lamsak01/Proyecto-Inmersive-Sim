@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 4, trozo 1: el código deja de dibujar el decorado del terreno (Claude Code)
+- `WorldStageTerrain3D` ya solo dibuja suelo, caminos, plaza empedrada y agua (lago, ciénaga y río con sus orillas). Borrado el dibujo de bancos, tablón de encargos, campos, corral, parque, lavadero, cementerio, sauces, matorral y troncos del bosque, trampillas de alcantarilla, muelle, sendero, piedras y juncos del río, bosque del arroyo, Puente Viejo, puentes y vados, molino del este y leñeros (~690 líneas): todo eso es pieza de «Decorado» en el editor y el código lo creaba y lo tiraba en cada arranque.
+- Borrados `tools/hornear_decorado.gd` (de un solo uso y roto en el portátil), el modo `grabar_decorado` y las funciones `_build_barrios_3d`, `_build_tree_3d`, `_build_bench_3d`. Se queda el choque de los troncos del claro del Caso I (`CLARO_TRONCOS`).
+- La madera de los adornos (`prop_wood`, `prop_dark_wood`) toma los mismos valores que antes le llegaban del terreno.
+- Comprobado: escena 3D de terreno, decorado y vegetación idéntica antes y después (6.807 piezas), volcado de la lógica idéntico, fotos fijas iguales (mirado el lago a ojo), física y `verify_all`.
+
 ## 2026-11-12 — Marcas en los solares: Puesto del Paso; cuadro y generador del taller (Claude Code)
 - Las piezas de «Solares» admiten un grupo «Marcas» (cruces de `mapa/marca.gd`) que van con el solar: `Solar.marca(id_solar, marca)`, en el mapa original como las de los edificios.
 - Puesto del Paso: marcas `centro`, `puerta`, `trabajo_1…3`; borrados `OUTPOST_CENTER`, `OUTPOST_GATE_POS`, `OUTPOST_WORK_SPOTS` (ahora `outpost_center()`, `outpost_gate_pos()`, `outpost_work_spot(i)`).

@@ -30,9 +30,10 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
   Antes de planear una tanda, comprobar que lo «quieto» no es un defecto de la medición (pasó dos veces).
 
 ## c) Siguiente paso técnico inmediato
-Paso 3 cerrado salvo `VillageTavern` (`DOOR_POS`, `WELL_POS`, `STAIRS_*`, que van con la geometría de la taberna) y
-`EAST_MILL_POS` (decorado): pasan con el paso 4. Siguiente: trozos seguros del paso 4 (decorado que aún dibuja el
-juego → piezas, grupo a grupo) y cabos sueltos. El corte final del paso 4 (quitar anclas y ×5) solo con el usuario.
+Paso 4, trozos seguros (decorado del código → piezas), cada uno comparando la escena entera antes y después
+(volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozo 1 hecho
+(`WorldStageTerrain3D`). Siguientes: `VillageWorldBuilder` (185 números), `EcosystemManager` (174; ojo: alimenta
+`tools/hornear_vegetacion.gd`), `VillageTavern` (puerta, pozo, escalera). El corte final (anclas y ×5), solo con el usuario.
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`;
 tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.

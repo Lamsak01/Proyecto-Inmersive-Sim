@@ -15,7 +15,6 @@ const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageCulture = preload("res://scripts/systems/VillageCulture.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") # R1
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
-const VillageWorkScript = preload("res://scripts/systems/VillageWork.gd")
 const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousingScript = preload("res://scripts/systems/VillageHousing.gd")
 const FishingSpotScript = preload("res://scripts/obstacles/FishingSpot.gd")
@@ -50,9 +49,7 @@ static var vegetacion_en_escena: bool = false
 var _construyendo_estatico: bool = false
 ## Decorado del terreno (puentes, pozos, muelle, vallas, caminos, adornos…) en mapa/Mundo3D.tscn → «Decorado» (2026-11-10).
 ## Solo el suelo, el agua y las orillas (mallas hechas a mano por código) siguen saliendo del código.
-static var grabar_decorado: bool = false
 static var decorado_en_escena: bool = false
-var decorado_grabado: Array = []
 ## Cuánto más «bajo» cuenta un píxel de altura que uno de suelo (≈ 0,53). Los muñecos se estiran 1/_cos_p en vertical
 ## en la vista desde arriba para cuadrar con las casas; en 1.ª persona no (paso 0b).
 var _cos_p: float = Mapa3D.ESCALA / Mapa3D.ALTO
