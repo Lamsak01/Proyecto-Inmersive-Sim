@@ -42,7 +42,7 @@ func _initialize() -> void:
 	if stage != null and stage.sub_viewport != null:
 		s3d_rid = stage.sub_viewport.get_viewport_rid()
 		RenderingServer.viewport_set_measure_render_time(s3d_rid, true)
-	var FS = load("res://scripts/obstacles/FishingSpot.gd")
+	var FS = load("res://scripts/fisica/RioLago.gd")
 	var rb: Vector2 = FS.river_banks_at(0.0) if FS != null and FS.has_method("river_banks_at") else Vector2(300, 300)
 	var zones: Array = [
 		["afueras", Vector2(-1180, 50), 0.0],

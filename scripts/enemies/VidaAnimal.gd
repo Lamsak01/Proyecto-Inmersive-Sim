@@ -90,9 +90,9 @@ static func _ir_a_beber(a: Node2D, v: Dictionary) -> void:
 
 ## Punto de la orilla del río más cercana (10 px fuera del agua), o INF si el río queda lejos.
 static func _orilla_cercana(pos: Vector2) -> Vector2:
-	if pos.y < FishingSpot.river_y_start() or pos.y > FishingSpot.river_y_end():
+	if pos.y < RioLago.river_y_start() or pos.y > RioLago.river_y_end():
 		return Vector2.INF
-	var orillas: Vector2 = FishingSpot.river_banks_at(pos.y)
+	var orillas: Vector2 = RioLago.river_banks_at(pos.y)
 	var x: float = orillas.x - 10.0 if absf(pos.x - orillas.x) <= absf(pos.x - orillas.y) else orillas.y + 10.0
 	var punto := Vector2(x, pos.y)
 	return punto if pos.distance_to(punto) <= RIO_MAX_PX else Vector2.INF

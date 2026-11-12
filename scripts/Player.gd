@@ -49,13 +49,11 @@ var axe_weapon: WeaponData = null
 var pickaxe_weapon: WeaponData = null
 var bow_weapon: WeaponData = null
 var sickle_weapon: WeaponData = null
-var watering_can_weapon: WeaponData = null
-var fishing_rod_weapon: WeaponData = null
 var flintlock_weapon: WeaponData = null
 var rifle_weapon: WeaponData = null
 
 ## Niveles de Mejora de Herramientas y Armas estilo Stardew Valley (1 = Básico, 2 = Hierro Forjado, 3 = Acero Maestro)
-var tool_tiers: Dictionary = {"sword": 1, "hammer": 1, "axe": 1, "pickaxe": 1, "bow": 1, "sickle": 1, "watering_can": 1, "fishing_rod": 1}
+var tool_tiers: Dictionary = {"sword": 1, "hammer": 1, "axe": 1, "pickaxe": 1, "bow": 1, "sickle": 1}
 const TIER_NAMES: Dictionary = {1: "Básico", 2: "Hierro", 3: "Acero Maestro"}
 const TOOL_UPGRADE_CATALOG: Dictionary = {
 	"sword": {"title": "Espada", "tiers": {2: {"gold": 25, "mats": {"iron_ore": 2, "wood": 1}}, 3: {"gold": 55, "mats": {"steel_ingot": 2, "wood": 2}}}},
@@ -64,12 +62,8 @@ const TOOL_UPGRADE_CATALOG: Dictionary = {
 	"pickaxe": {"title": "Pico", "tiers": {2: {"gold": 22, "mats": {"iron_ore": 2, "wood": 2}}, 3: {"gold": 48, "mats": {"steel_ingot": 2, "wood": 2}}}},
 	"bow": {"title": "Arco de Caza", "tiers": {2: {"gold": 26, "mats": {"wood": 3, "leather": 2}}, 3: {"gold": 56, "mats": {"steel_ingot": 1, "wood": 3, "fox_pelt": 1}}}},
 	"sickle": {"title": "Hoz Agrícola", "tiers": {2: {"gold": 18, "mats": {"iron_ore": 1, "wood": 1}}, 3: {"gold": 40, "mats": {"steel_ingot": 1, "wood": 2}}}},
-	"watering_can": {"title": "Regadera", "tiers": {2: {"gold": 18, "mats": {"iron_ore": 2}}, 3: {"gold": 40, "mats": {"steel_ingot": 2}}}},
-	"fishing_rod": {"title": "Caña de Pescar", "tiers": {2: {"gold": 20, "mats": {"wood": 3, "iron_ore": 1}}, 3: {"gold": 45, "mats": {"steel_ingot": 1, "wood": 3, "feather": 2}}}}
 }
 
-var max_water_charges: int = 6
-var watering_can_charges: int = 6
 var armor_speed_multiplier: float = 1.0
 var speed_tonic_timer: float = 0.0
 var paralytic_venom_timer: float = 0.0
@@ -166,11 +160,6 @@ func add_skill_xp(skill_id: String, amount: int) -> void:
 			call("_spawn_floating_text", "%s %s subió al nivel %d" % [SkillCatalog.skill_icon(key), SkillCatalog.skill_name(key), lvl], Color(1.0, 0.92, 0.45), -50.0)
 		show_hint("%s ¡%s nivel %d! (+%d%% de bono)" % [SkillCatalog.skill_icon(key), SkillCatalog.skill_name(key), lvl, int(round(get_skill_bonus(key) * 100.0))])
 
-func _get(property: StringName) -> Variant:
-	if property == &"MAX_WATER_CHARGES":
-		return max_water_charges
-	return null
-
 func _load_tool_tex(res_path: String) -> Texture2D:
 	if ResourceLoader.exists(res_path):
 		var t = load(res_path)
@@ -201,8 +190,6 @@ func _setup_tools() -> void:
 	pickaxe_weapon = _make_tool_weapon("Pickaxe", "res://assests/items/tools/pickaxe_tool.png", CombatConstants.DamageType.BLUNT)
 	bow_weapon = _make_tool_weapon("Bow", "res://assests/items/tools/bow_weapon.png", CombatConstants.DamageType.CUT, true)
 	sickle_weapon = _make_tool_weapon("Sickle", "res://assests/items/tools/sickle_tool.png", CombatConstants.DamageType.CUT)
-	watering_can_weapon = _make_tool_weapon("WateringCan", "res://assests/items/tools/watering_can.png", CombatConstants.DamageType.BLUNT)
-	fishing_rod_weapon = _make_tool_weapon("FishingRod", "res://assests/items/tools/fishing_rod.png", CombatConstants.DamageType.BLUNT)
 	flintlock_weapon = _make_tool_weapon("Flintlock", "res://assests/items/tools/bow_weapon.png", CombatConstants.DamageType.CUT, true)
 	if flintlock_weapon and flintlock_weapon.damage_data:
 		flintlock_weapon.damage_data.amount = 65.0
@@ -216,12 +203,7 @@ func _setup_tools() -> void:
 	_apply_tool_tiers()
 
 func _normalize_tool_key(tool_key: String) -> String:
-	var k := tool_key.to_lower()
-	if k == "wateringcan":
-		return "watering_can"
-	if k == "fishingrod":
-		return "fishing_rod"
-	return k
+	return tool_key.to_lower()
 
 func get_tool_tier(tool_key: String) -> int:
 	var nk := _normalize_tool_key(tool_key)
@@ -230,17 +212,6 @@ func get_tool_tier(tool_key: String) -> int:
 func get_tool_tier_label(tool_key: String) -> String:
 	var t := get_tool_tier(tool_key)
 	return str(TIER_NAMES.get(t, "Básico"))
-
-func get_sickle_bonus() -> int:
-	return get_tool_tier("sickle") # +1 en Tier 1, +2 en Tier 2, +3 en Tier 3
-
-func get_fishing_bar_multiplier() -> float:
-	var t := get_tool_tier("fishing_rod")
-	if t == 2:
-		return 1.28
-	elif t >= 3:
-		return 1.55
-	return 1.0
 
 func upgrade_tool(tool_key: String, consume_resources: bool = true, smith = null) -> bool:
 	var nk := _normalize_tool_key(tool_key)
@@ -275,8 +246,6 @@ func upgrade_tool(tool_key: String, consume_resources: bool = true, smith = null
 
 	tool_tiers[nk] = next_tier
 	_apply_tool_tiers()
-	if nk == "watering_can":
-		watering_can_charges = max_water_charges
 	_spawn_floating_text("⚒️ ¡%s mejorada a Nivel %d (%s)!" % [t_title, next_tier, get_tool_tier_label(nk)], Color.CYAN, -44.0)
 	return true
 
@@ -323,11 +292,6 @@ func _apply_tool_tiers() -> void:
 		sickle_weapon.damage_data.amount = 7.0 if t_sickle == 1 else (11.0 if t_sickle == 2 else 16.0)
 		sickle_weapon.damage_data.bleed_buildup = 15.0 if t_sickle == 1 else (25.0 if t_sickle == 2 else 40.0)
 		sickle_weapon.damage_data.logging_efficiency = 0.25
-
-	# 7. Regadera
-	var t_can := get_tool_tier("watering_can")
-	max_water_charges = 6 if t_can == 1 else (12 if t_can == 2 else 20)
-	watering_can_charges = mini(watering_can_charges, max_water_charges)
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -433,7 +397,7 @@ func add_bloodstain(duration: float = 180.0) -> void:
 	if anim and _hit_flash_timer <= 0.0:
 		anim.modulate = Color(1.0, 0.72, 0.72)
 	if not was_stained:
-		_spawn_floating_text("🩸🖐️ ¡Manchado de sangre! (Lávate en el Pozo/Lago, con Regadera [7] o en [H])", Color(1.0, 0.35, 0.35), -54.0)
+		_spawn_floating_text("🩸🖐️ ¡Manchado de sangre! (Lávate en el Pozo/Lago o en [H])", Color(1.0, 0.35, 0.35), -54.0)
 	if health_comp:
 		health_comp.anatomy_changed.emit()
 
@@ -601,13 +565,7 @@ func equip_tool_by_index(idx: int) -> void:
 			show_hint("[5] Arco (%s) — Daño a distancia: %d (Mantén Clic Izq.)" % [get_tool_tier_label("bow"), int(bow_weapon.damage_data.amount)])
 		5:
 			equip_weapon(sickle_weapon)
-			show_hint("[6] Hoz (%s) — Bono Cosecha: +%d cultivos extra" % [get_tool_tier_label("sickle"), get_sickle_bonus()])
-		6:
-			equip_weapon(watering_can_weapon)
-			show_hint("[7] Regadera (%s) — Agua: %d/%d (Recarga en Pozo o Lago)" % [get_tool_tier_label("watering_can"), watering_can_charges, max_water_charges])
-		7:
-			equip_weapon(fishing_rod_weapon)
-			show_hint("[8] Caña de Pescar (%s) — Barra de Pesca: %d%%" % [get_tool_tier_label("fishing_rod"), int(round(get_fishing_bar_multiplier() * 100.0))])
+			show_hint("[6] Hoz (%s) — Daño: %d" % [get_tool_tier_label("sickle"), int(sickle_weapon.damage_data.amount)])
 		8:
 			var has_pistol: bool = inventory != null and inventory.has_item("flintlock_pistol", 1)
 			var has_rifle: bool = inventory != null and inventory.has_item("assault_rifle", 1)
@@ -635,28 +593,17 @@ func equip_tool_by_index(idx: int) -> void:
 				var r_mag3: int = int(combat_ctrl.get("rifle_mag_loaded")) if combat_ctrl else 0
 				show_hint("[0] Fusil del Paso — Cargador: %d/5 | Reserva: %d cartuchos ([Clic Der.] apuntar, [R] recargar)" % [r_mag3, r_cnt3])
 
-func refill_watering_can() -> void:
-	watering_can_charges = max_water_charges
-	var filled_flasks: int = 0
-	if inventory:
-		filled_flasks = inventory.get_count("empty_flask")
-		if filled_flasks > 0:
-			inventory.remove_item("empty_flask", filled_flasks)
-			inventory.add_item("clean_water", filled_flasks)
+## Junto a un pozo o el lago: llena los recipientes vacíos de agua limpia y te lavas la sangre y las heridas.
+func llenar_agua() -> void:
+	var llenados: int = inventory.get_count("empty_flask") if inventory else 0
+	if llenados > 0:
+		inventory.remove_item("empty_flask", llenados)
+		inventory.add_item("clean_water", llenados)
 	wash_bloodstains(false, true)
-	if filled_flasks > 0:
-		_spawn_floating_text("💧 +%d Agua Limpia (Recipiente lleno) y Regadera (%d/%d)" % [filled_flasks, watering_can_charges, max_water_charges], Color.AQUA, -40.0)
-		show_hint("💧 Llenaste %d Recipiente(s) con Agua Limpia, lavaste tus heridas/sangre y recargaste la Regadera (%d/%d)." % [filled_flasks, watering_can_charges, max_water_charges])
+	if llenados > 0:
+		show_hint("💧 Llenaste %d Recipiente(s) con Agua Limpia y lavaste tus heridas y la sangre." % llenados)
 	else:
-		_spawn_floating_text("💧 Agua fresca: Heridas lavadas y Regadera llena (%d/%d)" % [watering_can_charges, max_water_charges], Color.AQUA, -40.0)
-		show_hint("💧 Te lavaste en la fuente de agua y recargaste tu Regadera (%d/%d). Lleva un Recipiente Vacío para transportar Agua Limpia." % [watering_can_charges, max_water_charges])
-
-func consume_water_charge() -> bool:
-	if watering_can_charges <= 0:
-		show_hint("⚠️ Tu Regadera está vacía (0/%d). Llénala en el Pozo junto al huerto o en el Lago del Oeste." % max_water_charges)
-		return false
-	watering_can_charges -= 1
-	return true
+		show_hint("💧 Te lavaste con agua fresca. Lleva un Recipiente Vacío para transportar Agua Limpia.")
 
 func _handle_interactions() -> void:
 	if dialogue_manager and dialogue_manager.call("is_active"):
@@ -721,30 +668,12 @@ func is_any_ui_modal_open() -> bool:
 			var p_ctrl = vm.get(p_name)
 			if p_ctrl is Control and p_ctrl.visible:
 				return true
-	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
-	if camp:
-		for c_panel in ["sleep_confirm_panel", "upgrade_panel", "chest_panel"]:
-			var cp = camp.get(c_panel)
-			if cp is Control and cp.visible:
-				return true
-	var coop = get_tree().get_first_node_in_group("chicken_coop")
-	if coop:
-		var coop_p = coop.get("chicken_action_panel")
-		if coop_p is Control and coop_p.visible:
-			return true
 	var cart = get_tree().get_first_node_in_group("player_cart")
 	if cart:
 		var cart_p = cart.get("cargo_panel")
 		if cart_p is Control and cart_p.visible:
 			return true
 	return false
-
-func is_fishing_or_sitting() -> bool:
-	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
-	if camp and bool(camp.get("is_player_sitting")):
-		return true
-	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
-	return lake != null and int(lake.get("state")) != 0
 
 func show_hint(text: String) -> void:
 	if hint_label:
@@ -761,10 +690,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("Interact"):
 			_handle_interactions()
 		return
-	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
-	if lake and int(lake.get("state")) == 3:
-		return
-
 	if event is InputEventKey and event.pressed and not event.echo:
 		# Ctrl+º (tecla a la izquierda del 1): modo pruebas. Sin F8, que en el editor de Godot detiene el juego (2026-11-10)
 		if event.physical_keycode == KEY_QUOTELEFT and event.ctrl_pressed:
@@ -782,12 +707,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				combat_ctrl.call("start_manual_reload")
 				get_viewport().set_input_as_handled()
 				return
-			if inventory:
-				var next_seed := inventory.cycle_selected_seed()
-				var s_name := inventory.get_item_name(next_seed)
-				var s_count := inventory.get_count(next_seed)
-				_spawn_floating_text("🌱 %s (%d)" % [s_name, s_count], Color.SPRING_GREEN, -40.0)
-				show_hint("[R] Semilla activa para sembrar: %s (Tienes %d)" % [s_name, s_count])
 
 	if event.is_action_pressed("Interact"):
 		_handle_interactions()
@@ -1037,10 +956,6 @@ func to_save_dict() -> Dictionary:
 		weapon_id = "bow"
 	elif equipped_weapon == sickle_weapon:
 		weapon_id = "sickle"
-	elif equipped_weapon == watering_can_weapon:
-		weapon_id = "watering_can"
-	elif equipped_weapon == fishing_rod_weapon:
-		weapon_id = "fishing_rod"
 	elif equipped_weapon == flintlock_weapon:
 		weapon_id = "flintlock"
 	elif equipped_weapon == rifle_weapon:
@@ -1055,7 +970,6 @@ func to_save_dict() -> Dictionary:
 		"hunger": survival_comp.current_hunger if survival_comp else 100.0,
 		"sleep": survival_comp.current_sleep if survival_comp else 100.0,
 		"hygiene": survival_comp.current_hygiene if survival_comp else 100.0,
-		"watering_can_charges": watering_can_charges,
 		"speed_tonic_timer": speed_tonic_timer,
 		"paralytic_venom_timer": paralytic_venom_timer,
 		"bloodstained_timer": bloodstained_timer,
@@ -1149,8 +1063,6 @@ func from_save_dict(data: Dictionary) -> void:
 		if is_instance_valid(combat_ctrl.current_prompt_target) and combat_ctrl.current_prompt_target.has_method("hide_prompt"):
 			combat_ctrl.current_prompt_target.hide_prompt()
 		combat_ctrl.current_prompt_target = null
-	if data.has("watering_can_charges"):
-		watering_can_charges = clampi(int(data["watering_can_charges"]), 0, max_water_charges)
 	var weapon_id: String = str(data.get("weapon", "sword"))
 	match weapon_id:
 		"hammer": equip_weapon(hammer_weapon)
@@ -1158,8 +1070,6 @@ func from_save_dict(data: Dictionary) -> void:
 		"pickaxe": equip_weapon(pickaxe_weapon)
 		"bow": equip_weapon(bow_weapon)
 		"sickle": equip_weapon(sickle_weapon)
-		"watering_can": equip_weapon(watering_can_weapon)
-		"fishing_rod": equip_weapon(fishing_rod_weapon)
 		"flintlock": equip_weapon(flintlock_weapon)
 		"rifle": equip_weapon(rifle_weapon)
 		_: equip_weapon(sword_weapon)

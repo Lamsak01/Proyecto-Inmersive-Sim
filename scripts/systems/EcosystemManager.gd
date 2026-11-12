@@ -311,9 +311,9 @@ func crear_matorral(pos: Vector2, nombre: String) -> Node2D:
 	return node
 
 static func _en_cauce_del_rio(p: Vector2) -> bool:
-	if p.y < FishingSpot.river_y_start() - 5.0 or p.y > FishingSpot.river_y_end() + 5.0:
+	if p.y < RioLago.river_y_start() - 5.0 or p.y > RioLago.river_y_end() + 5.0:
 		return false
-	var b: Vector2 = FishingSpot.river_banks_at(p.y)
+	var b: Vector2 = RioLago.river_banks_at(p.y)
 	return p.x >= b.x - 4.0 and p.x <= b.y + 4.0
 
 func _spawn_animal_pool(pool: Array[WildAnimal], prefix: String, sp: WildAnimal.SpeciesType, a_name: String, max_cnt: int, init_cnt: int, homes: Array[Vector2], r_min: float, r_max: float, hp: float, max_hit: float, g_spd: float, f_spd: float, alert_r: float, drops: Array, tex: Texture2D, sc: Vector2, rad: float) -> void:

@@ -425,26 +425,12 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	canvas.draw_rect(lake_r, Color(0.24, 0.35, 0.39, 0.90), false, 1.2)
 
 	var riv_pts := PackedVector2Array()
-	for wp in FishingSpot.river_waypoints():
+	for wp in RioLago.river_waypoints():
 		riv_pts.append(_world_to_map(wp, csize))
 	if riv_pts.size() >= 2:
 		canvas.draw_polyline(riv_pts, Color(0.32, 0.54, 0.68, 0.92), 4.0)
 	var ob_map_r := _world_rect_to_map(_e_lista([Rect2(Vector2(82, 32), Vector2(88, 36))])[0], csize)
 	canvas.draw_rect(ob_map_r, Color(0.56, 0.44, 0.30, 0.96), true)
-
-	var camp_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-782, -124), Vector2(88, 46))])[0], csize)
-	canvas.draw_rect(camp_r, Color(0.66, 0.54, 0.36, 0.90), true)
-	canvas.draw_rect(camp_r, Color(0.227, 0.196, 0.157, 0.85), false, 1.0)
-
-	var coop_node := get_tree().get_first_node_in_group("chicken_coop") as Node2D
-	if coop_node != null and coop_node.visible:
-		var coop_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-886, -51), Vector2(76, 60))])[0], csize)
-		canvas.draw_rect(coop_r, Color(0.62, 0.46, 0.30, 0.90), true)
-
-	var plots := get_tree().get_nodes_in_group("farm_plots")
-	if not plots.is_empty() and (plots[0] as Node2D).visible:
-		var farm_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-792, -62), Vector2(82, 82))])[0], csize)
-		canvas.draw_rect(farm_r, Color(0.52, 0.64, 0.38, 0.90), true)
 
 	# 6. Edificios de la Aldea en tonos teja/madera y borde de tinta
 	var buildings: Array[Dictionary] = [

@@ -145,8 +145,6 @@ func refresh() -> void:
 			d += 1000000.0
 		elif t_node.is_in_group("player_cart") and (bool(player.get("is_pulling_cart")) or (bool(player.get("is_mounted")) and bool(player.get("is_cart_hitched")))):
 			d += 900000.0
-		elif t_node.is_in_group("player_livestock"):
-			d -= 5000.0
 		elif t_node.is_in_group("heist_target_prop") or t_node.is_in_group("tinker_station") or t_node.is_in_group("sewer_station"):
 			d -= 120.0
 		return d
@@ -187,7 +185,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 		else:
 			max_reach_px = 28.0
 			max_lat_px = 7.5
-	elif "animal_name" in tgt or "crop_stage" in tgt or String(tgt.name).begins_with("FarmPlot"):
+	elif "animal_name" in tgt:
 		is_floor_obj = true
 		max_reach_px = 26.0
 		max_lat_px = 8.0
@@ -195,7 +193,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 		is_low_obj = true
 		max_reach_px = 26.0
 		max_lat_px = 7.5
-	elif tgt.is_in_group("fishing_spots") or "house_tier" in tgt or String(tgt.name) == "PlayerCampSite" or tgt.is_in_group("player_horse") or tgt.is_in_group("player_cart") or tgt.is_in_group("player_livestock"):
+	elif tgt.is_in_group("player_horse") or tgt.is_in_group("player_cart"):
 		max_reach_px = 32.0
 		max_lat_px = 9.5
 
@@ -410,14 +408,6 @@ func _label_for(a: Node, tgt: Node) -> String:
 		return "%s (mascota)" % str(tgt.get("pet_name"))
 	if "node_title" in tgt:
 		return "Recoger: %s" % str(tgt.get("node_title"))
-	if tgt.is_in_group("fishing_spots"):
-		return "Pescar en el lago o llenar regadera"
-	if "house_tier" in tgt or String(tgt.name) == "PlayerCampSite":
-		return "Cocinar, descansar o gestionar campamento"
-	if "fence_hp" in tgt or String(tgt.name) == "PlayerChickenCoop":
-		return "Atender el gallinero"
-	if "crop_stage" in tgt or String(tgt.name).begins_with("FarmPlot"):
-		return "Cultivar parcela del huerto"
 	return "Usar"
 
 
@@ -614,18 +604,6 @@ func get_prompt_card_data() -> Dictionary:
 	elif "node_title" in tgt:
 		target_name = str(tgt.get("node_title"))
 		target_state = "Recurso"
-	elif tgt.is_in_group("fishing_spots"):
-		target_name = "Muelle del Lago del Oeste"
-		target_state = "Pesca y agua"
-	elif "house_tier" in tgt or String(tgt.name) == "PlayerCampSite":
-		target_name = "Campamento"
-		target_state = "Hoguera y descanso"
-	elif "fence_hp" in tgt or String(tgt.name) == "PlayerChickenCoop":
-		target_name = "Gallinero"
-		target_state = "Corral"
-	elif "crop_stage" in tgt or String(tgt.name).begins_with("FarmPlot"):
-		target_name = "Parcela de cultivo"
-		target_state = "Huerto"
 	else:
 		var raw_l: String = str(c.get("label", "Objeto"))
 		target_name = raw_l.split(":")[0] if raw_l.find(":") != -1 else raw_l

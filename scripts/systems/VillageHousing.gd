@@ -582,15 +582,6 @@ static func sync_relocated_camp_assets(vm, teleport_toby: bool = false) -> void:
 			if teleport_toby or toby.global_position.distance_to(t_pos) > 120.0:
 				toby.global_position = t_pos
 				toby._wander_target = t_pos
-	var c_lot: String = str(hs.get("coop_lot", ""))
-	if c_lot != "" and str(VillageLots.lot(vm, c_lot).get("payer", "")) == "player" and str(VillageLots.lot(vm, c_lot).get("status", "")) == "built":
-		var c_pos: Vector2 = vm.sitio(coop_pos_for_lot(vm, c_lot))
-		if vm.is_inside_tree() and vm.get_tree() != null:
-			var coop: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
-			if coop != null and is_instance_valid(coop):
-				coop.global_position = c_pos
-				if coop.has_method("set_coop_built"):
-					coop.call("set_coop_built", true)
 
 static func move_toby_to_lot(vm, lot_id: String = "") -> bool:
 	if vm == null:
@@ -630,10 +621,6 @@ static func _player_pen_rect(vm) -> Rect2:
 		var c_lot: String = str(state(vm).get("coop_lot", ""))
 		if c_lot != "" and str(VillageLots.lot(vm, c_lot).get("payer", "")) == "player" and str(VillageLots.lot(vm, c_lot).get("status", "")) == "built":
 			coop_pos = vm.sitio(coop_pos_for_lot(vm, c_lot))
-		elif vm.is_inside_tree() and vm.get_tree() != null:
-			var coop: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
-			if coop != null and is_instance_valid(coop):
-				coop_pos = coop.global_position
 	return Rect2(coop_pos + Vector2(-33.0, -6.0), Vector2(66.0, 31.0))
 
 static func sync_livestock(vm) -> void:
@@ -683,13 +670,6 @@ static func sync_livestock(vm) -> void:
 			if ex_p.get_parent() != null:
 				ex_p.get_parent().remove_child(ex_p)
 			ex_p.queue_free()
-	if vm.is_inside_tree() and vm.get_tree() != null:
-		var coop_node: Node2D = vm.get_tree().get_first_node_in_group("chicken_coop") as Node2D
-		if coop_node != null and is_instance_valid(coop_node):
-			if not p_animals.is_empty() and coop_node.has_method("set_coop_built"):
-				coop_node.call("set_coop_built", true)
-			if coop_node.has_method("_update_visuals"):
-				coop_node.call("_update_visuals")
 
 static func can_harvest_animal_product(vm, idx: int) -> bool:
 	var arr: Array = state(vm)["player_animals"]

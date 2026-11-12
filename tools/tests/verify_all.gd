@@ -4884,23 +4884,6 @@ func _initialize() -> void:
 	vho.daily(vm)
 	assert((vho.state(vm)["player_animals"] as Array).size() == 1 and root.get_tree().get_nodes_in_group("player_livestock").size() == 1, "FIS4.5c: Starved player animal is removed from player_animals and its physical node disappears from the map")
 
-	# FIS4.6: Corrección FIS4 — el gallinero conserva sus 3 gallinas iniciales, su status_label sigue saliendo aunque haya player_livestock, y conviven sin pisarse
-	var fis4_coop := root.get_tree().get_first_node_in_group("chicken_coop") as Node2D
-	assert(fis4_coop != null and (fis4_coop.get("chickens") as Array).size() >= 3, "FIS4.6a: ChickenCoop retains its 3 initial chickens alongside player_livestock")
-	fis4_coop.set("_player_near", true)
-	fis4_coop.call("_process", 0.1)
-	var fis4_coop_lbl: Label = fis4_coop.get("status_label") as Label
-	assert(fis4_coop_lbl != null and fis4_coop_lbl.visible, "FIS4.6b: ChickenCoop status_label remains visible when player is near even with player_livestock present")
-	fis4_coop.set("_player_near", false)
-	var fis4_rem_pa: Node2D = root.get_tree().get_nodes_in_group("player_livestock")[0] as Node2D
-	for _sep_i in range(8):
-		fis4_rem_pa.call("_process", 0.1)
-		fis4_coop.call("_process", 0.1)
-	for chk_f4 in (fis4_coop.get("chickens") as Array):
-		var cspr_f4: Sprite2D = (chk_f4 as Dictionary).get("sprite")
-		if cspr_f4 != null and is_instance_valid(cspr_f4):
-			assert(fis4_rem_pa.global_position.distance_to(cspr_f4.global_position) >= 4.0, "FIS4.6c: player_livestock and ChickenCoop chickens do not stack on top of each other")
-
 	t5_wc.current_day = fis4_day_bak
 	vho.state(vm)["ranch_herd"] = fis4_ranch_bak
 	vho.state(vm)["player_animals"] = fis4_panim_bak
@@ -5009,34 +4992,6 @@ func _initialize() -> void:
 	vho.sync_home_props(vm)
 	print("Block FIS-P1 (Physical Home Interior: Garden, Workbench, Stash & Stairs) OK")
 
-	# ==========================================================================
-	# Campamento inicial: suma cero (pago a RANCHER/arcas) y confirmación con doble E
-	# ==========================================================================
-	var camp_node: Node2D = root.get_tree().get_first_node_in_group("campsite") as Node2D
-	assert(camp_node != null, "CampRule.0: PlayerCampSite exists in group campsite")
-	var camp_coop_bak: bool = bool(camp_node.get("camp_coop_built"))
-	var camp_wood_bak: int = p70_inv.get_count("wood")
-	var camp_gold_bak: int = p70_inv.gold
-	if camp_wood_bak > 0:
-		p70_inv.remove_item("wood", camp_wood_bak)
-	p70_inv.gold = 50
-	camp_node.set("camp_coop_built", false)
-	vm.set_meta("e_confirm_tag", "")
-	var camp_rancher = vm.role_npc(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.RANCHER))
-	var rancher_gold0: int = int(camp_rancher.personal_gold) if camp_rancher != null and is_instance_valid(camp_rancher) and not camp_rancher.is_dead else int(vm.town_state.get("treasury", 0))
-	# Primera pulsación: pide confirmación con doble E, no construye ni cobra todavía
-	camp_node.call("_on_build_camp_coop_pressed")
-	assert(not bool(camp_node.get("camp_coop_built")) and p70_inv.gold == 50, "CampRule.1: First E on gold-paid camp coop requires confirmation and does not charge yet")
-	# Segunda pulsación: confirma, cobra 30 de oro al jugador y se los ingresa al ganadero (o a las arcas)
-	camp_node.call("_on_build_camp_coop_pressed")
-	var rancher_gold1: int = int(camp_rancher.personal_gold) if camp_rancher != null and is_instance_valid(camp_rancher) and not camp_rancher.is_dead else int(vm.town_state.get("treasury", 0))
-	assert(bool(camp_node.get("camp_coop_built")) and p70_inv.gold == 20 and rancher_gold1 == rancher_gold0 + 30, "CampRule.2: Second E builds camp coop and transfers 30 gold to RANCHER (or treasury)")
-	camp_node.set("camp_coop_built", camp_coop_bak)
-	camp_node.call("_sync_camp_facilities")
-	if camp_wood_bak > 0:
-		p70_inv.add_item("wood", camp_wood_bak)
-	p70_inv.gold = camp_gold_bak
-	print("Camp initial rules (zero-sum & double-E) OK")
 
 	# ==========================================================================
 	# Bloque COMBATE-1: rodar con Espacio, parar con Q y golpes enemigos que avisan (~0,4 s)
@@ -6398,7 +6353,7 @@ func _initialize() -> void:
 				if (b1_b["rect"] as Rect2).grow(12.0).intersects(b1_zone):
 					b1_free = false
 					break
-			if b1_free and not load("res://scripts/obstacles/FishingSpot.gd").is_point_in_river_water(b1_c, 60.0):
+			if b1_free and not load("res://scripts/fisica/RioLago.gd").is_point_in_river_water(b1_c, 60.0):
 				b1_base = b1_c
 				break
 		c75_guard.global_position = b1_base + Vector2(30, 0)
@@ -6864,11 +6819,8 @@ func _initialize() -> void:
 		vm.domestic_pets.append(b3_new_toby)
 	var b3_toby = b3_vh.find_toby(vm)
 	var b3_bed: Node2D = vm.entities_root.get_node_or_null("PetBed_Toby") as Node2D
-	var b3_coop: Node2D = get_first_node_in_group("chicken_coop") as Node2D
 	var b3_toby_pos0: Vector2 = b3_toby.global_position if b3_toby != null else M(Vector2(128, 126))
 	var b3_toby_home0: Vector2 = b3_toby.home_position if b3_toby != null else M(Vector2(128, 126))
-	var b3_coop_pos0: Vector2 = b3_coop.global_position if b3_coop != null else M(Vector2(-198, -21))
-	var b3_coop_built0: bool = b3_coop.get("coop_built") == true if b3_coop != null else false
 	# 1. Sin casa construida no se puede trasladar a Toby ni el gallinero
 	b3_vl.lot(vm, b3_lot)["status"] = "empty"
 	b3_vl.lot(vm, b3_lot)["payer"] = ""
@@ -6882,17 +6834,11 @@ func _initialize() -> void:
 	assert(b3_vh.move_toby_to_lot(vm, b3_lot), "B3.2: Player with a built house can relocate Toby and his feeder to their lot")
 	var b3_expected_toby_pos: Vector2 = M(b3_vh.toby_pos_for_lot(vm, b3_lot))
 	assert(b3_toby != null and b3_toby.home_position.distance_to(b3_expected_toby_pos) < 1.0 and b3_bed != null and b3_bed.global_position.distance_to(b3_expected_toby_pos) < 1.0, "B3.3: Toby's home_position and PetBed_Toby move to the player's lot")
-	# 3. Trasladar el gallinero y animales mueve PlayerChickenCoop y los animales de player_livestock al corral del solar
-	assert(b3_vh.move_coop_to_lot(vm, b3_lot), "B3.4: Player with a built house can relocate the chicken coop and livestock to their lot")
-	var b3_expected_coop_pos: Vector2 = M(b3_vh.coop_pos_for_lot(vm, b3_lot))
-	assert(b3_coop != null and b3_coop.global_position.distance_to(b3_expected_coop_pos) < 1.0 and b3_coop.get("coop_built") == true, "B3.5: ChickenCoop moves to the player's lot and is active")
+	# 3. Trasladar los animales de corral los lleva al corral del solar (el gallinero se borró el 2026-11-12)
+	assert(b3_vh.move_coop_to_lot(vm, b3_lot), "B3.4: Player with a built house can relocate livestock to their lot")
 	var b3_pen: Rect2 = b3_vh._player_pen_rect(vm)
 	var b3_pl_livestock: Array = get_nodes_in_group("player_livestock")
 	assert(not b3_pl_livestock.is_empty() and b3_pen.grow(2.0).has_point((b3_pl_livestock[0] as Node2D).global_position), "B3.6: Player livestock nodes are relocated inside the lot's pen")
-	# 4. El campamento del oeste sigue existiendo y operativo como puesto de pesca/caza/refugio
-	var b3_camp: Node2D = get_first_node_in_group("campsite") as Node2D
-	var b3_lake: Node2D = get_first_node_in_group("fishing_spots") as Node2D
-	assert(b3_camp != null and is_instance_valid(b3_camp) and b3_lake != null and is_instance_valid(b3_lake), "B3.7: West camp and fishing lake remain active as an outpost")
 	# Restaurar estado tras B3
 	b3_hs["toby_lot"] = b3_prev_toby_lot
 	b3_hs["coop_lot"] = b3_prev_coop_lot
@@ -6905,12 +6851,9 @@ func _initialize() -> void:
 		b3_toby.owner_label = "Granja del Jugador"
 	if b3_bed != null:
 		b3_bed.global_position = b3_toby_home0
-	if b3_coop != null:
-		b3_coop.global_position = b3_coop_pos0
-		b3_coop.call("set_coop_built", b3_coop_built0)
 	b3_vh.sync_livestock(vm)
 	b3_vh.sync_home_props(vm)
-	print("Block B3 (Relocate Toby & Feeder and Chicken Coop & Livestock from Lake Camp to Village Lot) OK")
+	print("Block B3 (Relocate Toby & Feeder and Livestock to Village Lot) OK")
 
 	# ---------------------------------------------------------
 	# Block B4: Coherencia del ambiente (niebla nocturna y farolas/faroles, humo/chispas en talleres saboteados y lluvia, tendencias sin «dormida» y paseos nocturnos)

@@ -4,8 +4,10 @@ class_name ToolWheelUI
 ## Rueda Radial de Herramientas y Armas (Estilo Red Dead Redemption) — Fase 5.4
 ## - Separada de la Mochila [I]: se abre con [Tab] (funciona tanto manteniendo pulsado [Tab] y soltando
 ##   sobre la herramienta deseada, como pulsando [Tab] y haciendo Clic Izquierdo).
-## - Contiene las 8 herramientas/armas del jugador:
-##   [1] Espada, [2] Martillo, [3] Hacha, [4] Pico, [5] Arco, [6] Hoz, [7] Regadera, [8] Caña de Pescar.
+## - Contiene las 6 herramientas/armas del jugador:
+##   [1] Espada, [2] Martillo, [3] Hacha, [4] Pico, [5] Arco, [6] Hoz (regadera y caña se borraron el 2026-11-12).
+
+const SECTORES: int = 6 ## huecos de la rueda, uno por herramienta
 
 var player: CharacterBody2D = null
 var hovered_index: int = -1
@@ -41,7 +43,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center_title_lbl = _make_wheel_lbl(14, Color(1.0, 0.90, 0.55), 3)
 	center_desc_lbl = _make_wheel_lbl(10, Color(0.85, 0.90, 0.96), 2, true)
-	footer_hint_lbl = _make_wheel_lbl(11, Color(0.95, 0.88, 0.68), 3, false, "☸ Rueda de Herramientas [A/D o Flechas ←/→ para girar | Espacio/Enter/Clic para elegir | 1-8 Rápido]")
+	footer_hint_lbl = _make_wheel_lbl(11, Color(0.95, 0.88, 0.68), 3, false, "☸ Rueda de Herramientas [A/D o Flechas ←/→ para girar | Espacio/Enter/Clic para elegir | 1-6 Rápido]")
 
 func open_wheel() -> void:
 	if not player:
@@ -71,8 +73,8 @@ func _process(_delta: float) -> void:
 		_last_wheel_mouse = mouse_pos
 		var diff: Vector2 = mouse_pos - center
 		if diff.length() >= 32.0:
-			var ang: float = fposmod(diff.angle() + PI * 0.5 + PI / 8.0, TAU)
-			hovered_index = int(floor(ang / (TAU / 8.0))) % 8
+			var ang: float = fposmod(diff.angle() + PI * 0.5 + PI / float(SECTORES), TAU)
+			hovered_index = int(floor(ang / (TAU / float(SECTORES)))) % SECTORES
 
 	_update_labels()
 	queue_redraw()
@@ -82,19 +84,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_RIGHT or event.physical_keycode == KEY_D or event.keycode == KEY_DOWN or event.physical_keycode == KEY_S:
-			hovered_index = (hovered_index + 1) % 8
+			hovered_index = (hovered_index + 1) % SECTORES
 			_update_labels()
 			queue_redraw()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_LEFT or event.physical_keycode == KEY_A or event.keycode == KEY_UP or event.physical_keycode == KEY_W:
-			hovered_index = (hovered_index + 7) % 8
+			hovered_index = (hovered_index + SECTORES - 1) % SECTORES
 			_update_labels()
 			queue_redraw()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
 			close_wheel(true)
 			get_viewport().set_input_as_handled()
-		elif event.keycode >= KEY_1 and event.keycode <= KEY_8:
+		elif event.keycode >= KEY_1 and event.keycode <= KEY_6:
 			hovered_index = int(event.keycode - KEY_1)
 			close_wheel(true)
 			get_viewport().set_input_as_handled()
@@ -132,25 +134,12 @@ func _get_tier_badge(tier: int) -> String:
 		_: return " [Nv.1]"
 
 func _get_tool_entries() -> Array[Dictionary]:
-	var water_charges: int = 6
-	var max_water: int = 6
-	if player and "watering_can_charges" in player:
-		water_charges = int(player.watering_can_charges)
-	if player and "max_water_charges" in player:
-		max_water = int(player.max_water_charges)
-
 	var t_sword: int = _get_tool_tier("Sword")
 	var t_hammer: int = _get_tool_tier("Hammer")
 	var t_axe: int = _get_tool_tier("Axe")
 	var t_pick: int = _get_tool_tier("Pickaxe")
 	var t_bow: int = _get_tool_tier("Bow")
 	var t_sickle: int = _get_tool_tier("Sickle")
-	var t_can: int = _get_tool_tier("WateringCan")
-	var t_rod: int = _get_tool_tier("FishingRod")
-
-	var sickle_bonus: int = 1
-	if player and player.has_method("get_sickle_bonus"):
-		sickle_bonus = int(player.call("get_sickle_bonus"))
 
 	return [
 		{"key": "1", "tier": t_sword, "title": "Espada" + _get_tier_badge(t_sword), "desc": "Arma de filo: corte rápido y acumulación de sangrado.\nMejorable en la Herrería de Thoran.", "weapon": player.get("sword_weapon") if player else null},
@@ -158,9 +147,7 @@ func _get_tool_entries() -> Array[Dictionary]:
 		{"key": "3", "tier": t_axe, "title": "Hacha" + _get_tier_badge(t_axe), "desc": "Herramienta especialista en Tala de Árboles.\nEficiencia de tala: %d%%" % int(round((1.8 if t_axe == 1 else (2.7 if t_axe == 2 else 3.8)) * 100.0)), "weapon": player.get("axe_weapon") if player else null},
 		{"key": "4", "tier": t_pick, "title": "Pico" + _get_tier_badge(t_pick), "desc": "Herramienta especialista en Minería de Rocas y Hierro.\nEficiencia minera: %d%%" % int(round((1.8 if t_pick == 1 else (2.7 if t_pick == 2 else 3.8)) * 100.0)), "weapon": player.get("pickaxe_weapon") if player else null},
 		{"key": "5", "tier": t_bow, "title": "Arco de Caza" + _get_tier_badge(t_bow), "desc": "Disparo a distancia silencioso para cazar sin espantar.\nMantén Clic Izquierdo para tensar.", "weapon": player.get("bow_weapon") if player else null},
-		{"key": "6", "tier": t_sickle, "title": "Hoz" + _get_tier_badge(t_sickle), "desc": "Herramienta de cosecha agrícola.\nOtorga +%d cultivo(s) extra al cosechar plantas maduras." % sickle_bonus, "weapon": player.get("sickle_weapon") if player else null},
-		{"key": "7", "tier": t_can, "title": "Regadera (%d/%d)%s" % [water_charges, max_water, _get_tier_badge(t_can)], "desc": "Herramienta de riego agrícola (Agua: %d/%d).\nRecárgala en el Pozo o en el Lago del Oeste." % [water_charges, max_water], "weapon": player.get("watering_can_weapon") if player else null},
-		{"key": "8", "tier": t_rod, "title": "Caña de Pescar" + _get_tier_badge(t_rod), "desc": "Herramienta de pesca con barra de precisión.\nTamaño de barra: %d%%." % int(round((1.0 if t_rod == 1 else (1.28 if t_rod == 2 else 1.55)) * 100.0)), "weapon": player.get("fishing_rod_weapon") if player else null}
+		{"key": "6", "tier": t_sickle, "title": "Hoz" + _get_tier_badge(t_sickle), "desc": "Hoja curva de campo: corte corto que hace sangrar.", "weapon": player.get("sickle_weapon") if player else null}
 	]
 
 func _get_equipped_index() -> int:
@@ -205,9 +192,9 @@ func _draw() -> void:
 	draw_circle(center, WHEEL_OUTER_RADIUS, Color(0.07, 0.08, 0.11, 0.90))
 	draw_arc(center, WHEEL_OUTER_RADIUS, 0.0, TAU, 64, Color(0.55, 0.46, 0.28, 0.95), 2.5)
 
-	# Líneas divisorias de los 8 sectores
-	for i in range(8):
-		var sep_angle: float = -PI * 0.5 - PI / 8.0 + float(i) * (TAU / 8.0)
+	# Líneas divisorias de los sectores
+	for i in range(SECTORES):
+		var sep_angle: float = -PI * 0.5 - PI / float(SECTORES) + float(i) * (TAU / float(SECTORES))
 		var dir := Vector2(cos(sep_angle), sin(sep_angle))
 		draw_line(center + dir * WHEEL_INNER_RADIUS, center + dir * WHEEL_OUTER_RADIUS, Color(0.32, 0.28, 0.22, 0.55), 1.2)
 
@@ -215,9 +202,9 @@ func _draw() -> void:
 	draw_circle(center, WHEEL_INNER_RADIUS, Color(0.11, 0.12, 0.16, 0.96))
 	draw_arc(center, WHEEL_INNER_RADIUS, 0.0, TAU, 48, Color(0.78, 0.64, 0.34, 0.95), 2.0)
 
-	# Dibujar cada uno de los 8 slots
+	# Dibujar cada hueco
 	for i in range(entries.size()):
-		var angle: float = -PI * 0.5 + float(i) * (TAU / 8.0)
+		var angle: float = -PI * 0.5 + float(i) * (TAU / float(SECTORES))
 		var slot_pos: Vector2 = center + Vector2(cos(angle), sin(angle)) * SLOT_RING_RADIUS
 		var is_hovered: bool = (i == hovered_index)
 		var is_equipped: bool = (i == equipped_idx)

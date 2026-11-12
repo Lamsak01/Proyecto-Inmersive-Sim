@@ -890,7 +890,7 @@ func _update_fp_camera_transform() -> void:
 	# Paso 3b: ¿los ojos quedan bajo el agua? (buceando) → el escenario se tiñe y se enturbia
 	_fp_ojos_bajo_agua = is_instance_valid(pl) and AguaScript.en_agua(pl_pos) and Mapa3D.alto_a_3d(eye_h + terrain_height_px(pl_pos)) < AguaScript.superficie_y(pl_pos)
 	if is_nan(pies_px): # aún sin cuerpo 3D (primeros fotogramas): como antes
-		if FishingSpotScript.is_in_river_crossing(pl_pos, 3.0):
+		if RioLagoScript.is_in_river_crossing(pl_pos, 3.0):
 			eye_h += surface_elevation_offset_px(pl_pos)
 		if vm != null and VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level)) > 3.0:
 			eye_h += VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level)) - VillageTavern.FLOOR_0_SURFACE_H
@@ -1136,10 +1136,6 @@ func _update_roof_cutaways_and_lighting() -> void:
 			loft_root.visible = is_tav and (first_person_active or elev == 1 or on_tavern_stairs)
 	for altillo in get_tree().get_nodes_in_group("altillo_casa_3d"): # paso 2e: el piso alto de tu casa, igual que el de la posada
 		(altillo as Node3D).visible = first_person_active or elev == 1
-
-	# Casa mejorada del jugador: en primera persona conserva el tejado cerrado
-	if is_instance_valid(_player_house_roof):
-		_player_house_roof.visible = true if first_person_active else not (_player_house_rect.grow(38.0).has_point(pl_pos) or _player_house_rect.grow(8.0).has_point(mouse_pos))
 
 	# Luz diurna/nocturna, cielo con nubes según la hora, niebla atmosférica y farolas eléctricas 3D
 	var wc2 = get_node_or_null("/root/WorldClock") if is_inside_tree() else null

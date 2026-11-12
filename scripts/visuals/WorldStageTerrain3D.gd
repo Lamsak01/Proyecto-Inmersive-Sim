@@ -131,7 +131,7 @@ func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Mate
 			var x0: float = rect.position.x + float(ix) * dx
 			var x1: float = x0 + dx
 			var mid_p := Vector2((x0 + x1) * 0.5, (y0 + y1) * 0.5)
-			if mid_p.y >= FishingSpotScript.river_y_start() and mid_p.y <= FishingSpotScript.river_y_end() and absf(mid_p.x - FishingSpotScript.river_center_x(mid_p.y)) <= FishingSpotScript.river_half_width(mid_p.y) + 6.0:
+			if mid_p.y >= RioLagoScript.river_y_start() and mid_p.y <= RioLagoScript.river_y_end() and absf(mid_p.x - RioLagoScript.river_center_x(mid_p.y)) <= RioLagoScript.river_half_width(mid_p.y) + 6.0:
 				continue
 			var p00 := Vector2(x0, y0)
 			var p10 := Vector2(x1, y0)
@@ -164,7 +164,7 @@ func _build_ground_foliage_3d() -> void:
 		"nature/Plant_1.obj", "nature/Plant_2.obj", "nature/Plant_3.obj",
 		"nature/Flowers.obj", "nature/Plant_1.obj", "nature/Wheat.obj",
 	]
-	var lake_poly_guard: PackedVector2Array = FishingSpotScript.lake_scaled(1.18, 12.0)
+	var lake_poly_guard: PackedVector2Array = RioLagoScript.lake_scaled(1.18, 12.0)
 	var marsh_poly_guard := PackedVector2Array([
 		Vector2(-1890, 195), Vector2(-1620, 150), Vector2(-1325, 165), Vector2(-1180, 240),
 		Vector2(-1200, 405), Vector2(-1345, 485), Vector2(-1660, 500), Vector2(-1875, 435),
@@ -182,11 +182,11 @@ func _build_ground_foliage_3d() -> void:
 				continue
 			if Geometry2D.is_point_in_polygon(fp, lake_poly_guard) or Geometry2D.is_point_in_polygon(fp, marsh_poly_guard):
 				continue
-			if fp.distance_to(FishingSpotScript.LAKE_NODE_POS) < 95.0 or terrain_height_px(fp) < -0.8:
+			if fp.distance_to(RioLagoScript.LAKE_NODE_POS) < 95.0 or terrain_height_px(fp) < -0.8:
 				continue
-			if fp.y >= FishingSpotScript.river_y_start() and fp.y <= FishingSpotScript.river_y_end() and absf(fp.x - FishingSpotScript.river_center_x(fp.y)) < FishingSpotScript.river_half_width(fp.y) + 18.0:
+			if fp.y >= RioLagoScript.river_y_start() and fp.y <= RioLagoScript.river_y_end() and absf(fp.x - RioLagoScript.river_center_x(fp.y)) < RioLagoScript.river_half_width(fp.y) + 18.0:
 				continue
-			if Rect2(Vector2(85.0, -915.0), Vector2(95.0, 100.0)).has_point(fp) or FishingSpotScript.ABANDONED_MILL_RECT.grow(18.0).has_point(fp):
+			if Rect2(Vector2(85.0, -915.0), Vector2(95.0, 100.0)).has_point(fp) or RioLagoScript.ABANDONED_MILL_RECT.grow(18.0).has_point(fp):
 				continue
 			if VillageRestaurant.RECT.grow(16.0).has_point(fp) or VillageTavern.RECT.grow(16.0).has_point(fp):
 				continue
@@ -214,8 +214,8 @@ func _build_ground_foliage_3d() -> void:
 func _build_lake_3d() -> void:
 	var m_lake := _mat_agua("lake_water", Color(0.24, 0.54, 0.82, 0.92))
 	var m_deep := _mat_agua("lake_deep", Color(0.14, 0.34, 0.60, 0.95))
-	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(1.12, 8.0), -1.0, m_lake, true)
-	_add_flat_poly_2d(terrain_root_3d, FishingSpotScript.lake_scaled(0.66, 0.0), -0.8, m_deep, true)
+	_add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled(1.12, 8.0), -1.0, m_lake, true)
+	_add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled(0.66, 0.0), -0.8, m_deep, true)
 	# El muelle y las piedras y plantas de la orilla son piezas de «Decorado» (editor del mapa)
 
 
@@ -583,12 +583,12 @@ func _build_river_and_arroyo_3d() -> void:
 	st_red_clay.begin(Mesh.PRIMITIVE_TRIANGLES)
 
 	var step_y: float = 6.0
-	var y_cur: float = FishingSpotScript.river_y_start()
-	var y_end_riv: float = FishingSpotScript.river_y_end()
+	var y_cur: float = RioLagoScript.river_y_start()
+	var y_end_riv: float = RioLagoScript.river_y_end()
 	while y_cur < y_end_riv - 0.01:
 		var y_nxt: float = minf(y_end_riv, y_cur + step_y)
-		var b0: Vector2 = FishingSpotScript.river_banks_at(y_cur)
-		var b1: Vector2 = FishingSpotScript.river_banks_at(y_nxt)
+		var b0: Vector2 = RioLagoScript.river_banks_at(y_cur)
+		var b1: Vector2 = RioLagoScript.river_banks_at(y_nxt)
 		var h0: float = superficie_rio_px(y_cur)
 		var h1: float = superficie_rio_px(y_nxt)
 		var wl0: Vector3 = to_3d_flat(Vector2(b0.x - 1.5, y_cur), h0)
@@ -953,7 +953,7 @@ func _add_tramo_3d(parent: Node3D, a: Vector2, b: Vector2, ancho: float, height_
 			var p01: Vector2 = l0 + w1
 			var p11: Vector2 = l1 + w1
 			var mid_p: Vector2 = (p00 + p11) * 0.5
-			if mid_p.y >= FishingSpotScript.river_y_start() and mid_p.y <= FishingSpotScript.river_y_end() and absf(mid_p.x - FishingSpotScript.river_center_x(mid_p.y)) <= FishingSpotScript.river_half_width(mid_p.y) + 6.0:
+			if mid_p.y >= RioLagoScript.river_y_start() and mid_p.y <= RioLagoScript.river_y_end() and absf(mid_p.x - RioLagoScript.river_center_x(mid_p.y)) <= RioLagoScript.river_half_width(mid_p.y) + 6.0:
 				continue
 			for p in [p00, p10, p11, p00, p11, p01]:
 				st.set_normal(terrain_normal_3d(p, 12.0))

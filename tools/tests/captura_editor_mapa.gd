@@ -12,7 +12,7 @@ func _initialize() -> void:
 		p.position += Vector2(140, 0)
 		p.set("ancho", 70.0)
 		sc.get_node("Rio").queue_redraw()
-		print("CAPT original=", load("res://scripts/obstacles/FishingSpot.gd").es_rio_original(sc.get_node("Rio").call("datos")))
+		print("CAPT original=", load("res://scripts/fisica/RioLago.gd").es_rio_original(sc.get_node("Rio").call("datos")))
 	var shots := [["entero", Vector2(250, -100), 2600.0], ["pueblo", Vector2(300, 0), 1100.0], ["molino", Vector2(150, -980), 500.0]]
 	for s in shots:
 		# Encuadre: «ancho visible» en píxeles del mundo centrado en el punto dado

@@ -10,7 +10,7 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 ## Las coordenadas son las mismas que usa el juego (WorldStageBase3D.to_3d), por eso coincide lo que ves con el juego.
 
 const WB = preload("res://scripts/visuals/WorldStageBase3D.gd")
-const FS = preload("res://scripts/obstacles/FishingSpot.gd")
+const FS = preload("res://scripts/fisica/RioLago.gd")
 const REFERENCIA := "res://mapa/referencia_mapa.json"
 const PASO_SUELO: float = 40.0
 const SOL_GIRO := Vector3(-50.0, 35.0, 0.0)

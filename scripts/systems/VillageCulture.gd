@@ -1892,7 +1892,8 @@ static func is_sprinkler_powered(vm) -> bool:
 	var g: Dictionary = grid_state(vm)
 	return not bool(g.get("sprinkler_disabled", false))
 
-## La red solo tiene corriente si el generador del campamento está encendido.
+## La red solo tiene corriente si el generador está encendido. El generador era del campamento, borrado el 2026-11-12:
+## hasta que se rehaga, la red queda sin corriente.
 static func _generator_on() -> bool:
 	if GameManager == null:
 		return false

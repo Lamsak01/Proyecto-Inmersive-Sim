@@ -203,6 +203,13 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 - 💡 **PENDIENTE** — Que el jugador también pueda sufrir gangrena y amputación (hoy solo les pasa a los vecinos; la prótesis para ti ya existe en el médico, pero nunca llega a ofrecerse).
 
 ### Jugador
+- 💡 **DECISIÓN DEL USUARIO (2026-11-12)** — **Pesca, huerto, gallinero y campamento propio: borrados para rehacerlos de
+  cero en 3D, después del Caso I.** Palabras del usuario: «esos sistemas se hicieron pensando en 2D además de que ninguno
+  tenía profundidad». Los viejos se quitaron enteros (también la caña y la regadera); queda en el historial de git
+  (último commit con ellos: el anterior a «Borrados pesca, huerto, gallinero y campamento»). Se mantienen: lago, río y
+  muelle; peces, verduras, huevos y semillas como mercancía de los vecinos; los animales de corral del jugador. Al
+  rehacerlos: pensados para primera persona, sin letreros flotantes, con más profundidad. Ojo: la red eléctrica dependía
+  del generador del campamento y ahora no tiene corriente.
 - ✅ **HECHO** — Acompañantes del jugador (`VillageFame.gd`, `VillageNPC.gd`, test #85): un vecino con alta afinidad (≥ 55, gratis por amistad) o contratado como escolta (15 de oro al día pagados de tu bolsa a su bolsillo) te acompaña a pie por el valle, te respalda ante otros vecinos (una vez al día con tirada de riesgo) y vuelve a sus tareas cuando lo despides o si dejas de pagarle su jornal. *(Hecho en bloque PH.)*
 - ❌ **DESCARTADA la premisa (usuario, 2026-11-08; la inventó Gemini)** — ✅ **HECHO** — Historia principal en la pestaña «Principal» del panel de misiones `L` (`VillageCulture.gd`, `QuestManager.gd`, test #93): arco de 4 capítulos («I. Las Raíces del Valle», «II. El Pulso Bajo la Piedra», «III. La Máquina de Cobre» y «IV. La Placa de Petri») que conecta la integración del forastero, los hallazgos en las ruinas y alcantarillas, la investigación tecnológica del generador y el destino político del valle, con recompensas pagadas de las arcas municipales al completar cada capítulo. *(Hecho en bloque PP.)*
 

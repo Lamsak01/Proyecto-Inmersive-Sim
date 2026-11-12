@@ -12,7 +12,7 @@ func _initialize() -> void:
 		print("MAPA ya existe; no lo toco")
 		quit(0)
 		return
-	var FS = load("res://scripts/obstacles/FishingSpot.gd")
+	var FS = load("res://scripts/fisica/RioLago.gd")
 	var root := Node2D.new()
 	root.name = "EditorMapa"
 	root.set_script(load("res://mapa/editor_mapa.gd"))

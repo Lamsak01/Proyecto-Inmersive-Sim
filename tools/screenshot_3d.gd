@@ -50,16 +50,6 @@ func _initialize() -> void:
 	var ui := root.find_child("UI", true, false)
 	if ui is CanvasLayer:
 		(ui as CanvasLayer).visible = false
-	if spots.has("campamento"):
-		var plots := get_nodes_in_group("farm_plots")
-		for i in range(plots.size()):
-			var fp = plots[i]
-			if i % 4 == 3:
-				continue
-			fp.crop_type = 1 + (i % 3)
-			fp.days_grown = int(i / 3.0)
-			fp.is_watered = i % 2 == 0
-			fp._refresh_visuals()
 	if spots.has("barrio_lago") or spots.has("caserios") or spots.has("molino") or spots.has("norte"):
 		var vm_b = root.find_child("VillageManager", true, false)
 		var VL = load("res://scripts/systems/VillageLots.gd")
@@ -82,10 +72,6 @@ func _initialize() -> void:
 				st2["title"] = "🏠 %s" % str(VL.HOUSE_PLOTS[VL.plot_of(lid2)]["word"])
 				st2["beds"] = VL._house_beds(lid2)
 				VL._draw_lot(vm_b, lid2, st2)
-	if spots.has("casa_jugador"):
-		var camp_n = root.find_child("PlayerCampSite", true, false)
-		if camp_n != null:
-			camp_n.upgrade_player_house(3)
 	var player := get_first_node_in_group("player") as Node2D
 	var cam := player.get_node_or_null("Camera2D") as Camera2D if player != null else null
 	SPOTS["inicio"] = player.global_position
@@ -186,7 +172,7 @@ func _initialize() -> void:
 						vun_loop.exit_sewers_to_surface(vm_loop)
 				player.global_position = load("res://mapa/anclas.gd").mover(SPOTS[s]) # sitios escritos en el mapa original (mapa ×E)
 				if s == "muelle_lago":
-					player.global_position = load("res://scripts/obstacles/FishingSpot.gd").lake_dock_center() + Vector2(0.0, 20.0)
+					player.global_position = load("res://scripts/fisica/RioLago.gd").lake_dock_center() + Vector2(0.0, 20.0)
 				var horse_n = get_first_node_in_group("player_horse")
 				if horse_n != null:
 					if s == "montado" and not bool(player.get("is_mounted")):

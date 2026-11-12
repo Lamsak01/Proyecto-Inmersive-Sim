@@ -21,7 +21,7 @@ func _initialize() -> void:
 	var anclas: GDScript = load("res://mapa/anclas.gd")
 	var agua: GDScript = load("res://scripts/fisica/Agua.gd")
 	var relieve: GDScript = load("res://scripts/visuals/WorldStageBase3D.gd")
-	var pesca: GDScript = load("res://scripts/obstacles/FishingSpot.gd")
+	var pesca: GDScript = load("res://scripts/fisica/RioLago.gd")
 	var lago_viejo: Vector2 = LAGO_DENTRO * Mapa3D.E
 	var lago_nuevo: Vector2 = lago_viejo + DESPLAZAMIENTO_PX
 	_comprobar("el lago se estira a su sitio nuevo", (anclas.call("estirar", LAGO_DENTRO) as Vector2).is_equal_approx(lago_nuevo))

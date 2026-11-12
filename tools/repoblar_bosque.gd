@@ -14,7 +14,7 @@ func _initialize() -> void:
 	var por_arbol: int = int(args[0]) if args.size() > 0 else 3
 	var sep: float = float(args[1]) if args.size() > 1 else 26.0
 	var AN = load("res://mapa/anclas.gd")
-	var FS = load("res://scripts/obstacles/FishingSpot.gd")
+	var FS = load("res://scripts/fisica/RioLago.gd")
 	var escena: Node = (load(ESCENA) as PackedScene).instantiate()
 	var arboles: Node = escena.get_node("Vegetacion/Arboles")
 	var puestos: Array[Vector2] = []

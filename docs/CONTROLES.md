@@ -21,7 +21,7 @@ allí también. Esc, F11, Ctrl, Alt e Intro son fijas y no se pueden asignar.
 | Clic derecho | Apuntar / acción secundaria |
 | Q | Bloquear / parar (en combate: golpe no letal) |
 | X | Empujar |
-| R | Recargar arma de fuego; si no, cambiar la semilla activa |
+| R | Recargar arma de fuego |
 | 1–9, 0 | Elegir herramienta de la barra |
 
 ## Mundo y paneles
@@ -68,8 +68,7 @@ detiene. Ahí esas teclas las coge Godot, no el juego; por eso el juego ya no us
 
 ## Solo dentro de un menú (no chocan fuera de él)
 - Diálogos: 1–9, W/S o flechas, Intro/Espacio, Esc.
-- Hoguera/campamento: 1–6, E, S, N, Y, Intro, Esc.
-- Gallinero: 1–3, Esc. Morgue y otros paneles del pueblo: 0–5, E, Intro, Esc.
+- Morgue y otros paneles del pueblo: 0–5, E, Intro, Esc.
 - Juegos de la taberna: 1–9, F1–F4, A/D, Q, Z/X, flechas, Tab, Espacio, Intro, Esc.
 - Rueda de herramientas: W/A/S/D o flechas, Espacio/Intro.
 

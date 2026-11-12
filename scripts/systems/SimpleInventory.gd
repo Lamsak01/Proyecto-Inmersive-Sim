@@ -25,10 +25,10 @@ const CATALOG: Dictionary = {
 	"herbs": {"name": "Hierbas Medicinales", "category": "Forrajeo", "desc": "Plantas silvestres coagulantes y febrífugas. Úsalas directo (+10 HP, corta sangrado y baja fiebre) o craftea vendajes.", "usable": true, "heal_hp": 10.0, "stop_bleed": true, "cure_sickness": 22.0},
 	"mushroom": {"name": "Hongo Silvestre", "category": "Forrajeo", "desc": "Hongo del bosque. Comestible crudo (+12 HP, +15 Hambre, ligero riesgo digestivo) o cocinable al fuego.", "usable": true, "heal_hp": 12.0, "restore_stamina": 20.0, "restore_hunger": 15.0, "poison_risk": 0.35, "poison_amount": 22.0},
 	"crop_seeds": {"name": "Semillas del Valle", "category": "Agricultura", "desc": "Semillas silvestres del bosque. Puedes usarlas o intercambiarlas en la Herboristería.", "usable": false},
-	"carrot_seeds": {"name": "Semillas de Zanahoria", "category": "Agricultura", "desc": "Ciclo rápido (2 días, o 1 día con abono). Pulsa [E] en tierra vacía para plantar o [R] para alternar.", "usable": true, "is_seed": true},
-	"cabbage_seeds": {"name": "Semillas de Col", "category": "Agricultura", "desc": "Ciclo medio (3 días, o 2 días con abono). Cosecha abundante y muy nutritiva.", "usable": true, "is_seed": true},
-	"wheat_seeds": {"name": "Semillas de Trigo", "category": "Agricultura", "desc": "Ciclo largo (4 días, o 3 días con abono). Produce trigo para hornear pan.", "usable": true, "is_seed": true},
-	"fertilizer": {"name": "Abono Orgánico", "category": "Agricultura", "desc": "Compost nutritivo. Aplícalo con [E] en un cultivo regado para adelantar +1 día y obtener +1 cosecha extra.", "usable": false},
+	"carrot_seeds": {"name": "Semillas de Zanahoria", "category": "Agricultura", "desc": "Semillas que compran y venden los agricultores del valle.", "usable": false},
+	"cabbage_seeds": {"name": "Semillas de Col", "category": "Agricultura", "desc": "Semillas que compran y venden los agricultores del valle.", "usable": false},
+	"wheat_seeds": {"name": "Semillas de Trigo", "category": "Agricultura", "desc": "Semillas que compran y venden los agricultores del valle.", "usable": false},
+	"fertilizer": {"name": "Abono Orgánico", "category": "Agricultura", "desc": "Compost nutritivo que usan los agricultores del valle.", "usable": false},
 	"carrot": {"name": "Zanahoria Fresca", "category": "Cosecha", "desc": "Hortaliza crujiente (+16 HP, +22 Hambre). Puedes cocinarla en la cacerola de la hoguera.", "usable": true, "heal_hp": 16.0, "restore_stamina": 25.0, "restore_hunger": 22.0},
 	"cabbage": {"name": "Col de Huerta", "category": "Cosecha", "desc": "Repollo grande (+30 HP, +32 Hambre). Puedes cocinarlo en la cacerola de la hoguera.", "usable": true, "heal_hp": 30.0, "restore_stamina": 40.0, "restore_hunger": 32.0},
 	"wheat": {"name": "Gavilla de Trigo", "category": "Cosecha", "desc": "Cereal maduro listo para hornear Pan o alimentar a las gallinas.", "usable": false},
@@ -133,7 +133,6 @@ const RECIPES: Array[Dictionary] = [
 	{"id": "craft_copper_coil", "result": "copper_coil", "amount": 1, "ingredients": {"iron_ore": 1, "bandit_scrap": 1}, "desc": "Bobina conductora antigua para el Generador Eléctrico y el Aspersor."}
 ]
 
-const SEED_ORDER: Array[String] = ["carrot_seeds", "cabbage_seeds", "wheat_seeds"]
 
 var _gold_internal: int = 45
 var test_mode_lock_gold: bool = false
@@ -148,7 +147,6 @@ var gold: int = 45:
 		_gold_internal = maxi(0, v)
 		gold_changed.emit(_gold_internal)
 var items: Dictionary = {} # item_id (String) -> count (int)
-var selected_seed_id: String = "carrot_seeds"
 var equipped_armor: Dictionary = {
 	"HEAD": "",
 	"CHEST": "",
@@ -163,16 +161,6 @@ func _ready() -> void:
 	add_item("empty_flask", 1)
 	add_item("magnifying_glass", 1)
 	add_item("bread", 1)
-	add_item("carrot_seeds", 3)
-	add_item("cabbage_seeds", 3)
-	add_item("wheat_seeds", 3)
-	add_item("fertilizer", 2)
-
-func cycle_selected_seed() -> String:
-	var idx := SEED_ORDER.find(selected_seed_id)
-	idx = (idx + 1) % SEED_ORDER.size()
-	selected_seed_id = SEED_ORDER[idx]
-	return selected_seed_id
 
 func get_item_info(item_id: String) -> Dictionary:
 	if CATALOG.has(item_id):
@@ -424,13 +412,6 @@ func use_item(item_id: String, player: Node) -> bool:
 				player.call("_spawn_floating_text", "🎯 Equipado: Fusil de Asalto del Paso ([Clic Izq.] disparar, [Clic Der.] apuntar)", Color.GOLD, -42.0)
 			return true
 
-	# Si es un paquete de semillas, lo selecciona como semilla activa para sembrar con [E]
-	if info.get("is_seed", false):
-		selected_seed_id = item_id
-		if player.has_method("_spawn_floating_text"):
-			player._spawn_floating_text("🌱 Semilla activa: %s" % get_item_name(item_id), Color.SPRING_GREEN, -42.0)
-		return true
-
 	# Recipiente Vacío ("empty_flask"): si estás a <= 2m de una fuente de agua, se llena de Agua Limpia
 	if info.get("is_water_container", false):
 		if player.has_method("is_near_water_source") and bool(player.call("is_near_water_source", 2.0)):
@@ -615,7 +596,6 @@ func to_dict() -> Dictionary:
 	var saved_gold: int = _pre_test_mode_gold if (test_mode_lock_gold and _pre_test_mode_gold >= 0) else _gold_internal
 	return {
 		"gold": saved_gold,
-		"selected_seed_id": selected_seed_id,
 		"items": items.duplicate(),
 		"equipped_armor": equipped_armor.duplicate()
 	}
@@ -624,9 +604,6 @@ func from_dict(data: Dictionary) -> void:
 	test_mode_lock_gold = false
 	_pre_test_mode_gold = -1
 	_gold_internal = maxi(0, int(data.get("gold", 45)))
-	selected_seed_id = str(data.get("selected_seed_id", "wheat_seeds"))
-	if selected_seed_id == "wheat_seed":
-		selected_seed_id = "wheat_seeds"
 	items.clear()
 	var saved_items: Dictionary = data.get("items", {})
 	for k in saved_items.keys():

@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Editor del mapa (Claude Code, 2026-11-09): forma del río a partir de los puntos que el usuario coloca en
 ## res://mapa/EditorMapa.tscn. La usan el propio editor (para dibujar el río mientras lo mueves) y el juego
-## (FishingSpot), así lo que ves en el editor es lo que hay en el juego: agua, orillas, choque y río 3D.
+## (RioLago), así lo que ves en el editor es lo que hay en el juego: agua, orillas, choque y río 3D.
 ## «datos» es un diccionario: {"pts": Array[Vector2], "hw": Array[float] (medio ancho), "natural": float, "cruces": Array[Dictionary]}
 
 const TIPOS_CRUCE: Array[String] = ["ford", "wood_bridge", "stone_wood_bridge", "log"]

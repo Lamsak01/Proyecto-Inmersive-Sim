@@ -43,7 +43,7 @@ func _initialize() -> void:
 			var xy: PackedStringArray = donde.split(",")
 			pl.global_position = Vector2(float(xy[0]), float(xy[1]))
 		print("JUGADOR en ", pl.global_position)
-	var FS = load("res://scripts/obstacles/FishingSpot.gd")
+	var FS = load("res://scripts/fisica/RioLago.gd")
 	var spg: float = float(wc.real_seconds_per_game_hour)
 	var total_s: float = hours * spg
 	var dt: float = 1.0 / 60.0

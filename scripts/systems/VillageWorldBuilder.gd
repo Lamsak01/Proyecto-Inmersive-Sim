@@ -326,15 +326,15 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	# Dividida en los 6 tramos húmedos entre los 5 puentes y vados para que solo se cruce por ellos
 	# (Editor del mapa, 2026-11-09: los tramos salen de los puentes y vados; con el mapa original dan los mismos 6 de antes)
 	var wet_segments: Array[Vector2] = []
-	var seg_from: float = FishingSpot.river_y_start()
-	for cr_w in FishingSpot.river_crossings():
+	var seg_from: float = RioLago.river_y_start()
+	for cr_w in RioLago.river_crossings():
 		var cy: float = float(cr_w["pos"].y)
 		var gap: float = float(cr_w["half_y"]) - 1.0
 		if cy - gap > seg_from:
 			wet_segments.append(Vector2(seg_from, cy - gap))
 		seg_from = maxf(seg_from, cy + gap)
-	if FishingSpot.river_y_end() > seg_from:
-		wet_segments.append(Vector2(seg_from, FishingSpot.river_y_end()))
+	if RioLago.river_y_end() > seg_from:
+		wet_segments.append(Vector2(seg_from, RioLago.river_y_end()))
 	var river_col_body := StaticBody2D.new()
 	river_col_body.name = "RiverWaterCollisionBody"
 	river_col_body.collision_layer = 1
@@ -345,7 +345,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		var seg_r := PackedVector2Array()
 		var sy: float = seg.x
 		while sy <= seg.y + 0.01:
-			var b: Vector2 = FishingSpot.river_banks_at(sy)
+			var b: Vector2 = RioLago.river_banks_at(sy)
 			seg_l.append(Vector2(b.x + 1.2, sy))
 			seg_r.append(Vector2(b.y - 1.2, sy))
 			if sy >= seg.y:
@@ -362,10 +362,10 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	vm.entities_root.add_child(river_col_body)
 
 	# 4. Puentes y vados en 2D + pretiles de colisión sobre el tramo de agua para no caer al río
-	for cr in FishingSpot.river_crossings():
+	for cr in RioLago.river_crossings():
 		var c_pos: Vector2 = cr["pos"]
 		var c_hy: float = float(cr["half_y"])
-		var b_at: Vector2 = FishingSpot.river_banks_at(c_pos.y)
+		var b_at: Vector2 = RioLago.river_banks_at(c_pos.y)
 		var water_span: float = maxf(18.0, b_at.y - b_at.x)
 		var deck_w: float = water_span + 18.0
 		var deck_cx: float = (b_at.x + b_at.y) * 0.5
@@ -386,21 +386,11 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(water_span, 3.0))
 		# Vados (Claro del Arroyo y Bosque del Sur): sus piedras se ven en 3D y se cruzan sin pretiles
 
-	# 5. Punto de pesca en la orilla este del río dentro del pueblo (y = 188)
-	var y_pesca: float = vm.sitio(Vector2(0.0, 188.0)).y # el río ya está dibujado en el mundo (mapa ×E)
-	var fish_banks: Vector2 = FishingSpot.river_banks_at(y_pesca)
-	var river_fish_spot := FishingSpot.new()
-	river_fish_spot.name = "RiverFishingSpot"
-	river_fish_spot.is_river_spot = true
-	river_fish_spot.dock_pos = Vector2(18.0, 0.0)
-	river_fish_spot.position = Vector2(fish_banks.y - 10.0, y_pesca)
-	vm.entities_root.add_child(river_fish_spot)
-
 	# 6. Claro del Arroyo (Caso I) — área de inspección del lugar
 	vm._add_station_area("Case1ClearingArea", vm.VillageCase1.Sitio.original(vm.VillageCase1.SITIO_CLARO), 22.0, "case1_clearing") # aún se traduce: va el original
 
 	# 7. Molino Viejo Abandonado río arriba del claro (`Vector2(188, -1060)`, tamaño `Vector2(124, 92)`)
-	var mill_center: Vector2 = FishingSpot.ABANDONED_MILL_CENTER
+	var mill_center: Vector2 = RioLago.ABANDONED_MILL_CENTER
 	vm._construct_solid_building(vm.ID_MOLINO, "🏚️ Molino Viejo Abandonado", mill_center,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 

@@ -206,17 +206,6 @@ func _is_external_world_modal_open() -> bool:
 			var p_ctrl = vm.get(p_name)
 			if p_ctrl is Control and p_ctrl.visible:
 				return true
-	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
-	if camp:
-		for c_panel in ["sleep_confirm_panel", "upgrade_panel", "chest_panel"]:
-			var cp = camp.get(c_panel)
-			if cp is Control and cp.visible:
-				return true
-	var coop = get_tree().get_first_node_in_group("chicken_coop")
-	if coop:
-		var coop_p = coop.get("chicken_action_panel")
-		if coop_p is Control and coop_p.visible:
-			return true
 	return false
 
 func _input(event: InputEvent) -> void:
@@ -920,7 +909,7 @@ func _refresh_inventory_list() -> void:
 
 			if info.get("usable", false):
 				var cat_str: String = str(info.get("category", ""))
-				var btn_txt := "🔫 Equipar" if info.get("is_weapon_item", false) else ("🛡️ Equipar" if (info.has("armor_slot") or cat_str.begins_with("Armadura")) else ("🌱 Semilla" if info.get("is_seed", false) else "🍽️ Usar"))
+				var btn_txt := "🔫 Equipar" if info.get("is_weapon_item", false) else ("🛡️ Equipar" if (info.has("armor_slot") or cat_str.begins_with("Armadura")) else "🍽️ Usar")
 				var captured_id := str(item_id)
 				_make_btn(hbox, btn_txt, func():
 					inv.use_item(captured_id, player)
@@ -1281,16 +1270,6 @@ func _refresh_hand_slots() -> void:
 			active_slot = 2
 			slot3_key = "6"
 			slot3_icon = "🌾"
-			slot_weapons[2] = eq
-		elif eq == player.get("watering_can_weapon"):
-			active_slot = 2
-			slot3_key = "7"
-			slot3_icon = "💧"
-			slot_weapons[2] = eq
-		elif eq == player.get("fishing_rod_weapon"):
-			active_slot = 2
-			slot3_key = "8"
-			slot3_icon = "🎣"
 			slot_weapons[2] = eq
 		elif eq == player.get("flintlock_weapon"):
 			active_slot = 2

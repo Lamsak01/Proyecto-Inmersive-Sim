@@ -76,11 +76,11 @@ func _ready() -> void:
 		nav_region.navigation_polygon = nav_poly
 
 	if not in_editor:
-		# 4. Inicializar el Huerto, Campamento, Gallinero y Lago de Pesca del Jugador
+		# 4. Lago del Oeste (agua que choca)
 		var entities_root: Node = get_node_or_null("Entities")
 		if not entities_root:
 			entities_root = self
-		_spawn_player_garden(entities_root)
+		_spawn_lago_y_demo(entities_root)
 
 		# 5. Inicializar la Aldea Viva (Los 5 Oficios + Taberna Aparte con Habitaciones + 3 NPCs sin Oficio + Sucesión)
 		village_manager = VillageManager.new()
@@ -172,53 +172,18 @@ func _estirar_baldosas(capa: TileMapLayer) -> void:
 		capa.set_cell(nueva, d[1], d[2], d[3])
 
 
-func _spawn_player_garden(entities_root: Node) -> void:
+## Lago del Oeste (su choque de agua) y, en el modo demo, la espada del suelo oculta. El huerto, el campamento, el
+## gallinero y la pesca se borraron el 2026-11-12: se rehacen en 3D después del Caso I.
+func _spawn_lago_y_demo(entities_root: Node) -> void:
 	var is_demo: bool = (GameManager == null) or (GameManager.has_method("is_demo_mode") and bool(GameManager.call("is_demo_mode")))
-	# A. Huerto de 3x3 parcelas (retirado a las afueras lejanas; oculto en modo demo)
-	var start_pos: Vector2 = load("res://mapa/anclas.gd").mover(Vector2(-1915, -60)) # mapa ×E
-	var spacing := 24.0
-	var idx := 0
-	for row in range(3):
-		for col in range(3):
-			var plot := FarmPlot.new()
-			plot.name = "FarmPlot_%d" % idx
-			entities_root.add_child(plot)
-			plot.global_position = start_pos + Vector2(col * spacing, row * spacing)
-			plot.set_plot_enabled(false)
-			if is_demo:
-				plot.visible = false
-			idx += 1
-
-	# B. Campamento (retirado fuera del pueblo; oculto en modo demo porque el jugador empieza en el camino de entrada al valle)
-	var camp := CampSite.new()
-	camp.name = "PlayerCampSite"
-	entities_root.add_child(camp)
-	camp.global_position = Vector2(-1860, -110)
-	if is_demo:
-		camp.visible = false
-		if camp.tent_body:
-			camp.tent_body.collision_layer = 0
-			camp.tent_body.collision_mask = 0
-
-	# C. Gallinero Cuadrado (retirado fuera del pueblo; oculto en modo demo)
-	var coop := ChickenCoop.new()
-	coop.name = "PlayerChickenCoop"
-	entities_root.add_child(coop)
-	coop.global_position = Vector2(-1988, -36)
-	coop.set_coop_built(false)
-	if is_demo:
-		coop.visible = false
-
 	if is_demo:
 		var wp := get_node_or_null("Items/WeaponPickup") as CanvasItem
 		if wp:
 			wp.visible = false
-
-	# D. Lago y Muelle de Pesca al Sur del Camino de Entrada
-	var lake := FishingSpot.new()
-	lake.name = "WestFishingLake"
+	var lake := RioLago.new()
+	lake.name = "LagoOeste"
 	entities_root.add_child(lake)
-	lake.global_position = load("res://mapa/anclas.gd").mover(FishingSpot.LAKE_NODE_POS) # mapa ×E
+	lake.global_position = load("res://mapa/anclas.gd").mover(RioLago.LAKE_NODE_POS) # mapa ×E
 
 func _unhandled_input(event: InputEvent) -> void:
 	var player := get_node_or_null("Entities/PlayerGood")

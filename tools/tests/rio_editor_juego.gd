@@ -6,7 +6,7 @@ extends SceneTree
 ## Con «mover»: un punto desplazado y el juego usa el río nuevo.
 
 func _initialize() -> void:
-	var FS = load("res://scripts/obstacles/FishingSpot.gd")
+	var FS = load("res://scripts/fisica/RioLago.gd")
 	var mover: bool = "mover" in OS.get_cmdline_user_args()
 	var ok := true
 	if mover:

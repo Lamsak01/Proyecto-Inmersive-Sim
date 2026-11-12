@@ -15,10 +15,8 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
     norte y al sur para su letrero. Las casas de solar no tienen pieza y heredan sitio y giro de su solar.
   - **Mostradores**: `_register_shop_business_stall` recibe la marca en el mapa original.
   - **Zonas** (3, `mapa/zona.gd`: plaza, lago, ciénaga): trozos de campo abierto que se estiran ×5 pero van con su
-    pieza (`Anclas.estirar`, `estirar_puntos`, `desestirar`); las usan el terreno por código, el relieve, `Agua`,
-    `FishingSpot` y el mapa del valle. Prueba: `tools/tests/sondeo_zonas.gd`.
-- Solares con sus datos en la pieza (zona, barrio, casa, puerta, apartado) y marcas propias (`Solar.marca`; Puesto
-  del Paso): `VillageLots.LOTS` y `OUTPOST_*` borrados (2026-11-12).
+    pieza (`Anclas.estirar`, `estirar_puntos`, `desestirar`); las usan terreno, relieve, `Agua`, `RioLago` y mapa del valle.
+- Solares con sus datos y marcas en la pieza (`Solar.marca`): `VillageLots.LOTS` y `OUTPOST_*` borrados.
 - Paso 3 (2026-11-12): **Sitios** (86, `mapa/sitio.gd`): cruces al aire libre ya en el mundo (`Sitio.mundo(id)`,
   `Sitio.serie(nombre)`; `Sitio.original(id)` solo para funciones que aún traducen). Caso I: 3 marcas de edificio.
 - Método de cada tanda: herramienta temporal (no se guarda) que pasa lo que hay a piezas → cambiar código y borrar
@@ -31,11 +29,13 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 Paso 4, trozos seguros (decorado del código → piezas), comparando árbol 3D y lógica antes y después. Hechos: terreno,
 constructor, taberna, restaurante, solares. Siguen: `VillagePlaces`, `VillageManagerSocial`…, `EcosystemManager`.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
-plano). Capa 1 hecha (lista visible 0). Capa 2 en curso (tandas 1–7: letreros, polígonos, árboles/rocas/plantas, puertas/ventanas/cofres, objetos quietos, huerto, gallinero, campamento, madrigueras y lago de pesca → marcas invisibles con `tipo_3d`/`variante_3d`, 2.818 → 44; sangre, huellas y vagabundos en 3D con `Rastros3D`; quedan 16 sprites: cuerpos de animales y gallinas, objetos rompibles y espada de `World.tscn`; y boya/sedal/aviso de la pesca): los dibujos planos ocultos que hacen
-de plano del 3D (`_add_rect_poly`/`_add_poly`, sprites fuente de `WorldStageProps3D`, etiquetas de estación) → piezas o
-borrar. Comprobar cada tanda con la lista de lo visible y fotos. Pesca: instrucciones del minijuego planas (sin revisar).
+plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
+sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.
+**Pesca, huerto, gallinero y campamento propio borrados (usuario, 2026-11-12)**: se rehacen en 3D tras el Caso I
+(`docs/VISION_Y_FUTURO.md`, «Jugador»). Forma del río y del lago: `scripts/fisica/RioLago.gd`. Pendiente de preguntar:
+animales de corral del jugador (siguen, sin gallinero) y la red eléctrica (sin generador, sin corriente).
 Corte final (anclas y ×5) solo con el usuario.
-Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
+Pendiente apuntado: tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
 
 ## d) Bloqueos activos

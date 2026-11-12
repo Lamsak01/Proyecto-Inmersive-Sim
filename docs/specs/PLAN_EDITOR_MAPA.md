@@ -9,7 +9,7 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
   leído de `mapa/referencia_mapa.json`), `Rio` (hijos Marker2D `punto_rio.gd` con `ancho`; `curvas_naturales`)
   y `Cruces` (Marker2D `cruce_rio.gd`: nombre, tipo, ancho, largo, altura_arco, id_interno).
 - `mapa/rio_forma.gd`: forma del río a partir de los puntos (la usan el editor y el juego).
-- `FishingSpot` lee la escena (`river_center_x/half_width/banks_at`, `river_crossings()`, `river_waypoints()`,
+- `RioLago` (`scripts/fisica/RioLago.gd`) lee la escena (`river_center_x/half_width/banks_at`, `river_crossings()`, `river_waypoints()`,
   `river_y_start/end()`). **Mientras los puntos sean los originales usa la forma antigua exacta** (con sus ajustes a
   mano junto a edificios); si el usuario cambia algo, manda el editor. Los tramos de agua con choque salen de los cruces.
 - Herramientas: `tools/crear_editor_mapa.gd` (crea la escena desde el mapa actual; `-- forzar` la rehace = volver al

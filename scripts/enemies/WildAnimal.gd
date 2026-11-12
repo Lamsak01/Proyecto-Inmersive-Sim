@@ -58,8 +58,6 @@ var is_on_reserve_day: bool = false
 var mated_today: bool = false
 var pending_offspring: bool = false
 var days_hungry: int = 0
-var is_raiding_farm: bool = false
-var farm_target_pos: Vector2 = Vector2(-561, -21)
 
 # Mecánica de Emboscada (Zorro), 50% Escape Inicial (Conejo) y Embestida Agresiva (Jabalí)
 var escaped_first_pounce: bool = false
@@ -427,20 +425,14 @@ func _evaluate_life_schedule() -> void:
 			is_night_time = (h >= 20 or h < 6)
 
 	if is_night_time:
-		# Si un zorro no logró comer durante el día, sale de noche a asaltar el Gallinero solo si quedan gallinas vivas
-		var coop_node = get_tree().get_first_node_in_group("chicken_coop") if species == SpeciesType.FOX else null
-		if species == SpeciesType.FOX and not fed_today and not is_on_reserve_day and coop_node is ChickenCoop and coop_node.has_live_chickens():
-			pass
+		var dist_home := global_position.distance_to(home_position)
+		if dist_home > 18.0:
+			state = AnimalState.RETURN_HOME
+		elif species == SpeciesType.RABBIT:
+			_enter_burrow(0.0)
 		else:
-			var dist_home := global_position.distance_to(home_position)
-			if dist_home > 18.0:
-				state = AnimalState.RETURN_HOME
-			else:
-				if species == SpeciesType.RABBIT:
-					_enter_burrow(0.0)
-				else:
-					state = AnimalState.SLEEP
-			return
+			state = AnimalState.SLEEP
+		return
 	else:
 		if state == AnimalState.SLEEP:
 			state = AnimalState.GRAZE
@@ -473,11 +465,7 @@ func _evaluate_life_schedule() -> void:
 				state = AnimalState.STALK_PREY
 			else:
 				state = AnimalState.SEEK_FOOD
-		elif species != SpeciesType.FOX and not fed_today and days_hungry >= 1:
-			is_raiding_farm = true
-			state = AnimalState.SEEK_FOOD
 		elif global_position.distance_to(home_position) > 450.0:
-			is_raiding_farm = false
 			state = AnimalState.RETURN_HOME
 
 func _find_ready_mate() -> WildAnimal:
@@ -495,7 +483,6 @@ func _find_ready_mate() -> WildAnimal:
 func _find_best_food_target() -> Node2D:
 	var best_node: Node2D = null
 	var best_dist_sq: float = 1250.0 * 1250.0
-	is_raiding_farm = false
 
 	if species in [SpeciesType.RABBIT, SpeciesType.DEER, SpeciesType.BOAR]:
 		# Primero priorizar la flora dentro de su propio hábitat amplio (<= 520 px de su madriguera/claro)
@@ -516,14 +503,6 @@ func _find_best_food_target() -> Node2D:
 					if d_sq < best_dist_sq:
 						best_dist_sq = d_sq
 						best_node = node
-		if not best_node:
-			for crop in get_tree().get_nodes_in_group("farm_crops"):
-				if crop is Node2D and crop.visible:
-					var d_sq := global_position.distance_squared_to(crop.global_position)
-					if d_sq < best_dist_sq:
-						best_dist_sq = d_sq
-						best_node = crop
-						is_raiding_farm = true
 	elif species == SpeciesType.FOX:
 		var best_prey_sq: float = 1850.0 * 1850.0
 		var live_rabbits: int = 0
@@ -550,25 +529,6 @@ func _find_best_food_target() -> Node2D:
 					if d_sq < best_prey_sq:
 						best_prey_sq = d_sq
 						best_node = rab
-
-		var h_now: int = WorldClock.current_hour if WorldClock else 12
-		var is_coop_raid_window: bool = (h_now >= 20 or h_now < 6) and not fed_today
-		if not best_node and is_coop_raid_window:
-			var coop = get_tree().get_first_node_in_group("chicken_coop")
-			if coop is ChickenCoop and coop.has_live_chickens():
-				best_node = coop
-				is_raiding_farm = true
-			else:
-				is_raiding_farm = false
-				for poultry in get_tree().get_nodes_in_group("livestock_prey"):
-					if poultry is Node2D and poultry.visible:
-						var d_sq := global_position.distance_squared_to(poultry.global_position)
-						if d_sq < best_dist_sq:
-							best_dist_sq = d_sq
-							best_node = poultry
-							is_raiding_farm = true
-		elif not best_node:
-			is_raiding_farm = false
 
 	return best_node
 
@@ -632,16 +592,6 @@ func _process_seek_food(_delta: float) -> void:
 		return
 
 	if not is_instance_valid(food_target) or not food_target.visible:
-		if species == SpeciesType.FOX:
-			is_raiding_farm = false
-		if is_raiding_farm:
-			var to_farm := farm_target_pos - global_position
-			if to_farm.length() > 35.0:
-				velocity = to_farm.normalized() * (graze_speed * 1.25)
-			else:
-				is_raiding_farm = false
-				state = AnimalState.GRAZE
-			return
 		food_target = _find_best_food_target()
 		if not is_instance_valid(food_target):
 			state = AnimalState.RETURN_HOME if global_position.distance_to(home_position) > 380.0 else AnimalState.GRAZE
@@ -652,34 +602,6 @@ func _process_seek_food(_delta: float) -> void:
 		food_target = null
 		state = AnimalState.GRAZE
 		return
-
-	# Si el zorro hambriento va a asaltar el Gallinero: primero abre un agujero en la cerca y luego entra
-	if food_target is ChickenCoop:
-		if not food_target.has_live_chickens():
-			food_target = null
-			is_raiding_farm = false
-			state = AnimalState.RETURN_HOME
-			return
-		if not food_target.is_breached:
-			var breach_pos: Vector2 = food_target.get_breach_world_position()
-			var to_breach := breach_pos - global_position
-			if to_breach.length() <= 16.0:
-				velocity = Vector2.ZERO
-				if attack_cooldown <= 0.0:
-					attack_cooldown = 1.0
-					food_target.damage_fence_by_fox(1.0)
-			else:
-				velocity = to_breach.normalized() * (graze_speed * 1.35)
-			return
-		else:
-			var to_inside := food_target.global_position - global_position
-			if to_inside.length() <= 16.0:
-				velocity = Vector2.ZERO
-				eat_timer = 2.6
-				state = AnimalState.EATING
-			else:
-				velocity = to_inside.normalized() * (graze_speed * 1.4)
-			return
 
 	var to_food := food_target.global_position - global_position
 	var dist := to_food.length()
@@ -804,13 +726,6 @@ func _process_eating(delta: float) -> void:
 				if food_target.state == AnimalState.CARCASS:
 					food_target.consume_by_predator()
 				ate_successfully = true
-			elif food_target is ChickenCoop:
-				if food_target.steal_chicken_by_fox():
-					ate_successfully = true
-			elif food_target.is_in_group("farm_crops") or food_target.is_in_group("livestock_prey"):
-				if food_target.has_method("consume_by_animal"):
-					food_target.call("consume_by_animal")
-				ate_successfully = true
 
 		if ate_successfully:
 			_register_meal_eaten()
@@ -822,7 +737,6 @@ func _register_meal_eaten() -> void:
 	meals_eaten = MAX_MEALS if species == SpeciesType.FOX else (meals_eaten + 1)
 	fed_today = true
 	days_hungry = 0
-	is_raiding_farm = false
 	if meals_eaten >= MAX_MEALS:
 		# ¡Estómago lleno (2/2)! Gana 1 Día de Reserva sin necesidad de comer mañana
 		has_reserve_day = true
@@ -1076,7 +990,7 @@ func _update_observation_label() -> void:
 		AnimalState.GRAZE:
 			action_txt = "Saciado - Descansando" if (is_on_reserve_day or meals_eaten >= MAX_MEALS) else ("En manada" if species == SpeciesType.DEER else ("Merodeando" if species == SpeciesType.FOX else "Pastando"))
 		AnimalState.SEEK_FOOD:
-			action_txt = "Abriendo agujero en Gallinero" if (food_target is ChickenCoop and not food_target.is_breached) else ("Hambriento (Asaltando Gallinero)" if is_raiding_farm else ("Buscando presa" if species == SpeciesType.FOX else "Buscando plantas"))
+			action_txt = "Buscando presa" if species == SpeciesType.FOX else "Buscando plantas"
 		AnimalState.STALK_PREY: action_txt = "Acechando en sigilo"
 		AnimalState.POUNCE: action_txt = "¡Salto de caza!"
 		AnimalState.CHASE_PREY: action_txt = "Persiguiendo presa"
@@ -1228,7 +1142,6 @@ func _reset_alive_state() -> void:
 	flee_timer = 0.0
 	eat_timer = 0.0
 	mate_timer = 0.0
-	is_raiding_farm = false
 	food_target = null
 	mate_target = null
 	if not is_in_group("wild_animals"):

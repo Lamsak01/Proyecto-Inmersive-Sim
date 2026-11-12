@@ -429,8 +429,7 @@ func _on_died(silent: bool = false) -> void:
 		_spawn_floating_text("💀 %s ha muerto" % pet_name, Color.CRIMSON)
 
 func _check_for_fox_intruders() -> void:
-	var coop := get_tree().get_first_node_in_group("chicken_coop") as Node2D
-	var guard_center: Vector2 = coop.global_position if is_instance_valid(coop) else home_position
+	var guard_center: Vector2 = home_position
 
 	for node in get_tree().get_nodes_in_group("wild_animals"):
 		if not is_instance_valid(node) or not (node is Node2D):

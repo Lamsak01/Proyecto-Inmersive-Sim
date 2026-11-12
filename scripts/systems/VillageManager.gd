@@ -1531,7 +1531,7 @@ func sitios_traducir_npc(n: Node) -> void:
 func _anclas_repaso_final() -> void:
 	var AN = load("res://mapa/anclas.gd")
 	_sitios_repaso(AN)
-	var clases := ["FarmPlot.gd", "ChickenCoop.gd", "CampSite.gd", "LivestockAnimal.gd", "DestructibleObject.gd", "WorldInteractableProp.gd", "PlayerCart.gd", "PlayerHorse.gd"]
+	var clases := ["LivestockAnimal.gd", "DestructibleObject.gd", "WorldInteractableProp.gd", "PlayerCart.gd", "PlayerHorse.gd"]
 	for c in entities_root.get_children():
 		if not (c is Node2D) or c is HarvestableNode or c.get_script() == null:
 			continue

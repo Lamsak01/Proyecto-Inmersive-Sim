@@ -386,7 +386,7 @@ func start_parry() -> bool:
 	if not is_instance_valid(player):
 		return false
 	var dm = player.get("dialogue_manager")
-	if (dm and dm.has_method("is_active") and dm.call("is_active")) or (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or (player.has_method("is_fishing_or_sitting") and bool(player.call("is_fishing_or_sitting"))):
+	if (dm and dm.has_method("is_active") and dm.call("is_active")) or (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))):
 		return false
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if vm and (bool(vm.get("player_in_jail")) or bool(vm.get("player_being_escorted_to_jail"))):
@@ -433,7 +433,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_instance_valid(player):
 		return
 	var dm = player.get("dialogue_manager")
-	if (dm and dm.has_method("is_active") and dm.call("is_active")) or (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or (player.has_method("is_fishing_or_sitting") and bool(player.call("is_fishing_or_sitting"))):
+	if (dm and dm.has_method("is_active") and dm.call("is_active")) or (player.has_method("is_stunned") and player.is_stunned()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))):
 		if is_drawing_bow:
 			_cancel_bow_draw()
 		return
@@ -682,11 +682,6 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 		return
 	var chaining: bool = attack_timer > 0.0 and _in_recovery and not equipped.is_ranged and (w_key in COMBO_WEAPONS) and combo_step >= 1 and combo_step < 3
 	if attack_timer > 0.0 and not chaining: return
-	if equipped == player.get("watering_can_weapon") and player.has_method("is_bloodstained") and bool(player.call("is_bloodstained")):
-		if player.has_method("consume_water_charge") and bool(player.call("consume_water_charge")):
-			attack_timer = 0.30
-			player.call("wash_bloodstains", true)
-			return
 	var stam_cost: float = 0.0 if is_firearm_weapon(equipped) else (10.0 if equipped.is_ranged else 14.0)
 	if not equipped.is_ranged and charge > 0.0:
 		stam_cost += 10.0 * charge

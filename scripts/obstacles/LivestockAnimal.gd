@@ -178,17 +178,6 @@ func _compute_separation_step(delta: float) -> Vector2:
 		if d < 14.0:
 			var dir: Vector2 = (global_position - opos).normalized() if d > 0.01 else Vector2(cos(float(animal_index)), sin(float(animal_index)))
 			push += dir * ((14.0 - d) / 14.0) * 26.0 * delta
-	if is_player_animal:
-		var coop := get_tree().get_first_node_in_group("chicken_coop") as Node2D
-		if coop != null and is_instance_valid(coop) and "chickens" in coop:
-			for chk in (coop.get("chickens") as Array):
-				if chk is Dictionary:
-					var cspr: Sprite2D = (chk as Dictionary).get("sprite")
-					if cspr != null and is_instance_valid(cspr):
-						var d_c: float = global_position.distance_to(cspr.global_position)
-						if d_c < 12.0:
-							var dir_c: Vector2 = (global_position - cspr.global_position).normalized() if d_c > 0.01 else Vector2.DOWN
-							push += dir_c * ((12.0 - d_c) / 12.0) * 24.0 * delta
 	return push
 
 

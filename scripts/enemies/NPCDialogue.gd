@@ -486,7 +486,7 @@ static func _build_blacksmith_dialogue(npc: VillageNPC, needs_line: String) -> D
 	var player = npc._get_player()
 	var catalog_dict: Dictionary = player.get("TOOL_UPGRADE_CATALOG") if (player and "TOOL_UPGRADE_CATALOG" in player) else {}
 	var upgrade_choices: Array[Dictionary] = []
-	for t_id in ["sword", "hammer", "axe", "pickaxe", "bow", "sickle", "watering_can", "fishing_rod"]:
+	for t_id in ["sword", "hammer", "axe", "pickaxe", "bow", "sickle"]:
 		var cur_tier: int = int(player.call("get_tool_tier", t_id)) if (player and player.has_method("get_tool_tier")) else 1
 		var t_meta: Dictionary = catalog_dict.get(t_id, {})
 		var t_title: String = str(t_meta.get("title", t_id))
@@ -724,7 +724,7 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 			}
 		VillageNPC.TradeRole.HERBALIST:
 			return {"start": {
-				"text": "Soy %s de la %s (%s). %s%s%s\n[Semillas Zanahoria: %d | Col: %d | Trigo: %d]" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line(), int(npc.shop_stock.get("carrot_seeds", 0)), int(npc.shop_stock.get("cabbage_seeds", 0)), int(npc.shop_stock.get("wheat_seeds", 0))],
+				"text": "Soy %s de la %s (%s). %s%s%s" % [npc.npc_name, npc.family_name, npc.npc_role, needs_line, discount_tag, npc._get_market_header_line()],
 				"choices": [
 					{"label": "📜 Negocio, Escritura de Propiedad y Caja Registradora", "next": "END", "action": "open_business_panel"},
 					{"label": "🧪 Comprar 1 Somnífero Nocturno (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(18), int(npc.shop_stock.get("sleeping_draught", 0))], "next": "start", "action": "buy:sleeping_draught:18"},
@@ -732,9 +732,6 @@ static func _build_dialogue(npc: VillageNPC) -> Dictionary:
 					{"label": "🩺 Comprar 1 Botiquín Quirúrgico (-%d Oro) [Stock: %d]" % [npc._get_dynamic_buy_price(24), int(npc.shop_stock.get("surgical_kit", 0))], "next": "start", "action": "buy:surgical_kit:24"},
 					{"label": "🥬 Vender 1 Col de Huerta (+%d Oro)" % npc._get_dynamic_sell_price(12), "next": "start", "action": "sell:cabbage:12"},
 					{"label": "🥕 Vender 1 Zanahoria Fresca (+%d Oro)" % npc._get_dynamic_sell_price(8), "next": "start", "action": "sell:carrot:8"},
-					{"label": "🌱 Comprar 2 Semillas de Zanahoria (-%d Oro)" % npc._get_dynamic_buy_price(6), "next": "start", "action": "buy2:carrot_seeds:6"},
-					{"label": "🌱 Comprar 2 Semillas de Col (-%d Oro)" % npc._get_dynamic_buy_price(8), "next": "start", "action": "buy2:cabbage_seeds:8"},
-					{"label": "🌾 Comprar 2 Semillas de Trigo (-%d Oro)" % npc._get_dynamic_buy_price(8), "next": "start", "action": "buy2:wheat_seeds:8"},
 					{"label": "Salir.", "next": "END"}
 				]
 			}}
@@ -1147,35 +1144,6 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 
 	if action_id == "surrender_to_jail":
 		if vm and vm.has_method("send_player_to_jail"): vm.call("send_player_to_jail", player)
-		return
-
-	if action_id.begins_with("upgrade_camp_house:"):
-		if not npc.is_at_shop_counter():
-			npc._spawn_floating_text("🚫 Ahora no estoy en la Carpintería. Búscame en mi mostrador en horario laboral.", Color.ORANGE_RED, -44.0)
-			return
-		var up_parts := action_id.split(":")
-		var target_t: int = int(up_parts[1])
-		if target_t >= 3 and npc.need_hunger < 46.0:
-			npc._spawn_floating_text("🪚🥺 Estoy demasiado débil por la desnutrición (%d%%) para levantar obras Nv.3. Necesito comer y recuperarme gradualmente." % int(round(npc.need_hunger)), Color.ORANGE_RED, -44.0)
-			return
-		if target_t >= 3 and npc.get_job_efficiency() < 0.75:
-			npc._spawn_floating_text("🪚⏳ Aún soy %s: necesito al menos 5 días en el oficio (75%%) para levantar Casas de Piedra Nv.3" % npc.get_job_efficiency_label(), Color.GOLD, -44.0)
-			return
-		var base_cost: int = int(up_parts[2])
-		var final_cost: int = int(round(float(base_cost) * 0.8)) if npc.affinity >= 45 else base_cost
-		var camp = npc.get_tree().get_first_node_in_group("campsite")
-		if not camp or not camp.has_method("upgrade_player_house"):
-			return
-		if int(camp.get("house_tier")) >= target_t:
-			npc._spawn_floating_text("🏡 Ya tienes esa mejora construida en tu Campamento", Color.GOLD, -44.0)
-			return
-		if inv.gold < final_cost:
-			npc._spawn_floating_text("Necesitas %d Oro para esta obra" % final_cost, Color.ORANGE_RED, -44.0)
-			return
-		inv.add_gold(-final_cost)
-		camp.call("upgrade_player_house", target_t)
-		npc.modify_affinity(15)
-		npc._spawn_floating_text("🏡 ¡Bram construyó tu vivienda Nv.%d en el Campamento! (-%d Oro)" % [target_t, final_cost], Color.SPRING_GREEN, -46.0)
 		return
 
 	if action_id == "open_business_panel":

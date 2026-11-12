@@ -836,10 +836,10 @@ func clamp_point_to_building_interior(ref_pos: Vector2, candidate_pos: Vector2) 
 ## Evita que el paseo aleatorio de un NPC exterior (`UNEMPLOYED` o `GUARD`) caiga por accidente dentro de una casa o sobre su puerta
 
 func is_point_in_river_water(pos: Vector2) -> bool:
-	return FishingSpot.is_point_in_river_water(pos, 1.5)
+	return RioLago.is_point_in_river_water(pos, 1.5)
 
 func clamp_point_outside_buildings(ref_pos: Vector2, candidate_pos: Vector2) -> Vector2:
-	if FishingSpot.is_point_in_river_water(candidate_pos, 5.0):
+	if RioLago.is_point_in_river_water(candidate_pos, 5.0):
 		return ref_pos
 	_refresh_fp_cache()
 	for fi in range(_fp_rects.size()):
@@ -930,10 +930,10 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 		))
 	if elev != 0:
 		return candidate_pos
-	if FishingSpot.is_point_in_river_water(candidate_pos, 4.0):
-		if not FishingSpot.is_point_in_river_water(prev_pos, 2.0):
+	if RioLago.is_point_in_river_water(candidate_pos, 4.0):
+		if not RioLago.is_point_in_river_water(prev_pos, 2.0):
 			return _slide_or_stay(prev_pos, candidate_pos, elev, allow_slide)
-		var b_riv: Vector2 = FishingSpot.river_banks_at(candidate_pos.y)
+		var b_riv: Vector2 = RioLago.river_banks_at(candidate_pos.y)
 		var cx_riv: float = (b_riv.x + b_riv.y) * 0.5
 		return Vector2(b_riv.x - 5.0 if candidate_pos.x < cx_riv else b_riv.y + 5.0, candidate_pos.y)
 	_refresh_fp_cache()
@@ -1101,13 +1101,13 @@ func check_all_building_doors_and_lanes() -> Array:
 func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_id: String) -> Vector2:
 	var cur_target: Vector2 = target_pos
 	# 0. Si el trayecto cruza el río o toca el agua fuera de los puentes/vados, redirigir al puente/vado más cercano
-	var side_from: float = from_pos.x - FishingSpot.river_center_x(from_pos.y)
-	var side_to: float = cur_target.x - FishingSpot.river_center_x(cur_target.y)
+	var side_from: float = from_pos.x - RioLago.river_center_x(from_pos.y)
+	var side_to: float = cur_target.x - RioLago.river_center_x(cur_target.y)
 	if side_from * side_to < 0.0:
-		var cr: Dictionary = FishingSpot.nearest_river_crossing(from_pos, cur_target)
+		var cr: Dictionary = RioLago.nearest_river_crossing(from_pos, cur_target)
 		var cr_pos: Vector2 = cr["pos"]
 		var cr_hy: float = maxf(6.0, float(cr["half_y"]) - 4.0)
-		var b_cr: Vector2 = FishingSpot.river_banks_at(cr_pos.y)
+		var b_cr: Vector2 = RioLago.river_banks_at(cr_pos.y)
 		if absf(from_pos.y - cr_pos.y) > cr_hy:
 			var approach_x: float = (b_cr.x - 10.0) if side_from < 0.0 else (b_cr.y + 10.0)
 			cur_target = Vector2(approach_x, cr_pos.y)
@@ -1116,12 +1116,12 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 			cur_target = Vector2(exit_x, cr_pos.y)
 	# Mientras el destino (o el punto de llegada al puente) quede en esta orilla, no cortar por el agua: si el río hace
 	# una curva por medio, ir antes a la orilla (2026-11-10: se metían en el agua yendo a la pasarela del norte).
-	if side_from * (cur_target.x - FishingSpot.river_center_x(cur_target.y)) > 0.0:
+	if side_from * (cur_target.x - RioLago.river_center_x(cur_target.y)) > 0.0:
 		for s_i in range(1, 8):
 			var t_s: float = float(s_i) / 8.0
 			var p_s: Vector2 = from_pos.lerp(cur_target, t_s)
-			if FishingSpot.is_point_in_river_water(p_s, 5.0):
-				var b_s: Vector2 = FishingSpot.river_banks_at(p_s.y)
+			if RioLago.is_point_in_river_water(p_s, 5.0):
+				var b_s: Vector2 = RioLago.river_banks_at(p_s.y)
 				var safe_x: float = (b_s.x - 11.0) if side_from < 0.0 else (b_s.y + 11.0)
 				cur_target = Vector2(safe_x, p_s.y)
 				break

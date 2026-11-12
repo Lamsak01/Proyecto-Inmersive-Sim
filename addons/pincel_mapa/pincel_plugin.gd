@@ -11,7 +11,7 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 const Mezclas = preload("res://mapa/pincel_mezclas.gd")
 const WB = preload("res://scripts/visuals/WorldStageBase3D.gd")
-const FS = preload("res://scripts/obstacles/FishingSpot.gd")
+const FS = preload("res://scripts/fisica/RioLago.gd")
 const PIEZA = preload("res://mapa/pieza.gd")
 const Nucleo = preload("res://mapa/pincel_nucleo.gd")
 

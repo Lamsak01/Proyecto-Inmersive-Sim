@@ -120,13 +120,9 @@ func _is_player_indoors(vm_ref: Node = null) -> bool:
 func start_jump() -> bool:
 	if not is_instance_valid(player):
 		return false
-	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
-	var in_fishing_minigame: bool = lake != null and int(lake.get("state")) == 3
-	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
-	var sitting_on_log: bool = camp != null and bool(camp.get("is_player_sitting"))
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var being_escorted: bool = vm != null and bool(vm.get("player_being_escorted_to_jail"))
-	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or in_fishing_minigame or sitting_on_log or being_escorted:
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or being_escorted:
 		return false
 	if player.has_method("is_stunned") and player.is_stunned():
 		return false
@@ -144,13 +140,9 @@ func start_jump() -> bool:
 func start_roll(dir_override: Vector2 = Vector2.ZERO) -> bool:
 	if not is_instance_valid(player):
 		return false
-	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
-	var in_fishing_minigame: bool = lake != null and int(lake.get("state")) == 3
-	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
-	var sitting_on_log: bool = camp != null and bool(camp.get("is_player_sitting"))
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var being_escorted: bool = vm != null and bool(vm.get("player_being_escorted_to_jail"))
-	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or in_fishing_minigame or sitting_on_log or being_escorted:
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or being_escorted:
 		return false
 	if player.has_method("is_stunned") and player.is_stunned():
 		return false
@@ -212,14 +204,10 @@ func _physics_process(delta: float) -> void:
 		roll_cooldown_timer = maxf(0.0, roll_cooldown_timer - delta)
 	if roll_invuln_timer > 0.0:
 		roll_invuln_timer = maxf(0.0, roll_invuln_timer - delta)
-	# Block movement if dialogue active, modal open, tavern minigame time freeze, sitting on camp log, in fishing minigame, or handcuffed in police escort
-	var lake = get_tree().current_scene.find_child("WestFishingLake", true, false) if get_tree().current_scene else null
-	var in_fishing_minigame: bool = lake != null and int(lake.get("state")) == 3
-	var camp = get_tree().current_scene.find_child("PlayerCampSite", true, false) if get_tree().current_scene else null
-	var sitting_on_log: bool = camp != null and bool(camp.get("is_player_sitting"))
+	# Block movement if dialogue active, modal open, tavern minigame time freeze, or handcuffed in police escort
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	var being_escorted: bool = vm != null and bool(vm.get("player_being_escorted_to_jail"))
-	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or in_fishing_minigame or sitting_on_log or being_escorted:
+	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or being_escorted:
 		if is_instance_valid(stamina_comp):
 			stamina_comp.is_input_blocking = false
 		if being_escorted:

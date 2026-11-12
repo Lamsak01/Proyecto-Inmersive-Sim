@@ -37,7 +37,7 @@ func _draw() -> void:
 	if pts.size() < 2:
 		return
 	# Mientras el río siga como el original, el juego usa su forma de siempre: dibujo esa misma.
-	var FS = load("res://scripts/obstacles/FishingSpot.gd")
+	var FS = load("res://scripts/fisica/RioLago.gd")
 	var original: bool = FS.es_rio_original(d)
 	var orillas := func(yy: float) -> Vector2:
 		return FS._antiguo_banks_at(yy) if original else RioForma.banks_at(d, yy)
@@ -69,7 +69,7 @@ func _draw() -> void:
 	for c in d["cruces"]:
 		var cp: Vector2 = c["pos"]
 		var bk0: Vector2 = orillas.call(cp.y)
-		# El juego alarga cada paso hasta las orillas (FishingSpot); aquí se dibuja igual para que no salga rojo sin motivo
+		# El juego alarga cada paso hasta las orillas (RioLago); aquí se dibuja igual para que no salga rojo sin motivo
 		var hw: float = maxf(float(c["half_w"]), (bk0.y - bk0.x) * 0.5 + 8.0)
 		var r := Rect2(cp - Vector2(hw, c["half_h"]), Vector2(hw, c["half_h"]) * 2.0)
 		var col := Color(0.55, 0.38, 0.20, 0.9) if c["kind"] != "ford" else Color(0.70, 0.65, 0.50, 0.8)

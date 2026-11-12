@@ -378,8 +378,8 @@ func _use_tavern_bed(player: Node2D) -> void:
 
 func _use_water_well(player: Node2D) -> void:
 	VillageNeeds.player_wash(self) # E1: también te lavas
-	if player.has_method("refill_watering_can"):
-		player.call("refill_watering_can")
+	if player.has_method("llenar_agua"):
+		player.call("llenar_agua")
 	else:
 		_msg_player(player, "💧 Agua fresca del pozo", Color.AQUA, -40.0)
 

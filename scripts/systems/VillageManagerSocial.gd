@@ -467,16 +467,10 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	for w_pos in _well_positions:
 		if world_pos.distance_squared_to(w_pos) <= max_well_dist * max_well_dist:
 			return true
-	for spot in get_tree().get_nodes_in_group("fishing_spots"):
-		if spot is Node2D:
-			var s_pos: Vector2 = (spot as Node2D).global_position
-			if not bool(spot.get("is_river_spot")):
-				# El Lago del Oeste: su contorno (mapa ×E) más el margen en metros
-				var orilla: PackedVector2Array = FishingSpot.lake_scaled(1.0, max_meters * 16.0 + 6.0) * Transform2D(0.0, Vector2.ONE * Mapa3D.E, 0.0, Vector2.ZERO)
-				if Geometry2D.is_point_in_polygon(world_pos, orilla):
-					return true
-			if world_pos.distance_squared_to(s_pos + (spot.get("dock_pos") as Vector2)) <= max_well_dist * max_well_dist:
-				return true
+	# El Lago del Oeste: su contorno (mapa ×E) más el margen en metros
+	var orilla: PackedVector2Array = RioLago.lake_scaled(1.0, max_meters * 16.0 + 6.0) * Transform2D(0.0, Vector2.ONE * Mapa3D.E, 0.0, Vector2.ZERO)
+	if Geometry2D.is_point_in_polygon(world_pos, orilla):
+		return true
 	# Charca de agua de la Ciénaga del Suroeste
 	if Rect2(Vector2(-1910, 165), Vector2(710, 320)).grow(max_meters * 16.0).has_point(world_pos):
 		return true
@@ -487,9 +481,9 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	if world_pos.distance_squared_to(sitio(_hospital_bed_pos)) <= max_well_dist * max_well_dist:
 		return true
 	# Cauce del río de norte a sur y arroyo del bosque norte
-	if world_pos.y >= FishingSpot.river_y_start() and world_pos.y <= FishingSpot.river_y_end():
-		var riv_cx: float = FishingSpot.river_center_x(world_pos.y)
-		var riv_hw: float = FishingSpot.river_half_width(world_pos.y)
+	if world_pos.y >= RioLago.river_y_start() and world_pos.y <= RioLago.river_y_end():
+		var riv_cx: float = RioLago.river_center_x(world_pos.y)
+		var riv_hw: float = RioLago.river_half_width(world_pos.y)
 		if absf(world_pos.x - riv_cx) <= riv_hw + max_meters * 16.0:
 			return true
 	return false

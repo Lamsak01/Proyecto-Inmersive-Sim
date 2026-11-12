@@ -37,7 +37,7 @@ static func wear_on_hit(player, weapon, target: Node) -> void:
 		return
 	var k: String = _key(weapon)
 	if not NAMES_ES.has(k):
-		return # puños, regadera, caña…: no se mellan
+		return # puños y armas sin filo de herramienta: no se mellan
 	var amount: float = WEAR_LIVING
 	if target != null and target.is_in_group("destructible"):
 		amount = WEAR_PROPER_TOOL if k in PROPER_TOOLS else WEAR_WRONG_USE

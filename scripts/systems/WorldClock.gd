@@ -116,7 +116,7 @@ func set_weather(w: WeatherType) -> void:
 	weather_changed.emit(current_weather, get_weather_name(current_weather))
 	time_updated.emit(current_day, current_hour, current_minute)
 	if current_weather == WeatherType.RAIN:
-		_water_all_farm_plots_from_rain()
+		_apagar_fuegos_con_lluvia()
 
 func _roll_daily_weather() -> void:
 	var roll := randf()
@@ -128,14 +128,12 @@ func _roll_daily_weather() -> void:
 		current_weather = WeatherType.FOG
 	weather_changed.emit(current_weather, get_weather_name(current_weather))
 	if current_weather == WeatherType.RAIN:
-		call_deferred("_water_all_farm_plots_from_rain")
+		call_deferred("_apagar_fuegos_con_lluvia")
 
-func _water_all_farm_plots_from_rain() -> void:
+## La lluvia apaga los fuegos al aire libre del pueblo.
+func _apagar_fuegos_con_lluvia() -> void:
 	if not is_inside_tree():
 		return
-	for plot in get_tree().get_nodes_in_group("farm_plots"):
-		if is_instance_valid(plot) and plot.has_method("water_from_rain_or_sprinkler"):
-			plot.call("water_from_rain_or_sprinkler")
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if is_instance_valid(vm) and vm.has_method("extinguish_outdoor_fires_from_rain"):
 		vm.call("extinguish_outdoor_fires_from_rain")

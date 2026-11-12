@@ -16,7 +16,7 @@
 | `scripts/systems/` | Las reglas del pueblo: reloj, guardado, economía, casas, crimen, justicia, fe, familia, taberna… | 58, ~38.600 |
 | `scripts/systems/combat/` | Golpes, heridas, armas, flechas | 12, ~2.000 |
 | `scripts/systems/quests/` | Misiones secundarias y sus tipos | 28, ~2.500 |
-| `scripts/obstacles/` | Cosas del mundo con las que interactúas: huerto, gallinero, pesca, campamento, caballo, carro, objetos | 10, ~4.700 |
+| `scripts/obstacles/` | Cosas del mundo con las que interactúas: caballo, carro, animales de corral, objetos | 6, ~2.000 |
 | `scripts/visuals/` | Todo lo que se ve en 3D: escenario, edificios, terreno, muñecos de personas y animales | 11, ~11.400 |
 | `scripts/ui/` | Paneles y menús de la partida: detective, mapa, mochila, salud, casino, crónica… | 15, ~9.100 |
 | `scripts/ui/menu/` | Menú principal, pausa, ajustes, partidas y créditos | 6, ~800 |
@@ -42,6 +42,7 @@
 - `CuerposCercanos3D.gd` [~140] — cuerpos 3D «de contacto» de los vecinos, bandidos y animales grandes cercanos al protagonista (no se les atraviesa).
 - `Vista.gd` [~70] — ¿quién ve a quién, cuánto le oye y si llega a golpearle? paredes y puertas del mapa más las losas de los suelos altos (pasos 5a–5c).
 - `Agua.gd` [~55] — dónde hay agua (río y lago), a qué altura está su superficie y cuánto cubre en cada punto.
+- `RioLago.gd` [~360] — forma del río (orillas, puentes, vados) y del Lago del Oeste; como nodo, el choque del agua del lago. Salió de la pesca, borrada el 2026-11-12.
 - `Suelo.gd` [~95] — a qué altura está el suelo en un punto (tarimas, plaza, puentes); dónde hay varios suelos (posada) y cuál pisa el cuerpo; de qué piso es cada choque.
 
 ## Efectos — `shaders/`
@@ -88,8 +89,7 @@
 - `VillageSect.gd` — **no tocar sin orden expresa del usuario.**
 
 ## Cosas del mundo — `scripts/obstacles/`
-`CampSite.gd` [1.017] ⚠ (campamento y casa del jugador), `ChickenCoop.gd` [640], `FarmPlot.gd`, `FishingSpot.gd` [698]
-(pesca, y la forma del río), `HarvestableNode.gd`, `DestructibleObject.gd`, `LivestockAnimal.gd`, `PlayerCart.gd` [654],
+`HarvestableNode.gd`, `DestructibleObject.gd`, `LivestockAnimal.gd`, `PlayerCart.gd` [654],
 `PlayerHorse.gd`, `WorldInteractableProp.gd`.
 
 ## Paneles — `scripts/ui/` y `scenes/ui_root.gd`

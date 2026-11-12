@@ -179,15 +179,6 @@ func save_game(filepath: String = SAVE_FILE_PATH, aviso: String = "") -> bool:
 			var tg = ui.get("tavern_games")
 			if tg and tg.visible and tg.has_method("close_games"):
 				tg.call("close_games")
-	for plot in get_tree().get_nodes_in_group("farm_plots"):
-		if is_instance_valid(plot) and plot.has_method("_save_state"):
-			plot.call("_save_state")
-	for coop in get_tree().get_nodes_in_group("chicken_coop"):
-		if is_instance_valid(coop) and coop.has_method("_save_state"):
-			coop.call("_save_state")
-	for camp in get_tree().get_nodes_in_group("campsite"):
-		if is_instance_valid(camp) and camp.has_method("_save_state"):
-			camp.call("_save_state")
 	var det_ui_save := get_tree().root.find_child("DetectiveUI", true, false)
 	if det_ui_save and det_ui_save.has_method("save_detective_state"):
 		det_ui_save.call("save_detective_state")
@@ -316,24 +307,6 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 					tw.call("close_wheel", false)
 				elif tw is Control:
 					tw.visible = false
-		var camp_node = scene_root.find_child("PlayerCampSite", true, false)
-		if camp_node:
-			if bool(camp_node.get("is_player_sitting")) and camp_node.has_method("_stand_up_player"):
-				camp_node.call("_stand_up_player")
-			elif "is_player_sitting" in camp_node:
-				camp_node.is_player_sitting = false
-			for cp_name in ["sleep_confirm_panel", "upgrade_panel", "chest_panel"]:
-				var cp = camp_node.get(cp_name)
-				if cp is Control:
-					cp.visible = false
-		var fish_node = scene_root.find_child("WestFishingLake", true, false)
-		if fish_node and fish_node.has_method("cancel_fishing"):
-			fish_node.call("cancel_fishing")
-	var coop_node = get_tree().get_first_node_in_group("chicken_coop")
-	if coop_node:
-		var coop_p = coop_node.get("chicken_action_panel")
-		if coop_p is Control:
-			coop_p.visible = false
 	var vm_pre = get_tree().get_first_node_in_group("village_manager")
 	if vm_pre:
 		for vp_name in ["business_panel", "morgue_panel", "jail_panel", "board_panel", "police_panel", "pantry_panel", "church_panel"]:

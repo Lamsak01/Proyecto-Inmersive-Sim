@@ -11,7 +11,7 @@
 | `scripts/enemies/` | Vecinos (`VillageNPCBase/NPC/Social/Work/Duties`, `NPCDialogue`), `WildAnimal`, `DomesticPet`, `Raider`, `DummyEnemy`, `MillKidnapper` |
 | `scripts/systems/` | Reglas del pueblo: base `VillageManagerBase/Manager/Economy/Social/Police`, `VillageWorldBuilder`; economía, vida social, crimen y justicia, lugares (`VillageTavern`, `VillageClub`…), gobierno, naturaleza. `VillageSect.gd`: **no tocar** |
 | `scripts/systems/combat/` · `quests/` · `ai/` · `game_objectives/` | Golpes y heridas · misiones secundarias · IA · objetivos del Caso I |
-| `scripts/obstacles/` | Cosas interactivas: huerto, gallinero, pesca (`FishingSpot`, forma del río), campamento, caballo, carro |
+| `scripts/obstacles/` | Cosas interactivas: caballo, carro, animales de corral, objetos. Forma del río y del lago: `scripts/fisica/RioLago.gd` |
 | `scripts/ui/` · `scenes/ui_root.gd` | Paneles (detective, mapa, mochila, salud, casino, crónica); `InteractionSelector` (tecla E); HUD y pausa |
 | `scripts/data/` | Datos fijos: nombres, rasgos, frases, fichas de vecinos |
 | `scenes/` | `World.tscn`, `MenuPrincipal.tscn`, interfaz |

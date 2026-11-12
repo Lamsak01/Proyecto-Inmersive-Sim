@@ -18,7 +18,7 @@ func _ok(c: bool, txt: String) -> void:
 
 
 func _initialize() -> void:
-	for _i in range(3): # los autoloads (WorldClock…) aún no existen en el primer instante y FishingSpot no compilaría
+	for _i in range(3): # los autoloads (WorldClock…) aún no existen en el primer instante y RioLago no compilaría
 		await process_frame
 	Nucleo = load("res://mapa/pincel_nucleo.gd")
 	Mezclas = load("res://mapa/pincel_mezclas.gd")
@@ -47,7 +47,7 @@ func _initialize() -> void:
 	_ok(min_d > 15.0, "separados entre sí (mínimo ~%d)" % int(min_d))
 	# Río y edificio
 	nu.empezar()
-	var FS = load("res://scripts/obstacles/FishingSpot.gd")
+	var FS = load("res://scripts/fisica/RioLago.gd")
 	nu.radio = 20.0
 	var en_agua := 0
 	for y in range(-300, 300, 30):

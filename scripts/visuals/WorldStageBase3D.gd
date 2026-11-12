@@ -17,7 +17,7 @@ const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd") 
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld.gd")
 const VillageHousingScript = preload("res://scripts/systems/VillageHousing.gd")
-const FishingSpotScript = preload("res://scripts/obstacles/FishingSpot.gd")
+const RioLagoScript = preload("res://scripts/fisica/RioLago.gd")
 const AnclasScript = preload("res://mapa/anclas.gd")
 ## Mapa ×E (2026-11-11): mientras se construye el terreno desde las listas del código (coordenadas del mapa original),
 ## cada posición se estira E veces tal cual (`_add_box_2d`, `_add_cyl_2d`, `_add_model_2d`, polígonos y calles): el
@@ -100,15 +100,6 @@ var _batches: Dictionary = {} # clave -> {"mmi": MultiMeshInstance3D, "entries":
 var _batch_dirty: Dictionary = {}
 var _prop_sources: Array = [] # [{"sprite": Sprite2D, "kind": String}] objetos quietos 2D con su versión 3D
 var _prop_nodes: Dictionary = {} # instance_id del sprite -> {"root": Node3D, "variant": String}
-var _extra_hidden_2d: Array = [] # Piezas 2D (suelos, muros, cercas) que se esconden en 3D: casa del jugador y gallinero
-var _camp_node: Node2D = null
-var _player_house_3d: Node3D = null
-var _player_house_roof: Node3D = null
-var _player_house_rect: Rect2 = Rect2()
-var _player_house_tier: int = -1
-var _coop_node: Node2D = null
-var _coop_3d: Node3D = null
-var _coop_gap_3d: Node3D = null
 var _grid_panel_bulb_3d: MeshInstance3D = null
 var _heist_prop_3d: Node3D = null
 var _last_heist_sig: String = ""
@@ -516,15 +507,15 @@ static func _village_terrace_height_px(pos_2d: Vector2) -> float:
 
 
 static func _river_bank_terrace_height_px(y: float) -> float:
-	var sample_x: float = FishingSpotScript.river_center_x(y) + FishingSpotScript.river_half_width(y) + 18.0
+	var sample_x: float = RioLagoScript.river_center_x(y) + RioLagoScript.river_half_width(y) + 18.0
 	# Editor del mapa (2026-11-09): la cota del agua sale del suelo real junto al río (antes, de las terrazas del pueblo con
 	# «y» recortada, y el río dibujado más al norte quedaba levantado sobre un terraplén)
 	var h_der: float = terrain_height_px(Vector2(sample_x, y)) - _river_cut_px(Vector2(sample_x, y))
 	if y >= -825.0 and y <= 650.0:
 		return h_der # dentro del pueblo, como siempre (orilla este)
 	# Fuera del pueblo el agua no puede quedar por encima de la orilla más baja
-	var cx: float = FishingSpotScript.river_center_x(y)
-	var hw: float = FishingSpotScript.river_half_width(y)
+	var cx: float = RioLagoScript.river_center_x(y)
+	var hw: float = RioLagoScript.river_half_width(y)
 	var h_min: float = h_der
 	for off in [-18.0, -30.0, 30.0]:
 		var sx: float = cx + (hw + absf(off)) * signf(off)
@@ -542,10 +533,10 @@ static func superficie_rio_px(y: float) -> float:
 ## Parte del hundimiento del cauce en un punto (para no contarla al medir la orilla).
 static func _river_cut_px(pos_2d: Vector2) -> float:
 	var y: float = pos_2d.y
-	if y < FishingSpotScript.river_y_start() or y > FishingSpotScript.river_y_end() or FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(AnclasScript.desmover(pos_2d)):
+	if y < RioLagoScript.river_y_start() or y > RioLagoScript.river_y_end() or RioLagoScript.ABANDONED_MILL_RECT.grow(4.0).has_point(AnclasScript.desmover(pos_2d)):
 		return 0.0
-	var riv_hw: float = FishingSpotScript.river_half_width(y)
-	var d_riv: float = absf(pos_2d.x - FishingSpotScript.river_center_x(y))
+	var riv_hw: float = RioLagoScript.river_half_width(y)
+	var d_riv: float = absf(pos_2d.x - RioLagoScript.river_center_x(y))
 	if d_riv >= riv_hw + 20.0:
 		return 0.0
 	return -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
@@ -563,18 +554,18 @@ static func es_vegetacion_en_rio(rel_path: String, center_2d: Vector2) -> bool:
 
 ## Dentro del cauce del río, haya o no puente o vado encima.
 static func en_cauce_del_rio(p: Vector2, margen: float = 0.0) -> bool:
-	if p.y < FishingSpotScript.river_y_start() - 5.0 or p.y > FishingSpotScript.river_y_end() + 5.0:
+	if p.y < RioLagoScript.river_y_start() - 5.0 or p.y > RioLagoScript.river_y_end() + 5.0:
 		return false
-	var b: Vector2 = FishingSpotScript.river_banks_at(p.y)
+	var b: Vector2 = RioLagoScript.river_banks_at(p.y)
 	return p.x >= b.x - margen and p.x <= b.y + margen
 
 
 static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
-	if FishingSpotScript.is_in_river_crossing(pos_2d, 3.0):
+	if RioLagoScript.is_in_river_crossing(pos_2d, 3.0):
 		var bank_h: float = _river_bank_terrace_height_px(pos_2d.y)
 		var base_t: float = terrain_height_px(pos_2d)
 		var cr_boost: float = 1.6 if absf(pos_2d.y - 50.0) <= 24.0 else 0.9
-		for cr in FishingSpotScript.river_crossings():
+		for cr in RioLagoScript.river_crossings():
 			if String(cr.get("kind", "")) == "log" and absf(pos_2d.y - float(cr["pos"].y)) <= float(cr["half_h"]) + 3.0:
 				cr_boost = 4.6 # se camina por encima del tronco caído (8 de grosor, apoyado 3 por debajo de la orilla)
 		return maxf(0.45, (bank_h - base_t) + cr_boost)
@@ -606,7 +597,7 @@ static func olvidar_relieve() -> void:
 
 ## Distancia (px del mapa original) de `o` al contorno del lago: negativa dentro del agua.
 static func _lake_signed_dist_px(o: Vector2) -> float:
-	var poli: PackedVector2Array = FishingSpotScript.lake_outline()
+	var poli: PackedVector2Array = RioLagoScript.lake_outline()
 	var d: float = INF
 	for i in range(poli.size()):
 		var q: Vector2 = Geometry2D.get_closest_point_to_segment(o, poli[i], poli[(i + 1) % poli.size()])
@@ -625,15 +616,15 @@ static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
 	var river_cut_h: float = 0.0
 	# Editor del mapa (2026-11-09): el río puede llegar a lomas y bosque; ahí el relieve se allana en su cauce para que el agua no quede bajo tierra
 	var river_flat: float = 0.0
-	if pos_2d.y >= FishingSpotScript.river_y_start() and pos_2d.y <= FishingSpotScript.river_y_end() and not FishingSpotScript.ABANDONED_MILL_RECT.grow(4.0).has_point(o):
-		var riv_cx: float = FishingSpotScript.river_center_x(pos_2d.y)
-		var riv_hw: float = FishingSpotScript.river_half_width(pos_2d.y)
+	if pos_2d.y >= RioLagoScript.river_y_start() and pos_2d.y <= RioLagoScript.river_y_end() and not RioLagoScript.ABANDONED_MILL_RECT.grow(4.0).has_point(o):
+		var riv_cx: float = RioLagoScript.river_center_x(pos_2d.y)
+		var riv_hw: float = RioLagoScript.river_half_width(pos_2d.y)
 		var d_riv: float = absf(pos_2d.x - riv_cx)
 		if d_riv < riv_hw + 20.0:
 			river_cut_h = -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
 		river_flat = 1.0 - smoothstep(riv_hw + 12.0, riv_hw + 90.0, d_riv)
 
-	# 1. Cuenca baja y de orillas suaves del Lago del Oeste: sigue el contorno del agua (FishingSpot.lake_outline), así la
+	# 1. Cuenca baja y de orillas suaves del Lago del Oeste: sigue el contorno del agua (RioLago.lake_outline), así la
 	#    orilla que se ve es la misma que la de nadar, chocar y el muelle (mapa ×E: antes la cuenca era una elipse a ojo)
 	var lake_h: float = 0.0
 	if x < -600.0 and x > -1180.0 and y > 30.0 and y < 300.0:
@@ -741,9 +732,9 @@ func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
 	var w_forest: float = maxf(smoothstep(665.0 + edge_wave, 775.0 + edge_wave, y), smoothstep(-735.0, -830.0, y))
 	var w_plains: float = smoothstep(-940.0, -1180.0, x) * smoothstep(20.0, -90.0, y)
 	var w_mud: float = 0.0
-	if pos_2d.y >= FishingSpotScript.river_y_start() and pos_2d.y <= FishingSpotScript.river_y_end():
-		var riv_cx: float = FishingSpotScript.river_center_x(pos_2d.y)
-		var riv_hw: float = FishingSpotScript.river_half_width(pos_2d.y)
+	if pos_2d.y >= RioLagoScript.river_y_start() and pos_2d.y <= RioLagoScript.river_y_end():
+		var riv_cx: float = RioLagoScript.river_center_x(pos_2d.y)
+		var riv_hw: float = RioLagoScript.river_half_width(pos_2d.y)
 		var d_riv: float = absf(pos_2d.x - riv_cx)
 		if d_riv < riv_hw + 9.0:
 			w_mud = maxf(w_mud, (1.0 - smoothstep(riv_hw * 0.65, riv_hw + 9.0, d_riv)) * 0.62)
@@ -1053,17 +1044,3 @@ static func _perf_add(part: String, since: int) -> int:
 	perf_usec[part] = int(perf_usec.get(part, 0)) + (now - since)
 	return now
 
-
-func _build_fence_run_3d(parent: Node3D, a: Vector2, b: Vector2, m: Material) -> void:
-	var length: float = a.distance_to(b)
-	var n_posts: int = maxi(2, int(ceil(length / 12.0)) + 1)
-	for i in range(n_posts):
-		_add_box_2d(parent, a.lerp(b, float(i) / float(n_posts - 1)), Vector2(2.4, 2.4), 0.0, 11.0, m)
-	var mid: Vector2 = (a + b) * 0.5
-	var horiz: bool = absf(b.x - a.x) > absf(b.y - a.y)
-	var rail_sz: Vector2 = Vector2(length, 1.4) if horiz else Vector2(1.4, length)
-	_add_box_2d(parent, mid, rail_sz, 4.0, 1.4, m)
-	_add_box_2d(parent, mid, rail_sz, 8.5, 1.4, m)
-
-
-## Brote, planta a medias o planta madura según la imagen del cultivo 2D.
