@@ -84,6 +84,7 @@ var _jail_gate_pivot_3d: Node3D = null
 var _reja_celda_cerrada: Vector3 = Vector3.ZERO ## sitio de la reja cerrada, respecto a su edificio
 const REJA_CELDA_RECORRIDO_PX: float = 22.0     ## lo que se desliza hacia el oeste al abrirse
 var _puertas_interiores = preload("res://scripts/visuals/PuertasInteriores3D.gd").new() # hojas de los cuartos de la posada
+var _rastros = preload("res://scripts/visuals/Rastros3D.gd").new() # sangre, huellas y campamentos de vagabundos
 var _streetlight_nodes_3d: Array[Dictionary] = []
 var _floodlight_nodes_3d: Array[Dictionary] = []
 var _last_buried_count: int = -1

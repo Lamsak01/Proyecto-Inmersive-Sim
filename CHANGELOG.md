@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Sangre, huellas y campamentos de vagabundos en 3D (Claude Code)
+- Solo existían en el plano y en primera persona no se veían. Nuevo `scripts/visuals/Rastros3D.gd` (lo llama
+  `_sync_dynamic_props_3d`): charco irregular de sangre oscura, huellas que se aclaran al alejarse y campamento
+  (lona, petate y hoguera); se rehace solo cuando cambian los datos.
+- Las huellas ya son datos (`blood_puddles[i]["footprints"]`: pos, ángulo, alfa) en vez de polígonos; fuera el
+  dibujo plano del charco, de las huellas y del campamento. Visto en foto; verify_all.
+
 ## 2026-11-12 — Capa 2, tanda 2: fuera los polígonos planos (Claude Code)
 - El 3D no leía ningún polígono plano (solo los escondía): borrados umbrales de puertas, escritorio, urna, biblioteca,
   sala oculta, pupitres, pizarra, mercado (`_draw_market`), parque, mirador, campos/corral/cantera, camas de mascota,

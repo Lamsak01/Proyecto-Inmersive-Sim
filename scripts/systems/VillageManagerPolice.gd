@@ -1,5 +1,6 @@
 @tool
 extends "res://scripts/systems/VillageManagerSocial.gd"
+const FOOTPRINT_OFFSET := Vector2(0, 5) ## la huella cae a los pies, algo por debajo del centro del cuerpo
 
 
 func report_assault_crime(victim: VillageNPC) -> void:
@@ -573,19 +574,13 @@ func spawn_blood_puddle(pos: Vector2, victim_name: String = "") -> void:
 			if victim_name != "":
 				existing["victim_name"] = victim_name
 			return
-	var pts := PackedVector2Array([
-		Vector2(-9, -4), Vector2(-4, -8), Vector2(4, -7), Vector2(10, -3),
-		Vector2(8, 5), Vector2(2, 8), Vector2(-6, 7), Vector2(-10, 2)
-	])
-	var puddle_poly := _add_poly(pts, Color(0.56, 0.04, 0.06, 0.84), -2, pos)
 	var cur_d: int = WorldClock.current_day if WorldClock else 1
 	var cur_h: int = WorldClock.current_hour if WorldClock else 12
 	var cur_m: int = WorldClock.current_minute if WorldClock else 0
 	blood_puddles.append({
 		"pos": pos,
 		"victim_name": victim_name,
-		"node": puddle_poly,
-		"footprint_nodes": [],
+		"footprints": [], # [{pos, angle, alpha}]: el rastro que dibuja Rastros3D
 		"flee_dir": Vector2.ZERO,
 		"flee_compass": "",
 		"last_stepper": "",
@@ -623,9 +618,7 @@ func update_entity_blood_footprints(entity: Node2D, _delta: float) -> void:
 	var move_vec: Vector2 = ent_pos - origin_pos
 	var flee_dir: Vector2 = move_vec.normalized() if move_vec.length_squared() > 1.0 else (ent_pos - last_pos).normalized()
 	var alpha: float = clampf(0.28 + float(steps_left) * 0.09, 0.25, 0.82)
-	var fp_pts := PackedVector2Array([Vector2(-2.2, -1.2), Vector2(2.2, -1.2), Vector2(2.2, 1.2), Vector2(-2.2, 1.2)])
-	var fp_poly := _add_poly(fp_pts, Color(0.52, 0.04, 0.06, alpha), -2, ent_pos + Vector2(0, 5))
-	fp_poly.rotation = flee_dir.angle()
+	var huella: Dictionary = {"pos": ent_pos + FOOTPRINT_OFFSET, "angle": flee_dir.angle(), "alpha": alpha}
 
 	var p_idx: int = int(entity.get_meta("bloody_puddle_idx", -1))
 	if p_idx >= 0 and p_idx < blood_puddles.size() and flee_dir.length_squared() > 0.01:
@@ -634,9 +627,7 @@ func update_entity_blood_footprints(entity: Node2D, _delta: float) -> void:
 		pud["flee_compass"] = _describe_direction_and_landmark(origin_pos, flee_dir)
 		var ent_name: String = "Jugador" if entity.is_in_group("player") else (str(entity.get("npc_name")) if "npc_name" in entity else str(entity.name))
 		pud["last_stepper"] = ent_name
-		var fp_arr: Array = pud.get("footprint_nodes", [])
-		fp_arr.append(fp_poly)
-		pud["footprint_nodes"] = fp_arr
+		(pud["footprints"] as Array).append(huella)
 
 func get_blood_puddle_clue_near(crime_pos: Vector2, max_radius: float = 95.0) -> Dictionary:
 	var best_idx: int = -1

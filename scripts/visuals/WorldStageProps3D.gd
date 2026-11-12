@@ -376,6 +376,7 @@ func _sync_dynamic_props_3d() -> void:
 			badge.visible = (not eff_open) and (bool(d_entry.get("is_locked", false)) or bool(d_entry.get("locked_by_player", false)))
 
 	_puertas_interiores.sincronizar(get_tree(), vm, get_process_delta_time())
+	_rastros.sincronizar(self)
 
 	# 2. Postigos de ventanas 3D
 	for w_node in _window_nodes_3d:

@@ -326,12 +326,6 @@ static func clear_blood_puddles(vm, near_pos: Vector2 = Vector2.INF, max_dist: f
 		var p_pos: Vector2 = pud.get("pos", Vector2.ZERO)
 		if near_pos != Vector2.INF and p_pos.distance_to(near_pos) > max_dist:
 			continue
-		var node = pud.get("node", null)
-		if node != null and is_instance_valid(node):
-			node.queue_free()
-		for fp in (pud.get("footprint_nodes", []) as Array):
-			if fp != null and is_instance_valid(fp):
-				fp.queue_free()
 		vm.blood_puddles.remove_at(i)
 		removed += 1
 	return removed
