@@ -567,7 +567,7 @@ func _initialize() -> void:
 	var walked_in2: bool = await _walk_to_waypoints(pl, stage, [Vector2(915.0, 120.0), Vector2(942.0, 124.0)], 5.0)
 	print("[CASO1] D5 dentro: pos=%s ok=%s puerta=%s" % [str(pl.global_position.round()), str(walked_in2), str(not d_pol2.is_empty())])
 	walked_accuse = walked_accuse and walked_in2
-	var rep_e: Dictionary = await _aim_and_press_e(pl, stage, C1.REPORT_POS, -0.30, "informe")
+	var rep_e: Dictionary = await _aim_and_press_e(pl, stage, C1.report_pos(), -0.30, "informe")
 	var dm = root.find_child("dialogue_manager", true, false)
 	var form_open: bool = dm != null and bool(dm.call("is_active")) and (dm.get("graph") as Dictionary).has("confirm_young")
 	await _save_shot("05_informe_caso_comisaria_1p")

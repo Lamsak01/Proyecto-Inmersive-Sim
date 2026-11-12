@@ -10,6 +10,7 @@ extends SceneTree
 ## «comparar» escribe docs/INVENTARIO_MUNDO.md.
 
 const Informe = preload("res://tools/tests/inventario_informe.gd")
+const Constantes = preload("res://tools/tests/inventario_constantes.gd")
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const ESCENA_EDITOR := "res://mapa/Mundo3D.tscn"
 const ESCENA_JUEGO := "uid://dsoiuct8kdsk3"
@@ -45,6 +46,7 @@ func _initialize() -> void:
 	_volcar_2d(datos)
 	_volcar_vecinos(datos)
 	_volcar_edificios(datos)
+	Constantes.volcar(datos)
 	var f := FileAccess.open(SALIDA % modo, FileAccess.WRITE)
 	f.store_string(JSON.stringify(datos))
 	f.close()

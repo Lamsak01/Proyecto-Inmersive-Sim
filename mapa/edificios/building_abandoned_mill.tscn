@@ -251,3 +251,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.184, 0, 2.576)
 gizmo_extents = 0.5
 script = ExtResource("8_37uc6")
 id_marca = "ventana"
+
+[node name="secuestrador_young" type="Marker3D" parent="Marcas" unique_id=1591763709]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.008, 0, -1.008)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "secuestrador_young"
+
+[node name="secuestrador_driver" type="Marker3D" parent="Marcas" unique_id=1916884500]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.672, 0, -1.344)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "secuestrador_driver"

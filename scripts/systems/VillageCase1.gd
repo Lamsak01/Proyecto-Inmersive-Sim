@@ -15,12 +15,12 @@ const MANSION_LOT: String = "f1"
 const KIDNAPPERS_LEAVE_AFTER_DAYS: int = 3
 ## Los dos forasteros del molino. El tercero (lana azul) es un vecino: papel «kidnapper_blue_wool».
 const MILL_KIDNAPPERS: Dictionary = {
-	"young": {"label": "Muchacho de capa parda", "pos": Vector2(206.0, -1078.0)},
-	"driver": {"label": "Carretero forastero", "pos": Vector2(176.0, -1084.0)},
+	"young": {"label": "Muchacho de capa parda"},
+	"driver": {"label": "Carretero forastero"},
 }
-## Bandeja de informes en la comisaría: junto a la entrada, a la izquierda del armero y frente al sitio del alguacil
-## (el rincón noreste quedaba encerrado por el armero y la mesa).
-const REPORT_POS: Vector2 = Vector2(946.0, 111.0)
+const Marca = preload("res://mapa/marca.gd")
+const POLICE_ID: String = "building_police"
+const MILL_ID: String = "building_abandoned_mill"
 const ReportDeskScript = preload("res://scripts/systems/Case1ReportDesk.gd")
 ## Pruebas que se pueden adjuntar al informe (clave del cuaderno → nombre corto).
 const REPORT_EVIDENCE: Dictionary = {
@@ -79,6 +79,13 @@ static func _today() -> int:
 
 ## Un día de margen (decisión del usuario, 2026-11-11): el día 1 llegas y conoces el pueblo; el caso estalla el día 2.
 const DIA_DE_MARGEN: int = 1
+
+
+## Bandeja de informes de la comisaría, en el mapa original: su cruz «informe» en la escena del edificio.
+static func report_pos() -> Vector2:
+	return Marca.sitio(POLICE_ID, Marca.INFORME)
+
+
 const AVISO_AMANECER: String = "🔔 Al amanecer, un pastor ha encontrado a una mujer muerta junto al arroyo, al norte del pueblo. El alguacil Vane te espera allí."
 
 static func empezado() -> bool:
@@ -210,9 +217,9 @@ static func sync(vm) -> void:
 		AN_h.pausa -= 1
 		st["page_pos"] = [page_pos.x, page_pos.y]
 	if vm.get_node_or_null("Case1ReportArea") == null:
-		vm._add_station_area("Case1ReportArea", REPORT_POS, 20.0, "case1_report_desk")
-		vm._add_prop_collider(REPORT_POS, Vector2(7.0, 5.0))
-		vm.register_no_stand_furniture(REPORT_POS, Vector2(7.0, 5.0))
+		vm._add_station_area("Case1ReportArea", report_pos(), 20.0, "case1_report_desk")
+		vm._add_prop_collider(report_pos(), Vector2(7.0, 5.0))
+		vm.register_no_stand_furniture(report_pos(), Vector2(7.0, 5.0))
 	# Los forasteros se van si el jugador tarda demasiado
 	var start_day: int = int(st.get("start_day", _today()))
 	for k in MILL_KIDNAPPERS.keys():
@@ -236,7 +243,7 @@ static func _sync_kidnappers(vm, st: Dictionary) -> void:
 			continue
 		var kd = MillKidnapperScript.new()
 		vm.entities_root.add_child(kd)
-		kd.setup_kidnapper(str(k), str(MILL_KIDNAPPERS[k]["label"]), load("res://mapa/anclas.gd").mover(MILL_KIDNAPPERS[k]["pos"])) # siguen al molino (mapa ×E)
+		kd.setup_kidnapper(str(k), str(MILL_KIDNAPPERS[k]["label"]), load("res://mapa/anclas.gd").mover(Marca.sitio(MILL_ID, Marca.SECUESTRADOR % str(k)))) # su cruz del molino
 		kd.name = node_name
 		kd.gone.connect(func(_r, outcome: String): _on_kidnapper_gone(vm, str(k), outcome))
 
@@ -252,7 +259,7 @@ static func _on_kidnapper_gone(vm, k: String, outcome: String) -> void:
 static func try_interact(vm, player: Node2D, pos: Vector2, sel_kind: String) -> bool:
 	var st: Dictionary = state(vm)
 	var o: Vector2 = load("res://mapa/anclas.gd").desmover(pos) # la bandeja y el gabinete están escritos en el mapa original (mapa ×E)
-	if sel_kind == "case1_report_desk" or (sel_kind == "" and o.distance_squared_to(REPORT_POS) <= 14.0 * 14.0):
+	if sel_kind == "case1_report_desk" or (sel_kind == "" and o.distance_squared_to(report_pos()) <= 14.0 * 14.0):
 		open_report(vm)
 		return true
 	if sel_kind == "case1_forced_cabinet" or (sel_kind == "" and o.distance_squared_to(cabinet_pos()) <= 16.0 * 16.0):

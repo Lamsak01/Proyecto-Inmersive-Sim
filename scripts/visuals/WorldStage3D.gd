@@ -1347,7 +1347,7 @@ func sync_case1_props_3d() -> void:
 		for j in range(3):
 			_add_box_2d(_case1_props_root_3d, page + Vector2(-0.4, -1.0 + j * 0.9), Vector2(2.6, 0.18), 9.2, 0.05, m_ink, 12.0)
 	# Bandeja de informes de la comisaría: atril de madera con una bandeja y papeles en blanco
-	var rp: Vector2 = C1.REPORT_POS
+	var rp: Vector2 = C1.report_pos()
 	_add_box_2d(_case1_props_root_3d, rp, Vector2(7.0, 5.0), 2.0, 9.0, m_walnut)
 	_add_box_2d(_case1_props_root_3d, rp, Vector2(6.0, 4.2), 11.0, 0.8, m_brass)
 	for j2 in range(3):

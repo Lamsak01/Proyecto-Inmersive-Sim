@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 3 empezado: Caso I y medición de los sitios del código (Claude Code)
+- Caso I: los dos forasteros del molino y la bandeja de informes de la comisaría son cruces de sus edificios (`secuestrador_young`, `secuestrador_driver`, `informe`; 282 marcas). Fuera `REPORT_POS` y las posiciones de `MILL_KIDNAPPERS`; `VillageCase1.report_pos()`.
+- Medición: `tools/tests/inventario_constantes.gd` anota a dónde lleva la traducción cada punto escrito en las constantes de `scripts/systems`, `enemies` y `obstacles`. De 325 puntos, 264 siguen a la pieza que tienen cerca y 61 a ninguna: bosque (`FOREST_POLY`, 24), río (`RIVER_*`, 17, sin uso con el río del editor) y unos 17 sitios de vecinos (`TAVERN_DAY_SPOTS`, `EXPEDITION_TARGETS`, `IDLE_STROLL_SPOTS`, `VillageWork.PLACES`, `MIRADOR_POS`, contrabandistas, carro, asalto). No mide los números escritos dentro de funciones.
+- Comprobado: `partida_caso1.gd` completa (25 ✅).
+
 ## 2026-11-11 — Paso 2 cerrado: plaza, lago y ciénaga son piezas del editor (Claude Code)
 - Carpeta nueva «Zonas» en `mapa/Mundo3D.tscn` con tres piezas (`mapa/zona.gd`): `zona_plaza`, `zona_lago`, `zona_cienaga`. Al mover una, van con ella su suelo o agua, la hondonada del terreno, el muelle, dónde se nada y se pesca, las ranas de la ciénaga y su dibujo en el mapa del valle. No giran ni cambian de forma.
 - `mapa/anclas.gd`: zonas de terreno (`estirar`, `estirar_puntos`, `desestirar`), con la prioridad más baja; el terreno hecho por código y el relieve (`terrain_height_px`) pasan por ellas en vez de multiplicar por 5 a mano. En el sitio viejo de una zona movida el relieve queda llano.

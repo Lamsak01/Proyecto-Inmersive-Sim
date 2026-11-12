@@ -102,6 +102,8 @@ static func _gastar(indice: Dictionary, fam: String, p: Vector2) -> bool:
 ## Familia: tipo de cosa (3D, lógica 2D o sitio de vecino) + parte del escenario + nombre sin números.
 static func _familia(clave: String) -> String:
 	var partes := clave.split("|")
+	if partes[0] == "const":
+		return "Sitio en el código: %s.%s" % [partes[1], partes[2]]
 	if partes[0] == "vecino":
 		return "Sitio de vecino: " + partes[2]
 	var ruta := partes[1].split("/")
