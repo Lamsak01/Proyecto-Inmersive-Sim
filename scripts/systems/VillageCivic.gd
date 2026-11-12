@@ -13,6 +13,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al a
 ##   de acabar en la calle. La lleva un posadero que llega como cualquier otro oficio vacante.
 
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
+const Marca = preload("res://mapa/marca.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 
 const HALL_LOT: String = "n4"
@@ -52,15 +53,24 @@ static func ensure_lots(vm) -> void:
 			st["role"] = int(VillageNPC.TradeRole.LODGEKEEPER)
 			st["family_id"] = INN_FAMILY
 
-## Posiciones (calculadas desde el solar, sin guardar nada).
+## Sitios del ayuntamiento y del albergue: son marcas de sus escenas (mapa/marca.gd), en el mapa original.
+const HALL_ID: String = "building_town_hall"
+const SHELTER_ID: String = "building_shelter"
+const HALL_MARKS: Dictionary = {"desk": Marca.MESA, "ballot": "urna", "coffers": Marca.COFRE, "mayor": "alcalde"}
+const SHELTER_BED_MARK: String = "cama_%d"
+const SHELTER_BEDS: int = 4
+
 static func hall_spots() -> Dictionary:
-	var c: Vector2 = VillageLots.lot_def(HALL_LOT)["center"]
-	return {"desk": c + Vector2(0, -24), "ballot": c + Vector2(-34, -6), "coffers": c + Vector2(44, -30), "mayor": c + Vector2(0, -12)}
+	var out: Dictionary = {}
+	for sitio: String in HALL_MARKS:
+		out[sitio] = Marca.sitio(HALL_ID, HALL_MARKS[sitio])
+	return out
 
 static func shelter_beds() -> Array:
-	var c: Vector2 = VillageLots.lot_def(SHELTER_LOT)["center"]
-	var dy: float = 20.0 if not bool(VillageLots.lot_def(SHELTER_LOT)["door_south"]) else -20.0
-	return [c + Vector2(-42, dy), c + Vector2(-14, dy), c + Vector2(14, dy), c + Vector2(42, dy)]
+	var out: Array = []
+	for i in range(1, SHELTER_BEDS + 1):
+		out.append(Marca.sitio(SHELTER_ID, SHELTER_BED_MARK % i))
+	return out
 
 static func inn_guest_beds() -> Array:
 	var lay: Dictionary = VillageLots.shop_house_layout(INN_LOT)
@@ -76,7 +86,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 	var props: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 	match str(st["kind"]):
 		"civic":
-			vm._construct_solid_building("building_town_hall", HALL_TITLE, c, Vector2(128, 96), bool(d["door_south"]),
+			vm._construct_solid_building(HALL_ID, HALL_TITLE, c, Vector2(128, 96), bool(d["door_south"]),
 				"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png",
 				"res://assests/world/village/wall_stone_v.png", 42.0, 0.0, Color(1.0, 0.92, 0.62))
 			var sp: Dictionary = hall_spots()
@@ -85,7 +95,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 			vm._add_title_label(sp["ballot"] + Vector2(-40, -18), Vector2(80, 12), "🗳️ Urna", Color(0.95, 0.9, 0.7), 7)
 			vm._spawn_house_chest(sp["coffers"], "Arcas del Pueblo", "town_hall")
 		"shelter":
-			vm._construct_solid_building("building_shelter", SHELTER_TITLE, c, Vector2(112, 78), bool(d["door_south"]),
+			vm._construct_solid_building(SHELTER_ID, SHELTER_TITLE, c, Vector2(112, 78), bool(d["door_south"]),
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
 				"res://assests/world/village/wall_timber_v.png", 38.0, 0.0, Color(0.92, 0.86, 1.0))
 			for b in shelter_beds():

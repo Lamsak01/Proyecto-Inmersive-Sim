@@ -18,6 +18,7 @@ extends RefCounted
 
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
+const Marca = preload("res://mapa/marca.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const MOTHER_AGE: Vector2i = Vector2i(18, 42)
@@ -283,16 +284,19 @@ static func grow_up(vm, n) -> void:
 static func school_lot_ready(vm) -> bool:
 	return str(VillageLots.lot(vm, "e3").get("kind", "")) == "school"
 
+## Pupitres y sitio del maestro: marcas de la escena de la escuela (mapa/marca.gd), en el mapa original.
+const SCHOOL_ID: String = "building_school"
+const DESK_MARK: String = "pupitre_%d"
+const TEACHER_MARK: String = "maestro"
+const DESKS: int = 6
+const EXTRA_PUPIL_STEP: float = 8.0 ## si hay más alumnos que pupitres, se aprietan a su lado, cada tanda un poco más allá
+
 static func desk_pos(i: int) -> Vector2:
-	var c: Vector2 = VillageLots.building_center("e3")
-	var m: float = -1.0 if bool(VillageLots.lot_def("e3")["door_south"]) else 1.0
-	var desks: Array = [Vector2(-30, 6), Vector2(0, 6), Vector2(30, 6), Vector2(-30, 26), Vector2(0, 26), Vector2(30, 26)]
-	var d: Vector2 = desks[i % desks.size()]
-	return c + Vector2(d.x + float(int(float(i) / float(desks.size()))) * 8.0, (d.y + 6.0) * m)
+	var tanda: int = int(float(i) / float(DESKS))
+	return Marca.sitio(SCHOOL_ID, DESK_MARK % (i % DESKS + 1)) + Vector2(float(tanda) * EXTRA_PUPIL_STEP, 0.0)
 
 static func teacher_pos() -> Vector2:
-	var m: float = -1.0 if bool(VillageLots.lot_def("e3")["door_south"]) else 1.0
-	return VillageLots.building_center("e3") + Vector2(0, -18 * m)
+	return Marca.sitio(SCHOOL_ID, TEACHER_MARK)
 
 static func pupils(vm) -> Array:
 	return VillageNeeds.living(vm).filter(func(n): return is_child(n) and n.person_profile != null and int(n.person_profile.age) >= SCHOOL_AGE)

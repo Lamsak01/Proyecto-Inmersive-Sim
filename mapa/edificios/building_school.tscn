@@ -7,6 +7,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_7bce834f.res" id="5_4sorg"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_4b5a7caa.res" id="6_wjku5"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="7_c80bo"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="8_nc3ib"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -211,3 +212,45 @@ modelo = "props/Bench.gltf"
 tam3 = Vector3(0.896, 0.6868971, 0.504)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=1329606563]
+
+[node name="maestro" type="Marker3D" parent="Marcas" unique_id=1560618061]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.008)
+gizmo_extents = 0.5
+script = ExtResource("8_nc3ib")
+id_marca = "maestro"
+
+[node name="pupitre_1" type="Marker3D" parent="Marcas" unique_id=430430200]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.68, 0, -0.672)
+gizmo_extents = 0.5
+script = ExtResource("8_nc3ib")
+id_marca = "pupitre_1"
+
+[node name="pupitre_2" type="Marker3D" parent="Marcas" unique_id=1690989465]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.672)
+gizmo_extents = 0.5
+script = ExtResource("8_nc3ib")
+id_marca = "pupitre_2"
+
+[node name="pupitre_3" type="Marker3D" parent="Marcas" unique_id=871008436]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.68, 0, -0.672)
+gizmo_extents = 0.5
+script = ExtResource("8_nc3ib")
+id_marca = "pupitre_3"
+
+[node name="pupitre_4" type="Marker3D" parent="Marcas" unique_id=1645209008]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.68, 0, -1.792)
+gizmo_extents = 0.5
+script = ExtResource("8_nc3ib")
+id_marca = "pupitre_4"
+
+[node name="pupitre_5" type="Marker3D" parent="Marcas" unique_id=1660384103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.792)
+gizmo_extents = 0.5
+script = ExtResource("8_nc3ib")
+id_marca = "pupitre_5"
+
+[node name="pupitre_6" type="Marker3D" parent="Marcas" unique_id=1994476369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.68, 0, -1.792)
+gizmo_extents = 0.5
+script = ExtResource("8_nc3ib")
+id_marca = "pupitre_6"

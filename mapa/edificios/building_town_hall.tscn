@@ -6,6 +6,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_640fbb34.res" id="4_0ltpp"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_3931833f.res" id="5_kbex4"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="6_il5vm"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="7_2ffjc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -134,3 +135,27 @@ modelo = "props/Table_Large.gltf"
 tam3 = Vector3(1.12, 0.8454118, 0.672)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=2105512402]
+
+[node name="mesa" type="Marker3D" parent="Marcas" unique_id=1388280467]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.344)
+gizmo_extents = 0.5
+script = ExtResource("7_2ffjc")
+id_marca = "mesa"
+
+[node name="urna" type="Marker3D" parent="Marcas" unique_id=705382782]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.904, 0, -0.336)
+gizmo_extents = 0.5
+script = ExtResource("7_2ffjc")
+id_marca = "urna"
+
+[node name="cofre" type="Marker3D" parent="Marcas" unique_id=938350086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.464, 0, -1.68)
+gizmo_extents = 0.5
+script = ExtResource("7_2ffjc")
+id_marca = "cofre"
+
+[node name="alcalde" type="Marker3D" parent="Marcas" unique_id=392959939]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.672)
+gizmo_extents = 0.5
+script = ExtResource("7_2ffjc")
+id_marca = "alcalde"
