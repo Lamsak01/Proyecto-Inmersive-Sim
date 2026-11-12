@@ -18,7 +18,8 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
   - **Zonas** (3, `mapa/zona.gd`: plaza, lago, ciénaga): trozos de campo abierto que se estiran ×5 pero van con su
     pieza (`Anclas.estirar`, `estirar_puntos`, `desestirar`); las usan el terreno por código, el relieve, `Agua`,
     `FishingSpot` y el mapa del valle. Prueba: `tools/tests/sondeo_zonas.gd`.
-- Solares con sus datos en la pieza (zona, barrio, casa, puerta, apartado): `VillageLots.LOTS` borrado (2026-11-12).
+- Solares con sus datos en la pieza (zona, barrio, casa, puerta, apartado) y marcas propias (`Solar.marca`; Puesto
+  del Paso): `VillageLots.LOTS` y `OUTPOST_*` borrados (2026-11-12).
 - Paso 3 (2026-11-12): **Sitios** (86, `mapa/sitio.gd`): cruces al aire libre ya en el mundo (`Sitio.mundo(id)`,
   `Sitio.serie(nombre)`; `Sitio.original(id)` solo para funciones que aún traducen). Caso I: 3 marcas de edificio.
 - Método de cada tanda: herramienta temporal (no se guarda) que pasa lo que hay a piezas → cambiar código y borrar
@@ -29,9 +30,9 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
   Antes de planear una tanda, comprobar que lo «quieto» no es un defecto de la medición (pasó dos veces).
 
 ## c) Siguiente paso técnico inmediato
-Paso 3, cola: lo que va pegado a un solar (`OUTPOST_*`, `TINKER_*`) espera a que los solares salgan del editor
-(`VillageLots.LOTS` → piezas). `VillageTavern` (`DOOR_POS`, `WELL_POS`, `STAIRS_*`) y `EAST_MILL_POS` van con la
-geometría de la taberna y el decorado (paso 4). Luego cabos sueltos y paso 4 (el corte final, solo con el usuario).
+Paso 3 cerrado salvo `VillageTavern` (`DOOR_POS`, `WELL_POS`, `STAIRS_*`, que van con la geometría de la taberna) y
+`EAST_MILL_POS` (decorado): pasan con el paso 4. Siguiente: trozos seguros del paso 4 (decorado que aún dibuja el
+juego → piezas, grupo a grupo) y cabos sueltos. El corte final del paso 4 (quitar anclas y ×5) solo con el usuario.
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`;
 tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.

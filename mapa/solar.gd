@@ -5,6 +5,7 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 ## Solar del pueblo en el editor del mapa 3D (mapa/Mundo3D.tscn → «Solares»), 2026-11-11: una parcela donde el juego
 ## levanta una casa, una tienda o un edificio público. Muévelo con el ratón: la obra, la casa que se construya en él,
 ## su letrero y sus campos salen ahí. Girarlo (eje vertical) gira lo construido de 90 en 90 grados.
+## Puede llevar marcas (grupo «Marcas», cruces de mapa/marca.gd) para sitios del solar: van con él.
 ## Paso 2 de docs/PLAN_MUNDO_DESDE_EDITOR.md. Lo lee mapa/anclas.gd.
 
 const CARPETA := "Solares"
@@ -36,6 +37,7 @@ const LETRERO_VISTO_HASTA_M: float = 400.0
 @export var edificio_apartado_m: Vector2 = Vector2.ZERO
 
 static var _lista: Array[Dictionary] = []
+static var _marcas: Dictionary = {} ## id del solar → {id de la marca → sitio en el mapa original}
 static var _leida: bool = false
 
 
@@ -68,15 +70,46 @@ func _poner_vista() -> void:
 ## Los solares para construir, en el orden de la carpeta (es el orden en que se ocupan). Cada uno, en el mapa ORIGINAL:
 ## {id, zone, center, size, door_south, plot} y, si los tiene, barrio y offset. Se lee de la escena sin crearla.
 static func lista() -> Array[Dictionary]:
+	_leer()
+	return _lista
+
+
+## Sitio de una marca de un solar (grupo «Marcas» dentro de su pieza: mapa/marca.gd), en el mapa ORIGINAL: como las
+## de los edificios, está en metros respecto al centro del solar sin girar; mapa/anclas.gd la lleva a donde esté.
+static func marca(id_solar: String, id_marca: String) -> Vector2:
+	_leer()
+	var marcas: Dictionary = _marcas.get(id_solar, {})
+	if not marcas.has(id_marca):
+		push_error("SOLARES: al solar «%s» le falta la marca «%s»" % [id_solar, id_marca])
+		return Vector2.ZERO
+	return marcas[id_marca]
+
+
+static func _leer() -> void:
 	if _leida:
-		return _lista
+		return
 	_leida = true
 	var estado: SceneState = (load(ESCENA) as PackedScene).get_state()
+	var centros: Dictionary = {} ## ruta de la pieza → [id del solar, centro original]
 	for i in range(estado.get_node_count()):
 		var ruta: String = str(estado.get_node_path(i))
-		if ruta.begins_with("./" + CARPETA + "/") and ruta.count("/") == 2:
-			_anadir(_propiedades(estado, i))
-	return _lista
+		if not ruta.begins_with("./" + CARPETA + "/"):
+			continue
+		var p: Dictionary = _propiedades(estado, i)
+		if ruta.count("/") == 2:
+			centros[ruta] = [String(p.get("id_solar", "")), p.get("centro_original", Vector2.ZERO)]
+			_anadir(p)
+		elif p.has("id_marca") and centros.has(ruta.get_base_dir().get_base_dir()):
+			_anadir_marca(centros[ruta.get_base_dir().get_base_dir()], p)
+
+
+## Una marca del grupo «Marcas» de un solar (ruta …/solar_x/Marcas/marca: su solar está dos niveles arriba).
+static func _anadir_marca(solar: Array, p: Dictionary) -> void:
+	var id: String = solar[0]
+	if not _marcas.has(id):
+		_marcas[id] = {}
+	var en_solar: Transform3D = p.get("transform", Transform3D.IDENTITY)
+	(_marcas[id] as Dictionary)[String(p["id_marca"])] = (solar[1] as Vector2) + Mapa3D.a_mapa(en_solar.origin)
 
 
 static func _anadir(p: Dictionary) -> void:

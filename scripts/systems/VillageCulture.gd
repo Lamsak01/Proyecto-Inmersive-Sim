@@ -81,9 +81,22 @@ const RIFLE_AMMO_PACK_COST: int = 22
 const OUTPOST_CHARTER_COST: int = 90
 const OUTPOST_SETTLER_BONUS: int = 15
 const OUTPOST_UPGRADE_COST: int = 35
-const OUTPOST_CENTER: Vector2 = Vector2(1615, 50)
-const OUTPOST_GATE_POS: Vector2 = Vector2(1542, 50)
-const OUTPOST_WORK_SPOTS: Array = [Vector2(1585, -8), Vector2(1585, 106), Vector2(1642, 48)]
+const Solar = preload("res://mapa/solar.gd")
+## El Puesto del Paso sale de las marcas de su pieza de solar («Solares» del editor): van con ella si se mueve.
+const OUTPOST_SOLAR := "puesto_del_paso"
+const OUTPOST_WORK_SPOTS: int = 3 ## marcas trabajo_1…3: donde faenan los colonos de día
+
+## Centro del puesto (empalizada y cabañas), en el mapa original.
+static func outpost_center() -> Vector2:
+	return Solar.marca(OUTPOST_SOLAR, "centro")
+
+## Puerta de la empalizada, en el mapa original.
+static func outpost_gate_pos() -> Vector2:
+	return Solar.marca(OUTPOST_SOLAR, "puerta")
+
+## Sitio de trabajo del colono número «i» (se reparten en rueda), en el mapa original.
+static func outpost_work_spot(i: int) -> Vector2:
+	return Solar.marca(OUTPOST_SOLAR, "trabajo_%d" % (i % OUTPOST_WORK_SPOTS + 1))
 const OUTPOST_UPGRADES: Dictionary = {
 	"sawmill": "Aserradero Fronterizo (+1 madera/día y peaje)",
 	"granary": "Granero del Paso (+1 trigo/día y raciones)",
@@ -584,8 +597,14 @@ static func police_terminal_pos() -> Vector2:
 static func town_hall_terminal_pos() -> Vector2:
 	return Marca.sitio("building_town_hall", M_TERMINAL)
 
-const TINKER_GRID_PANEL_POS: Vector2 = Vector2(1270.0, 90.0) # En la pared exterior norte del Taller de Reparaciones (e5), a la derecha de la puerta
-const TINKER_GENERATOR_POS: Vector2 = Vector2(1316.0, 126.0) # Generador diésel junto al muro exterior este del Taller de Reparaciones (e5)
+const TINKER_ID := "mixed_family_tinker"
+
+## Cuadro eléctrico y generador del Taller de Reparaciones: marcas de su escena, en el mapa original.
+static func tinker_grid_panel_pos() -> Vector2:
+	return Marca.sitio(TINKER_ID, Marca.CUADRO_ELECTRICO)
+
+static func tinker_generator_pos() -> Vector2:
+	return Marca.sitio(TINKER_ID, Marca.GENERADOR)
 
 static func build_tinker_stations(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
@@ -627,14 +646,14 @@ static func build_tinker_stations(vm) -> void:
 
 	var panel: Node2D = PropScript.new()
 	panel.name = "TinkerElectricPanel"
-	panel.global_position = _AN_SITIOS.mover(TINKER_GRID_PANEL_POS)
+	panel.global_position = _AN_SITIOS.mover(tinker_grid_panel_pos())
 	vm.entities_root.add_child(panel)
 	panel.setup_prop(vm, "grid_panel")
 
 	# §3b.3: Colisionadores 2D para elementos de la época (generador, sacos terreros con alambre y postes de foco) sin tapar puertas ni caminos
 	if vm.has_method("_add_prop_collider"):
 		for ep in [
-			[TINKER_GENERATOR_POS, Vector2(16.0, 22.0)],
+			[tinker_generator_pos(), Vector2(16.0, 22.0)],
 			[Vector2(864.0, 92.0), Vector2(22.0, 8.0)],
 			[Vector2(966.0, 92.0), Vector2(22.0, 8.0)],
 			[Vector2(994.0, 96.0), Vector2(6.0, 6.0)],
@@ -1972,14 +1991,14 @@ static func sync_outpost_visuals(vm) -> void:
 	var op: Dictionary = outpost_state(vm)
 	var founded: bool = bool(op.get("founded", false))
 	var upgs: Dictionary = op.get("upgrades", {})
-	var c: Vector2 = OUTPOST_CENTER
+	var c: Vector2 = outpost_center()
 	# Extensión del camino del este hacia el Paso Fronterizo
 	vm._add_rect_poly(Vector2(1512, 50), Vector2(36, 14), Color(0.46, 0.36, 0.24, 0.92), -3)
 	if not founded:
 		vm._add_rect_poly(c, Vector2(68, 72), Color(0.28, 0.34, 0.20, 0.45), -3)
 		for p in [Vector2(-64, -68), Vector2(64, -68), Vector2(64, 68), Vector2(-64, 68)]:
 			vm._add_rect_poly(c + p, Vector2(3, 5), Color(0.48, 0.32, 0.16, 1.0), -1)
-		vm._add_rect_poly(OUTPOST_GATE_POS, Vector2(5, 8), Color(0.55, 0.36, 0.18, 1.0), -1)
+		vm._add_rect_poly(outpost_gate_pos(), Vector2(5, 8), Color(0.55, 0.36, 0.18, 1.0), -1)
 		vm._add_title_label(c + Vector2(-95, -88), Vector2(190, 14), "🏕️ Solar Fronterizo «Puesto del Paso» [E: Fundar]", Color(0.95, 0.88, 0.62), 7)
 	else:
 		# Explanada empedrada y empalizada de troncos del Puesto del Paso
@@ -2070,7 +2089,7 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 		var term_node: Node = vm.get_tree().get_first_node_in_group("tinker_terminal") if vm.is_inside_tree() else null
 		open_terminal_menu(vm, term_node, player)
 		return true
-	if o.distance_to(TINKER_GRID_PANEL_POS) <= 26.0:
+	if o.distance_to(tinker_grid_panel_pos()) <= 26.0:
 		var panel_node: Node = vm.get_tree().get_first_node_in_group("tinker_grid_panel") if vm.is_inside_tree() else null
 		open_grid_panel_menu(vm, panel_node, player)
 		return true
@@ -2104,7 +2123,7 @@ static func _try_outpost_interact(vm, player, pos: Vector2) -> bool:
 	if vm == null or player == null or (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 		return false
 	var o: Vector2 = _AN_SITIOS.desmover(pos) # el puesto está escrito en el mapa original
-	if o.distance_to(OUTPOST_GATE_POS) > 46.0 and o.distance_to(OUTPOST_CENTER) > 58.0:
+	if o.distance_to(outpost_gate_pos()) > 46.0 and o.distance_to(outpost_center()) > 58.0:
 		return false
 	var inv = player.get("inventory")
 	var op: Dictionary = outpost_state(vm)
@@ -2250,7 +2269,7 @@ static func _outpost_on_hour(vm, hour: int) -> void:
 			continue
 		if hour >= 8 and hour < 17:
 			if sn.errand_kind == "" and VillageNeeds.is_free(sn):
-				var spot: Vector2 = _AN_SITIOS.mover(OUTPOST_WORK_SPOTS[i % OUTPOST_WORK_SPOTS.size()])
+				var spot: Vector2 = _AN_SITIOS.mover(outpost_work_spot(i))
 				sn.start_errand("outpost_work", spot)
 		elif sn.errand_kind == "outpost_work":
 			sn.end_errand()
@@ -2598,7 +2617,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var target: String = action_id.substr("culture_sabotage_grid:".length())
 		# El arreglador o cualquier otro vecino despierto cerca (misma planta) puede verte tocar el cuadro eléctrico
 		var pl_sab = VillageNeeds.player_of(vm)
-		var sab_pos: Vector2 = pl_sab.global_position if pl_sab != null else _AN_SITIOS.mover(TINKER_GRID_PANEL_POS)
+		var sab_pos: Vector2 = pl_sab.global_position if pl_sab != null else _AN_SITIOS.mover(tinker_grid_panel_pos())
 		var wit_sab = vm._find_conscious_witness_near(sab_pos, 120.0, npc) if vm.has_method("_find_conscious_witness_near") else null
 		if wit_sab != null:
 			g["last_op_day"] = today

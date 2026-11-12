@@ -140,7 +140,8 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   Desde 2026-11-12 la pieza guarda también `zona` («ninguna» = no se construye: Puesto del Paso), `barrio`, `casa`
   (plot), `puerta_al_sur` y `edificio_apartado_m`; `Solar.lista()` los lee de la escena (orden de la carpeta = orden de
   ocupación) y `VillageLots.lots()` / `lot_def(id)` los sirven. Borrados `VillageLots.LOTS` y `lot_shift`. Duplicar
-  una pieza no crea un solar nuevo hasta el paso 4 (mismo `centro_original`).
+  una pieza no crea un solar nuevo hasta el paso 4 (mismo `centro_original`). Una pieza puede llevar grupo «Marcas»
+  (`Solar.marca(id_solar, marca)`, mapa original = centro + metros sin girar): hoy solo `solar_puesto_del_paso`.
   El ancla cubre además `SOLAR_LETRERO_PX` (16 px) al norte y al sur del terreno: ahí va el letrero de solar libre
   (`VillageLots.site_work_pos`), que ya no tiene ancla propia en «Objetos».
 - **Sitios** (`mapa/sitio.gd`, carpeta «Sitios», paso 3, 2026-11-12): cruces (`Marker3D`) con `id_sitio` para la lógica

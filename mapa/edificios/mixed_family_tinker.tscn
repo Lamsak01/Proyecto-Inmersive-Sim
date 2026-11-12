@@ -293,6 +293,18 @@ gizmo_extents = 0.5
 script = ExtResource("9_6ujjl")
 id_marca = "ventana"
 
+[node name="cuadro_electrico" type="Marker3D" parent="Marcas" unique_id=1993565505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.24, 0, -2.8)
+gizmo_extents = 0.5
+script = ExtResource("9_6ujjl")
+id_marca = "cuadro_electrico"
+
+[node name="generador" type="Marker3D" parent="Marcas" unique_id=494501556]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.816, 0, -0.784)
+gizmo_extents = 0.5
+script = ExtResource("9_6ujjl")
+id_marca = "generador"
+
 [node name="Tabiques" type="Node3D" parent="." unique_id=195840059]
 
 [node name="Tabique" type="Node3D" parent="Tabiques" unique_id=871263688]

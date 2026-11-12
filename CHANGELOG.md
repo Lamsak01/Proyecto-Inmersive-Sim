@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Marcas en los solares: Puesto del Paso; cuadro y generador del taller (Claude Code)
+- Las piezas de «Solares» admiten un grupo «Marcas» (cruces de `mapa/marca.gd`) que van con el solar: `Solar.marca(id_solar, marca)`, en el mapa original como las de los edificios.
+- Puesto del Paso: marcas `centro`, `puerta`, `trabajo_1…3`; borrados `OUTPOST_CENTER`, `OUTPOST_GATE_POS`, `OUTPOST_WORK_SPOTS` (ahora `outpost_center()`, `outpost_gate_pos()`, `outpost_work_spot(i)`).
+- Taller de Reparaciones: marcas `cuadro_electrico` y `generador` en su escena; borrados `TINKER_GRID_PANEL_POS` y `TINKER_GENERATOR_POS`.
+- Comprobado: volcado idéntico, inventario con todo movido, sondeos, `verify_all`.
+
 ## 2026-11-12 — Los solares salen de sus piezas del editor (Claude Code)
 - Cada pieza de «Solares» guarda ahora su zona, barrio, tamaño de casa, lado de la puerta y cuánto se aparta el edificio (`mapa/solar.gd`, `Solar.lista()`). El juego lee de ahí la lista de solares.
 - Borrados `VillageLots.LOTS` (40 solares escritos a mano) y `lot_shift` (los desplazamientos calculados: cada pieza ya estaba en su sitio). Una herramienta temporal comprobó que los 40 coincidían exactamente.

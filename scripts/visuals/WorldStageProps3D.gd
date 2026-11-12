@@ -14,8 +14,8 @@ func rebuild_outpost_3d() -> void:
 	var op: Dictionary = VillageCulture.outpost_state(vm)
 	var founded: bool = bool(op.get("founded", false))
 	var upgs: Dictionary = op.get("upgrades", {})
-	var c: Vector2 = VillageCulture.OUTPOST_CENTER
-	var gate_p: Vector2 = VillageCulture.OUTPOST_GATE_POS
+	var c: Vector2 = VillageCulture.outpost_center()
+	var gate_p: Vector2 = VillageCulture.outpost_gate_pos()
 	mover_posiciones = true # el puesto está escrito en el mapa original: sigue a su pieza de «Solares»
 	_dibujar_puesto(founded, upgs, c, gate_p)
 	mover_posiciones = false
@@ -277,8 +277,8 @@ func _build_epoch_props_3d(m_bulb_warm: Material, m_bulb_voltaic: Material) -> v
 	var m_brass := _mat("epoch_gen_brass", Color(0.82, 0.64, 0.22), 0.35, 0.85)
 	var m_pad := _mat("epoch_gen_pad", Color(0.44, 0.43, 0.40), 0.92, 0.0)
 
-	# 1. Generador diésel junto al muro este del Taller de Reparaciones (e5: Vector2(1316, 126))
-	var gp: Vector2 = VillageCulture.TINKER_GENERATOR_POS
+	# 1. Generador diésel junto al muro este del Taller de Reparaciones (marca «generador» de su escena)
+	var gp: Vector2 = VillageCulture.tinker_generator_pos()
 	_add_box_2d(streetlights_root_3d, gp, Vector2(18.0, 24.0), 0.0, 2.2, m_pad) # Losa de hormigón
 	_add_box_2d(streetlights_root_3d, gp, Vector2(13.5, 18.0), 2.2, 11.5, m_gen_iron) # Bloque motor diésel
 	_add_box_2d(streetlights_root_3d, gp + Vector2(0.0, -3.5), Vector2(11.0, 9.0), 13.7, 3.8, m_gen_rust) # Culata con aletas

@@ -6,10 +6,10 @@
 
 | Resultado | Cosas |
 |---|---:|
-| sigue al editor | 5297 |
+| sigue al editor | 5288 |
 | se queda en el sitio viejo | 75 |
 | se mueve el doble (traducido dos veces) | 0 |
-| acaba en otro sitio o no aparece | 123 |
+| acaba en otro sitio o no aparece | 125 |
 
 ## Por familia (las 60 con más restos)
 
@@ -19,12 +19,12 @@
 | Sitio en el código: EcosystemManager.FOREST_POLY | 1 | 24 | 0 | 0 | a 219 m de Cabaña del Leñador |
 | 3D · Nature3D / Nature3D / MeshInstance3D | 914 | 0 | 0 | 18 | a 56 m de Casa Grande de los Rentistas |
 | Sitio en el código: FishingSpot.RIVER_WAYPOINTS | 11 | 16 | 0 | 0 | a 40 m de Molino Viejo Abandonado |
-| Sitio de vecino: work_position | 32 | 0 | 0 | 10 | a 55 m de Panadería 'La Espiga' |
+| Sitio de vecino: work_position | 31 | 0 | 0 | 11 | a 4 m de Sastrería 'El Dedal' |
 | 3D · Terrain3D / Terrain3D / MeshInstance3D | 33 | 6 | 0 | 3 | a 53 m de Botica y Casa-Jardín 'Raíz Verde' |
 | 3D · Streetlights3D / Streetlights3D / MeshInstance3D | 139 | 0 | 0 | 8 | a 4 m de Comisaría de Policía y  Cárcel del Valle |
 | 3D · Buildings3D / Node3D / MeshInstance3D | 108 | 0 | 0 | 6 | a 57 m de Granja del Sur |
-| Sitio de vecino: home_table_pos | 37 | 0 | 0 | 5 | a 1 m de Gran Posada, Taberna y Casino 'El Jabalí Dorado' |
-| Sitio de vecino: bed_position | 37 | 0 | 0 | 5 | a 2 m de Gran Posada, Taberna y Casino 'El Jabalí Dorado' |
+| Sitio de vecino: bed_position | 36 | 0 | 0 | 6 | a 57 m de Casa Grande de los Rentistas |
+| Sitio de vecino: home_table_pos | 37 | 0 | 0 | 5 | a 58 m de Granja del Sur |
 | 3D · Buildings3D / Node3D / Face | 68 | 0 | 0 | 4 | a 55 m de Granja del Sur |
 | 3D · Buildings3D / Node3D / FaceBack | 68 | 0 | 0 | 4 | a 56 m de Granja del Sur |
 | 3D · Buildings3D / Bed_Twin12 / Bed_Twin1 | 60 | 0 | 0 | 4 | a 56 m de Granja del Sur |
@@ -65,7 +65,7 @@ Total: **0** muebles con modelo 3D fuera de la planta de cualquier edificio (con
 
 ## Números de posición en el código (sin la carpeta de menús)
 
-Total: **1268** puntos (Vector2 con algún valor ≥ 100 px) y **102** rectángulos fijos; **186** llamadas a la traducción.
+Total: **1260** puntos (Vector2 con algún valor ≥ 100 px) y **102** rectángulos fijos; **188** llamadas a la traducción.
 
 | Archivo | Puntos | Rectángulos | Traducciones |
 |---|---:|---:|---:|
@@ -75,12 +75,12 @@ Total: **1268** puntos (Vector2 con algún valor ≥ 100 px) y **102** rectángu
 | `scripts/obstacles/FishingSpot.gd` | 59 | 1 | 0 |
 | `scripts/systems/VillageLots.gd` | 40 | 16 | 6 |
 | `scripts/systems/VillageTavern.gd` | 37 | 6 | 1 |
-| `scripts/visuals/WorldStageProps3D.gd` | 40 | 0 | 1 |
+| `scripts/visuals/WorldStageProps3D.gd` | 39 | 0 | 1 |
 | `scripts/systems/VillageManagerEconomy.gd` | 32 | 0 | 1 |
 | `scripts/systems/VillageRestaurant.gd` | 30 | 0 | 1 |
-| `scripts/systems/VillageCulture.gd` | 25 | 1 | 6 |
 | `scripts/visuals/WorldStageBase3D.gd` | 19 | 1 | 2 |
 | `scripts/systems/VillageManagerBase.gd` | 19 | 0 | 24 |
+| `scripts/systems/VillageCulture.gd` | 18 | 1 | 8 |
 | `scripts/systems/VillagePlaces.gd` | 17 | 1 | 2 |
 | `scripts/systems/VillageUnderworld.gd` | 15 | 1 | 1 |
 | `scripts/systems/VillageJustice.gd` | 14 | 0 | 11 |
