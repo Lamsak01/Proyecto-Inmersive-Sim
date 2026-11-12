@@ -145,8 +145,7 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 	var wall_v_p: String = "res://assests/world/village/wall_stone_v.png" if is_blacksmith else "res://assests/world/village/wall_timber_v.png"
 
 	vm._construct_solid_building("shop_" + fam_id, shop_title, sc,
-		floor_p, wall_h_p, wall_v_p,
-		Color(1.0, 0.88, 0.52) if is_blacksmith else Color(0.95, 0.90, 0.68))
+		floor_p, wall_h_p, wall_v_p)
 	var stall_pos: Vector2 = Marca.sitio("shop_" + fam_id, Marca.PUESTO)
 	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.32, 1.32), -1)
 	if role_id >= 0:
@@ -160,8 +159,7 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 
 static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, house_title: String, tex_bed: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String) -> void:
 	vm._construct_solid_building("house_" + fam_id, house_title, hc,
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
-		Color(0.92, 0.88, 0.72))
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 	for b_pos in [bed1_pos, bed2_pos]:
 		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 
@@ -170,8 +168,7 @@ static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, ho
 
 static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, tex_bed: Texture2D, tex_stall: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String, role_id: int = -1) -> void:
 	vm._construct_solid_building("mixed_" + fam_id, title, center,
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
-		Color(0.75, 0.96, 0.68))
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 
 	var stall_pos: Vector2 = Marca.sitio("mixed_" + fam_id, Marca.PUESTO)
 	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.3, 1.3), -1)
@@ -194,8 +191,7 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 # PASO 1: 🏥 HOSPITAL DE URGENCIAS Y ⚰️ MORGUE FORENSE (`Vector2(745, 148)`)
 static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm._construct_solid_building("building_hospital", "🏥 Hospital de Urgencias y ⚰️ Morgue Forense", vm._hospital_center,
-		"res://assests/world/village/floor_hospital_tile.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
-		Color(0.68, 0.98, 0.88))
+		"res://assests/world/village/floor_hospital_tile.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 
 	var tex_hbed := vm._load_tex("res://assests/world/village/hospital_bed.png")
 	for b_pos in [vm._hospital_bed_pos, Marca.sitio(vm.ID_HOSPITAL, Marca.CAMA_1)]:
@@ -235,8 +231,7 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 # PASO 2: 🚓 COMISARÍA, 🔒 CÁRCEL Y GUARDIAS DE LA LEY (`Vector2(915, 148)`)
 static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._construct_solid_building("building_police", "🚓 Comisaría de Policía y 🔒 Cárcel del Valle", vm._police_center,
-		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
-		Color(0.62, 0.85, 1.0))
+		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 	var tex_bars_h := vm._load_tex("res://assests/world/village/jail_bars_h.png")
 	var tex_bars_v := vm._load_tex("res://assests/world/village/jail_bars_v.png")
 	var tex_bed := vm._load_tex("res://assests/world/village/tavern_bed.png")
@@ -296,8 +291,7 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 # PASO 2B: ☀️ CAPILLA DEL ALBA Y 🪦 CEMENTERIO PARROQUIAL (`Vector2(745, 312)`)
 static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm._construct_solid_building("building_church", "☀️ Capilla del Alba", vm._church_center,
-		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
-		Color(0.92, 0.86, 1.0))
+		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 	# Bancos y altar: su dibujo es 3D (escena de la capilla); aquí van sus choques y el sitio donde no se puede estar
 	for pew_offset in [Vector2(-29, -14), Vector2(-29, 0), Vector2(29, -14), Vector2(29, 0)]:
 		var pew_p: Vector2 = vm._church_center + pew_offset
@@ -441,8 +435,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	# 7. Molino Viejo Abandonado río arriba del claro (`Vector2(188, -1060)`, tamaño `Vector2(124, 92)`)
 	var mill_center: Vector2 = FishingSpot.ABANDONED_MILL_CENTER
 	vm._construct_solid_building(vm.ID_MOLINO, "🏚️ Molino Viejo Abandonado", mill_center,
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
-		Color(0.82, 0.66, 0.52))
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 
 	# Interior del Molino Viejo Abandonado (4 pistas/elementos del Caso I, dejando libre el pasillo central):
 	# Sus sitios son marcas de la escena del molino (mapa/marca.gd)

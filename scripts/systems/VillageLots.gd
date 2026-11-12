@@ -175,7 +175,6 @@ static func build_world(vm) -> void:
 	_build_gap_pockets(vm)
 	# Molino del Este: base de piedra sólida (los vecinos lo rodean) y su cartel
 	vm._add_solid_wall_segment(EAST_MILL_POS, Vector2(34, 34), vm._load_tex("res://assests/world/village/wall_stone_h.png"))
-	vm._add_title_label(EAST_MILL_POS + Vector2(-60, -40), Vector2(120, 14), "🌾 Molino del Este", Color(0.86, 0.80, 0.62), 7)
 	for l in lots():
 		var id: String = str(l["id"])
 		var st: Dictionary = lot(vm, id)
@@ -201,8 +200,6 @@ static func _sig(st: Dictionary) -> String:
 
 static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 	if vm._lot_visuals.has(id) and (vm._lot_visuals[id] as Array).size() > 2 and str(vm._lot_visuals[id][2]) == _sig(st):
-		if str(st["status"]) == "building":
-			_update_site_label(vm, id)
 		return # Ya está dibujado así (p. ej. al cargar una partida con el mismo pueblo)
 	var old_biz: Dictionary = {}
 	if st.has("role") and vm.shop_businesses.has(int(st["role"])):
@@ -215,13 +212,9 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 	match str(st["status"]):
 		"empty":
 			vm._add_sprite_prop(vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"), site_work_pos(id), Vector2(0.8, 0.8), -1)
-			vm._add_title_label(site_work_pos(id) + Vector2(-60, -26), Vector2(120, 14), "📜 Solar libre", Color(0.86, 0.80, 0.62), 7)
 		"building":
 			for off in [Vector2(-30, -10), Vector2(24, 8), Vector2(-6, 18)]:
 				vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/crates_0.png", c + off, Vector2(0.5, 0.5))
-			var lbl: Label = vm._add_title_label(c + Vector2(-90, -sz.y * 0.5 - 4), Vector2(180, 14), "", Color(1.0, 0.82, 0.42), 8)
-			lbl.name = "LotSiteLabel_" + id
-			_update_site_label(vm, id)
 		"built":
 			_build_kind(vm, id, st)
 	var rec: Array = _capture_end(vm, snap)
@@ -246,8 +239,7 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			var beds: Array = _house_beds(id, has_up)
 			# La casa es una copia de la casa modelo de su tamaño (con la puerta al norte, con media vuelta): de ella sale su planta
 			vm._construct_solid_building(CasaModelo.PREFIJO + id, str(st["title"]), c,
-				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
-				Color(0.92, 0.88, 0.72), CasaModelo.planta(plot_of(id), bool(d["door_south"])))
+				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png", CasaModelo.planta(plot_of(id), bool(d["door_south"])))
 			for b in beds:
 				vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
 			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", house_site(id, Marca.MESA), Vector2(0.45, 0.45))
@@ -285,8 +277,7 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	var fam: String = str(st.get("family_id", "family_lot_" + id))
 	var lay: Dictionary = shop_house_layout(shop_house_id(fam))
 	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c,
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
-		Color(0.96, 0.86, 0.62))
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/work_stall.png"), lay["stall_pos"], Vector2(1.3, 1.3), -1)
 	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"], stall)
 	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
@@ -412,10 +403,8 @@ static func on_hour(vm, _hour: int) -> void:
 	var st: Dictionary = lot(vm, id)
 	var hours: float = float(KINDS[str(st["kind"])]["hours"])
 	st["progress"] = minf(1.0, float(st["progress"]) + (0.7 + 0.6 * TraitCatalog.npc_tendency(carp, "diligence")) / hours)
-	if float(st["progress"]) >= 1.0:
+	if float(st["progress"]) >= 1.0: # el avance se ve en los andamios, que crecen con él (WorldStageBuildings3D)
 		_finish(vm, id, carp)
-	else:
-		_update_site_label(vm, id)
 
 static func _finish(vm, id: String, carp) -> void:
 	var st: Dictionary = lot(vm, id)
@@ -473,12 +462,6 @@ static func expand_house_upper_floor(vm, id: String, payer = null) -> bool:
 	st["beds"] = _house_beds(id, true)
 	vm.VillageChronicle.add(vm, "house_expanded", "Se levantó un altillo con 2 camas nuevas en %s (solar %s)" % [str(st.get("title", "la casa")), id], true)
 	return true
-
-static func _update_site_label(vm, id: String) -> void:
-	var lbl = vm.entities_root.get_node_or_null("LotSiteLabel_" + id)
-	if lbl != null:
-		var st: Dictionary = lot(vm, id)
-		lbl.text = "🚧 En obra: %s (%d %%)" % [str(st["title"]), int(round(float(st["progress"]) * 100.0))]
 
 # ---------------------------------------------------------------- vivienda (la usará V3)
 ## Una cama libre en una casa construida: {"lot": id, "bed": Vector2, "family_id": ...} o vacío.

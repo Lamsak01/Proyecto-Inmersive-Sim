@@ -103,7 +103,6 @@ static func build_world(vm) -> void:
 		vm._spawn_decor_prop(dec + "buildings/Decorations_sprites/flowers_plants_0.png", fp, Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "park_bench") + Vector2(0, -8), Vector2(0.4, 0.4))
 	vm._spawn_decor_prop(bench, Vector2(372, 260), Vector2(0.4, 0.4))
-	vm._add_title_label(Vector2(224, 194), Vector2(160, 14), "🌳 Parque del Roble", Color(0.78, 0.96, 0.66), 8)
 	# Bancos de la plaza
 	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "plaza_benches"), Vector2(0.4, 0.4))
 	vm._spawn_decor_prop(bench, Vector2(468, 82), Vector2(0.4, 0.4))
@@ -118,7 +117,6 @@ static func build_world(vm) -> void:
 		if rail_post != null:
 			rail_post.add_to_group("ranch_fence_2d")
 	vm._spawn_decor_prop(bench, lv + Vector2(0, -2), Vector2(0.4, 0.4))
-	vm._add_title_label(lv + Vector2(-70, 8), Vector2(140, 14), "🌅 Mirador del Lago", Color(0.70, 0.88, 1.0), 7)
 
 ## Para las quedadas del SocialDirector.
 static func hangout_spots() -> Array:

@@ -90,10 +90,6 @@ func setup_village(target_entities_root: Node) -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	_titles_declutter_t -= delta
-	if _titles_declutter_t <= 0.0:
-		_titles_declutter_t = 0.25
-		_declutter_title_labels()
 	if _police_confront_cooldown > 0.0:
 		_police_confront_cooldown -= delta
 	_needs_tick_acc += delta

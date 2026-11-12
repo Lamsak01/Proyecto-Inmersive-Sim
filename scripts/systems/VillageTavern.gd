@@ -163,8 +163,7 @@ static func setup_world(vm) -> void:
 	var tex_innkeeper: Texture2D = vm._load_tex("res://assests/world/village/villager_innkeeper.png")
 
 	vm._construct_solid_building(BUILDING_ID, TITLE, CENTER,
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
-		Color(1.0, 0.88, 0.45))
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 
 	# Tabiques de la planta baja (piezas «Tabiques» de la escena): dejan de chocar cuando el protagonista está arriba
 	for sb_w: StaticBody2D in vm.interior_walls[BUILDING_ID]:

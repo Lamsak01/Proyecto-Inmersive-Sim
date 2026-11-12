@@ -2857,8 +2857,6 @@ func _initialize() -> void:
 	assert(int(b_kid.person_profile.age) == 9 and vfm.is_child(b_kid), "B2: A child can arrive already grown a bit")
 	vfm.grow_up(vm, b_kid)
 	assert(int(b_kid.trade_role) == int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.FAMILY_MEMBER) and vm.family_npcs.get(b_role) == b_kid, "B3: A grown child helps in the family business")
-	var b_lbl = vm.get_meta("school_sign", null)
-	assert(b_lbl != null and is_instance_valid(b_lbl), "B1: The school has a sign to update")
 	b_owner.trade_role = b_owner_role
 	b_owner.family_id = b_owner_fam
 	vm.family_npcs.erase(b_role)

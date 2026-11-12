@@ -178,8 +178,6 @@ static func _build_extras_en_mundo(vm, id: String, c: Dictionary, lc: Vector2, h
 				yy += 14.0
 			if not is_fields_lot:
 				vm._spawn_decor_prop(props + "hay_0.png", Vector2(x1 - 14.0, y1 - 10.0), Vector2(0.7, 0.7))
-			else:
-				vm._add_title_label(Vector2(lc.x - 70, y0 - 16), Vector2(140, 14), "🌾 Campos de la Granja", Color(0.95, 0.9, 0.55), 7)
 		"ranch":
 			var border := Line2D.new() # Valla del corral
 			border.width = 2.0

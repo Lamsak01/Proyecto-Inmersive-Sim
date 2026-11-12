@@ -313,10 +313,6 @@ var _fight_scan_timer: float = 3.0
 
 const ROMANCE_STAGE_NAMES: Dictionary = {"interest": "sienten interés mutuo", "flirt": "han empezado a coquetear", "dating": "han empezado a salir"}
 
-## Distancia (mundo) a la que se enseña el letrero de un sitio en la vista desde arriba: unos 8 m. Antes del mapa ×E
-## se quedó en 28 y solo salían con el protagonista pegado (2026-11-12).
-const TITLE_SHOW_RADIUS: float = 28.0 * Mapa3D.E
-var _titles_declutter_t: float = 0.0
 
 ## El trozo del letrero que ocupa el texto de verdad (los letreros son más anchos que su texto y van centrados).
 
@@ -404,7 +400,7 @@ var interior_walls: Dictionary = {} ## id del edificio → sus paredes de dentro
 func _construct_solid_building(
 	b_id: String, b_title: String, center: Vector2,
 	floor_tex_path: String, wall_h_path: String, wall_v_path: String,
-	title_color: Color = Color(0.96, 0.90, 0.68), planta: Dictionary = {}
+	planta: Dictionary = {}
 ) -> void:
 	if planta.is_empty():
 		planta = Planta.de_edificio(b_id)
@@ -514,8 +510,6 @@ func _construct_solid_building(
 		_add_solid_wall_segment(Vector2(door_pos.x, rect.end.y - bot_seg_h * 0.5), Vector2(wall_t, bot_seg_h), tex_v)
 		_add_rect_poly(door_pos, Vector2(3.0, door_width * 0.5), Color(0.72, 0.54, 0.30, 0.85), -2)
 
-	var t_lbl := _add_title_label(center + Vector2(-125, -half.y - 18.0), Vector2(250, 14), b_title, title_color, 7)
-	t_lbl.set_meta("anchor_pos", door_pos)
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir, window_pos)
 	Anclas.pausa -= 1
 	# Paredes de dentro (grupo «Tabiques» de la escena): van escritas respecto al centro y siguen al edificio por sus anclas
@@ -1835,94 +1829,8 @@ func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z
 				_add_prop_collider(p0, Vector2(10.0, 14.0), b_tag)
 	return s
 
-func _add_title_label(pos: Vector2, min_sz: Vector2, txt: String, col: Color, f_sz: int = 7, parent_node: Node = null) -> Label:
-	pos = Anclas.mover(pos + min_sz * 0.5, "letrero", txt) - min_sz * 0.5
-	var lbl := Label.new()
-	lbl.text = txt
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.scale = Vector2(0.62, 0.62)
-	lbl.position = Vector2(pos.x + min_sz.x * (1.0 - lbl.scale.x) * 0.5, pos.y)
-	lbl.custom_minimum_size = min_sz
-	lbl.add_theme_font_size_override("font_size", f_sz)
-	lbl.add_theme_color_override("font_color", col)
-	lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.07, 0.05, 0.92))
-	lbl.add_theme_constant_override("outline_size", 2)
-	(parent_node if parent_node else entities_root).add_child(lbl)
-	lbl.add_to_group("world_title_label")
-	return lbl
-
 ## Letreros del mapa sin amontonarse (2026-11-05): solo se ven los que están cerca del jugador (o bajo el ratón), y si
 ## dos se pisan, se queda el más cercano. Usa la transparencia (modulate.a), así no toca su `visible`.
-
-func _title_text_rect(lbl: Label) -> Rect2:
-	var full: Rect2 = lbl.get_global_rect()
-	var font: Font = lbl.get_theme_font("font")
-	if font == null or lbl.text == "":
-		return full
-	var fsz: int = lbl.get_theme_font_size("font_size")
-	var w: float = 0.0
-	var lines: PackedStringArray = lbl.text.split("\n")
-	for ln in lines:
-		w = maxf(w, font.get_string_size(ln, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x)
-	var sc: float = lbl.get_global_transform().get_scale().x
-	w = minf(w * sc, full.size.x)
-	return Rect2(Vector2(full.get_center().x - w * 0.5, full.position.y), Vector2(w, full.size.y))
-
-func _declutter_title_labels() -> void:
-	var pl := get_tree().get_first_node_in_group("player") as Node2D
-	if pl == null:
-		return
-	var pp: Vector2 = pl.global_position
-	var focusing_npc: bool = false
-	var isel = pl.get("interaction_selector")
-	if isel != null and is_instance_valid(isel) and isel.has_method("selected"):
-		var sel: Dictionary = isel.call("selected")
-		if not sel.is_empty() and sel.get("target") is VillageNPC:
-			focusing_npc = true
-	var cands: Array = []
-	for l in get_tree().get_nodes_in_group("world_title_label"):
-		var lbl := l as Label
-		if lbl == null or not lbl.is_visible_in_tree():
-			continue
-		if focusing_npc:
-			lbl.modulate.a = 0.0
-			continue
-		var r: Rect2 = _title_text_rect(lbl)
-		var anchor: Vector2 = lbl.get_meta("anchor_pos") if lbl.has_meta("anchor_pos") else r.get_center()
-		var d: float = anchor.distance_to(pp)
-		if d <= TITLE_SHOW_RADIUS:
-			cands.append([d, lbl, r])
-		else:
-			lbl.modulate.a = 0.0
-	cands.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
-	var kept: Array = []
-	var sel_node := pl.get_node_or_null("InteractionSelector/PromptLabel") as Label
-	if sel_node != null and sel_node.is_visible_in_tree():
-		kept.append(_title_text_rect(sel_node).grow(3.0))
-	for n in get_tree().get_nodes_in_group("village_npcs"):
-		if n is VillageNPC:
-			var vnpc := n as VillageNPC
-			if vnpc._craft_bar_root != null and vnpc._craft_bar_root.is_visible_in_tree() and vnpc._craft_bar_label != null:
-				kept.append(_title_text_rect(vnpc._craft_bar_label).grow(3.0))
-			if vnpc.status_label != null and vnpc.status_label.is_visible_in_tree():
-				kept.append(_title_text_rect(vnpc.status_label).grow(3.0))
-	for r_id in shop_businesses.keys():
-		var sb_lbl: Label = shop_businesses[r_id].get("stall_label")
-		if sb_lbl != null and is_instance_valid(sb_lbl) and sb_lbl.is_visible_in_tree():
-			kept.append(_title_text_rect(sb_lbl).grow(3.0))
-	var shown_count: int = 0
-	for c in cands:
-		var r2: Rect2 = c[2]
-		var clash: bool = (shown_count >= 1)
-		if not clash:
-			for k in kept:
-				if r2.grow(2.0).intersects(k):
-					clash = true
-					break
-		(c[1] as Label).modulate.a = 0.0 if clash else 0.88
-		if not clash:
-			kept.append(r2)
-			shown_count += 1
 
 # ==============================================================================
 # Regla 1 (suma cero): ayudas para que todo oro salga de un bolsillo, una caja o las arcas, y vaya a otro.

@@ -367,9 +367,6 @@ static func update_school(vm, pay: bool = true) -> void:
 			if n.has_meta("school_pos"):
 				n.remove_meta("school_pos")
 			n.work_position = n.home_table_pos
-	var school_lbl = vm.get_meta("school_sign", null)
-	if school_lbl != null and is_instance_valid(school_lbl):
-		school_lbl.text = ("Abierta · %s · %d alumnos" % [t.npc_name, i]) if t != null else "Esperando alumnos"
 	if pay and t != null and not (WorldClock != null and WorldClock.has_method("is_weekend") and WorldClock.is_weekend()):
 		var ts: Dictionary = vm.town_state
 		if int(ts.get("treasury", 0)) >= TEACHER_PAY:

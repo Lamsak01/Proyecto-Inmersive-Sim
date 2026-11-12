@@ -1999,7 +1999,6 @@ static func sync_outpost_visuals(vm) -> void:
 		for p in [Vector2(-64, -68), Vector2(64, -68), Vector2(64, 68), Vector2(-64, 68)]:
 			vm._add_rect_poly(c + p, Vector2(3, 5), Color(0.48, 0.32, 0.16, 1.0), -1)
 		vm._add_rect_poly(outpost_gate_pos(), Vector2(5, 8), Color(0.55, 0.36, 0.18, 1.0), -1)
-		vm._add_title_label(c + Vector2(-95, -88), Vector2(190, 14), "🏕️ Solar Fronterizo «Puesto del Paso» [E: Fundar]", Color(0.95, 0.88, 0.62), 7)
 	else:
 		# Explanada empedrada y empalizada de troncos del Puesto del Paso
 		vm._add_rect_poly(c, Vector2(76, 82), Color(0.36, 0.30, 0.22, 0.92), -2)
@@ -2016,14 +2015,10 @@ static func sync_outpost_visuals(vm) -> void:
 		vm._add_rect_poly(c + Vector2(-18, 0), Vector2(4, 4), Color(1.0, 0.58, 0.18, 0.95), 0)
 		if bool(upgs.get("sawmill", false)):
 			vm._add_rect_poly(c + Vector2(-28, -52), Vector2(22, 14), Color(0.54, 0.36, 0.20, 1.0), -1)
-			vm._add_title_label(c + Vector2(-78, -72), Vector2(100, 12), "🪚 Aserradero", Color(0.95, 0.88, 0.68), 7)
 		if bool(upgs.get("granary", false)):
 			vm._add_rect_poly(c + Vector2(-28, 52), Vector2(20, 14), Color(0.76, 0.62, 0.32, 1.0), -1)
-			vm._add_title_label(c + Vector2(-78, 64), Vector2(100, 12), "🌾 Granero", Color(0.98, 0.90, 0.62), 7)
 		if bool(upgs.get("watchtower", false)):
 			vm._add_rect_poly(c + Vector2(-58, -58), Vector2(12, 12), Color(0.45, 0.34, 0.22, 1.0), 1)
-			vm._add_title_label(c + Vector2(-108, -76), Vector2(100, 12), "🏹 Atalaya", Color(0.88, 0.94, 1.0), 7)
-		vm._add_title_label(c + Vector2(-105, -96), Vector2(210, 14), "🏕️ «%s» [E: Arca / Mejoras]" % str(op.get("name", "Puesto del Paso")), Color(1.0, 0.92, 0.58), 8)
 	vm.set_meta("outpost_nodes", VillageLots._capture_end(vm, cap)[0])
 	if vm.has_method("refresh_world_stage_3d"):
 		vm.refresh_world_stage_3d()
@@ -2034,8 +2029,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 	var props: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 	var m: float = -1.0 if bool(d["door_south"]) else 1.0
 	vm._construct_solid_building("building_" + str(st["kind"]), str(st["title"]), c,
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
-		Color(0.86, 0.92, 1.0))
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 	match str(st["kind"]):
 		"library":
 			for sx in [-44, -18, 8]: # Estanterías del fondo (dejando el cuadrante NE para la Sala Oculta)
@@ -2065,12 +2059,10 @@ static func build(vm, id: String, st: Dictionary) -> void:
 			vm._spawn_decor_prop(props + "table_chairs_1.png", reading_spot(), Vector2(0.45, 0.45))
 			vm.register_no_stand_furniture(reading_spot(), Vector2(22.0, 12.5))
 			vm._add_station_area("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
-			vm._add_title_label(reading_spot() + Vector2(-50, -22), Vector2(100, 12), "📖 Leer un rato [E]", Color(0.9, 0.95, 1.0), 7)
 		"school":
 			for p in [Vector2(-30, -8), Vector2(0, -8), Vector2(30, -8), Vector2(-30, 12), Vector2(0, 12), Vector2(30, 12)]:
 				vm._add_rect_poly(c + Vector2(p.x, -p.y * m), Vector2(9, 5), Color(0.55, 0.38, 0.20, 1.0), -1) # Pupitres (como en 3D)
 			vm._add_rect_poly(c + Vector2(0, 26 * m), Vector2(30, 3), Color(0.15, 0.25, 0.18, 1.0), -1) # Pizarra, enfrente de la puerta
-			vm.set_meta("school_sign", vm._add_title_label(c + Vector2(-80, 38 * m - 6), Vector2(160, 12), "Esperando alumnos", Color(0.8, 0.8, 0.8), 7)) # V9 lo actualiza
 
 # ---------------------------------------------------------------- biblioteca
 ## VillagePlaces: alguien ha llegado a la biblioteca.
@@ -2232,7 +2224,6 @@ static func _draw_market(vm) -> void:
 		var p: Vector2 = _AN_SITIOS.desmover(Sitio.serie(SITIOS_MERCADO)[int(e["spot"])]) # lo que se dibuja aún se traduce
 		vm._add_rect_poly(p + Vector2(0, -10), Vector2(14, 4), Color(0.55, 0.36, 0.18, 1.0), -1) # Mesa
 		vm._add_rect_poly(p + Vector2(0, -16), Vector2(15, 2), Color(0.85, 0.25, 0.22, 0.95), 0) # Toldo
-	vm._add_title_label(Vector2(405, -4), Vector2(120, 12), "🧺 Mercado del Miércoles", Color(1.0, 0.9, 0.6), 7)
 	vm.set_meta("market_nodes", VillageLots._capture_end(vm, cap)[0])
 
 static func _clear_market(vm) -> void:

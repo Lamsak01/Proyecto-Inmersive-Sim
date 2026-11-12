@@ -1206,7 +1206,6 @@ func _spawn_or_update_vagrant_camp_visual(npc: VillageNPC, camp_pos: Vector2) ->
 	_add_poly(PackedVector2Array([Vector2(-15, 4), Vector2(-6, -11), Vector2(4, 4)]), Color(0.56, 0.46, 0.32, 0.95), 0, Vector2.ZERO, camp_root)
 	_add_poly(PackedVector2Array([Vector2(-6, 1), Vector2(8, 1), Vector2(8, 7), Vector2(-6, 7)]), Color(0.45, 0.52, 0.36, 0.95), -1, Vector2.ZERO, camp_root)
 	_add_poly(PackedVector2Array([Vector2(10, -2), Vector2(15, -5), Vector2(18, 0), Vector2(14, 4)]), Color(1.0, 0.58, 0.18, 0.88), 1, Vector2.ZERO, camp_root)
-	_add_title_label(Vector2(-110, -26), Vector2(220, 16), "⛺ Campamento Rústico de %s (Intemperie: Sueño máx. 74%%)" % npc.npc_name, Color(1.0, 0.80, 0.52), 7, camp_root)
 
 ## Comprueba cada mañana (07:00 AM) si hoy toca visita de uno de los 2 Mercaderes Semanales de Extramuros:
 ## - Día 3 de cada semana (`day % 7 == 3`): Maese Casimir (Liga Minera, presupuesto variable `168..196 Oro`).

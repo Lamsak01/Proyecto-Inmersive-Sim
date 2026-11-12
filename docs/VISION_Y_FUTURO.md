@@ -61,6 +61,9 @@ Cada idea nueva debe construirse sobre estas piezas; si no encaja en ninguna, es
 
 Reglas que acompañan al principio:
 - Cada pieza tiene que **verse** (diálogos, textos flotantes, crónica). Si el jugador no lo nota, no vale la pena.
+- **Nada de texto flotante sobre el mundo** (usuario, 2026-11-12): los nombres van en carteles de madera junto a la
+  puerta, y el estado de las cosas se cuenta con pistas visuales (andamios que crecen, alumnos en los pupitres…).
+  Ideas pendientes: puerta abierta o cerrada según el horario, humo en la chimenea si hay alguien, luz en la ventana.
 - Cada pieza se **mide en partidas largas** antes de pasar a la siguiente.
 - Cada fase deja el juego **jugable y mejor**, nunca medio montado.
 - Lo dramático y extremo (peleas, obsesiones, asesinatos) es **raro**: una partida tranquila también es válida.

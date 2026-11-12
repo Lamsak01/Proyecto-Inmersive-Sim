@@ -106,8 +106,7 @@ static func setup_world(vm) -> void:
 static func build(vm) -> void:
 	var c: Vector2 = RECT.get_center()
 	vm._construct_solid_building(BUILDING_ID, TITLE, c,
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
-		Color(1.0, 0.82, 0.55))
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 	_build_furniture(vm)
 	_build_terrace(vm)
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex(PROPS + "storage_countertop_0.png"), sitio(M_BARRA), Vector2(0.55, 0.55), -1)

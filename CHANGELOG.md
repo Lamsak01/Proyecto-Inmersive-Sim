@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Fuera los nombres flotantes sobre el mapa (Claude Code)
+- Decisión del usuario: nada de texto flotante; el nombre va en el cartel de la puerta y lo demás lo cuenta el mundo.
+  Borrados los 63 títulos (edificios, «Solar libre», parque, mirador, lavadero, urna, mercado, puesto del paso,
+  campamento de vagabundos, «Leer un rato», escuela, obras) con `_add_title_label`, `_declutter_title_labels`,
+  `_title_text_rect`, `TITLE_SHOW_RADIUS` y el color de título de `_construct_solid_building` (15 llamadas).
+- Obras y escuela sin texto: los andamios crecen con la obra y los alumnos se sientan en los pupitres con el maestro.
+  `verify_all`: fuera la comprobación del letrero de la escuela.
+- Comprobado: 0 títulos en partida; lo visible desde arriba, igual; `verify_all`.
+
 ## 2026-11-12 — Carteles de madera con el nombre junto a la puerta de cada edificio (Claude Code)
 - Pedido del usuario: el nombre del edificio en un cartel de madera al lado de la puerta, no flotando. Pieza nueva
   `mapa/cartel.gd` («Cartel» en las 32 escenas de `mapa/edificios/`, incluidas las tres casas modelo): tabla clara con

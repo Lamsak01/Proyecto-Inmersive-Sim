@@ -62,7 +62,6 @@ static func build_world(vm) -> void:
 	var p: Vector2 = Sitio.original(SITIO_LAVADERO) # lo que se dibuja aún se traduce: se le da el mapa original
 	vm._add_rect_poly(p, Vector2(18, 8), Color(0.55, 0.55, 0.58, 0.95), -2) # Pila de piedra
 	vm._add_rect_poly(p, Vector2(14, 5), Color(0.30, 0.55, 0.78, 0.95), -1) # Agua
-	vm._add_title_label(p + Vector2(-50, -24), Vector2(100, 12), "🧺 Lavadero", Color(0.75, 0.9, 1.0), 7)
 
 # ---------------------------------------------------------------- jornaleros
 static func _is_work_day() -> bool:
