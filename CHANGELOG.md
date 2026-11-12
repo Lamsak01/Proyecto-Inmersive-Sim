@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 2: suelo y agua medidos de verdad (Claude Code)
+- `tools/tests/inventario_mundo.gd` mide las mallas de suelo por el centro de lo que dibujan (su nodo está en el origen). De 42 piezas de `Terrain3D`, 29 siguen al editor (calles de «Caminos»); 4 son el río (sale del editor, la medición no lo mueve); quedan **6 zonas hechas con números del código**: plaza, lago (2), ciénaga y dos junto al claro del norte.
+- Inventario: sigue 5.181, quieto 34, doble 0, otro sitio 118. Sin cambios en el juego.
+
 ## 2026-11-11 — Paso 2, tanda 4: las «434 plantas quietas» eran un error de medición (Claude Code)
 - Los 434 «lotes» de `Nature3D` son paquetes de dibujo (un nodo fijo que junta muchas copias de un árbol o roca): el inventario miraba el paquete, no las copias. `tools/tests/inventario_mundo.gd` anota ahora cada copia. Resultado: de 1.102 árboles y rocas, 1.063 siguen al editor, 14 son copias ocultas y 25 varían entre partidas. **No hubo que tocar el juego.**
 - Inventario real: sigue 5.147, quieto 66 (42 de suelo y agua, 14 copias ocultas, luces del cielo, muro débil y espada de `scenes/World.tscn`), doble 0, otro sitio 120. La zona del zapato del Puente Viejo sale «quieta» porque sigue al río del editor y la medición no mueve el río.

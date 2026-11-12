@@ -28,9 +28,9 @@ solar ✅ → mostradores ✅ → plantas ✅ (eran un error de medición: ya se
   «otro sitio» sin serlo (mirar `inventario_quieto|movido.json` en la carpeta de datos del juego).
 
 ## c) Siguiente paso técnico inmediato
-Paso 2, último trozo: **suelo y agua** (42 mallas de `Terrain3D` quietas). Antes de tocar nada, comprobar cuántas
-salen ya del editor: el inventario no mueve el río ni sus cruces (la zona del zapato del Puente Viejo sale «quieta»
-por eso). Si casi todo sale del editor, cerrar el paso 2 y traer al usuario el plan del paso 3.
+Paso 2, último trozo: **zonas de terreno como piezas** (plaza, lago, ciénaga y dos zonas junto al claro del norte:
+6 mallas de `_build_static_terrain_3d` que salen de listas del código estiradas ×5, con su lógica: nadar, pescar).
+Toca arquitectura: **plan corto pendiente de aprobar por el usuario**. El río ya sale del editor («Rio»/«Cruces»).
 Pendiente apuntado: muro débil y espada puestos a mano en `scenes/World.tscn` (no siguen al editor); pasar los datos
 de `VillageLots.LOTS` a las piezas de solar y borrar la constante y `lot_shift`; `OUTPOST_*` de `VillageCulture` a
 marcas del puesto; tamaños que aún usa otra lógica (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`,
@@ -39,5 +39,5 @@ marcas del puesto; tamaños que aún usa otra lógica (`VillageTavern.SIZE/RECT`
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).
 - Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración. Inventario 2026-11-11
-  (`docs/INVENTARIO_MUNDO.md`, ya cuenta cada árbol de los lotes): sigue 5.147, quieto 66 (42 suelo y agua), doble 0,
-  otro sitio 120 (sitios al aire libre, ruido de casas y de árboles que varían entre partidas).
+  (`docs/INVENTARIO_MUNDO.md`, cuenta cada árbol de los lotes y el centro de cada malla de suelo): sigue 5.181,
+  quieto 34 (6 zonas de terreno, 4 del río, 14 copias ocultas, luces), doble 0, otro sitio 118 (ruido entre partidas).

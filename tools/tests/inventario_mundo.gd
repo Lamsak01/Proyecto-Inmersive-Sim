@@ -85,9 +85,17 @@ func _volcar_3d(datos: Dictionary) -> void:
 		if n is MultiMeshInstance3D and (n as MultiMeshInstance3D).multimesh != null:
 			_volcar_lote(datos, n as MultiMeshInstance3D, str(escenario.get_path_to(n)))
 			continue
-		var p: Vector3 = (n as Node3D).global_position
+		var p: Vector3 = _sitio_dibujado(n as Node3D)
 		var en_mapa: Vector2 = Mapa3D.a_mapa(p)
 		datos["3d|" + str(escenario.get_path_to(n))] = [en_mapa.x, en_mapa.y, n.get_class()]
+
+
+## Suelos, agua y caminos son mallas con los puntos ya en el mundo y el nodo en el origen: su sitio es el centro de la malla.
+func _sitio_dibujado(n: Node3D) -> Vector3:
+	var malla: MeshInstance3D = n as MeshInstance3D
+	if malla == null or malla.mesh == null or not malla.position.is_zero_approx():
+		return n.global_position
+	return malla.global_transform * malla.mesh.get_aabb().get_center()
 
 
 ## Un lote junta muchas copias de una malla (árboles, rocas) en un solo nodo que no se mueve: se anota cada copia.
