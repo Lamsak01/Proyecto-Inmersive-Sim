@@ -396,7 +396,8 @@ func get_door_lanes(b_or_door: Dictionary, lane_shift: float = 0.0) -> Dictionar
 func _construct_solid_building(
 	b_id: String, b_title: String, center: Vector2, size: Vector2, door_on_south,
 	floor_tex_path: String, wall_h_path: String, wall_v_path: String,
-	door_width: float = 42.0, door_offset_x: float = 0.0, title_color: Color = Color(0.96, 0.90, 0.68)
+	door_width: float = 42.0, door_offset_x: float = 0.0, title_color: Color = Color(0.96, 0.90, 0.68),
+	window_on_right: bool = false
 ) -> void:
 	# Editor del mapa 3D (2026-11-10): si el usuario movió el edificio en mapa/Mundo3D.tscn, se construye en el sitio nuevo
 	var d_edif: Vector2 = EdificioEditor.desplazamiento(b_id)
@@ -499,8 +500,11 @@ func _construct_solid_building(
 
 	var t_lbl := _add_title_label(center + Vector2(-125, -half.y - 18.0), Vector2(250, 14), b_title, title_color, 7)
 	t_lbl.set_meta("anchor_pos", door_pos)
-	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir)
+	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir, window_on_right)
 	Anclas.pausa -= 1
+
+const VENTANA_SEPARACION_PX: float = 18.0 ## del borde de la puerta al centro de la ventana
+const VENTANA_MARGEN_PX: float = 14.0     ## lo más cerca que puede quedar de una esquina
 
 func _spawn_building_door_and_window(
 	b_id: String,
@@ -509,7 +513,8 @@ func _spawn_building_door_and_window(
 	door_pos: Vector2,
 	door_on_south: bool,
 	door_width: float,
-	door_dir: String = ""
+	door_dir: String = "",
+	window_on_right: bool = false
 ) -> void:
 	var eff_dir: String = door_dir if door_dir != "" else ("south" if door_on_south else "north")
 	var is_horiz_door: bool = (eff_dir in ["south", "north"])
@@ -549,16 +554,18 @@ func _spawn_building_door_and_window(
 	})
 
 	var win_pos: Vector2
+	# La ventana va a un lado de la puerta (a la izquierda del mapa, salvo que se pida el otro); si no cabe, al contrario
+	var hacia: float = (door_width * 0.5 + VENTANA_SEPARACION_PX) * (1.0 if window_on_right else -1.0)
 	if is_horiz_door:
-		var win_x: float = door_pos.x - door_width * 0.5 - 18.0
-		if win_x < rect.position.x + 15.0:
-			win_x = door_pos.x + door_width * 0.5 + 18.0
-		win_pos = Vector2(clampf(win_x, rect.position.x + 14.0, rect.end.x - 14.0), door_pos.y)
+		var win_x: float = door_pos.x + hacia
+		if win_x < rect.position.x + VENTANA_MARGEN_PX + 1.0 or win_x > rect.end.x - VENTANA_MARGEN_PX - 1.0:
+			win_x = door_pos.x - hacia
+		win_pos = Vector2(clampf(win_x, rect.position.x + VENTANA_MARGEN_PX, rect.end.x - VENTANA_MARGEN_PX), door_pos.y)
 	else:
-		var win_y: float = door_pos.y - door_width * 0.5 - 18.0
-		if win_y < rect.position.y + 15.0:
-			win_y = door_pos.y + door_width * 0.5 + 18.0
-		win_pos = Vector2(door_pos.x, clampf(win_y, rect.position.y + 14.0, rect.end.y - 14.0))
+		var win_y: float = door_pos.y + hacia
+		if win_y < rect.position.y + VENTANA_MARGEN_PX + 1.0 or win_y > rect.end.y - VENTANA_MARGEN_PX - 1.0:
+			win_y = door_pos.y - hacia
+		win_pos = Vector2(door_pos.x, clampf(win_y, rect.position.y + VENTANA_MARGEN_PX, rect.end.y - VENTANA_MARGEN_PX))
 	var spr_win := _add_sprite_prop(tex_win_open, win_pos, Vector2.ONE, 3)
 
 	_add_station_area("WindowArea_" + b_id, win_pos, 11.0, "building_window")

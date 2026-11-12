@@ -136,7 +136,7 @@ static func move_into_house(vm, n, id: String = "") -> bool:
 		var st: Dictionary = VillageLots.lot(vm, id)
 		var res: Array = st["residents"]
 		if res.size() < (st["beds"] as Array).size():
-			b = {"lot": id, "bed": st["beds"][res.size()], "family_id": "family_lot_" + id, "table": VillageLots.lot_def(id)["center"] + Vector2(0, -2)}
+			b = {"lot": id, "bed": st["beds"][res.size()], "family_id": "family_lot_" + id, "table": VillageLots.house_site(id, VillageLots.Marca.MESA)}
 	else:
 		b = VillageLots.free_house_bed(vm)
 	if b.is_empty():

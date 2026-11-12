@@ -33,6 +33,10 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   **Girar: de 90 en 90 grados** (si pones 37°, el juego lo redondea a 0 o 90). Los muebles de dentro se pueden mover
   uno a uno. **No cambies «Id edificio»** ni «Centro original». No copies un edificio con Ctrl+D: saldría un clon con el
   mismo nombre interno y el juego no sabe cuál es cuál (una casa nueva la añade Claude).
+  **Casas de recién llegados:** todas son copias de tres **casas modelo** (`mapa/edificios/modelo_casita`, `modelo_casa`
+  y `modelo_casona`). Abre una con doble clic, mueve muebles o las cruces de **Marcas** (`cama_1`, `mesa`, `cofre`…) y
+  guarda: cambia en todas las casas de ese tamaño, también las que se construyan jugando. Si añades una cruz `cama_3`,
+  la casa gana una plaza. Las casas con la puerta al norte son la misma casa con media vuelta.
 - **Objetos (191):** pozos, farolas, tablón y las «anclas» (cuadrados o cilindros tenues): marcan dónde el juego pone cosas
   sin dibujo propio (zonas de uso, letreros, casas de animales, setas, pistas del Caso I, huertos, el campamento, el
   carro…). Muévelos y lo suyo va detrás. **No cambies «Clave»**.

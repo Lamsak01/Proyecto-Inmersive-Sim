@@ -113,12 +113,17 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 ## Edificios como escenas (2026-11-11, paso 1 de `docs/PLAN_MUNDO_DESDE_EDITOR.md`)
 - Los 29 edificios fijos son escenas en `mapa/edificios/<id>.tscn` (mallas y texturas compartidas en `comun/`); en
   Mundo3D → «Edificios» cada pieza es una copia de su escena. Grupos fijos (`scripts/visuals/PartesEdificio3D.gd`):
-  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (`Marker3D` con `mapa/marca.gd` e `id_marca`: sitios de la lógica; 196 marcas en 30 edificios a 2026-11-11, lista en `docs/ESTADO_ACTUAL.md`; el código los lee con `Marca.sitio`).
+  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (`Marker3D` con `mapa/marca.gd` e `id_marca`: sitios de la lógica; 215 marcas en 33 escenas a 2026-11-11, lista en `docs/ESTADO_ACTUAL.md`; el código los lee con `Marca.sitio`).
 - Para cambiar un edificio por dentro: abrir su escena (doble clic en `mapa/edificios/…`), mover muebles, guardar.
 - Lo que se mueve jugando (puerta, postigo, luces de noche, reja de la celda, puertas de cuarto, cuerpos de la morgue)
   lleva una etiqueta (metadato `rol`); el juego lo busca por la etiqueta, no por nombre ni posición.
 - El juego (`WorldStageBuildings3D._poner_edificio_de_escena`) cuelga la escena en el centro de la planta, con su giro.
-- Las casas de recién llegados (`house_family_lot_*`) siguen con foto en `mapa/edificios_vista/` y dibujo por código.
+- Las casas de recién llegados (`house_family_lot_<solar>`) son copias de tres **casas modelo**
+  (`mapa/edificios/modelo_casita|casa|casona.tscn`, según el `plot` del solar; `mapa/casa_modelo.gd`). Están hechas con
+  la puerta al sur; con la puerta al norte el juego las pone con media vuelta (`giro_de_fabrica = 180` en la pieza del
+  valle, que no cuenta como giro del usuario) y la ventana lógica pasa al otro lado. Camas, mesa y cofre salen de sus
+  marcas (`cama_N`, `cama_alta_N` con altillo, `mesa`, `cofre`) respecto al centro del solar. Las casas que se levantan
+  jugando no tienen pieza en el valle: usan la casa modelo directamente. Sus muebles no llevan `clave` (sin anclas).
 - `tools/convertir_edificios.gd` convierte lo que el código aún dibuje y no tenga escena; lo ya convertido no se rehace
   (su código ya no existe: la escena es el original). `tools/hornear_edificios.gd` está borrado.
 - Las texturas de los muros pueden verse corridas unos centímetros respecto a antes (se pegan al edificio, no al mundo).

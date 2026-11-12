@@ -6,6 +6,7 @@ extends "res://scripts/visuals/WorldStageProps3D.gd"
 
 const Partes = preload("res://scripts/visuals/PartesEdificio3D.gd")
 const EdificioEditor = preload("res://mapa/edificio.gd")
+const CasaModelo = preload("res://mapa/casa_modelo.gd")
 
 ## Colores, texturas y alturas de un edificio sin escena propia, según su clase (los que tienen escena ya los llevan dentro).
 func _style_for_building(b_id: String) -> Dictionary:
@@ -41,11 +42,6 @@ func _style_for_building(b_id: String) -> Dictionary:
 			roof_tex = "town_textures/roof_thatch_center.png"
 		wall_col = Color(0.84, 0.74, 0.56)
 		roof_col = Color(0.68, 0.34, 0.22)
-	elif b_id.begins_with("player_house_"):
-		wall_tex = "town_textures/timber_square_planks.png"
-		roof_tex = "town_textures/roof_thatch_center.png"
-		wall_col = Color(0.86, 0.76, 0.58)
-		roof_col = Color(0.28, 0.52, 0.36)
 	return {
 		"wall_mat": _mat("wall_" + b_id, wall_col, 0.88, 0.04, Color.BLACK, 0.0, wall_tex, "", 0.70),
 		"roof_mat": _mat("roof_" + b_id, roof_col, 0.80, 0.06, Color.BLACK, 0.0, roof_tex, "", 0.75),
@@ -73,7 +69,7 @@ func rebuild_buildings_3d() -> void:
 	if vm == null:
 		return
 	for b: Dictionary in vm.building_footprints:
-		var propia: PackedScene = null if edificios_por_codigo else EdificioEditor.escena(str(b.get("id", "")))
+		var propia: PackedScene = null if edificios_por_codigo else _escena_de(str(b.get("id", "")))
 		if propia != null:
 			_poner_edificio_de_escena(b, propia)
 		else:
@@ -82,7 +78,14 @@ func rebuild_buildings_3d() -> void:
 	check_furniture_overlaps(true)
 
 
-## Edificio sin escena propia (casas de recién llegados y lo que se levante en un solar durante la partida): se dibuja
+## La escena de un edificio: la suya o, si es una casa de recién llegados, la casa modelo de su tamaño. Sin ella, null.
+func _escena_de(b_id: String) -> PackedScene:
+	if CasaModelo.es_casa_de_solar(b_id):
+		return CasaModelo.escena(VillageLots.plot_of(CasaModelo.solar_de(b_id)))
+	return EdificioEditor.escena(b_id)
+
+
+## Edificio sin escena propia (lo que se levante en un solar durante la partida, salvo las casas): se dibuja
 ## a partir de su planta. Se construye donde estaba y sin girar, y luego se lleva entero a su sitio.
 func _construir_edificio_por_codigo(b: Dictionary) -> void:
 	var b_id: String = str(b.get("id", ""))
@@ -286,10 +289,15 @@ func _poner_edificio_de_escena(b: Dictionary, propia: PackedScene) -> void:
 	var raiz: Node3D = propia.instantiate()
 	raiz.name = "B3D_" + b_id
 	buildings_root_3d.add_child(raiz)
-	raiz.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(float(b.get("giro", 0.0)))), to_3d(rect.get_center()))
+	var giro: float = float(b.get("giro", 0.0))
+	var puerta_sur: bool = bool(b.get("door_south_orig", b["door_south"]))
+	if CasaModelo.es_casa_de_solar(b_id): # hecha con la puerta al sur: si el solar mira al norte, media vuelta
+		giro += CasaModelo.giro_de_fabrica(puerta_sur)
+		puerta_sur = true
+	raiz.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(giro)), to_3d(rect.get_center()))
 	_edificios_de_escena[b_id] = true
 	_poner_muebles_de_escena(raiz, b_id)
-	_registrar_edificio_3d(raiz, b_id, rect, bool(b.get("door_south_orig", b["door_south"])))
+	_registrar_edificio_3d(raiz, b_id, rect, puerta_sur)
 
 
 ## Dibuja el modelo de cada pieza del grupo «Muebles» (mapa/mueble.gd) donde la dejó el usuario y los junta en una
@@ -459,17 +467,6 @@ func _populate_building_interior_3d(b_root: Node3D, b_id: String, rect: Rect2, d
 		_build_bed_3d(b_root, c + Vector2(-36, 26.0 * fondo), m_wood, m_bed, m_pillow)
 		_build_bed_3d(b_root, c + Vector2(36, 26.0 * fondo), m_wood, m_bed, m_pillow)
 		_add_model_2d(b_root, "props/Table_Large.gltf", c + Vector2(0, 24.0 * fondo), 2.0, Vector2(18.0, 12.0), 7.0)
-	elif b_id.begins_with("house_") or b_id.begins_with("player_house_"):
-		var bed_dx: float = 26.0 if rect.size.x < 96.0 else 30.0
-		var bed_dy: float = (12.0 if rect.size.y < 70.0 else 18.0) * fondo
-		_build_bed_3d(b_root, c + Vector2(-bed_dx, bed_dy), m_wood, m_bed, m_pillow)
-		if not b_id.begins_with("player_house_"):
-			_build_bed_3d(b_root, c + Vector2(bed_dx, bed_dy), m_wood, m_bed, m_pillow)
-		var tbl_p: Vector2 = c + Vector2(2.0, -2.0 * fondo)
-		var ch_p: Vector2 = c + Vector2(-12.0, -2.0 * fondo)
-		_add_model_2d(b_root, "props/Table_Large.gltf", tbl_p, 2.0, Vector2(17.0, 11.0), 7.0)
-		_add_model_2d(b_root, "props/Chair_1.gltf", ch_p, 2.0, Vector2(6.0, 6.0), 8.5, _chair_rot_y_towards(ch_p, tbl_p))
-		_add_model_2d(b_root, "props/Bookcase_2.gltf", c + Vector2(bed_dx, -16.0 * fondo), 2.0, Vector2(14.0, 6.0), 16.0)
 	else:
 		_add_model_2d(b_root, "props/Table_Large.gltf", c + Vector2(0, 10.0 * fondo), 2.0, Vector2(24.0, 12.0), 7.5)
 		_add_model_2d(b_root, "props/Cabinet.gltf", c + Vector2(-32, -12.0 * fondo), 2.0, Vector2(16.0, 9.0), 13.0)

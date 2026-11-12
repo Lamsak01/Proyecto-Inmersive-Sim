@@ -75,12 +75,13 @@ static func sitio(id_edificio: String, marca: String) -> Vector2:
 
 static func _marcas_de(id_edificio: String) -> Dictionary:
 	if not _por_edificio.has(id_edificio):
-		_por_edificio[id_edificio] = _leer(load(EDIFICIO).call("escena", id_edificio) as PackedScene)
+		_por_edificio[id_edificio] = de_escena(load(EDIFICIO).call("escena", id_edificio) as PackedScene)
 	return _por_edificio[id_edificio]
 
 
-## Lee las marcas de la escena de un edificio sin crearla (solo sus datos guardados).
-static func _leer(escena: PackedScene) -> Dictionary:
+## Lee las marcas de la escena de un edificio sin crearla (solo sus datos guardados): {id de la marca → sitio}.
+## En una casa modelo (sin sitio propio en el mapa) el sitio queda respecto al centro de la casa.
+static func de_escena(escena: PackedScene) -> Dictionary:
 	var out: Dictionary = {}
 	if escena == null:
 		return out

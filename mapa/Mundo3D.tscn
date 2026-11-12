@@ -5,7 +5,6 @@
 [ext_resource type="Script" path="res://mapa/edificio.gd" id="3_jgq7j"]
 [ext_resource type="PackedScene" path="res://mapa/edificios/building_tavern.tscn" id="3_nou5s"]
 [ext_resource type="ArrayMesh" path="res://mapa/decorado_comun/malla_1.res" id="4_0emcy"]
-[ext_resource type="Script" path="res://mapa/mueble.gd" id="4_l6ly0"]
 [ext_resource type="Texture2D" path="res://mapa/decorado_comun/tex_2.res" id="5_bojho"]
 [ext_resource type="PackedScene" path="res://mapa/edificios/shop_family_smith.tscn" id="5_fba6n"]
 [ext_resource type="PackedScene" path="res://mapa/edificios/house_family_smith.tscn" id="6_7jlh3"]
@@ -60,6 +59,8 @@
 [ext_resource type="Script" path="res://mapa/camino.gd" id="31_cyb43"]
 [ext_resource type="PackedScene" path="res://mapa/edificios/building_mansion.tscn" id="31_uqy7y"]
 [ext_resource type="PackedScene" path="res://mapa/edificios/building_manor.tscn" id="32_04a1h"]
+[ext_resource type="PackedScene" path="res://mapa/edificios/modelo_casita.tscn" id="33_fba6n"]
+[ext_resource type="PackedScene" path="res://mapa/edificios/modelo_casa.tscn" id="34_7jlh3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1p8rd"]
 albedo_color = Color(0.793, 0.712, 0.64000005, 1)
@@ -13671,454 +13672,61 @@ script = ExtResource("3_jgq7j")
 id_edificio = "building_manor"
 centro_original = Vector2(40, -560)
 
-[node name="house_family_lot_n0" type="Node3D" parent="Edificios" unique_id=899665738]
+[node name="house_family_lot_n0" type="Node3D" parent="Edificios" unique_id=847853989 instance=ExtResource("33_fba6n")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.08, 0.4438412, -119)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_n0"
 centro_original = Vector2(186, -425)
-origen_3d = Vector3(10.416, 0.4438412, -23.8)
 
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_n0" unique_id=1085045826]
-
-[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=1546994233]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.456, 0.21135296, -0.67200005)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n0#0|Bed_Twin1|160|-437"
-pos_original = Vector2(160, -437)
-local_original = Vector3(-1.456, 0.21135296, -0.67200005)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=209309247]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4559993, 0.21135296, -0.67200005)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n0#0|Bed_Twin1|212|-437"
-pos_original = Vector2(212, -437)
-local_original = Vector3(1.4559993, 0.21135296, -0.67200005)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=12750721]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11199989, 0.21135296, 0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n0#0|Table_Large|188|-423"
-pos_original = Vector2(188, -423)
-local_original = Vector3(0.11199989, 0.21135296, 0.11199926)
-modelo = "props/Table_Large.gltf"
-tam3 = Vector3(0.952, 0.7397353, 0.61600006)
-
-[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=468364997]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.67200005, 0.21135296, 0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n0#0|Chair_1|174|-423"
-pos_original = Vector2(174, -423)
-local_original = Vector3(-0.67200005, 0.21135296, 0.11199926)
-giro_original = 90.0
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.336, 0.89825004, 0.336)
-
-[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_n0/Muebles" unique_id=95141927]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4559993, 0.21135296, 0.8959986)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n0#0|Bookcase_2|212|-409"
-pos_original = Vector2(212, -409)
-local_original = Vector3(1.4559993, 0.21135296, 0.8959986)
-modelo = "props/Bookcase_2.gltf"
-tam3 = Vector3(0.784, 1.6908236, 0.336)
-
-[node name="house_family_lot_l2" type="Node3D" parent="Edificios" unique_id=1199042832]
+[node name="house_family_lot_l2" type="Node3D" parent="Edificios" unique_id=1749877170 instance=ExtResource("34_7jlh3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78.4, -0.19021766, 86.24)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_l2"
 centro_original = Vector2(-280, 308)
-origen_3d = Vector3(-15.68, -0.19021766, 17.248)
 
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_l2" unique_id=210823509]
-
-[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=510640172]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6799997, 0.21135294, -1.0080001)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l2#0|Bed_Twin1|-310|290"
-pos_original = Vector2(-310, 290)
-local_original = Vector3(-1.6799997, 0.21135294, -1.0080001)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=249911353]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6799997, 0.21135294, -1.0080001)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l2#0|Bed_Twin1|-250|290"
-pos_original = Vector2(-250, 290)
-local_original = Vector3(1.6799997, 0.21135294, -1.0080001)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=210554045]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11199989, 0.21135294, 0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l2#0|Table_Large|-278|310"
-pos_original = Vector2(-278, 310)
-local_original = Vector3(0.11199989, 0.21135294, 0.11199926)
-modelo = "props/Table_Large.gltf"
-tam3 = Vector3(0.952, 0.7397353, 0.61600006)
-
-[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=1657562572]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.6720007, 0.21135294, 0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l2#0|Chair_1|-292|310"
-pos_original = Vector2(-292, 310)
-local_original = Vector3(-0.6720007, 0.21135294, 0.11199926)
-giro_original = 90.0
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.336, 0.89825004, 0.336)
-
-[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_l2/Muebles" unique_id=1734322882]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6799997, 0.21135294, 0.8959997)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l2#0|Bookcase_2|-250|324"
-pos_original = Vector2(-250, 324)
-local_original = Vector3(1.6799997, 0.21135294, 0.8959997)
-modelo = "props/Bookcase_2.gltf"
-tam3 = Vector3(0.784, 1.6908236, 0.336)
-
-[node name="house_family_lot_n1" type="Node3D" parent="Edificios" unique_id=430223884]
+[node name="house_family_lot_n1" type="Node3D" parent="Edificios" unique_id=234854521 instance=ExtResource("34_7jlh3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.4438412, -119)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_n1"
 centro_original = Vector2(330, -425)
-origen_3d = Vector3(18.48, 0.4438412, -23.8)
 
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_n1" unique_id=1012512244]
-
-[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=849162326]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6799997, 0.21135296, -1.0080001)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n1#0|Bed_Twin1|300|-443"
-pos_original = Vector2(300, -443)
-local_original = Vector3(-1.6799997, 0.21135296, -1.0080001)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=1499418582]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6799997, 0.21135296, -1.0080001)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n1#0|Bed_Twin1|360|-443"
-pos_original = Vector2(360, -443)
-local_original = Vector3(1.6799997, 0.21135296, -1.0080001)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=1419924446]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11199989, 0.21135296, 0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n1#0|Table_Large|332|-423"
-pos_original = Vector2(332, -423)
-local_original = Vector3(0.11199989, 0.21135296, 0.11199926)
-modelo = "props/Table_Large.gltf"
-tam3 = Vector3(0.952, 0.7397353, 0.61600006)
-
-[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=1799812450]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.67199934, 0.21135296, 0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n1#0|Chair_1|318|-423"
-pos_original = Vector2(318, -423)
-local_original = Vector3(-0.67199934, 0.21135296, 0.11199926)
-giro_original = 90.0
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.336, 0.89825004, 0.336)
-
-[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_n1/Muebles" unique_id=592124490]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6799997, 0.21135296, 0.8959986)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_n1#0|Bookcase_2|360|-409"
-pos_original = Vector2(360, -409)
-local_original = Vector3(1.6799997, 0.21135296, 0.8959986)
-modelo = "props/Bookcase_2.gltf"
-tam3 = Vector3(0.784, 1.6908236, 0.336)
-
-[node name="house_family_lot_c2" type="Node3D" parent="Edificios" unique_id=156092269]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -168, 0, 224)
+[node name="house_family_lot_c2" type="Node3D" parent="Edificios" unique_id=676481357 instance=ExtResource("34_7jlh3")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -168, 0, 224)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_c2"
 centro_original = Vector2(-600, 800)
-origen_3d = Vector3(-33.6, 0, 44.8)
+giro_de_fabrica = 180.0
 
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_c2" unique_id=1095531929]
-
-[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=577998472]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6800011, 0.21135294, 1.0080024)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_c2#0|Bed_Twin1|-630|818"
-pos_original = Vector2(-630, 818)
-local_original = Vector3(-1.6800011, 0.21135294, 1.0080024)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=364278729]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6800011, 0.21135294, 1.0080024)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_c2#0|Bed_Twin1|-570|818"
-pos_original = Vector2(-570, 818)
-local_original = Vector3(1.6800011, 0.21135294, 1.0080024)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=126282435]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11199989, 0.21135294, -0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_c2#0|Table_Large|-598|798"
-pos_original = Vector2(-598, 798)
-local_original = Vector3(0.11199989, 0.21135294, -0.11199926)
-modelo = "props/Table_Large.gltf"
-tam3 = Vector3(0.952, 0.7397353, 0.61600006)
-
-[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=268525549]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.67199934, 0.21135294, -0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_c2#0|Chair_1|-612|798"
-pos_original = Vector2(-612, 798)
-local_original = Vector3(-0.67199934, 0.21135294, -0.11199926)
-giro_original = 90.0
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.336, 0.89825004, 0.336)
-
-[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_c2/Muebles" unique_id=1618238067]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6800011, 0.21135294, -0.8959986)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_c2#0|Bookcase_2|-570|784"
-pos_original = Vector2(-570, 784)
-local_original = Vector3(1.6800011, 0.21135294, -0.8959986)
-modelo = "props/Bookcase_2.gltf"
-tam3 = Vector3(0.784, 1.6908236, 0.336)
-
-[node name="house_family_lot_m1" type="Node3D" parent="Edificios" unique_id=948078407]
+[node name="house_family_lot_m1" type="Node3D" parent="Edificios" unique_id=908877530 instance=ExtResource("33_fba6n")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.7397353, -161.29105)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_m1"
 centro_original = Vector2(330, -576.0394)
-origen_3d = Vector3(18.48, 0.7397353, -32.25821)
 
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_m1" unique_id=916338216]
-
-[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=1664930339]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.456, 0.21135296, -0.67200005)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m1#0|Bed_Twin1|304|-588"
-pos_original = Vector2(304, -588.0394)
-local_original = Vector3(-1.456, 0.21135296, -0.67200005)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=248310089]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.456, 0.21135296, -0.67200005)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m1#0|Bed_Twin1|356|-588"
-pos_original = Vector2(356, -588.0394)
-local_original = Vector3(1.456, 0.21135296, -0.67200005)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=382436659]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11199989, 0.21135296, 0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m1#0|Table_Large|332|-574"
-pos_original = Vector2(332, -574.0394)
-local_original = Vector3(0.11199989, 0.21135296, 0.11199926)
-modelo = "props/Table_Large.gltf"
-tam3 = Vector3(0.952, 0.7397353, 0.61600006)
-
-[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=603214574]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.67199934, 0.21135296, 0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m1#0|Chair_1|318|-574"
-pos_original = Vector2(318, -574.0394)
-local_original = Vector3(-0.67199934, 0.21135296, 0.11199926)
-giro_original = 90.0
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.336, 0.89825004, 0.336)
-
-[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_m1/Muebles" unique_id=1723313720]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.456, 0.21135296, 0.8959986)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m1#0|Bookcase_2|356|-560"
-pos_original = Vector2(356, -560.0394)
-local_original = Vector3(1.456, 0.21135296, 0.8959986)
-modelo = "props/Bookcase_2.gltf"
-tam3 = Vector3(0.784, 1.6908236, 0.336)
-
-[node name="house_family_lot_o2" type="Node3D" parent="Edificios" unique_id=1535187995]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 473.2, 0.5495177, 67.2)
+[node name="house_family_lot_o2" type="Node3D" parent="Edificios" unique_id=1351396737 instance=ExtResource("34_7jlh3")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 473.2, 0.5495177, 67.2)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_o2"
 centro_original = Vector2(1690, 240)
-origen_3d = Vector3(94.64, 0.5495177, 13.439999)
+giro_de_fabrica = 180.0
 
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_o2" unique_id=1368258632]
-
-[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=1894472200]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6799958, 0.21135296, 1.0080001)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_o2#0|Bed_Twin1|1660|258"
-pos_original = Vector2(1660, 258)
-local_original = Vector3(-1.6799958, 0.21135296, 1.0080001)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=916898501]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6800064, 0.21135296, 1.0080001)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_o2#0|Bed_Twin1|1720|258"
-pos_original = Vector2(1720, 258)
-local_original = Vector3(1.6800064, 0.21135296, 1.0080001)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=1578664679]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11200256, 0.21135296, -0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_o2#0|Table_Large|1692|238"
-pos_original = Vector2(1692, 238)
-local_original = Vector3(0.11200256, 0.21135296, -0.11199926)
-modelo = "props/Table_Large.gltf"
-tam3 = Vector3(0.952, 0.7397353, 0.61600006)
-
-[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=26419882]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.67199403, 0.21135296, -0.11199926)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_o2#0|Chair_1|1678|238"
-pos_original = Vector2(1678, 238)
-local_original = Vector3(-0.67199403, 0.21135296, -0.11199926)
-giro_original = 90.0
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.336, 0.89825004, 0.336)
-
-[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_o2/Muebles" unique_id=1877389872]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6800064, 0.21135296, -0.8959997)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_o2#0|Bookcase_2|1720|224"
-pos_original = Vector2(1720, 224)
-local_original = Vector3(1.6800064, 0.21135296, -0.8959997)
-modelo = "props/Bookcase_2.gltf"
-tam3 = Vector3(0.784, 1.6908236, 0.336)
-
-[node name="house_family_lot_m3" type="Node3D" parent="Edificios" unique_id=539601193]
+[node name="house_family_lot_m3" type="Node3D" parent="Edificios" unique_id=1655315828 instance=ExtResource("34_7jlh3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 169.68, 0.7397353, -160.5616)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_m3"
 centro_original = Vector2(606, -573.43427)
-origen_3d = Vector3(33.936, 0.7397353, -32.11232)
 
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_m3" unique_id=1270766326]
-
-[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=1730473040]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6799983, 0.21135296, -1.0080001)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m3#0|Bed_Twin1|576|-591"
-pos_original = Vector2(576, -591.43427)
-local_original = Vector3(-1.6799983, 0.21135296, -1.0080001)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=438142494]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6800011, 0.21135296, -1.0080001)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m3#0|Bed_Twin1|636|-591"
-pos_original = Vector2(636, -591.43427)
-local_original = Vector3(1.6800011, 0.21135296, -1.0080001)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=25431438]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11199989, 0.21135296, 0.11200152)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m3#0|Table_Large|608|-571"
-pos_original = Vector2(608, -571.43427)
-local_original = Vector3(0.11199989, 0.21135296, 0.11200152)
-modelo = "props/Table_Large.gltf"
-tam3 = Vector3(0.952, 0.7397353, 0.61600006)
-
-[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=120821590]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.67199934, 0.21135296, 0.11200152)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m3#0|Chair_1|594|-571"
-pos_original = Vector2(594, -571.43427)
-local_original = Vector3(-0.67199934, 0.21135296, 0.11200152)
-giro_original = 90.0
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.336, 0.89825004, 0.336)
-
-[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_m3/Muebles" unique_id=1230804534]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6800011, 0.21135296, 0.89600086)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_m3#0|Bookcase_2|636|-557"
-pos_original = Vector2(636, -557.43427)
-local_original = Vector3(1.6800011, 0.21135296, 0.89600086)
-modelo = "props/Bookcase_2.gltf"
-tam3 = Vector3(0.784, 1.6908236, 0.336)
-
-[node name="house_family_lot_l1" type="Node3D" parent="Edificios" unique_id=925811527]
+[node name="house_family_lot_l1" type="Node3D" parent="Edificios" unique_id=1668818821 instance=ExtResource("33_fba6n")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109.2, -0.19021766, 84)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_l1"
 centro_original = Vector2(-390, 300)
-origen_3d = Vector3(-21.84, -0.19021766, 16.8)
 
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_l1" unique_id=1157034428]
-
-[node name="Bed_Twin1" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=2127096587]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4559987, 0.21135294, -0.67200005)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l1#0|Bed_Twin1|-416|288"
-pos_original = Vector2(-416, 288)
-local_original = Vector3(-1.4559987, 0.21135294, -0.67200005)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Bed_Twin2" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=865177693]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.456, 0.21135294, -0.67200005)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l1#0|Bed_Twin1|-364|288"
-pos_original = Vector2(-364, 288)
-local_original = Vector3(1.456, 0.21135294, -0.67200005)
-modelo = "props/Bed_Twin1.gltf"
-tam3 = Vector3(0.84, 0.89825004, 1.176)
-
-[node name="Table_Large" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=651232707]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11199989, 0.21135294, 0.11200039)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l1#0|Table_Large|-388|302"
-pos_original = Vector2(-388, 302)
-local_original = Vector3(0.11199989, 0.21135294, 0.11200039)
-modelo = "props/Table_Large.gltf"
-tam3 = Vector3(0.952, 0.7397353, 0.61600006)
-
-[node name="Chair_1" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=613258528]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -0.67199934, 0.21135294, 0.11200039)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l1#0|Chair_1|-402|302"
-pos_original = Vector2(-402, 302)
-local_original = Vector3(-0.67199934, 0.21135294, 0.11200039)
-giro_original = 90.0
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.336, 0.89825004, 0.336)
-
-[node name="Bookcase_2" type="Node3D" parent="Edificios/house_family_lot_l1/Muebles" unique_id=2086267387]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.456, 0.21135294, 0.8959997)
-script = ExtResource("4_l6ly0")
-clave = "house_family_lot_l1#0|Bookcase_2|-364|316"
-pos_original = Vector2(-364, 316)
-local_original = Vector3(1.456, 0.21135294, 0.8959997)
-modelo = "props/Bookcase_2.gltf"
-tam3 = Vector3(0.784, 1.6908236, 0.336)
-
-[node name="house_family_lot_m4" type="Node3D" parent="Edificios" unique_id=16238635]
+[node name="house_family_lot_m4" type="Node3D" parent="Edificios" unique_id=2077548204 instance=ExtResource("33_fba6n")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.7397353, -162.82971)
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_lot_m4"
 centro_original = Vector2(760, -581.53467)
-origen_3d = Vector3(42.56, 0.7397353, -32.565945)
-
-[node name="Muebles" type="Node3D" parent="Edificios/house_family_lot_m4" unique_id=1756605935]
 
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 

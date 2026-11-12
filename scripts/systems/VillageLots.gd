@@ -11,6 +11,7 @@ extends RefCounted
 ## - V3 decidirá cuándo hace falta una casa; V5 añadirá más clases de edificio (`KINDS`).
 
 const Marca = preload("res://mapa/marca.gd")
+const CasaModelo = preload("res://mapa/casa_modelo.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const WORK_STATE: int = 0 # ActivityState.WORKING
@@ -356,16 +357,14 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			var fam: String = "family_lot_" + id
 			var has_up: bool = bool((st.get("upgrades", {}) as Dictionary).get("upper_floor", false))
 			var beds: Array = _house_beds(id, has_up)
-			var hc: Vector2 = c
-			var hsz: Vector2 = HOUSE_PLOTS[plot_of(id)]["size"]
-			vm._construct_solid_building("house_" + fam, str(st["title"]), hc, hsz, bool(d["door_south"]),
+			# La casa es una copia de la casa modelo de su tamaño; con la puerta al norte va con media vuelta, y con ella su ventana
+			vm._construct_solid_building(CasaModelo.PREFIJO + id, str(st["title"]), c, HOUSE_PLOTS[plot_of(id)]["size"], bool(d["door_south"]),
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
-				"res://assests/world/village/wall_timber_v.png", 38.0, 0.0, Color(0.92, 0.88, 0.72))
+				"res://assests/world/village/wall_timber_v.png", 38.0, 0.0, Color(0.92, 0.88, 0.72), not bool(d["door_south"]))
 			for b in beds:
 				vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
-			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", hc + Vector2(0, -2), Vector2(0.45, 0.45))
-			var chest_dy: float = hsz.y * 0.5 - 15.0
-			vm._spawn_house_chest(hc + Vector2(0, -chest_dy if bool(d["door_south"]) else chest_dy), "Cofre Familiar (" + str(st["title"]) + ")", fam)
+			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", house_site(id, Marca.MESA), Vector2(0.45, 0.45))
+			vm._spawn_house_chest(house_site(id, Marca.COFRE), "Cofre Familiar (" + str(st["title"]) + ")", fam)
 		"shop_house":
 			_build_shop_house(vm, id, st)
 		"fields":
@@ -424,21 +423,16 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	vm._spawn_house_chest(lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
 	load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id) # V5d: campos, corrales, cantera…
 
-## Camas dentro de la casa, lejos de la puerta. Con altillo (`upper_floor`), añade 2 camas adicionales (4 en total).
+## Camas de la casa de ese solar: las que marca su casa modelo (mapa/casa_modelo.gd). Con altillo (`upper_floor`),
+## también las de arriba.
 static func _house_beds(id: String, has_upper: bool = false) -> Array:
 	var d: Dictionary = lot_def(id)
-	var c: Vector2 = d["center"]
-	var plot: String = plot_of(id)
-	var ady: float = 12.0 if plot == "small" else 18.0
-	var dx: float = 26.0 if plot == "small" else 30.0
-	var dy: float = -ady if bool(d["door_south"]) else ady
-	var base: Array = [c + Vector2(-dx, dy), c + Vector2(dx, dy)]
-	if plot == "large":
-		base.append(c + Vector2(48, -dy * 0.3)) # La casona tiene un cuarto más
-	if has_upper:
-		base.append(c + Vector2(-14, dy))
-		base.append(c + Vector2(14, dy))
-	return base
+	return CasaModelo.camas(plot_of(id), d["center"], bool(d["door_south"]), has_upper)
+
+## Sitio de una marca (mesa, cofre…) de la casa de ese solar, en el mapa original.
+static func house_site(id: String, marca: String) -> Vector2:
+	var d: Dictionary = lot_def(id)
+	return CasaModelo.sitio(plot_of(id), d["center"], bool(d["door_south"]), marca)
 
 # Lo que crean las funciones de dibujo de VillageManager va a entities_root, al propio vm y a varias listas.
 static func _capture_begin(vm) -> Dictionary:
@@ -624,7 +618,7 @@ static func free_house_bed(vm) -> Dictionary:
 		var res: Array = st["residents"]
 		var beds: Array = st["beds"]
 		if res.size() < beds.size():
-			return {"lot": id, "bed": beds[res.size()], "family_id": "family_lot_" + id, "table": (lot_def(id)["center"] as Vector2) + Vector2(0, -2)}
+			return {"lot": id, "bed": beds[res.size()], "family_id": "family_lot_" + id, "table": house_site(id, Marca.MESA)}
 	return {}
 
 static func add_resident(vm, id: String, person_key: String) -> void:

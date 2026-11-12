@@ -809,12 +809,6 @@ func _mat(key: String, col: Color, rough: float = 0.82, metal: float = 0.05, emi
 	_mat_cache[key] = m
 	return m
 
-func _chair_rot_y_towards(chair_pos: Vector2, table_pos: Vector2) -> float:
-	var d: Vector2 = table_pos - chair_pos
-	if d.length_squared() < 0.0001:
-		return 0.0
-	return rad_to_deg(atan2(d.x, d.y))
-
 func _register_furniture_rect(item_name: String, center_2d: Vector2, sz_2d: Vector2, rot_y_deg: float = 0.0) -> void:
 	if _current_building_id == "" or sz_2d == Vector2.ZERO:
 		return

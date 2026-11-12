@@ -5,7 +5,8 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 ## Edificio en el editor del mapa 3D (mapa/Mundo3D.tscn → «Edificios»), 2026-11-10.
 ## Desde 2026-11-11 cada edificio fijo es una escena propia (mapa/edificios/<id>.tscn) con sus grupos «Muros»,
 ## «Interior», «PisoAlto», «Tejado», «Muebles» y «Marcas»: el juego la carga tal cual donde esté esta pieza. Las casas
-## de recién llegados aún enseñan una «foto» (mapa/edificios_vista/) y las construye el código.
+## de recién llegados son copias de tres casas modelo (mapa/casa_modelo.gd). Lo de bajo tierra enseña una «foto»
+## (mapa/edificios_vista/).
 ## Muévelo con el ratón: el edificio sale ahí. Girarlo (eje vertical) lo gira en el juego de 90 en 90 grados (se
 ## redondea al más cercano: las paredes del mapa son rectángulos rectos).
 
@@ -29,6 +30,9 @@ static var _nombres: Dictionary = {}
 @export var centro_original: Vector2 = Vector2.ZERO
 ## Dónde estaba esta pieza en 3D cuando se hizo la foto (no lo cambies).
 @export var origen_3d: Vector3 = Vector3.ZERO
+## Giro con el que esta pieza ya viene de fábrica (no lo cambies): las casas modelo se hacen con la puerta al sur y
+## las de los solares que miran al norte son la misma casa con media vuelta. El juego solo cuenta lo que gires de más.
+@export var giro_de_fabrica: float = 0.0
 
 
 func _ready() -> void:
@@ -172,7 +176,8 @@ static func _leer_escena() -> Dictionary:
 		var xf: Transform3D = pieza.get("transform", Transform3D.IDENTITY)
 		var ahora := Mapa3D.a_mapa(xf.origin)
 		var d := ahora - centro * Mapa3D.E # mapa estirado: lo que el usuario movió la pieza, aparte del estirado
-		var g := fposmod(roundf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) / 90.0) * 90.0, 360.0)
+		var de_fabrica: float = pieza.get("giro_de_fabrica", 0.0)
+		var g := fposmod(roundf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) / 90.0) * 90.0 - de_fabrica, 360.0)
 		if d.length() > 0.5 or g > 0.5:
 			out[id] = [d, g]
 	return out
