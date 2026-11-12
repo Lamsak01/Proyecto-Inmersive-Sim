@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Los solares salen de sus piezas del editor (Claude Code)
+- Cada pieza de «Solares» guarda ahora su zona, barrio, tamaño de casa, lado de la puerta y cuánto se aparta el edificio (`mapa/solar.gd`, `Solar.lista()`). El juego lee de ahí la lista de solares.
+- Borrados `VillageLots.LOTS` (40 solares escritos a mano) y `lot_shift` (los desplazamientos calculados: cada pieza ya estaba en su sitio). Una herramienta temporal comprobó que los 40 coincidían exactamente.
+- Aún no se crean solares duplicando una pieza (la copia comparte «centro original»): será en el paso 4.
+- Comprobado: volcado idéntico, sondeos, física, inventario con todo movido (quietas 91 → 75, doble 0), `verify_all`.
+
 ## 2026-11-12 — Paso 3: 17 cruces de «Sitios» recolocadas (Claude Code)
 - `paseo_12…18`, `espera_11…14`, `espera_16`, `espera_17`, `jornal_quarry_1`, `jornal_woodcutter_1`, `_2` y `callejon_perista` se habían medido sin la partida arrancada; las casas de solar que se colocan al arrancar las movían, y antes el juego mandaba a los vecinos a ese sitio movido. Ahora la cruz está donde iban de verdad.
 - Revisadas las 86 cruces con la partida arrancada: el resto cuadra. Comprobado: sondeos, `atascos_vecinos`, `verify_all`.

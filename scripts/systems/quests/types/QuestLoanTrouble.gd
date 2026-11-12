@@ -17,7 +17,7 @@ func _init() -> void:
 	needs_alive_target = false
 
 static func loan_of(vm: VillageManager, key: String) -> Dictionary:
-	for l in VillageLots.LOTS:
+	for l in VillageLots.lots():
 		var st: Dictionary = VillageLots.lot(vm, str(l["id"]))
 		if st.has("loan") and str(st.get("payer", "")) == key:
 			return {"lot": str(l["id"]), "loan": st["loan"]}

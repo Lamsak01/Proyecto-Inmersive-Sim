@@ -229,7 +229,7 @@ var _restaurant_night_nodes: Array = [] ## luces y bombillas que se encienden al
 
 
 # ==============================================================================
-# 3. SOLARES VACÍOS Y OBRAS EN CONSTRUCCIÓN (`VillageLots.LOTS`)
+# 3. SOLARES VACÍOS Y OBRAS EN CONSTRUCCIÓN (piezas de «Solares», `VillageLots.lots()`)
 # ==============================================================================
 func rebuild_lots_3d() -> void:
 	_clear_children(lots_root_3d)
@@ -240,7 +240,7 @@ func rebuild_lots_3d() -> void:
 	var m_found := _mat("lot_foundation", Color(0.56, 0.54, 0.50), 0.90, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
 
 	mover_posiciones = true
-	for l_entry in VillageLots.LOTS:
+	for l_entry in VillageLots.lots():
 		var l_dict: Dictionary = l_entry
 		var id: String = str(l_dict["id"])
 		var st: Dictionary = VillageLots.lot(vm, id)

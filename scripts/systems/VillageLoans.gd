@@ -94,7 +94,7 @@ static func _credit(vm, key: String, amount: int) -> void:
 static func daily(vm) -> Dictionary:
 	var res: Dictionary = {"paid": 0, "missed": 0, "evicted": 0, "cleared": 0}
 	var people: Dictionary = vm._get_npcs_by_person_key()
-	for l in VillageLots.LOTS:
+	for l in VillageLots.lots():
 		var id: String = str(l["id"])
 		var st: Dictionary = VillageLots.lot(vm, id)
 		if not st.has("loan"):
@@ -186,7 +186,7 @@ static func evict(vm, id: String, people: Dictionary = {}) -> void:
 ## Para la ficha: «🏦 Debe 30 a Lord X» (o "" si no debe nada).
 static func debt_text(vm, n) -> String:
 	var key: String = n.get_person_key()
-	for l in VillageLots.LOTS:
+	for l in VillageLots.lots():
 		var st: Dictionary = VillageLots.lot(vm, str(l["id"]))
 		if st.has("loan") and str(st.get("payer", "")) == key:
 			var loan: Dictionary = st["loan"]

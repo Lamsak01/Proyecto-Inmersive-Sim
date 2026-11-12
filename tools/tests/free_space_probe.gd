@@ -18,7 +18,7 @@ func _initialize() -> void:
 		var r: Rect2 = b["rect"]
 		blocks.append(r.grow(14.0))
 		print("BUILDING %s | %s | %s" % [str(b["id"]), str(b["title"]), str(r)])
-	for l in lots.LOTS:
+	for l in lots.lots():
 		var d: Dictionary = lots.lot_def(str(l["id"]))
 		blocks.append(Rect2(Vector2(d["center"]) - Vector2(d["size"]) * 0.5, Vector2(d["size"])).grow(8.0))
 	for r in lots.ROADS:

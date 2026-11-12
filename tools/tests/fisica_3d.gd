@@ -361,7 +361,7 @@ func _paso2e_casa() -> void:
 	var mc = pl.get_node("PlayerMovementController")
 	var Suelo = load("res://scripts/fisica/Suelo.gd")
 	var VillageLots = load("res://scripts/systems/VillageLots.gd")
-	var id: String = str(VillageLots.LOTS[0]["id"])
+	var id: String = str(VillageLots.lots()[0]["id"])
 	var st: Dictionary = VillageLots.lot(vm, id) # una casa del jugador de prueba, con las dos mejoras
 	var antes: Dictionary = st.duplicate(true)
 	st["payer"] = "player"

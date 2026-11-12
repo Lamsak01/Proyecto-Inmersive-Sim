@@ -18,6 +18,7 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
   - **Zonas** (3, `mapa/zona.gd`: plaza, lago, ciénaga): trozos de campo abierto que se estiran ×5 pero van con su
     pieza (`Anclas.estirar`, `estirar_puntos`, `desestirar`); las usan el terreno por código, el relieve, `Agua`,
     `FishingSpot` y el mapa del valle. Prueba: `tools/tests/sondeo_zonas.gd`.
+- Solares con sus datos en la pieza (zona, barrio, casa, puerta, apartado): `VillageLots.LOTS` borrado (2026-11-12).
 - Paso 3 (2026-11-12): **Sitios** (86, `mapa/sitio.gd`): cruces al aire libre ya en el mundo (`Sitio.mundo(id)`,
   `Sitio.serie(nombre)`; `Sitio.original(id)` solo para funciones que aún traducen). Caso I: 3 marcas de edificio.
 - Método de cada tanda: herramienta temporal (no se guarda) que pasa lo que hay a piezas → cambiar código y borrar
@@ -31,12 +32,12 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 Paso 3, cola: lo que va pegado a un solar (`OUTPOST_*`, `TINKER_*`) espera a que los solares salgan del editor
 (`VillageLots.LOTS` → piezas). `VillageTavern` (`DOOR_POS`, `WELL_POS`, `STAIRS_*`) y `EAST_MILL_POS` van con la
 geometría de la taberna y el decorado (paso 4). Luego cabos sueltos y paso 4 (el corte final, solo con el usuario).
-Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; datos de `VillageLots.LOTS` a las piezas de solar;
+Pendiente apuntado: muro débil y espada de `scenes/World.tscn`;
 tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).
-- Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración. Inventario 2026-11-11
-  (`docs/INVENTARIO_MUNDO.md`): sigue 5.181, quieto 30 (río, luces, copias ocultas), doble 0, otro sitio 122 (ruido
-  entre partidas y sitios al aire libre).
+- Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración. Inventario 2026-11-12
+  (`docs/INVENTARIO_MUNDO.md`): sigue 5.297, quieto 75 (río, luces, sitios del código que quedan), doble 0, otro
+  sitio 123 (ruido entre partidas y sitios al aire libre).

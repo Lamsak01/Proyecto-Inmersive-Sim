@@ -40,7 +40,7 @@ func _initialize() -> void:
 			var fs: Dictionary = fam.state(vm)
 			var kids: int = mig.residents(vm).filter(func(n): return fam.is_child(n)).size()
 			var built: int = 0
-			for l in lots.LOTS:
+			for l in lots.lots():
 				var st: Dictionary = lots.lot(vm, str(l["id"]))
 				if str(st["kind"]) == "house" and str(st["status"]) == "built":
 					built += 1
@@ -52,7 +52,7 @@ func _initialize() -> void:
 				float(ms["last_score"]), _fmt(ms["last_parts"])])
 	print("MEAL_FAILS %s" % str(mig.state(vm).get("meal_fails", {})))
 	var loans_open: Array = []
-	for l in lots.LOTS:
+	for l in lots.lots():
 		var lst: Dictionary = lots.lot(vm, str(l["id"]))
 		if lst.has("loan"):
 			loans_open.append("%s:%s debe %d (impagos %d)" % [str(l["id"]), str(lst["loan"]["lender_name"]), int(lst["loan"]["owed"]), int(lst["loan"]["missed"])])

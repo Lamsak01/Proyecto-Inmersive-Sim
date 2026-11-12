@@ -372,7 +372,7 @@ static func _owes_to(vm, target, boss) -> bool:
 	for kw in ["deuda", "debo", "prest", "limosna", "salv", "favor", "ayud"]:
 		if note.contains(kw):
 			return true
-	for l in vm.VillageLots.LOTS:
+	for l in vm.VillageLots.lots():
 		var lst: Dictionary = vm.VillageLots.lot(vm, str(l["id"]))
 		if lst.has("loan") and str(lst.get("payer", "")) == target.get_person_key():
 			if str((lst["loan"] as Dictionary).get("lender", "")) == b_key:

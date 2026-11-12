@@ -82,7 +82,7 @@ static func is_tavern_guest(n) -> bool:
 # ---------------------------------------------------------------- vivienda
 static func free_house_beds(vm) -> int:
 	var c: int = 0
-	for l in VillageLots.LOTS:
+	for l in VillageLots.lots():
 		var st: Dictionary = VillageLots.lot(vm, str(l["id"]))
 		if str(st["status"]) == "built" and str(st["kind"]) == "house":
 			c += maxi(0, (st["beds"] as Array).size() - (st["residents"] as Array).size())
@@ -117,7 +117,7 @@ static func prune_residents(vm) -> void:
 	var by_key: Dictionary = {}
 	for n in residents(vm):
 		by_key[n.get_person_key()] = n
-	for l in VillageLots.LOTS:
+	for l in VillageLots.lots():
 		var id: String = str(l["id"])
 		var st: Dictionary = VillageLots.lot(vm, id)
 		if str(st.get("kind", "")) != "house":
@@ -169,7 +169,7 @@ static func move_into_house(vm, n, id: String = "") -> bool:
 static func assign_houses(vm) -> int:
 	var moved: int = 0
 	var homeless: Array = residents(vm).filter(func(n): return is_unemployed(n) and house_of(n) == "")
-	for l in VillageLots.LOTS:
+	for l in VillageLots.lots():
 		var st: Dictionary = VillageLots.lot(vm, str(l["id"]))
 		if str(st["status"]) != "built" or str(st["kind"]) != "house":
 			continue
@@ -453,7 +453,7 @@ static func maybe_order_house(vm, score: float) -> String:
 	var lots: Array = VillageLots.free_lots(vm, "house")
 	if lots.is_empty():
 		# Bloque PQ: Si ya no quedan solares libres pero hace falta cama, se amplía una casa construida con altillo (+2 camas)
-		for l in VillageLots.LOTS:
+		for l in VillageLots.lots():
 			var lid: String = str(l["id"])
 			var lst: Dictionary = VillageLots.lot(vm, lid)
 			if str(lst.get("status", "")) == "built" and str(lst.get("kind", "")) == "house" and not bool((lst.get("upgrades", {}) as Dictionary).get("upper_floor", false)):

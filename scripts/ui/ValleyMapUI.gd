@@ -467,7 +467,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	]
 	var vm_lots = get_tree().get_first_node_in_group("village_manager")
 	if vm_lots and "lots_state" in vm_lots:
-		for l in VillageLots.LOTS: # V4: solares (libres, en obra o construidos)
+		for l in VillageLots.lots(): # V4: solares (libres, en obra o construidos)
 			var lst: Dictionary = VillageLots.lot(vm_lots, str(l["id"]))
 			var lsz: Vector2 = l["size"]
 			var lc: Vector2 = VillageLots.lot_def(str(l["id"]))["center"]

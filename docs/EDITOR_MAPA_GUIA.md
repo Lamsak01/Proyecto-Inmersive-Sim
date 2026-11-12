@@ -50,6 +50,9 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   de recién llegados ya no son piezas sueltas: salen en su solar. Si el solar tiene un edificio propio en «Edificios»
   (tiendas, ayuntamiento, escuela…), muévelos **juntos** (clic en uno, Mayúsculas+clic en el otro). **No cambies «Id solar»**.
   El **Puesto del Paso** (frontera este) es un solar más: muévelo y van con él su camino, estacas, sacos, foco y letrero.
+  En el Inspector de cada solar puedes cambiar su **zona** (borde, barrio, afueras, apartado), el **barrio**, el tamaño de
+  la **casa** (small = casita, medium = casa, large = casona), si la **puerta mira al sur** y cuánto se **aparta el
+  edificio** para dejar sitio a campos. Todavía **no** se añaden solares duplicando uno (llegará en el paso final).
 - **Sitios (86):** cruces con nombre, sin dibujo: por dónde pasean los vecinos sin oficio (`paseo_…`), dónde esperan
   los recién llegados (`espera_…`), a dónde sale cada artesano por la mañana (`expedicion_…`), dónde trabajan los
   jornaleros (`jornal_…`), por dónde entran los asaltantes, el carro, el mirador y el contrabandista; los sitios de ocio (`ocio_…`), la ronda

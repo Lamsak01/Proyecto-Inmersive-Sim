@@ -123,7 +123,7 @@ static func today() -> int:
 
 static func player_lots(vm, built_only: bool = true) -> Array[String]:
 	var out: Array[String] = []
-	for l in VillageLots.LOTS:
+	for l in VillageLots.lots():
 		var id: String = str(l["id"])
 		var st: Dictionary = VillageLots.lot(vm, id)
 		if str(st.get("payer", "")) == "player" and (not built_only or str(st.get("status", "")) == "built"):
@@ -912,7 +912,7 @@ static func press_twice(vm, tag: String) -> bool:
 
 static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 	var inv = player.get("inventory") if player != null else null
-	for l in VillageLots.LOTS:
+	for l in VillageLots.lots():
 		var id: String = str(l["id"])
 		var st: Dictionary = VillageLots.lot(vm, id)
 		# 1. Cartel de solar libre de vivienda: encargar casa si tienes oro
@@ -1129,7 +1129,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			if str(hs.get("coop_lot", "")) != p_lot:
 				opts.append({"label": "🐔🐑 Trasladar tu gallinero y animales al solar de tu casa (%s)" % p_lot, "next": "END", "action": "housing_move_coop:" + p_lot})
 		# P6.5: Comprar una casa embargada al pueblo o al noble para alquilarla
-		for l in VillageLots.LOTS:
+		for l in VillageLots.lots():
 			var id2: String = str(l["id"])
 			var st2: Dictionary = VillageLots.lot(vm, id2)
 			if str(st2.get("status", "")) == "built" and str(st2.get("kind", "")) == "house" and str(st2.get("payer", "")) in ["town", npc.get_person_key()]:

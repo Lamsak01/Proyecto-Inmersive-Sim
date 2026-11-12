@@ -44,7 +44,6 @@ func setup_village(target_entities_root: Node) -> void:
 	_spawn_unemployed_tavern_guests()
 	_spawn_case1_clearing_corpse()
 	VillageWorldBuilder._spawn_farm_well_and_compost(self)
-	VillageLots.reset_layout() # Bloque AB: solares en su sitio desplazado antes de que nadie los use
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
 	VillageTown.state(self) # J3: arcas iniciales (1000) en partida nueva
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil

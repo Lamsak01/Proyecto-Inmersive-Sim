@@ -13739,6 +13739,8 @@ script = ExtResource("33_nou5s")
 id_solar = "n0"
 centro_original = Vector2(186, -425)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "small"
 
 [node name="solar_n1" type="Node3D" parent="Solares" unique_id=1694737560]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.4438412, -119)
@@ -13746,6 +13748,7 @@ script = ExtResource("33_nou5s")
 id_solar = "n1"
 centro_original = Vector2(330, -425)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
 
 [node name="solar_n2" type="Node3D" parent="Solares" unique_id=422454063]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.72, 0.4438412, -119)
@@ -13753,6 +13756,7 @@ script = ExtResource("33_nou5s")
 id_solar = "n2"
 centro_original = Vector2(474, -425)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
 
 [node name="solar_n3" type="Node3D" parent="Solares" unique_id=901715675]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 169.68, 0.4438412, -120.4)
@@ -13760,6 +13764,8 @@ script = ExtResource("33_nou5s")
 id_solar = "n3"
 centro_original = Vector2(606, -430)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "large"
 
 [node name="solar_n4" type="Node3D" parent="Solares" unique_id=2057118638]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.4438412, -120.4)
@@ -13767,6 +13773,8 @@ script = ExtResource("33_nou5s")
 id_solar = "n4"
 centro_original = Vector2(760, -430)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "small"
 
 [node name="solar_n5" type="Node3D" parent="Solares" unique_id=2001723732]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.4438412, -120.4)
@@ -13774,6 +13782,7 @@ script = ExtResource("33_nou5s")
 id_solar = "n5"
 centro_original = Vector2(914, -430)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
 
 [node name="solar_n6" type="Node3D" parent="Solares" unique_id=1941638205]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.4438412, -121.8)
@@ -13781,6 +13790,8 @@ script = ExtResource("33_nou5s")
 id_solar = "n6"
 centro_original = Vector2(1066, -435)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "large"
 
 [node name="solar_m1" type="Node3D" parent="Solares" unique_id=593634904]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.7397353, -161.29105)
@@ -13788,6 +13799,8 @@ script = ExtResource("33_nou5s")
 id_solar = "m1"
 centro_original = Vector2(330, -576.0394)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "small"
 
 [node name="solar_m2" type="Node3D" parent="Solares" unique_id=434110072]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.72, 0.7397353, -159.49945)
@@ -13795,6 +13808,8 @@ script = ExtResource("33_nou5s")
 id_solar = "m2"
 centro_original = Vector2(474, -569.6409)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "large"
 
 [node name="solar_m3" type="Node3D" parent="Solares" unique_id=1585938245]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 169.68, 0.7397353, -160.5616)
@@ -13802,6 +13817,7 @@ script = ExtResource("33_nou5s")
 id_solar = "m3"
 centro_original = Vector2(606, -573.43427)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
 
 [node name="solar_m4" type="Node3D" parent="Solares" unique_id=1970387833]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.7397353, -162.82971)
@@ -13809,6 +13825,8 @@ script = ExtResource("33_nou5s")
 id_solar = "m4"
 centro_original = Vector2(760, -581.53467)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "small"
 
 [node name="solar_m5" type="Node3D" parent="Solares" unique_id=1204331472]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.7397353, -165.42183)
@@ -13816,6 +13834,8 @@ script = ExtResource("33_nou5s")
 id_solar = "m5"
 centro_original = Vector2(914, -590.79224)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "large"
 
 [node name="solar_m6" type="Node3D" parent="Solares" unique_id=927133992]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.7397353, -167.09944)
@@ -13823,6 +13843,7 @@ script = ExtResource("33_nou5s")
 id_solar = "m6"
 centro_original = Vector2(1066, -596.78375)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
 
 [node name="solar_u0" type="Node3D" parent="Solares" unique_id=241780291]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.08, 0.99335885, -205.99908)
@@ -13830,6 +13851,7 @@ script = ExtResource("33_nou5s")
 id_solar = "u0"
 centro_original = Vector2(186, -735.71106)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
 
 [node name="solar_u1" type="Node3D" parent="Solares" unique_id=875472044]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.99335885, -208.0892)
@@ -13837,6 +13859,8 @@ script = ExtResource("33_nou5s")
 id_solar = "u1"
 centro_original = Vector2(330, -743.1757)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "small"
 
 [node name="solar_u2" type="Node3D" parent="Solares" unique_id=2022914383]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.72, 0.99335885, -210.15353)
@@ -13844,6 +13868,8 @@ script = ExtResource("33_nou5s")
 id_solar = "u2"
 centro_original = Vector2(474, -750.54834)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "large"
 
 [node name="solar_u4" type="Node3D" parent="Solares" unique_id=14410227]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.99335885, -211.19771)
@@ -13851,6 +13877,7 @@ script = ExtResource("33_nou5s")
 id_solar = "u4"
 centro_original = Vector2(760, -754.2775)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
 
 [node name="solar_u5" type="Node3D" parent="Solares" unique_id=22739541]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.99335885, -209.06062)
@@ -13858,6 +13885,8 @@ script = ExtResource("33_nou5s")
 id_solar = "u5"
 centro_original = Vector2(914, -746.6451)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "large"
 
 [node name="solar_u6" type="Node3D" parent="Solares" unique_id=1682763234]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 298.48, 0.99335885, -205.01782)
@@ -13865,6 +13894,8 @@ script = ExtResource("33_nou5s")
 id_solar = "u6"
 centro_original = Vector2(1066, -732.2065)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "small"
 
 [node name="solar_e2" type="Node3D" parent="Solares" unique_id=1531266203]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 344.4, 0.5495177, -10.08)
@@ -13872,6 +13903,8 @@ script = ExtResource("33_nou5s")
 id_solar = "e2"
 centro_original = Vector2(1230, -36)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "small"
 
 [node name="solar_e3" type="Node3D" parent="Solares" unique_id=1669907140]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 392, 0.5495177, -10.08)
@@ -13879,6 +13912,7 @@ script = ExtResource("33_nou5s")
 id_solar = "e3"
 centro_original = Vector2(1400, -36)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
 
 [node name="solar_e4" type="Node3D" parent="Solares" unique_id=1787223528]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 305.2, 0.5495177, 39.2)
@@ -13886,6 +13920,8 @@ script = ExtResource("33_nou5s")
 id_solar = "e4"
 centro_original = Vector2(1090, 140)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+puerta_al_sur = false
 
 [node name="solar_e5" type="Node3D" parent="Solares" unique_id=356994486]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 344.4, 0.5495177, 39.2)
@@ -13893,6 +13929,9 @@ script = ExtResource("33_nou5s")
 id_solar = "e5"
 centro_original = Vector2(1230, 140)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "large"
+puerta_al_sur = false
 
 [node name="solar_e6" type="Node3D" parent="Solares" unique_id=480154405]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 392, 0.5495177, 39.2)
@@ -13900,6 +13939,9 @@ script = ExtResource("33_nou5s")
 id_solar = "e6"
 centro_original = Vector2(1400, 140)
 terreno_m = Vector2(7.28, 5.376)
+zona = "borde"
+casa = "small"
+puerta_al_sur = false
 
 [node name="solar_l1" type="Node3D" parent="Solares" unique_id=1526998521]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109.2, -0.19021766, 84)
@@ -13907,6 +13949,9 @@ script = ExtResource("33_nou5s")
 id_solar = "l1"
 centro_original = Vector2(-390, 300)
 terreno_m = Vector2(6.16, 4.48)
+zona = "barrio"
+barrio = "Barrio del Lago"
+casa = "small"
 
 [node name="solar_l2" type="Node3D" parent="Solares" unique_id=1005906830]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -78.4, -0.19021766, 86.24)
@@ -13914,6 +13959,8 @@ script = ExtResource("33_nou5s")
 id_solar = "l2"
 centro_original = Vector2(-280, 308)
 terreno_m = Vector2(7.28, 5.04)
+zona = "barrio"
+barrio = "Barrio del Lago"
 
 [node name="solar_l3" type="Node3D" parent="Solares" unique_id=444000267]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.2, -0.19021766, 83.44)
@@ -13921,6 +13968,9 @@ script = ExtResource("33_nou5s")
 id_solar = "l3"
 centro_original = Vector2(-165, 298)
 terreno_m = Vector2(6.16, 4.48)
+zona = "barrio"
+barrio = "Barrio del Lago"
+casa = "small"
 
 [node name="solar_l4" type="Node3D" parent="Solares" unique_id=1173782230]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.4, -0.19021766, 85.68)
@@ -13928,6 +13978,9 @@ script = ExtResource("33_nou5s")
 id_solar = "l4"
 centro_original = Vector2(-55, 306)
 terreno_m = Vector2(6.16, 4.48)
+zona = "barrio"
+barrio = "Barrio del Lago"
+casa = "small"
 
 [node name="solar_c1" type="Node3D" parent="Solares" unique_id=377624105]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -170.8, 0, 187.04)
@@ -13935,6 +13988,10 @@ script = ExtResource("33_nou5s")
 id_solar = "c1"
 centro_original = Vector2(-610, 668)
 terreno_m = Vector2(6.16, 4.48)
+zona = "barrio"
+barrio = "Caseríos del Bosque"
+casa = "small"
+puerta_al_sur = false
 
 [node name="solar_c2" type="Node3D" parent="Solares" unique_id=1197473269]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -168, 0, 224)
@@ -13942,6 +13999,9 @@ script = ExtResource("33_nou5s")
 id_solar = "c2"
 centro_original = Vector2(-600, 800)
 terreno_m = Vector2(7.28, 5.04)
+zona = "barrio"
+barrio = "Caseríos del Bosque"
+puerta_al_sur = false
 
 [node name="solar_c3" type="Node3D" parent="Solares" unique_id=700090902]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -169.4, 0, 260.4)
@@ -13949,6 +14009,10 @@ script = ExtResource("33_nou5s")
 id_solar = "c3"
 centro_original = Vector2(-605, 930)
 terreno_m = Vector2(6.16, 4.48)
+zona = "barrio"
+barrio = "Caseríos del Bosque"
+casa = "small"
+puerta_al_sur = false
 
 [node name="solar_o1" type="Node3D" parent="Solares" unique_id=1372586466]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 439.6, 0.5495177, 67.2)
@@ -13956,6 +14020,10 @@ script = ExtResource("33_nou5s")
 id_solar = "o1"
 centro_original = Vector2(1570, 240)
 terreno_m = Vector2(6.16, 4.48)
+zona = "barrio"
+barrio = "Molino del Este"
+casa = "small"
+puerta_al_sur = false
 
 [node name="solar_o2" type="Node3D" parent="Solares" unique_id=2027813743]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 473.2, 0.5495177, 67.2)
@@ -13963,6 +14031,9 @@ script = ExtResource("33_nou5s")
 id_solar = "o2"
 centro_original = Vector2(1690, 240)
 terreno_m = Vector2(7.28, 5.04)
+zona = "barrio"
+barrio = "Molino del Este"
+puerta_al_sur = false
 
 [node name="solar_s1" type="Node3D" parent="Solares" unique_id=98444249]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -61.6, -0.19021766, 131.6)
@@ -13970,6 +14041,9 @@ script = ExtResource("33_nou5s")
 id_solar = "s1"
 centro_original = Vector2(-220, 470)
 terreno_m = Vector2(12.88, 8.96)
+zona = "afueras"
+puerta_al_sur = false
+edificio_apartado_m = Vector2(-2.8000002, 0)
 
 [node name="solar_s2" type="Node3D" parent="Solares" unique_id=924314964]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, -0.19021766, 131.6)
@@ -13977,6 +14051,8 @@ script = ExtResource("33_nou5s")
 id_solar = "s2"
 centro_original = Vector2(30, 470)
 terreno_m = Vector2(12.88, 8.96)
+zona = "afueras"
+puerta_al_sur = false
 
 [node name="solar_s3" type="Node3D" parent="Solares" unique_id=63860203]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 81.2, -0.19021766, 131.6)
@@ -13984,6 +14060,9 @@ script = ExtResource("33_nou5s")
 id_solar = "s3"
 centro_original = Vector2(290, 470)
 terreno_m = Vector2(12.88, 8.96)
+zona = "afueras"
+puerta_al_sur = false
+edificio_apartado_m = Vector2(-2.8000002, 0)
 
 [node name="solar_w1" type="Node3D" parent="Solares" unique_id=501038156]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64.4, 0.36986765, -92.4)
@@ -13991,6 +14070,8 @@ script = ExtResource("33_nou5s")
 id_solar = "w1"
 centro_original = Vector2(-230, -330)
 terreno_m = Vector2(12.88, 8.96)
+zona = "afueras"
+edificio_apartado_m = Vector2(-2.8000002, 0)
 
 [node name="solar_fw" type="Node3D" parent="Solares" unique_id=1429355096]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -120.4, -0.19021766, 155.68)
@@ -13998,6 +14079,7 @@ script = ExtResource("33_nou5s")
 id_solar = "fw"
 centro_original = Vector2(-430, 556)
 terreno_m = Vector2(7.28, 5.376)
+zona = "afueras"
 
 [node name="solar_f1" type="Node3D" parent="Solares" unique_id=707024674]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 368.2, 0.4438412, -123.2)
@@ -14005,6 +14087,7 @@ script = ExtResource("33_nou5s")
 id_solar = "f1"
 centro_original = Vector2(1315, -440)
 terreno_m = Vector2(14, 10.08)
+zona = "apartado"
 
 [node name="solar_f2" type="Node3D" parent="Solares" unique_id=1715330098]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.2, 0.7397353, -156.8)
@@ -14012,6 +14095,7 @@ script = ExtResource("33_nou5s")
 id_solar = "f2"
 centro_original = Vector2(40, -560)
 terreno_m = Vector2(14, 10.08)
+zona = "apartado"
 
 [node name="solar_puesto_del_paso" type="Node3D" parent="Solares" unique_id=815861718]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 446.04, 0.55, 13.16)

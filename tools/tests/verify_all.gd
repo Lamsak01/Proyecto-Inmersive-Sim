@@ -2890,7 +2890,7 @@ func _initialize() -> void:
 
 	# 75. Bloque E: una pareja sin casa junta sus ahorros para encargarla; las camas de posada no se reparten dos veces.
 	var ve_saved: Dictionary = {}
-	for le in vl.LOTS:
+	for le in vl.lots():
 		ve_saved[str(le["id"])] = vl.lot(vm, str(le["id"])).duplicate(true)
 	var ve_tr: int = int(vm.town_state.get("treasury", 0))
 	var ve_arr: int = vm.arrivals_today_count
@@ -2987,7 +2987,7 @@ func _initialize() -> void:
 	# 78. Bloque H: casas a plazos con interés; cuotas, recargo y desahucio; el noble presta si las arcas no pueden.
 	var vln = load("res://scripts/systems/VillageLoans.gd")
 	var vh_saved: Dictionary = {}
-	for lh in vl.LOTS:
+	for lh in vl.lots():
 		vh_saved[str(lh["id"])] = vl.lot(vm, str(lh["id"])).duplicate(true)
 	var vh_tr: int = int(vm.town_state.get("treasury", 0))
 	var vh_arr: int = vm.arrivals_today_count

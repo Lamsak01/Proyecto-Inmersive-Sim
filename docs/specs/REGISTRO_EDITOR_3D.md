@@ -137,7 +137,10 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   90) con la prioridad más baja (`PASADAS`: primero edificios y objetos, dentro o pegados; al final el solar). Un
   edificio sin pieza propia (`EdificioEditor.tiene_pieza`) hereda sitio y giro del ancla de su solar en
   `_construct_solid_building`. Estacas y obra (`rebuild_lots_3d`) se escriben en el mapa original y siguen al solar.
-  Los datos del solar (zona, tamaño de casa, lado de la puerta) siguen en `VillageLots.LOTS`: pendiente de pasar.
+  Desde 2026-11-12 la pieza guarda también `zona` («ninguna» = no se construye: Puesto del Paso), `barrio`, `casa`
+  (plot), `puerta_al_sur` y `edificio_apartado_m`; `Solar.lista()` los lee de la escena (orden de la carpeta = orden de
+  ocupación) y `VillageLots.lots()` / `lot_def(id)` los sirven. Borrados `VillageLots.LOTS` y `lot_shift`. Duplicar
+  una pieza no crea un solar nuevo hasta el paso 4 (mismo `centro_original`).
   El ancla cubre además `SOLAR_LETRERO_PX` (16 px) al norte y al sur del terreno: ahí va el letrero de solar libre
   (`VillageLots.site_work_pos`), que ya no tiene ancla propia en «Objetos».
 - **Sitios** (`mapa/sitio.gd`, carpeta «Sitios», paso 3, 2026-11-12): cruces (`Marker3D`) con `id_sitio` para la lógica
