@@ -32,44 +32,27 @@ const MIN_SAFE_RABBITS: int = 10
 const MIN_SAFE_DEER: int = 5
 const MIN_SAFE_BOARS: int = 4
 
-## Polígono orgánico e irregular del Bosque Profundo (Paso 2: ~3.5 veces más grande y más al sur, sin bordes rectos).
-const FOREST_POLY: Array[Vector2] = [
-	Vector2(-1180, 790), Vector2(-920, 745), Vector2(-640, 775), Vector2(-360, 735),
-	Vector2(-80, 765), Vector2(180, 740), Vector2(465, 730), Vector2(740, 760),
-	Vector2(1040, 735), Vector2(1340, 795), Vector2(1580, 940), Vector2(1640, 1240),
-	Vector2(1560, 1580), Vector2(1620, 1920), Vector2(1440, 2240), Vector2(1120, 2360),
-	Vector2(720, 2310), Vector2(340, 2390), Vector2(-80, 2330), Vector2(-480, 2380),
-	Vector2(-880, 2290), Vector2(-1220, 2140), Vector2(-1340, 1820), Vector2(-1280, 1440),
-	Vector2(-1360, 1080)
+## Puntos del bosque (paso 4 del plan del mundo, 2026-11-12): cruces del mapa («Sitios»), ya en el mundo y movibles en el
+## editor. Antes eran números del mapa pequeño que se estiraban ×5.
+const Sitio = preload("res://mapa/sitio.gd")
+const SERIE_LINDE := "linde_bosque"   ## borde del bosque (mapa del valle)
+const SERIE_CARTEL := "cartel_bosque" ## postes de entrada y de cada hábitat, en el orden de TEXTOS_CARTELES
+const TEXTOS_CARTELES: Array[String] = [
+	"Bosque Profundo · Oeste: conejos y jabalíes · Sur: venados · Este: cantera y zorros",
+	"Soto de Madrigueras (conejos)",
+	"Robledal Profundo (jabalíes)",
+	"Claros del Bosque (venados)",
+	"Riscos de Hierro (zorros)",
 ]
 
-var burrow_positions: Array[Vector2] = [
-	Vector2(-920, 880),
-	Vector2(-640, 850),
-	Vector2(-420, 960),
-	Vector2(-780, 1120),
-	Vector2(-520, 1180)
-]
-var deer_clearing_positions: Array[Vector2] = [
-	Vector2(40, 1060),
-	Vector2(360, 1180),
-	Vector2(120, 1520),
-	Vector2(480, 1680),
-	Vector2(-120, 1840),
-	Vector2(280, 2020)
-]
-var fox_den_positions: Array[Vector2] = [
-	Vector2(780, 900),
-	Vector2(1140, 980),
-	Vector2(960, 1340),
-	Vector2(1280, 1520)
-]
-var boar_rooting_positions: Array[Vector2] = [
-	Vector2(-880, 1460),
-	Vector2(-520, 1580),
-	Vector2(-740, 1860),
-	Vector2(-380, 1980)
-]
+var burrow_positions: Array[Vector2] = Sitio.serie("madriguera")
+var deer_clearing_positions: Array[Vector2] = Sitio.serie("claro_ciervos")
+var fox_den_positions: Array[Vector2] = Sitio.serie("guarida_zorro")
+var boar_rooting_positions: Array[Vector2] = Sitio.serie("hozadero_jabali")
+
+## Borde del bosque en el mundo (lo dibuja el mapa del valle).
+static func forest_poly() -> Array[Vector2]:
+	return Sitio.serie(SERIE_LINDE)
 
 var rabbit_extinct_days: int = 0
 var deer_extinct_days: int = 0
@@ -79,12 +62,6 @@ var boar_extinct_days: int = 0
 func setup_ecosystem(target_entities_root: Node) -> void:
 	entities_root = target_entities_root if target_entities_root else self
 	add_to_group("ecosystem_manager")
-	# Editor del mapa 3D (2026-11-10): casas de animales movibles con anclas (mapa/anclas.gd)
-	var AN = load("res://mapa/anclas.gd")
-	for par in [[burrow_positions, "madriguera"], [fox_den_positions, "guarida_zorro"], [deer_clearing_positions, "claro_ciervos"], [boar_rooting_positions, "hozadero_jabali"]]:
-		var arr: Array = par[0]
-		for i in range(arr.size()):
-			arr[i] = AN.mover(arr[i], "naturaleza", "%s_%d" % [par[1], i])
 	_spawn_distant_forest()
 	if not Engine.is_editor_hint() and WorldClock and not WorldClock.day_passed.is_connected(_on_day_passed):
 		WorldClock.day_passed.connect(_on_day_passed)
@@ -124,11 +101,9 @@ func _spawn_distant_forest() -> void:
 	var tex_boar: Texture2D = _load_tex("res://assests/world/harvest/wild_boar.png")
 
 	# Carteles de Entrada al Bosque y de los 4 Hábitats Separados
-	_spawn_forest_sign(Vector2(465, 745), "Bosque Profundo · Oeste: conejos y jabalíes · Sur: venados · Este: cantera y zorros")
-	_spawn_forest_sign(Vector2(-620, 810), "Soto de Madrigueras (conejos)")
-	_spawn_forest_sign(Vector2(-640, 1410), "Robledal Profundo (jabalíes)")
-	_spawn_forest_sign(Vector2(160, 990), "Claros del Bosque (venados)")
-	_spawn_forest_sign(Vector2(780, 815), "Riscos de Hierro (zorros)")
+	var carteles: Array[Vector2] = Sitio.serie(SERIE_CARTEL)
+	for i in range(mini(carteles.size(), TEXTOS_CARTELES.size())):
+		_spawn_forest_sign(carteles[i], TEXTOS_CARTELES[i])
 
 	# 1. Madrigueras de Conejos y Guaridas de Zorro: marcas invisibles que el 3D convierte en agujero o guarida
 	for i in range(burrow_positions.size()):
@@ -136,64 +111,11 @@ func _spawn_distant_forest() -> void:
 	for i in range(fox_den_positions.size()):
 		_marca_3d(TIPO_GUARIDA, "FoxDen_%d" % i, fox_den_positions[i])
 
-	# 2. Árboles del Bosque Profundo (60 árboles repartidos de forma irregular con claros naturales)
-	var tree_positions: Array[Vector2] = [
-		# Linde norte irregular y Soto Noroeste
-		Vector2(-1080, 840), Vector2(-840, 810), Vector2(-540, 820), Vector2(-310, 795),
-		Vector2(-1020, 980), Vector2(-740, 970), Vector2(-340, 910), Vector2(-210, 860),
-		Vector2(-1140, 1150), Vector2(-890, 1180), Vector2(-640, 1080), Vector2(-380, 1120),
-		Vector2(-1060, 1320), Vector2(-780, 1310), Vector2(-460, 1290), Vector2(-240, 1240),
-		# Robledal Suroeste y Sur Profundo (Jabalíes)
-		Vector2(-1180, 1520), Vector2(-980, 1560), Vector2(-680, 1510), Vector2(-390, 1480),
-		Vector2(-1120, 1740), Vector2(-860, 1720), Vector2(-590, 1740), Vector2(-310, 1690),
-		Vector2(-1040, 1960), Vector2(-780, 2020), Vector2(-510, 1920), Vector2(-260, 1950),
-		Vector2(-860, 2180), Vector2(-560, 2190), Vector2(-240, 2210),
-		# Claros Centrales y Bosquete Sur (Venados)
-		Vector2(-95, 850), Vector2(85, 835), Vector2(290, 825), Vector2(540, 830),
-		Vector2(-140, 1020), Vector2(210, 980), Vector2(460, 1010), Vector2(620, 990),
-		Vector2(-80, 1240), Vector2(190, 1260), Vector2(490, 1280), Vector2(680, 1220),
-		Vector2(-160, 1460), Vector2(280, 1440), Vector2(580, 1480),
-		Vector2(-40, 1680), Vector2(240, 1710), Vector2(620, 1720),
-		Vector2(60, 1940), Vector2(420, 1960), Vector2(680, 1950),
-		Vector2(-60, 2180), Vector2(190, 2220), Vector2(520, 2190), Vector2(820, 2160),
-		# Linde Este y Riscos (Zorros y Cantera)
-		Vector2(920, 840), Vector2(1220, 870), Vector2(1420, 990),
-		Vector2(880, 1140), Vector2(1360, 1180), Vector2(1460, 1420),
-		Vector2(860, 1580), Vector2(1140, 1680), Vector2(1420, 1760),
-		Vector2(980, 1980), Vector2(1280, 2060)
-	]
-	# Editor del mapa 3D (2026-11-10): si los árboles están en mapa/Mundo3D.tscn, salen de ahí (todos talables)
-	if not arboles_en_escena():
-		_spawn_harvest_batch("ForestTree", tree_positions, HarvestableNode.HarvestType.LOGGING, "Pino del Valle", "wood", 3, "crop_seeds", 1, 30.0, 2, 0, 12.0)
+	# 2. Árboles talables y vetas: piezas de mapa/Mundo3D.tscn → Vegetacion (WorldStageTerrain3D llama a crear_arbol_talable).
+	# 3. Hierbas y setas: cruces «hierba_N» y «seta_N» del mapa.
+	_spawn_harvest_batch("WildHerb", Sitio.serie("hierba"), HarvestableNode.HarvestType.FORAGE, "Hierbas Medicinales", "herbs", 2, "", 0, 15.0, 1, 2, 8.0)
 
-	var rock_positions: Array[Vector2] = [
-		Vector2(740, 860), Vector2(880, 880), Vector2(1040, 860), Vector2(1180, 910),
-		Vector2(790, 1040), Vector2(980, 1060), Vector2(1160, 1090), Vector2(1310, 1060),
-		Vector2(840, 1260), Vector2(1060, 1250), Vector2(1240, 1290),
-		Vector2(920, 1460), Vector2(1140, 1480), Vector2(1340, 1560)
-	]
-	# Editor del mapa 3D (2026-11-10): si hay vetas en mapa/Mundo3D.tscn → Vegetacion/Vetas, salen de ahí
-	if not vetas_en_escena():
-		_spawn_harvest_batch("OreVein", rock_positions, HarvestableNode.HarvestType.MINING, "Veta de Hierro y Piedra", "stone", 2, "iron_ore", 2, 35.0, 2, 0, 12.0)
-
-	var herb_positions: Array[Vector2] = [
-		Vector2(-980, 860), Vector2(-780, 840), Vector2(-580, 870), Vector2(-410, 850),
-		Vector2(-910, 1020), Vector2(-690, 1010), Vector2(-490, 1030), Vector2(-310, 1010),
-		Vector2(-840, 1180), Vector2(-610, 1210), Vector2(-430, 1190), Vector2(-260, 1150),
-		Vector2(-720, 1360), Vector2(-520, 1380), Vector2(-180, 920), Vector2(140, 910),
-		Vector2(380, 920), Vector2(-60, 1360), Vector2(340, 1360), Vector2(740, 1380)
-	]
-	_spawn_harvest_batch("WildHerb", herb_positions, HarvestableNode.HarvestType.FORAGE, "Hierbas Medicinales", "herbs", 2, "", 0, 15.0, 1, 2, 8.0)
-
-	var mush_positions: Array[Vector2] = [
-		Vector2(-40, 1020), Vector2(120, 1040), Vector2(290, 1080), Vector2(440, 1120),
-		Vector2(-20, 1180), Vector2(160, 1190), Vector2(350, 1220),
-		Vector2(60, 1460), Vector2(210, 1510), Vector2(420, 1560),
-		Vector2(-80, 1760), Vector2(140, 1810), Vector2(360, 1840), Vector2(220, 2060),
-		Vector2(-940, 1440), Vector2(-760, 1490), Vector2(-580, 1540), Vector2(-440, 1620),
-		Vector2(-820, 1790), Vector2(-640, 1840), Vector2(-460, 1890), Vector2(-320, 2020)
-	]
-	_spawn_harvest_batch("WildMushroom", mush_positions, HarvestableNode.HarvestType.FORAGE, "Hongos Silvestres", "mushroom", 2, "", 0, 15.0, 1, 2, 8.0)
+	_spawn_harvest_batch("WildMushroom", Sitio.serie("seta"), HarvestableNode.HarvestType.FORAGE, "Hongos Silvestres", "mushroom", 2, "", 0, 15.0, 1, 2, 8.0)
 
 	_spawn_animal_pool(rabbit_pool, "WildRabbit", WildAnimal.SpeciesType.RABBIT, "Conejo Silvestre", 16, 10, burrow_positions, 45.0, 175.0, 12.0, 999.0, 28.0, 134.0, 85.0, [1, 1, "leather", 1, 0, 0, 1], tex_rabbit, Vector2(1.1, 1.1), 6.0)
 	_spawn_animal_pool(deer_pool, "WildDeer", WildAnimal.SpeciesType.DEER, "Venado del Valle", 9, 6, deer_clearing_positions, 55.0, 210.0, 26.0, 999.0, 22.0, 118.0, 95.0, [2, 1, "leather", 2, 1, 1, 1], tex_deer, Vector2(1.15, 1.15), 9.0)
@@ -201,9 +123,7 @@ func _spawn_distant_forest() -> void:
 	_spawn_animal_pool(boar_pool, "WildBoar", WildAnimal.SpeciesType.BOAR, "Jabalí del Bosque", 7, 5, boar_rooting_positions, 55.0, 195.0, 66.0, 22.0, 24.0, 138.0, 85.0, [3, 2, "leather", 2, 0, 1, 2], tex_boar, Vector2(1.22, 1.22), 9.5)
 
 func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: HarvestableNode.HarvestType, title: String, p_id: String, p_amt: int, b_id: String, b_amt: int, hp: float, r_days: int, bites: int, rad: float) -> void:
-	var AN = load("res://mapa/anclas.gd")
 	for i in range(positions.size()):
-		positions[i] = AN.mover(positions[i], "naturaleza", "%s_%d" % [prefix, i])
 		# Editor del mapa (2026-11-09): nada de setas, hierbas ni árboles dentro del agua del río redibujado
 		if h_type != HarvestableNode.HarvestType.MINING and _en_cauce_del_rio(positions[i]):
 			continue
@@ -222,38 +142,6 @@ func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: Har
 			node.max_animal_bites = bites
 		entities_root.add_child(node)
 		node.setup_collision(rad)
-
-## Editor del mapa 3D (2026-11-10): ¿hay árboles en mapa/Mundo3D.tscn → Vegetacion/Arboles? Entonces los talables salen
-## de la escena (WorldStageTerrain3D los hace talables con crear_arbol_talable) y no de la lista de este archivo.
-static var ignorar_escena: bool = false # lo usa el horneado para ver los árboles de la lista
-static var _arboles_escena: int = -1
-static var _vetas_escena: int = -1
-static func vetas_en_escena() -> bool:
-	if ignorar_escena:
-		return false
-	if _vetas_escena == -1:
-		_vetas_escena = 0
-		if ResourceLoader.exists("res://mapa/Mundo3D.tscn"):
-			var st: SceneState = (load("res://mapa/Mundo3D.tscn") as PackedScene).get_state()
-			for i in range(st.get_node_count()):
-				if str(st.get_node_path(i)).begins_with("./Vegetacion/Vetas/"):
-					_vetas_escena = 1
-					break
-	return _vetas_escena == 1
-
-static func arboles_en_escena() -> bool:
-	if ignorar_escena:
-		return false
-	if _arboles_escena == -1:
-		_arboles_escena = 0
-		if ResourceLoader.exists("res://mapa/Mundo3D.tscn"):
-			var st: SceneState = (load("res://mapa/Mundo3D.tscn") as PackedScene).get_state()
-			for i in range(st.get_node_count()):
-				if str(st.get_node_path(i)).begins_with("./Vegetacion/Arboles/"):
-					_arboles_escena = 1
-					break
-	return _arboles_escena == 1
-
 
 ## Un árbol talable (mismos valores que los «Pino del Valle» de siempre) en un punto del mapa 2D.
 func crear_arbol_talable(pos: Vector2, nombre: String) -> Node2D:
@@ -524,7 +412,7 @@ func _notify_ecological_shift() -> void:
 ## Poste de madera con el texto en su tabla: una marca invisible que el 3D convierte en poste como los de los caminos
 ## (WorldStageProps3D, «sign»; texto con mapa/cartel.gd). Sin dibujo plano desde 2026-11-12.
 func _spawn_forest_sign(pos: Vector2, txt: String) -> void:
-	_marca_3d(TIPO_POSTE, "Marca3D_" + TIPO_POSTE, load("res://mapa/anclas.gd").mover(pos, "letrero", txt)).set_meta(Cartel.META_TEXTO, txt)
+	_marca_3d(TIPO_POSTE, "Marca3D_" + TIPO_POSTE, pos).set_meta(Cartel.META_TEXTO, txt)
 
 ## Marca invisible (sin dibujo plano, 2026-11-12): WorldStageProps3D pone el objeto 3D según su «tipo_3d».
 func _marca_3d(tipo: String, nombre: String, pos: Vector2) -> Node2D:

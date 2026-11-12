@@ -369,8 +369,8 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 
 	# 3. Bioma Sur: Bosque Profundo con aguada salvia y borde de tinta
 	var forest_pts := PackedVector2Array()
-	for fp in EcosystemManager.FOREST_POLY:
-		forest_pts.append(_world_to_map(fp * Mapa3D.E, csize))
+	for fp in EcosystemManager.forest_poly(): # cruces «linde_bosque_N» del mapa, ya en el mundo
+		forest_pts.append(_world_to_map(fp, csize))
 	if forest_pts.size() >= 3:
 		canvas.draw_colored_polygon(forest_pts, Color(0.71, 0.76, 0.60, 0.78))
 		var border_pts := PackedVector2Array(forest_pts)
@@ -485,7 +485,6 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1980, -490) * Mapa3D.E, csize), "Llanura Salvaje", 11, ink_main)
 		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1710, -290) * Mapa3D.E, csize), "Ruinas Bandidos", 10, Color(0.48, 0.18, 0.15, 1.0))
 		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1940, 290) * Mapa3D.E, csize), "Ciénaga de las Ranas", 11, ink_main)
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-910, -145) * Mapa3D.E, csize), "Campamento y Huerto", 10, ink_sub)
 		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1035, 165) * Mapa3D.E, csize), "Lago del Oeste", 10, Color(0.14, 0.26, 0.32, 1.0))
 		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-980, 960) * Mapa3D.E, csize), "Soto de Conejos", 10, ink_sub)
 		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-980, 1620) * Mapa3D.E, csize), "Robledal de Jabalíes", 10, ink_sub)

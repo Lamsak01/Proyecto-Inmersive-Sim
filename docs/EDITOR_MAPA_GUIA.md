@@ -58,13 +58,15 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   edificio** para dejar sitio a campos. Todavía **no** se añaden solares duplicando uno (llegará en el paso final).
   El Puesto del Paso lleva dentro sus **Marcas** (centro, puerta y los tres sitios de trabajo de los colonos): muévelas
   dentro del solar y el puesto las seguirá. **No cambies «Id marca».**
-- **Sitios (133):** cruces con nombre, sin dibujo: por dónde pasean los vecinos sin oficio (`paseo_…`), dónde esperan
+- **Sitios (223):** cruces con nombre, sin dibujo: por dónde pasean los vecinos sin oficio (`paseo_…`), dónde esperan
   los recién llegados (`espera_…`), a dónde sale cada artesano por la mañana (`expedicion_…`), dónde trabajan los
   jornaleros (`jornal_…`), por dónde entran los asaltantes, el carro, el mirador y el contrabandista; los sitios de ocio (`ocio_…`), la ronda
   nocturna (`ronda_noche_…`), los puestos del mercado (`mercado_…`), el lavadero, la caravana, la puerta del este, el
   caballo, el botín de los asaltantes, el callejón del perista, las dos entradas del pueblo (`entrada_…`), la cama y el cuenco de cada mascota
   (`mascota_…`), el claro del Caso I (`claro_caso1`, `cuerpo_caso1`) y las 47 farolas de las calles y la plaza
-  (`farola_calle_…`: mueve la cruz y la farola, con su luz, aparece ahí). Mueve una cruz y
+  (`farola_calle_…`: mueve la cruz y la farola, con su luz, aparece ahí). Del bosque: madrigueras, guaridas de zorro,
+  claros de ciervos y hozaderos de jabalí, hierbas (`hierba_…`), setas (`seta_…`), sus 5 carteles (`cartel_bosque_…`) y
+  el borde del bosque que dibuja el mapa del valle (`linde_bosque_…`). Mueve una cruz y
   los vecinos irán ahí. Si mueves un campo o el lago, mueve también sus cruces. **No cambies «Id sitio».**
 - **Zonas (3):** la plaza, el lago y la ciénaga (losas azules translúcidas con su nombre). Mueve una y van con ella su
   suelo o su agua, la hondonada del terreno, el muelle y dónde se nada y se pesca. No se giran ni cambian de forma. Los

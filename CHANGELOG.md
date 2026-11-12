@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: el bosque (Claude Code, paso 4 del plan del mundo)
+- Madrigueras, guaridas, claros, hozaderos, hierbas, setas, carteles y el borde del bosque salen de 90 cruces del mapa
+  («Sitios»), ya colocadas en el mundo; borrados sus números del código y las listas viejas de árboles y vetas (ya salían
+  de la escena). Mismo resultado comprobado: 20 hierbas, 21 setas, 5 carteles, 1.042 objetos destruibles.
+- Quitado del mapa del valle el letrero «Campamento y Huerto» (sistemas borrados).
+
 ## 2026-11-12 — Farolas que alumbran de verdad (Claude Code, pedido del usuario)
 - 47 farolas nuevas por las calles del pueblo y alrededor de la plaza (antes 6 para todo el mapa ×5). Son cruces del
   editor (`farola_calle_N` en «Sitios»): se mueven con el ratón y la farola va con ellas.

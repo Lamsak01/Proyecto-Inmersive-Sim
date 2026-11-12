@@ -13,12 +13,6 @@ const ESCENA := "res://mapa/Mundo3D.tscn"
 
 func _initialize() -> void:
 	WB = load("res://scripts/visuals/WorldStageBase3D.gd")
-	if "vetas" in OS.get_cmdline_user_args():
-		await _anadir_vetas()
-		return
-	if "talables" in OS.get_cmdline_user_args():
-		await _anadir_talables()
-		return
 	var forzar: bool = "forzar" in OS.get_cmdline_user_args()
 	var actual: Node = (load(ESCENA) as PackedScene).instantiate()
 	var veg_vieja: Node = actual.get_node_or_null("Vegetacion")
@@ -90,86 +84,3 @@ func _poner_dueno(n: Node, dueno: Node) -> void:
 			continue
 		c.owner = dueno
 		_poner_dueno(c, dueno)
-
-
-## «-- talables»: añade a Vegetacion/Arboles los árboles talables que aún estaban en la lista de EcosystemManager
-## (mismo modelo, altura y giro que les daba el juego). Después EcosystemManager deja de crearlos.
-func _anadir_talables() -> void:
-	var EM = load("res://scripts/systems/EcosystemManager.gd")
-	EM.ignorar_escena = true
-	var actual: Node = (load(ESCENA) as PackedScene).instantiate()
-	var arboles: Node = actual.get_node_or_null("Vegetacion/Arboles")
-	if arboles == null:
-		print("HORNEAR: falta Vegetacion/Arboles"); quit(1); return
-	root.add_child(load("uid://dsoiuct8kdsk3").instantiate())
-	for _i in range(20):
-		await process_frame
-	var village := ["nature/CommonTree_1.obj", "nature/CommonTree_2.obj", "nature/BirchTree_1.obj", "nature/CommonTree_3.obj", "nature/BirchTree_2.obj", "nature/PineTree_1.obj", "nature/CommonTree_4.obj", "nature/BirchTree_3.obj", "nature/PineTree_2.obj"]
-	var forest := ["nature/PineTree_1.obj", "nature/CommonTree_1.obj", "nature/PineTree_2.obj", "nature/BirchTree_1.obj", "nature/PineTree_3.obj", "nature/CommonTree_2.obj", "nature/PineTree_4.obj", "nature/CommonTree_3.obj", "nature/BirchTree_2.obj", "nature/CommonTree_4.obj", "nature/BirchTree_3.obj"]
-	var pieza_script = load("res://mapa/pieza.gd")
-	var n := 0
-	for t in get_nodes_in_group("destructible"):
-		if not String(t.name).begins_with("ForestTree_"):
-			continue
-		var pos: Vector2 = (t as Node2D).global_position
-		var hv: int = absi(int(pos.x * 13.0 + pos.y * 7.0))
-		var files: Array = forest if pos.y >= 680.0 else village
-		var pz := Node3D.new()
-		pz.set_script(pieza_script)
-		n += 1
-		pz.name = "Talable_%d" % n
-		var h: float = WB.terrain_height_px(pos) - 1.4
-		pz.position = Mapa3D.a_3d(pos, h)
-		pz.rotation_degrees.y = float(hv % 360)
-		pz.set("alto", 52.0 + float(hv % 6) * 6.0)
-		pz.set("modelo", String(files[hv % files.size()]))
-		arboles.add_child(pz)
-		pz.owner = actual
-	var ps := PackedScene.new()
-	var err := ps.pack(actual)
-	if err == OK:
-		err = ResourceSaver.save(ps, ESCENA)
-	print("HORNEAR: %d árboles talables añadidos (error %d)" % [n, err])
-	quit(0 if err == OK else 1)
-
-
-## «-- vetas»: crea Vegetacion/Vetas con las vetas de mineral de EcosystemManager (mismo modelo, altura y giro).
-func _anadir_vetas() -> void:
-	var EM = load("res://scripts/systems/EcosystemManager.gd")
-	EM.ignorar_escena = true
-	var actual: Node = (load(ESCENA) as PackedScene).instantiate()
-	var veg: Node = actual.get_node_or_null("Vegetacion")
-	if veg == null or veg.get_node_or_null("Vetas") != null:
-		print("HORNEAR: falta Vegetacion o ya hay Vetas"); quit(1); return
-	root.add_child(load("uid://dsoiuct8kdsk3").instantiate())
-	for _i in range(20):
-		await process_frame
-	var vetas := Node3D.new()
-	vetas.name = "Vetas"
-	veg.add_child(vetas)
-	vetas.owner = actual
-	var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
-	var pieza_script = load("res://mapa/pieza.gd")
-	var n := 0
-	for t in get_nodes_in_group("destructible"):
-		if not String(t.name).begins_with("OreVein_"):
-			continue
-		var pos: Vector2 = (t as Node2D).global_position
-		var hv: int = absi(int(pos.x * 13.0 + pos.y * 7.0))
-		var pz := Node3D.new()
-		pz.set_script(pieza_script)
-		n += 1
-		pz.name = "Veta_%d" % n
-		var h: float = WB.terrain_height_px(pos) - 1.4
-		pz.position = Mapa3D.a_3d(pos, h)
-		pz.rotation_degrees.y = float(hv % 360)
-		pz.set("alto", 16.0)
-		pz.set("modelo", String(rfiles[hv % rfiles.size()]))
-		vetas.add_child(pz)
-		pz.owner = actual
-	var ps := PackedScene.new()
-	var err := ps.pack(actual)
-	if err == OK:
-		err = ResourceSaver.save(ps, ESCENA)
-	print("HORNEAR: %d vetas añadidas (error %d)" % [n, err])
-	quit(0 if err == OK else 1)

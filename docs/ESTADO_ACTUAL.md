@@ -27,7 +27,7 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 
 ## c) Siguiente paso técnico inmediato
 Paso 4, trozos seguros (decorado del código → piezas), comparando árbol 3D y lógica antes y después. Hechos: terreno,
-constructor, taberna, restaurante, solares. Siguen: `VillagePlaces`, `VillageManagerSocial`…, `EcosystemManager`.
+constructor, taberna, restaurante, solares, bosque (`EcosystemManager` → Sitios). Siguen: `VillagePlaces`, `VillageManagerSocial`…
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.
@@ -36,7 +36,7 @@ se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y
 Red eléctrica: generador del Arreglador; farolas solo de noche; 47 nuevas = Sitios `farola_calle_N` (+6 Objetos viejos).
 Corte final (anclas y ×5) solo con el usuario.
 Pendiente apuntado: tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
-`_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
+`_build_ground_foliage_3d` no esquivan una plaza movida; `RIVER_*` sin pieza; rectángulos del mapa del valle.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). Igual «No two conscious villagers may overlap» (dos vecinos en la terraza del restaurante; 2 de cada 4 veces, 2026-11-12: arreglar).
