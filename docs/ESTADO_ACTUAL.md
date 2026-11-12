@@ -31,8 +31,9 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 
 ## c) Siguiente paso técnico inmediato
 Paso 4, trozos seguros (decorado del código → piezas), cada uno comparando la escena entera antes y después
-(volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozo 1 hecho
-(`WorldStageTerrain3D`). Siguientes: `VillageWorldBuilder` (185 números), `EcosystemManager` (174; ojo: alimenta
+(volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozos 1
+(`WorldStageTerrain3D`) y 2 (dibujo plano de `VillageWorldBuilder`) hechos. Siguientes: choques y zonas de
+`VillageWorldBuilder` → piezas, `EcosystemManager` (174; ojo: alimenta
 `tools/hornear_vegetacion.gd`), `VillageTavern` (puerta, pozo, escalera). El corte final (anclas y ×5), solo con el usuario.
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`;
 tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de

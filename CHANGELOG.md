@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 4, trozo 2: fuera el dibujo plano invisible del constructor del pueblo (Claude Code)
+- `VillageWorldBuilder` ya no dibuja el mapa 2D antiguo (la imagen 3D lo tapa y ni se pinta): caminos, plaza, llanura, ciénaga, sendero, orillas, barro y agua del río, puentes y vados, alfombras, bancos y altar de la capilla, cementerio (suelo, caminos, verja y 24 tumbas), rueda e interior del molino, y los letreros planos de postes, cementerio, Puente Viejo y claro. Borradas `_add_road_rect` y `_add_cobble_rect`.
+- Se quedan los choques, las zonas de interacción, el agua para la física, los dibujos que pasan a 3D (postes, camas, mostradores) y los letreros que el juego actualiza. El texto de cada poste queda como comentario: hoy el poste 3D no lo muestra.
+- Comprobado: escena 3D fija idéntica; en el mapa plano solo faltan 361 polígonos, 9 letreros, 2 rayas y 5 suelos (choques, zonas y dibujos, iguales); `verify_all`.
+
 ## 2026-11-12 — Paso 4, trozo 1: el código deja de dibujar el decorado del terreno (Claude Code)
 - `WorldStageTerrain3D` ya solo dibuja suelo, caminos, plaza empedrada y agua (lago, ciénaga y río con sus orillas). Borrado el dibujo de bancos, tablón de encargos, campos, corral, parque, lavadero, cementerio, sauces, matorral y troncos del bosque, trampillas de alcantarilla, muelle, sendero, piedras y juncos del río, bosque del arroyo, Puente Viejo, puentes y vados, molino del este y leñeros (~690 líneas): todo eso es pieza de «Decorado» en el editor y el código lo creaba y lo tiraba en cada arranque.
 - Borrados `tools/hornear_decorado.gd` (de un solo uso y roto en el portátil), el modo `grabar_decorado` y las funciones `_build_barrios_3d`, `_build_tree_3d`, `_build_bench_3d`. Se queda el choque de los troncos del claro del Caso I (`CLARO_TRONCOS`).
