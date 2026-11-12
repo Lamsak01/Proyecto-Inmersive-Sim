@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: el decorado trae su choque (Claude Code, paso 4 del plan del mundo)
+- 41 piezas de «Decorado» llevan su pared invisible en sus datos (`choque`, y si hace falta `choque_giro` y
+  `choque_desplaz`): 4 bancos del parque y la plaza, la verja del cementerio (5 tramos), sus 24 tumbas y los 8 troncos
+  del claro del Caso I. Borrados esos números del código. Comprobado: los 406 choques del pueblo, idénticos.
+
 ## 2026-11-12 — Mudanza al editor: los muebles traen su choque (Claude Code, paso 4 del plan del mundo)
 - 69 muebles de 23 edificios (taberna, restaurante, capilla, comisaría, biblioteca, ayuntamiento, tiendas y casas) llevan
   su pared invisible en la pieza (campo «Choque»): si el usuario mueve o gira el mueble, el choque va con él. Borrados

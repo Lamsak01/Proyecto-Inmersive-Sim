@@ -272,24 +272,17 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 
 	# 2. Cementerio Parroquial ampliado al Este de la Capilla (`Rect2(822, 260, 268, 168)`) con caminos en cruz, verja de hierro/piedra, árboles y 24 tumbas en filas
 	# Suelo, caminos, verja y tumbas se ven en 3D (piezas de «Decorado»); aquí van los choques y las tumbas para la lógica
-	# Colisión física de la verja del cementerio (dejando libre la puerta norte en 870..906)
-	vm._add_prop_collider(Vector2(846.0, 260.0), Vector2(48.0, 4.0))
-	vm._add_prop_collider(Vector2(998.0, 260.0), Vector2(184.0, 4.0))
-	vm._add_prop_collider(Vector2(956.0, 428.0), Vector2(268.0, 4.0))
-	vm._add_prop_collider(Vector2(822.0, 344.0), Vector2(4.0, 168.0))
-	vm._add_prop_collider(Vector2(1090.0, 344.0), Vector2(4.0, 168.0))
+	# La verja (con la puerta norte libre) y las tumbas chocan desde sus piezas de «Decorado»
 
 	vm._add_station_area("CemeteryGateArea", vm._cemetery_gate_pos, 24.0, "cemetery_gate")
 
-	# 4 filas × 6 columnas = 24 tumbas: sitio de cada una (entierros) y su choque
+	# 4 filas × 6 columnas = 24 tumbas: sitio de cada una (entierros)
 	vm._cemetery_grave_positions.clear()
 	var row_ys: Array[float] = [286.0, 316.0, 372.0, 402.0]
 	var col_xs: Array[float] = [852.0, 924.0, 954.0, 984.0, 1014.0, 1044.0]
 	for ry in row_ys:
 		for cx in col_xs:
-			var g_pos := Vector2(cx, ry)
-			vm._cemetery_grave_positions.append(g_pos)
-			vm._add_prop_collider(g_pos, Vector2(10.0, 10.0))
+			vm._cemetery_grave_positions.append(Vector2(cx, ry))
 
 	# Árboles (pinos/cipreses) flanqueando el perímetro del cementerio en 2D y 3D
 	for c_tp in [Vector2(834.0, 272.0), Vector2(1076.0, 272.0), Vector2(1076.0, 344.0), Vector2(834.0, 416.0), Vector2(968.0, 418.0), Vector2(1076.0, 416.0)]:

@@ -81,6 +81,7 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   Para pintar bosques enteros usa el **Pincel del mapa** (pestaña abajo, junto a «Output»): guía en `PINCEL_MAPA_GUIA.md`.
   En el Inspector, «Modelo» cambia el dibujo y «Choque» si se puede atravesar.
 - **Decorado:** puentes, muelle, vallas, corrales, bancos, trozos de calleja… por zonas. Se mueven como las demás piezas.
+  Los que chocan (bancos, verja y tumbas del cementerio, troncos del claro) llevan su pared invisible con ellos.
 - **Decoracion:** arrastra aquí modelos de tu carpeta `mis_recursos` (o cualquier `.obj`/`.gltf`). Aparecen en el juego
   tal cual y son sólidos; para que se atraviesen: Inspector → Metadata → añade «atravesable» = true.
 - **BajoTierra:** las alcantarillas enteras (oculta: ábrela con el ojo). Solo se mueven, no giran.

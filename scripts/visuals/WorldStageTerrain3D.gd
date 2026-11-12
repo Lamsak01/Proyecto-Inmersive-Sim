@@ -543,13 +543,6 @@ func _build_static_terrain_3d() -> void:
 	estirar_terreno = false
 
 ## Plaza Central (mapa original) y lámina de agua de la ciénaga: mallas de suelo que aún dibuja el código.
-## Troncos caídos del claro del Caso I (mapa original, giro en grados) y su choque en el mapa 2D.
-const CLARO_TRONCOS: Array = [
-	[Vector2(62.0, -842.0), 32.0], [Vector2(56.0, -892.0), -24.0], [Vector2(170.0, -846.0), -38.0],
-	[Vector2(166.0, -896.0), 28.0], [Vector2(162.0, -932.0), 14.0], [Vector2(95.0, -798.0), -18.0],
-	[Vector2(154.0, -796.0), 42.0], [Vector2(38.0, -868.0), -12.0],
-]
-const CLARO_TRONCO_TAM: Vector2 = Vector2(14.0, 4.0)
 const PLAZA_RECT: Rect2 = Rect2(Vector2(388, 12), Vector2(154, 72))
 const MARSH_WATER_PTS: PackedVector2Array = [
 	Vector2(-1860, 210), Vector2(-1620, 165), Vector2(-1340, 180), Vector2(-1200, 250),
@@ -700,15 +693,14 @@ func _build_river_and_arroyo_3d() -> void:
 		mi_s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		terrain_root_3d.add_child(mi_s)
 
-	# Troncos caídos del claro del Caso I: el dibujo es una pieza de «Decorado»; el choque en el mapa 2D sale de aquí
-	for tronco: Array in CLARO_TRONCOS:
-		_colision_solida(tronco[0] as Vector2, CLARO_TRONCO_TAM, float(tronco[1]), false)
-
 
 ## Editor del mapa 3D (2026-11-10): mapa/Mundo3D.tscn. «Vegetacion» (árboles, rocas, plantas y troncos horneados del
 ## código, editables a mano) y «Decoracion» (lo que coloque el usuario) se meten en el terreno antes de juntarlo por zonas
 ## (rendimiento) y se hacen sólidos en el mapa 2D según su tipo de choque.
 const ESCENA_MUNDO_3D := "res://mapa/Mundo3D.tscn"
+const META_CHOQUE := "choque"
+const META_CHOQUE_GIRO := "choque_giro"
+const META_CHOQUE_DESPLAZ := "choque_desplaz"
 var _mundo_editor: Node = null
 
 func _preparar_escena_editor() -> void:
@@ -746,7 +738,7 @@ func _cargar_decoracion_editor() -> void:
 		return
 	var dec: Node = _mundo_editor.get_node_or_null("Decorado")
 	if dec != null and decorado_en_escena:
-		# Sin choques nuevos: los obstáculos del decorado ya los pone el mapa 2D (se recolocarán con «la lógica»)
+		_choques_del_decorado(dec)
 		_mundo_editor.remove_child(dec)
 		dec.owner = null # sin el aviso «owner inconsistent» al arrancar
 		terrain_root_3d.add_child(dec)
@@ -847,6 +839,25 @@ func _hacer_veta(pieza: Node3D, eco: Node, nombre: String) -> void:
 	_nature_nodes[(h as Node2D).get_instance_id()] = rec
 
 
+## Piezas de «Decorado» que chocan (bancos, verjas, tumbas, troncos…): llevan en sus metadatos «choque» (tamaño visto
+## desde arriba) y, si hace falta, «choque_giro» (grados) y «choque_desplaz» (desde su centro). Van con la pieza.
+func _choques_del_decorado(dec: Node) -> void:
+	if vm == null or not vm.has_method("add_choque_mundo"):
+		return
+	for zona: Node in dec.get_children():
+		for pieza: Node in zona.get_children():
+			if pieza is Node3D and pieza.has_meta(META_CHOQUE):
+				_choque_de_decorado(pieza as Node3D)
+
+
+func _choque_de_decorado(pieza: Node3D) -> void:
+	var giro: float = -deg_to_rad(pieza.rotation_degrees.y) # en el plano el giro va al revés que en 3D
+	var desplaz: Vector2 = pieza.get_meta(META_CHOQUE_DESPLAZ, Vector2.ZERO)
+	var centro: Vector2 = _a_mapa_2d(pieza.position) + desplaz.rotated(giro)
+	giro += deg_to_rad(float(pieza.get_meta(META_CHOQUE_GIRO, 0.0)))
+	vm.call("add_choque_mundo", centro, pieza.get_meta(META_CHOQUE) as Vector2, giro)
+
+
 ## Piezas = nodos 3D colocados (las carpetas de agrupar sin modelo propio se recorren por dentro).
 func _juntar_piezas(n: Node, out: Array) -> void:
 	for c in n.get_children():
@@ -896,18 +907,6 @@ func _choque_de_pieza(c: Node3D) -> void:
 
 func _a_mapa_2d(v: Vector3) -> Vector2:
 	return Mapa3D.a_mapa(v)
-
-
-## Troncos y tocones del bosque sólidos en el mapa 2D (antes solo eran adorno 3D y se atravesaban).
-## rot_3d_deg es el giro del modelo 3D; en el mapa 2D el giro equivalente va al revés.
-func _colision_solida(pos_2d: Vector2, sz_2d: Vector2, rot_3d_deg: float, de_modelo: bool = true) -> void:
-	if de_modelo and (grabar_vegetacion or vegetacion_en_escena):
-		return # el choque sale de la pieza de la escena del editor 3D
-	if vm == null or not vm.has_method("_add_prop_collider") or en_cauce_del_rio(pos_2d, 2.0):
-		return
-	var sb = vm.call("_add_prop_collider", pos_2d, sz_2d)
-	if sb is Node2D:
-		(sb as Node2D).rotation = -deg_to_rad(rot_3d_deg)
 
 
 ## Calles rectas de siempre (las usa tools/hornear_caminos.gd para crear los tramos del editor).
