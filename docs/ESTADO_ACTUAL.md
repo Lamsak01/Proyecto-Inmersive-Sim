@@ -5,7 +5,7 @@
 ## a) Tarea activa
 **Migración «el mundo sale solo del editor»** (`docs/PLAN_MUNDO_DESDE_EDITOR.md`, aprobado). **Una sola sesión de Claude
 toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0, 1 y **2 (exteriores) hechos**.
-**Paso 3 (sitios de vecinos fuera de edificios) en curso**, aprobado por el usuario el 2026-11-12: por grupos, Caso I ✅.
+**Paso 3 (sitios de vecinos fuera de edificios) en curso**, aprobado por el usuario el 2026-11-12: por grupos: Caso I ✅, sitios huérfanos ✅ (carpeta «Sitios»).
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;
@@ -18,6 +18,8 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
   - **Zonas** (3, `mapa/zona.gd`: plaza, lago, ciénaga): trozos de campo abierto que se estiran ×5 pero van con su
     pieza (`Anclas.estirar`, `estirar_puntos`, `desestirar`); las usan el terreno por código, el relieve, `Agua`,
     `FishingSpot` y el mapa del valle. Prueba: `tools/tests/sondeo_zonas.gd`.
+- Paso 3 (2026-11-12): **Sitios** (56, `mapa/sitio.gd`): cruces al aire libre ya en el mundo (`Sitio.mundo(id)`,
+  `Sitio.serie(nombre)`; `Sitio.original(id)` solo para funciones que aún traducen). Caso I: 3 marcas de edificio.
 - Método de cada tanda: herramienta temporal (no se guarda) que pasa lo que hay a piezas → cambiar código y borrar
   números → volcado de sitios antes y después (las casas de solar hay que levantarlas con `build_instant_house`) →
   inventario con todo movido → fotos con `capturas_fijas.gd`.
@@ -25,14 +27,14 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
   Antes de planear una tanda, comprobar que lo «quieto» no es un defecto de la medición (pasó dos veces).
 
 ## c) Siguiente paso técnico inmediato
-Paso 3, grupo 2: los **~17 sitios de vecinos que no siguen a ninguna pieza** (lista en `docs/INVENTARIO_MUNDO.md`,
-filas «Sitio en el código»: `TAVERN_DAY_SPOTS`, `EXPEDITION_TARGETS`, `IDLE_STROLL_SPOTS`, `VillageWork.PLACES`,
-`MIRADOR_POS`, contrabandistas, carro, asalto). Idea: carpeta «Sitios» en Mundo3D con cruces en el mundo
-(`mapa/sitio.gd`, `Sitio.mundo(id)`), el consumidor deja de traducir y se borra el número. Luego ocio y paseos
-(los 264 que hoy siguen «de rebote» a la pieza vecina) y los números escritos dentro de funciones (sin medir).
+Paso 3, grupo 3: **ocio y resto de sitios** que hoy siguen «de rebote» a la pieza vecina (filas «Sitio en el código»
+de `docs/INVENTARIO_MUNDO.md`): `VillagePlaces.PLACES`, `VillageNeeds` (bancos), `LAVADERO_POS`, `CARAVAN_PLAZA_POS`,
+`HORSE_DEFAULT_POS`, `OUTPOST_*`, mascotas, forasteros de `VillageManagerSocial`, y los números escritos dentro de
+funciones (sin medir: `VillageNPCSocial` 214/269/1039, `VillageManagerSocial` 30/401). Mismo método: cruz en
+«Sitios» en `Anclas.mover(número)`, el consumidor usa `Sitio.mundo` y se borra el número.
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; datos de `VillageLots.LOTS` a las piezas de solar;
-`OUTPOST_*` a marcas; tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`;
-matas de `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
+tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
+`_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).

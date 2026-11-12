@@ -61,6 +61,7 @@
 [ext_resource type="PackedScene" path="res://mapa/edificios/building_manor.tscn" id="32_04a1h"]
 [ext_resource type="Script" path="res://mapa/solar.gd" id="33_nou5s"]
 [ext_resource type="Script" path="res://mapa/zona.gd" id="34_fba6n"]
+[ext_resource type="Script" path="res://mapa/sitio.gd" id="35_7jlh3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1p8rd"]
 albedo_color = Color(0.793, 0.712, 0.64000005, 1)
@@ -14041,6 +14042,344 @@ script = ExtResource("34_fba6n")
 id_zona = "cienaga"
 centro_original = Vector2(-1597.5, 335)
 terreno_m = Vector2(259, 134.4)
+
+[node name="Sitios" type="Node3D" parent="." unique_id=723647206]
+
+[node name="paseo_1" type="Marker3D" parent="Sitios" unique_id=1853927999]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85.12, 0.06340589, 78.624)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_1"
+
+[node name="paseo_2" type="Marker3D" parent="Sitios" unique_id=197191440]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.079994, 0.06340589, 73.248)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_2"
+
+[node name="paseo_3" type="Marker3D" parent="Sitios" unique_id=533543665]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, 0.06340589, 78.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_3"
+
+[node name="paseo_4" type="Marker3D" parent="Sitios" unique_id=1391681995]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -202.73868, -0.030409735, 47.824)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_4"
+
+[node name="paseo_5" type="Marker3D" parent="Sitios" unique_id=366468560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.20001, 0, 40.6)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_5"
+
+[node name="paseo_6" type="Marker3D" parent="Sitios" unique_id=921921537]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.2, 0, 10.528)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_6"
+
+[node name="paseo_7" type="Marker3D" parent="Sitios" unique_id=1484255798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 113.12, 0.25362355, 16.576)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_7"
+
+[node name="paseo_8" type="Marker3D" parent="Sitios" unique_id=253002573]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 124.32, 0.25362355, 16.576)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_8"
+
+[node name="paseo_9" type="Marker3D" parent="Sitios" unique_id=1042272707]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 132.16, 0.25362355, 16.576)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_9"
+
+[node name="paseo_10" type="Marker3D" parent="Sitios" unique_id=1600997156]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 229.6, 0.33816472, 12.32)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_10"
+
+[node name="paseo_11" type="Marker3D" parent="Sitios" unique_id=1856951692]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 277.2, 0.33816472, 12.32)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_11"
+
+[node name="paseo_12" type="Marker3D" parent="Sitios" unique_id=1340448383]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.4438412, -98.56)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_12"
+
+[node name="paseo_13" type="Marker3D" parent="Sitios" unique_id=1387451649]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 145.6, 0.4438412, -98.56)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_13"
+
+[node name="paseo_14" type="Marker3D" parent="Sitios" unique_id=344691228]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 207.2, 0.4438412, -98.56)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_14"
+
+[node name="paseo_15" type="Marker3D" parent="Sitios" unique_id=1456349766]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 263.2, 0.4438412, -98.56)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_15"
+
+[node name="paseo_16" type="Marker3D" parent="Sitios" unique_id=1673777837]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 188.16, 0.28907967, -58.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_16"
+
+[node name="paseo_17" type="Marker3D" parent="Sitios" unique_id=416726133]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 161, 0, 63)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_17"
+
+[node name="paseo_18" type="Marker3D" parent="Sitios" unique_id=731443910]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 231, 0.33816472, 63)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "paseo_18"
+
+[node name="espera_1" type="Marker3D" parent="Sitios" unique_id=1941007197]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 118.72, 0.25362355, 16.576)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_1"
+
+[node name="espera_2" type="Marker3D" parent="Sitios" unique_id=1417987794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 121.8, 0.25362355, 16.576)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_2"
+
+[node name="espera_3" type="Marker3D" parent="Sitios" unique_id=1603160580]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120.12, 0.25362355, 17.36)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_3"
+
+[node name="espera_4" type="Marker3D" parent="Sitios" unique_id=1119525745]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85.12, 0.06340589, 78.624)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_4"
+
+[node name="espera_5" type="Marker3D" parent="Sitios" unique_id=724650692]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66.079994, 0.06340589, 73.248)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_5"
+
+[node name="espera_6" type="Marker3D" parent="Sitios" unique_id=405002984]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, 0.06340589, 78.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_6"
+
+[node name="espera_7" type="Marker3D" parent="Sitios" unique_id=1408490470]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -202.73868, -0.030409735, 47.824)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_7"
+
+[node name="espera_8" type="Marker3D" parent="Sitios" unique_id=158003135]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.2, 0, 10.528)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_8"
+
+[node name="espera_9" type="Marker3D" parent="Sitios" unique_id=964262468]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 129.92, 0.25362355, 16.576)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_9"
+
+[node name="espera_10" type="Marker3D" parent="Sitios" unique_id=1241926201]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 218.4, 0.33816472, 12.32)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_10"
+
+[node name="espera_11" type="Marker3D" parent="Sitios" unique_id=768002946]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 188.16, 0.28907967, -58.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_11"
+
+[node name="espera_12" type="Marker3D" parent="Sitios" unique_id=91552948]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.4438412, -98.56)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_12"
+
+[node name="espera_13" type="Marker3D" parent="Sitios" unique_id=1302829215]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 170.8, 0.4438412, -98.56)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_13"
+
+[node name="espera_14" type="Marker3D" parent="Sitios" unique_id=1201126142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 249.2, 0.4438412, -98.56)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_14"
+
+[node name="espera_15" type="Marker3D" parent="Sitios" unique_id=273408125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 284.2, 0.33816472, 13.44)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_15"
+
+[node name="espera_16" type="Marker3D" parent="Sitios" unique_id=855849453]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 161, 0, 63)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_16"
+
+[node name="espera_17" type="Marker3D" parent="Sitios" unique_id=590757531]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 229.6, 0.33816472, 63)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_17"
+
+[node name="espera_18" type="Marker3D" parent="Sitios" unique_id=1924597997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.04, 0.11803864, 23.912)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "espera_18"
+
+[node name="expedicion_butcher" type="Marker3D" parent="Sitios" unique_id=260087624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39.76, 0, 219.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "expedicion_butcher"
+
+[node name="expedicion_blacksmith" type="Marker3D" parent="Sitios" unique_id=700521593]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 144.2, 0, 222.6)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "expedicion_blacksmith"
+
+[node name="expedicion_carpenter" type="Marker3D" parent="Sitios" unique_id=51788386]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.373028, 0, 216.6304)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "expedicion_carpenter"
+
+[node name="expedicion_herbalist" type="Marker3D" parent="Sitios" unique_id=569540304]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.4, -0.0029008375, 226.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "expedicion_herbalist"
+
+[node name="expedicion_fishmonger" type="Marker3D" parent="Sitios" unique_id=134250495]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -188.4708, -0.24128218, 29.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "expedicion_fishmonger"
+
+[node name="jornal_farmer_1" type="Marker3D" parent="Sitios" unique_id=1646375664]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.48, -0.19021766, 130.2)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_farmer_1"
+
+[node name="jornal_farmer_2" type="Marker3D" parent="Sitios" unique_id=1286527064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.960001, -0.19021766, 123.03201)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_farmer_2"
+
+[node name="jornal_farmer_3" type="Marker3D" parent="Sitios" unique_id=204695170]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.48, -0.19021766, 133.28)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_farmer_3"
+
+[node name="jornal_farmer_4" type="Marker3D" parent="Sitios" unique_id=15466825]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.960001, -0.19021766, 138.65602)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_farmer_4"
+
+[node name="jornal_rancher_1" type="Marker3D" parent="Sitios" unique_id=40863593]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 99.4, -0.19021766, 130.144)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_rancher_1"
+
+[node name="jornal_rancher_2" type="Marker3D" parent="Sitios" unique_id=1634014183]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36, -0.19021766, 133.504)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_rancher_2"
+
+[node name="jornal_quarry_1" type="Marker3D" parent="Sitios" unique_id=1013731267]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -61.88, 0.36986765, -93.52)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_quarry_1"
+
+[node name="jornal_quarry_2" type="Marker3D" parent="Sitios" unique_id=864901167]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -59.92, 0.36986765, -90.72)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_quarry_2"
+
+[node name="jornal_woodcutter_1" type="Marker3D" parent="Sitios" unique_id=1174631070]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -131.6, -0.032931373, 175)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_woodcutter_1"
+
+[node name="jornal_woodcutter_2" type="Marker3D" parent="Sitios" unique_id=132437963]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109.2, -0.020518571, 177.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "jornal_woodcutter_2"
+
+[node name="asalto_entrada" type="Marker3D" parent="Sitios" unique_id=1389959879]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 492.8, 0.5495177, 14)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "asalto_entrada"
+
+[node name="carro" type="Marker3D" parent="Sitios" unique_id=1836901333]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 102.2, -0.19021766, 131.824)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "carro"
+
+[node name="mirador" type="Marker3D" parent="Sitios" unique_id=241454675]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -145.6, 0, -81.2)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "mirador"
+
+[node name="contrabando_campamento" type="Marker3D" parent="Sitios" unique_id=1865468660]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 378, 0.7397353, -156.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "contrabando_campamento"
+
+[node name="contrabando_frontera" type="Marker3D" parent="Sitios" unique_id=1423658470]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 388.08, 0.7397353, -163.52)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "contrabando_frontera"
 
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 

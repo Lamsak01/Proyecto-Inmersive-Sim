@@ -19,7 +19,7 @@ const DESPLAZAMIENTO_PX := Vector2(373.0, 241.0) ## cualquier cantidad que no se
 const FOTOGRAMAS_ESPERA: int = 150 ## lo que tarda en crearse todo, incluidos árboles talables y vecinos
 ## Carpetas del editor cuyas piezas están un nivel más abajo (Decorado/Zona/pieza, Vegetacion/Arboles/pieza).
 const GRUPOS_CON_CARPETAS: Array[String] = ["Decorado", "Vegetacion"]
-const GRUPOS_SUELTOS: Array[String] = ["Edificios", "Solares", "Zonas", "Objetos", "Caminos", "BajoTierra", "Decoracion"]
+const GRUPOS_SUELTOS: Array[String] = ["Edificios", "Solares", "Zonas", "Sitios", "Objetos", "Caminos", "BajoTierra", "Decoracion"]
 ## Partes del escenario que se mueven solas: cuerpos de vecinos y animales, y la cámara con las manos del jugador.
 const PARTES_VIVAS: Array[String] = ["Characters3D", "WorldCamera3D"]
 const CAMPOS_VECINO: Array[String] = ["bed_position", "home_table_pos", "work_position"]

@@ -26,8 +26,16 @@ const VillageNightJobs = preload("res://scripts/systems/VillageNightJobs.gd")
 const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 
 ## Bloque P3 Parte B: Campamento físico nocturno de la caravana de contrabando (claro noreste al norte de mansión f1).
-const SMUGGLER_CAMP_POS: Vector2 = Vector2(1350.0, -560.0)
-const SMUGGLER_BORDER_POS: Vector2 = Vector2(1386.0, -584.0)
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_CAMPAMENTO := "contrabando_campamento" ## cruz de «Sitios»: el carro del contrabandista
+const SITIO_FRONTERA := "contrabando_frontera"     ## cruz de «Sitios»: por donde llega y se va
+const SMUGGLER_STAND_OFFSET: Vector2 = Vector2(-24.0, 4.0) ## del carro a donde se queda él
+
+
+## Donde se queda el contrabandista, junto a su carro (en el mundo).
+static func smuggler_stand_pos() -> Vector2:
+	return Sitio.mundo(SITIO_CAMPAMENTO) + SMUGGLER_STAND_OFFSET
+
 
 class SmugglerTradeArea extends Area2D:
 	var vm_ref = null
@@ -764,11 +772,11 @@ static func spawn_smuggler_caravan(vm, at_camp: bool = true):
 	var existing = get_active_smuggler_npc(vm)
 	if existing != null:
 		if at_camp:
-			existing.global_position = _AN_SITIOS.mover(SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0))
+			existing.global_position = smuggler_stand_pos()
 			existing.set_meta("smuggler_state", "camped")
 		return existing
 	var parent_node: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else (vm.get_parent() if vm.get_parent() != null else vm)
-	var start_pos: Vector2 = _AN_SITIOS.mover((SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0)) if at_camp else SMUGGLER_BORDER_POS)
+	var start_pos: Vector2 = (smuggler_stand_pos() if at_camp else Sitio.mundo(SITIO_FRONTERA))
 	var smuggler := VillageNPC.new()
 	smuggler.name = "SmugglerCaravanMerchant"
 	smuggler.npc_name = "El Encapuchado"
@@ -779,14 +787,14 @@ static func spawn_smuggler_caravan(vm, at_camp: bool = true):
 	smuggler.days_in_role = 7
 	smuggler.tavern_social_pos = vm._tavern_social_pos
 	parent_node.add_child(smuggler)
-	smuggler.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0), SMUGGLER_BORDER_POS, {}, vm._tavern_social_pos, "none", "Caravana de Contrabando")
+	smuggler.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), Sitio.original(SITIO_CAMPAMENTO) + SMUGGLER_STAND_OFFSET, Sitio.original(SITIO_FRONTERA), {}, vm._tavern_social_pos, "none", "Caravana de Contrabando")
 	smuggler.global_position = start_pos
 	smuggler.modulate = Color(0.55, 0.52, 0.62)
 	smuggler.set_meta("smuggler_state", "camped" if at_camp else "arriving")
 	smuggler.add_to_group("smuggler_caravan_npc")
 	if get_active_smuggler_cart(vm) == null:
 		var cart := SmugglerCampCart.new(vm)
-		cart.global_position = _AN_SITIOS.mover(SMUGGLER_CAMP_POS)
+		cart.global_position = Sitio.mundo(SITIO_CAMPAMENTO)
 		parent_node.add_child(cart)
 	return smuggler
 
@@ -829,11 +837,11 @@ static func update_smuggler_merchant_ai(vm, merchant, delta: float) -> void:
 	if st_mode == "leaving":
 		merchant._merchant_leaving = true
 		merchant.current_activity = VillageNPC.ActivityState.WORKING
-		merchant._move_towards_point(_AN_SITIOS.mover(SMUGGLER_BORDER_POS), 68.0, delta)
-		if merchant.global_position.distance_to(_AN_SITIOS.mover(SMUGGLER_BORDER_POS)) < 28.0:
+		merchant._move_towards_point(Sitio.mundo(SITIO_FRONTERA), 68.0, delta)
+		if merchant.global_position.distance_to(Sitio.mundo(SITIO_FRONTERA)) < 28.0:
 			despawn_smuggler_caravan(vm)
 		return
-	var camp_spot: Vector2 = _AN_SITIOS.mover(SMUGGLER_CAMP_POS + Vector2(-24.0, 4.0))
+	var camp_spot: Vector2 = smuggler_stand_pos()
 	merchant._merchant_leaving = false
 	merchant.current_activity = VillageNPC.ActivityState.WORKING
 	merchant._move_towards_point(camp_spot, 68.0, delta)
@@ -874,7 +882,7 @@ static func caravan_buy(vm, inv, require_double_e: bool = true, actor = null) ->
 		return false
 	var st: Dictionary = state(vm)
 	var sm = get_active_smuggler_npc(vm)
-	var trade_pos: Vector2 = _AN_SITIOS.mover(SMUGGLER_CAMP_POS)
+	var trade_pos: Vector2 = Sitio.mundo(SITIO_CAMPAMENTO)
 	if actor != null and is_instance_valid(actor) and actor is Node2D:
 		trade_pos = (actor as Node2D).global_position
 	if inv == null or int(inv.gold) < 25 or not is_caravan_here(st) or int(st.get("caravan_batches_left", 2)) <= 0:
@@ -898,7 +906,7 @@ static func caravan_sell(vm, inv, actor = null) -> bool:
 		return false
 	var st: Dictionary = state(vm)
 	var sm = get_active_smuggler_npc(vm)
-	var trade_pos: Vector2 = _AN_SITIOS.mover(SMUGGLER_CAMP_POS)
+	var trade_pos: Vector2 = Sitio.mundo(SITIO_CAMPAMENTO)
 	if actor != null and is_instance_valid(actor) and actor is Node2D:
 		trade_pos = (actor as Node2D).global_position
 	if get_item_count(vm, "dusk_dust") <= 0 or int(st.get("caravan_gold", 0)) < 35 or not is_caravan_here(st):
@@ -930,7 +938,7 @@ static func send_guards_to_bust_caravan(vm, reporting_guard = null) -> int:
 		if int(n.trade_role) in [int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.SHERIFF)] and not n.is_downed:
 			chosen.append(n)
 	for g in chosen:
-		g.start_errand("smuggler_bust", _AN_SITIOS.mover(SMUGGLER_CAMP_POS))
+		g.start_errand("smuggler_bust", Sitio.mundo(SITIO_CAMPAMENTO))
 	return chosen.size()
 
 static func on_guard_bust_arrived(vm, guard_npc = null) -> void:

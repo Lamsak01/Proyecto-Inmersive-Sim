@@ -21,14 +21,8 @@ const POP_CAP: int = 100
 ## Camas de huéspedes de la taberna (marcas de su escena), en el mapa original.
 static func tavern_guest_beds() -> Array:
 	return preload("res://scripts/systems/VillageTavern.gd").guest_beds()
-const TAVERN_DAY_SPOTS: Array = [
-	Vector2(440, 44), Vector2(495, 44), Vector2(465, 58),
-	Vector2(304, 280), Vector2(236, 268), Vector2(360, 280),
-	Vector2(-715, 166), Vector2(215, 44), Vector2(640, 44),
-	Vector2(780, 44), Vector2(672, -210), Vector2(330, -352),
-	Vector2(610, -352), Vector2(890, -352), Vector2(1015, 48),
-	Vector2(575, 225), Vector2(820, 225), Vector2(160, 175),
-]
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIOS_ESPERA := "espera" ## cruces espera_1, espera_2… de «Sitios»: dónde pasa el día quien aún no tiene casa
 const ARRIVE_MIN_SCORE: float = 0.05
 const LEAVE_BELOW_SCORE: float = 0.2
 const TOWN_HOUSE_RENT: int = 2
@@ -235,7 +229,7 @@ static func attractiveness(vm) -> Dictionary:
 	var labor: int = 0
 	for key in VillageWork.PLACES.keys():
 		if VillageWork.master_of(vm, key) != null:
-			labor += (VillageWork.PLACES[key]["spots"] as Array).size()
+			labor += VillageWork.spots(key).size()
 	var idle: int = people.filter(func(n): return is_unemployed(n)).size()
 	var jobs: float = clampf(float(vacant * 2 + labor - idle) / 6.0, -1.0, 1.0)
 	var beds: int = free_house_beds(vm) + (1 if free_tavern_bed(vm) != null else 0)
@@ -277,7 +271,8 @@ static func _pick_kind(couple_ok: bool) -> Dictionary:
 
 static func _spawn_one(vm, kind: Dictionary, idx: int):
 	var tex: Texture2D = vm._load_tex("res://assests/world/village/villager_traveler.png")
-	var base_spot: Vector2 = TAVERN_DAY_SPOTS[idx % TAVERN_DAY_SPOTS.size()]
+	var esperas: Array[Vector2] = Sitio.serie(SITIOS_ESPERA)
+	var base_spot: Vector2 = load("res://mapa/anclas.gd").desmover(esperas[idx % esperas.size()]) # quien crea al vecino aún traduce
 	var jitter := Vector2(float(((idx * 7) % 11) - 5) * 4.5, float(((idx * 5) % 7) - 3) * 3.5)
 	var n = vm._spawn_generated_newcomer("NPC_Traveler_", VillageNPC.TradeRole.UNEMPLOYED, VillageNPC.TradeRole.UNEMPLOYED,
 		str(kind["label"]), tex, base_spot + jitter, tavern_guest_beds()[idx % tavern_guest_beds().size()],
@@ -388,7 +383,8 @@ static func seed_start_population(vm, target: int = START_POPULATION) -> int:
 			var angle: float = float(spread_i) * 1.37
 			n.global_position = n.work_position + Vector2.RIGHT.rotated(angle) * float(6 + (spread_i % 4) * 5)
 		else:
-			var spot_p: Vector2 = TAVERN_DAY_SPOTS[spread_i % TAVERN_DAY_SPOTS.size()]
+			var esperas: Array[Vector2] = Sitio.serie(SITIOS_ESPERA)
+			var spot_p: Vector2 = esperas[spread_i % esperas.size()]
 			n.work_position = spot_p + Vector2(float((spread_i % 5) - 2) * 9.0, float((spread_i % 3) - 1) * 7.0)
 			n.global_position = n.work_position
 		spread_i += 1

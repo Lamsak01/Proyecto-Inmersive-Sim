@@ -27,12 +27,15 @@ const LAVADERO_POS: Vector2 = Vector2(215, 145)
 const LAVADERO_CHANCE: float = 0.3
 const LAVADERO_GOSSIP_RADIUS: float = 50.0
 
-## Sitios de trabajo por oficio (clave de VillageTrades.CONFIG).
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_JORNAL := "jornal_%s"
+
+## Trabajos de jornalero por oficio (clave de VillageTrades.CONFIG). Dónde se trabaja: `spots(key)`.
 const PLACES: Dictionary = {
-	"farmer": {"label": "la Granja del Sur", "icon": "🌾", "spots": [Vector2(-40, 445), Vector2(40, 445), Vector2(-40, 500), Vector2(40, 500)], "yield": {"wheat": 0.25, "carrot": 0.08}},
-	"rancher": {"label": "el Rancho", "icon": "🐑", "spots": [Vector2(335, 440), Vector2(370, 500)], "yield": {"wool": 0.15, "raw_meat": 0.1}},
-	"quarry": {"label": "la Cantera", "icon": "⛏️", "spots": [Vector2(-185, -350), Vector2(-150, -300)], "yield": {"stone": 0.3}},
-	"woodcutter": {"label": "el bosque", "icon": "🪓", "spots": [Vector2(-470, 625), Vector2(-390, 635)], "yield": {"wood": 0.35}},
+	"farmer": {"label": "la Granja del Sur", "icon": "🌾", "yield": {"wheat": 0.25, "carrot": 0.08}},
+	"rancher": {"label": "el Rancho", "icon": "🐑", "yield": {"wool": 0.15, "raw_meat": 0.1}},
+	"quarry": {"label": "la Cantera", "icon": "⛏️", "yield": {"stone": 0.3}},
+	"woodcutter": {"label": "el bosque", "icon": "🪓", "yield": {"wood": 0.35}},
 }
 
 static func state(vm) -> Dictionary:
@@ -90,21 +93,26 @@ static func hire(vm) -> int:
 		var day_wage: int = WAGE_PER_HOUR * (PAY_HOUR - WORK_FROM)
 		if m == null or m.personal_gold < day_wage + OWNER_FOOD_RESERVE:
 			continue # Sin dueño o sin dinero para pagar un día sin quedarse sin comer, hoy no contrata
-		var spots: Array = PLACES[key]["spots"]
-		var free: int = mini(spots.size(), workers_needed(m, key)) - _workers_at(vm, key)
+		var puestos: Array[Vector2] = spots(key)
+		var free: int = mini(puestos.size(), workers_needed(m, key)) - _workers_at(vm, key)
 		var budget: int = int((m.personal_gold - OWNER_FOOD_RESERVE) / day_wage)
 		var idx: int = _workers_at(vm, key)
 		while free > 0 and budget > 0 and not pool.is_empty():
 			var n = pool.pop_front()
 			if randf() >= accepts(n):
 				continue
-			_assign(vm, n, key, _AN_SITIOS.mover(spots[idx % spots.size()])) # plan de sitios: sigue al campo movido
+			_assign(vm, n, key, puestos[idx % puestos.size()])
 			idx += 1
 			free -= 1
 			budget -= 1
 			hired += 1
 	st["hired_total"] = int(st["hired_total"]) + hired
 	return hired
+
+## Puestos de jornalero de un oficio, en el mundo: las cruces jornal_<oficio>_1, _2… de «Sitios» del editor.
+static func spots(key: String) -> Array[Vector2]:
+	return Sitio.serie(SITIO_JORNAL % key)
+
 
 ## F1: cuántos jornaleros hacen falta hoy para llenar el almacén del producto principal (el de más rendimiento).
 ## Con el almacén lleno no contrata a nadie: pagaría por una cosecha que se tira.

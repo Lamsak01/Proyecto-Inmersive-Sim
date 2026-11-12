@@ -2575,7 +2575,7 @@ func _initialize() -> void:
 	var v5d_wg: int = v5d_worker.personal_gold
 	var v5d_wp: Vector2 = v5d_worker.global_position
 	v5d_master.personal_gold = 200
-	vw._assign(vm, v5d_worker, "farmer", vw.PLACES["farmer"]["spots"][0])
+	vw._assign(vm, v5d_worker, "farmer", vw.spots("farmer")[0])
 	assert(v5d_worker.has_meta("day_job") and vm.work_state["jobs"].has(v5d_worker.get_person_key()), "V5d: The laborer is hired")
 	var v5d_wheat: int = int(v5d_master.shop_stock.get("wheat", 0))
 	v5d_worker.global_position = M(Vector2(400, 0)) # Lejos del campo: esa hora no cuenta
@@ -2592,7 +2592,7 @@ func _initialize() -> void:
 	var v5d_pay: Dictionary = vw.pay(vm)
 	assert(int(v5d_pay["paid"]) == 8 and v5d_worker.personal_gold == 8 and v5d_master.personal_gold == 192 and not v5d_worker.has_meta("day_job"), "V5d: At six they get paid for their hours")
 	var v5d_rel: int = v5d_worker.get_relationship_with_npc(v5d_master.get_person_key())
-	vw._assign(vm, v5d_worker, "farmer", vw.PLACES["farmer"]["spots"][0])
+	vw._assign(vm, v5d_worker, "farmer", vw.spots("farmer")[0])
 	vm.work_state["jobs"][v5d_worker.get_person_key()]["hours"] = 6
 	v5d_master.personal_gold = 2
 	v5d_pay = vw.pay(vm)
@@ -4242,7 +4242,7 @@ func _initialize() -> void:
 	p70_inv.gold = 50
 	var pm_pl_pos_ship: Vector2 = pm_pl.global_position if pm_pl != null else Vector2.ZERO
 	if pm_pl != null:
-		pm_pl.global_position = M(vcu_pj.CART_DEFAULT_POS) + Vector2(12, 0)
+		pm_pl.global_position = vcu_pj.cart_default_pos() + Vector2(12, 0)
 	assert(vcu_pj.send_player_shipment(vm, "river_port", p70_inv) and p70_inv.gold == 62, "PM.1c: Cargo cart within 60 px increases player shipment payout from 8 to 12 gold from route balance")
 	vcu_pj.despawn_trade_caravan(vm, "river_port")
 	if pm_pl != null:
@@ -5283,7 +5283,7 @@ func _initialize() -> void:
 	# 1. Comprar la carreta crea un nodo del grupo player_cart en CART_DEFAULT_POS
 	vcu_pj.on_player_action(vm, p70_a, "culture_buy_cart", p70_inv)
 	var bp2_cart = get_first_node_in_group("player_cart")
-	assert(bp2_cart != null and bp2_cart.global_position.distance_to(M(vcu_pj.CART_DEFAULT_POS)) < 0.5, "P2.1: Buying the cart creates a node in group player_cart at CART_DEFAULT_POS")
+	assert(bp2_cart != null and bp2_cart.global_position.distance_to(vcu_pj.cart_default_pos()) < 0.5, "P2.1: Buying the cart creates a node in group player_cart at CART_DEFAULT_POS")
 
 	# 2. Meter 41 troncos en la caja: entran 40, queda 1 en la mochila
 	p70_inv.add_item("wood", 41)
@@ -5307,14 +5307,14 @@ func _initialize() -> void:
 	bp2_poorest.remove_pocket_item("wood", 10)
 
 	# 4. Tirando de ella a pie, la velocidad es ×0,55
-	bp2_cart.global_position = M(vcu_pj.CART_DEFAULT_POS)
+	bp2_cart.global_position = vcu_pj.cart_default_pos()
 	p70_pl.set("is_mounted", false)
 	p70_pl.set("is_pulling_cart", false)
 	p70_pl.set("is_cart_hitched", false)
 	p70_pl.is_weak = false
 	c1_mctrl.is_stealthing = false
 	c1_mctrl.is_sprinting = false
-	p70_pl.global_position = M(vcu_pj.CART_DEFAULT_POS) + Vector2(0, -12)
+	p70_pl.global_position = vcu_pj.cart_default_pos() + Vector2(0, -12)
 	c1_mctrl._handle_input(0.016)
 	var bp2_spd0: float = float(c1_mctrl.current_speed)
 	bp2_cart.call("interact", p70_pl)
@@ -5545,9 +5545,9 @@ func _initialize() -> void:
 	vun.on_hour(vm, 22)
 	var bp3_smug_npc = vun.get_active_smuggler_npc(vm)
 	var bp3_smug_cart = vun.get_active_smuggler_cart(vm)
-	assert(bp3_smug_npc != null and bp3_smug_cart != null and bp3_smug_cart.global_position.distance_to(M(vun.SMUGGLER_CAMP_POS)) < 5.0, "P3.4a: At 22:00 on contraband night, smuggler and cart appear at SMUGGLER_CAMP_POS")
+	assert(bp3_smug_npc != null and bp3_smug_cart != null and bp3_smug_cart.global_position.distance_to(vun.Sitio.mundo(vun.SITIO_CAMPAMENTO)) < 5.0, "P3.4a: At 22:00 on contraband night, smuggler and cart appear at SMUGGLER_CAMP_POS")
 	# Alejar guardias temporalmente para probar compra/venta limpia en el carro (con doble E)
-	p70_pl.global_position = M(vun.SMUGGLER_CAMP_POS)
+	p70_pl.global_position = vun.Sitio.mundo(vun.SITIO_CAMPAMENTO)
 	var bp3_guard = null
 	var bp3_guard_positions: Dictionary = {}
 	for n_g in vm.get_tree().get_nodes_in_group("village_npcs"):
@@ -5568,7 +5568,7 @@ func _initialize() -> void:
 	bp3_guard.is_downed = false
 	bp3_guard.is_stunned_flag = false
 	bp3_guard.sedated_timer = 0.0
-	bp3_guard.global_position = M(vun.SMUGGLER_CAMP_POS) + Vector2(40.0, 0.0)
+	bp3_guard.global_position = vun.Sitio.mundo(vun.SITIO_CAMPAMENTO) + Vector2(40.0, 0.0)
 	var bp3_w0: int = int(vm.wanted_level)
 	bp3_smug_cart.sell_area.interact(p70_pl)
 	assert(p70_inv.gold == 110 and int(vm.wanted_level) > bp3_w0 and int(bp3_ust.get("caravan_busted_day", -99)) == 4, "P3.4e: Selling with an awake guard within 160 px raises wanted_level and sets caravan_busted_day")

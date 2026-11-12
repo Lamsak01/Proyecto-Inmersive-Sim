@@ -26,7 +26,8 @@ const BLACKMAIL_GOLD: int = 20
 const SUPPORT_GOLD: int = 5
 const PAST_DEBT_GOLD: int = 25
 const ARRANGED_DOWRY: int = 30
-const MIRADOR_POS: Vector2 = Vector2(-520.0, -290.0)
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_MIRADOR := "mirador" ## cruz de «Sitios»
 
 static func state(vm) -> Dictionary:
 	if not (vm.family_state is Dictionary):
@@ -420,8 +421,8 @@ static func send_lovers_to_mirador(vm) -> int:
 		var a = by_key.get(str(rp["a"]), null)
 		var b = by_key.get(str(rp["b"]), null)
 		if a != null and b != null and not a.is_dead and not b.is_dead:
-			a.start_errand("mirador_escape", _AN_SITIOS.mover(MIRADOR_POS + Vector2(-8, 0)))
-			b.start_errand("mirador_escape", _AN_SITIOS.mover(MIRADOR_POS + Vector2(8, 0)))
+			a.start_errand("mirador_escape", Sitio.mundo(SITIO_MIRADOR) + Vector2(-8, 0))
+			b.start_errand("mirador_escape", Sitio.mundo(SITIO_MIRADOR) + Vector2(8, 0))
 			rp["at_mirador"] = true
 			sent += 1
 	return sent

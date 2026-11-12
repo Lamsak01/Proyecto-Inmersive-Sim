@@ -140,6 +140,10 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   Los datos del solar (zona, tamaño de casa, lado de la puerta) siguen en `VillageLots.LOTS`: pendiente de pasar.
   El ancla cubre además `SOLAR_LETRERO_PX` (16 px) al norte y al sur del terreno: ahí va el letrero de solar libre
   (`VillageLots.site_work_pos`), que ya no tiene ancla propia en «Objetos».
+- **Sitios** (`mapa/sitio.gd`, carpeta «Sitios», paso 3, 2026-11-12): cruces (`Marker3D`) con `id_sitio` para la lógica
+  de vecinos fuera de edificios. Su posición es la del mundo: `Sitio.mundo(id)` y `Sitio.serie(nombre)` (`nombre_1`,
+  `nombre_2`…) no se traducen. `Sitio.original(id)` (= `Anclas.desmover`) solo para funciones que aún traducen lo que
+  reciben (`setup_npc`); desaparece en el paso 4. No son anclas: mover una cruz no arrastra nada más.
 - **Zonas** (`mapa/zona.gd`, carpeta «Zonas», 2026-11-11): `zona_plaza`, `zona_lago`, `zona_cienaga`, con `id_zona`,
   `centro_original` y `terreno_m` (tamaño en el mundo). `mapa/anclas.gd` las registra como anclas que **estiran** ×E
   (no compactas), con la prioridad de un solar. `Anclas.estirar(p)`/`estirar_puntos` (original → mundo, solo miran

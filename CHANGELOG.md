@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 3, grupo 2: carpeta «Sitios» con 56 cruces al aire libre (Claude Code)
+- Carpeta nueva «Sitios» en `mapa/Mundo3D.tscn` (`mapa/sitio.gd`): cruces con nombre cuya posición es **ya la del mundo** (`Sitio.mundo(id)`, `Sitio.serie("paseo")`; nadie las traduce). 56: `paseo_1…18`, `espera_1…18`, `expedicion_<oficio>` (5), `jornal_<oficio>_<n>` (10), `asalto_entrada`, `carro`, `mirador`, `contrabando_campamento`, `contrabando_frontera`.
+- Borrados `IDLE_STROLL_SPOTS`, `TAVERN_DAY_SPOTS`, `EXPEDITION_TARGETS`, los `spots` de `VillageWork.PLACES` (ahora `VillageWork.spots(key)`), `SPAWN_POS`, `CART_DEFAULT_POS`, `MIRADOR_POS`, `SMUGGLER_CAMP_POS` y `SMUGGLER_BORDER_POS`.
+- **Dos fallos arreglados:** los artesanos salían por la mañana (a pescar, talar, cazar…) hacia posiciones del mapa sin estirar, y los recién llegados sin casa se colocaban el primer día también en posiciones sin estirar. Ahora van a su cruz.
+- `Sitio.original(id)` queda para quien crea vecinos con funciones que aún traducen (contrabandista, recién llegados); se irá en el paso 4.
+- Comprobado: volcado idéntico, `verify_all`, `atascos_vecinos` (4 h desde las 6).
+
 ## 2026-11-12 — Paso 3 empezado: Caso I y medición de los sitios del código (Claude Code)
 - Caso I: los dos forasteros del molino y la bandeja de informes de la comisaría son cruces de sus edificios (`secuestrador_young`, `secuestrador_driver`, `informe`; 282 marcas). Fuera `REPORT_POS` y las posiciones de `MILL_KIDNAPPERS`; `VillageCase1.report_pos()`.
 - Medición: `tools/tests/inventario_constantes.gd` anota a dónde lleva la traducción cada punto escrito en las constantes de `scripts/systems`, `enemies` y `obstacles`. De 325 puntos, 264 siguen a la pieza que tienen cerca y 61 a ninguna: bosque (`FOREST_POLY`, 24), río (`RIVER_*`, 17, sin uso con el río del editor) y unos 17 sitios de vecinos (`TAVERN_DAY_SPOTS`, `EXPEDITION_TARGETS`, `IDLE_STROLL_SPOTS`, `VillageWork.PLACES`, `MIRADOR_POS`, contrabandistas, carro, asalto). No mide los números escritos dentro de funciones.

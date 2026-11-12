@@ -476,7 +476,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 				var base_ang: float = float(absi(npc_name.hash()) % 360) * (TAU / 360.0) + randf_range(-0.85, 0.85)
 				_wander_offset = Vector2.RIGHT.rotated(base_ang) * randf_range(12.0, radius) if is_idle_stroller else Vector2.RIGHT.rotated(base_ang) * randf_range(1.5 if is_indoor_authority else 6.5, radius)
 				if is_idle_stroller and randf() < 0.45:
-					set_meta("stroll_anchor", load("res://mapa/anclas.gd").mover(IDLE_STROLL_SPOTS[randi() % IDLE_STROLL_SPOTS.size()])) # plan de sitios
+					set_meta("stroll_anchor", Sitio.serie(SITIOS_PASEO).pick_random())
 				elif is_idle_stroller and has_meta("stroll_anchor") and randf() < 0.30:
 					remove_meta("stroll_anchor")
 			var anchor: Vector2 = get_meta("day_job_pos") if has_meta("day_job_pos") else (get_meta("stroll_anchor") if (trade_role == TradeRole.UNEMPLOYED and has_meta("stroll_anchor")) else work_position) # V5d: jornalero en el campo o paseo por el pueblo

@@ -455,10 +455,8 @@ static var lod_enabled: bool = true # Activado por el usuario (2026-11-09): veci
 static var perf_on: bool = false
 static var perf_usec: Dictionary = {}
 
-const EXPEDITION_TARGETS: Dictionary = {
-	TradeRole.CARPENTER: Vector2(65, 790), TradeRole.BLACKSMITH: Vector2(515, 795),
-	TradeRole.HERBALIST: Vector2(-180, 810), TradeRole.FISHMONGER: Vector2(-683, 105), TradeRole.BUTCHER: Vector2(142, 785),
-}
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_EXPEDICION := "expedicion_%s" ## cruz de «Sitios» a la que sale cada oficio por la mañana (expedicion_carpenter…)
 
 const EXPEDITION_DESCS: Dictionary = {
 	TradeRole.CARPENTER: "🪓 Expedición Matutina: Talando Pinos",
@@ -470,13 +468,7 @@ const EXPEDITION_DESCS: Dictionary = {
 
 var _npc_env_sickness_timer: float = 0.0
 
-const IDLE_STROLL_SPOTS: Array[Vector2] = [
-	Vector2(304, 280), Vector2(236, 268), Vector2(360, 280), # Parque del Roble
-	Vector2(-715, 166), Vector2(215, 145), # Mirador del Lago y Lavadero
-	Vector2(215, 44), Vector2(340, 44), Vector2(540, 44), Vector2(680, 44), Vector2(820, 44), Vector2(990, 44), # Calle Principal
-	Vector2(330, -352), Vector2(520, -352), Vector2(740, -352), Vector2(940, -352), # Calle Norte
-	Vector2(672, -210), Vector2(575, 225), Vector2(825, 225), # Barrio Residencial, Albergue y Capilla
-]
+const SITIOS_PASEO := "paseo" ## cruces paseo_1, paseo_2… de «Sitios»: por dónde deambula quien no tiene oficio
 
 const ARTISAN_RECIPES: Dictionary = {
 	TradeRole.BLACKSMITH: [{"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Forjando", "input": "wood", "supplier": int(TradeRole.CARPENTER), "input_name": "Madera"}, {"output": "repair_kit", "label": "Kit Herrero", "verb": "⚒️ Templando", "input": "leather", "supplier": int(TradeRole.BUTCHER), "input_name": "Cuero"}, {"output": "steel_ingot", "label": "Lingote Acero", "verb": "⚒️ Fundiendo", "input": "stone", "supplier": int(TradeRole.QUARRYMAN), "input_name": "Piedra de horno"}],
@@ -1032,7 +1024,8 @@ func _is_morning_expedition_hours() -> bool:
 	return (h == 6 and m >= 30) or h == 7 or h == 8 or (h == 9 and m < 30)
 
 func _get_expedition_target_pos() -> Vector2:
-	return EXPEDITION_TARGETS.get(trade_role, work_position)
+	var id: String = SITIO_EXPEDICION % String(TradeRole.keys()[trade_role]).to_lower()
+	return Sitio.mundo(id) if Sitio.hay(id) else work_position
 
 func _get_expedition_description() -> String:
 	return str(EXPEDITION_DESCS.get(trade_role, "🚶 En Expedición"))

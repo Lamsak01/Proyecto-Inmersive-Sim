@@ -780,11 +780,13 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 	return {"ok": true, "won": false, "subsystem": subsystem, "gold": 0}
 
 const HORSE_DEFAULT_POS: Vector2 = Vector2(360, 470) # junto al Rancho del Sur
-const CART_DEFAULT_POS: Vector2 = Vector2(385, 470) # junto al Rancho del Sur, al lado del caballo
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_CARRO := "carro" ## cruz de «Sitios»: junto al Rancho del Sur, al lado del caballo
 
-## Sitio del carro recién comprado, en el mundo (el número fijo de arriba está en el mapa original).
+## Sitio del carro recién comprado, en el mundo.
 static func cart_default_pos() -> Vector2:
-	return _AN_SITIOS.mover(CART_DEFAULT_POS)
+	return Sitio.mundo(SITIO_CARRO)
+
 const CART_THEFT_CHANCE: float = 0.12
 const RANCH_CORRAL_RECT: Rect2 = Rect2(310, 400, 87, 140)
 const PlayerHorseScript = preload("res://scripts/obstacles/PlayerHorse.gd")

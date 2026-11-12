@@ -9,7 +9,8 @@ extends Node
 
 const RaiderScript = preload("res://scripts/enemies/Raider.gd")
 
-const SPAWN_POS: Vector2 = Vector2(1760, 50) # camino del este, más allá de la entrada
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_ENTRADA := "asalto_entrada" ## cruz de «Sitios»: por dónde llegan (camino del este, más allá de la entrada)
 const DEFENDER_HIT_RANGE: float = 24.0
 const GIVE_UP_HOUR: int = 23
 
@@ -38,7 +39,7 @@ func start(p_vm: Node, kind: String, strength: int, militia_bonus: int) -> int:
 	for i in range(total):
 		var r = RaiderScript.new()
 		parent.add_child(r)
-		r.setup(r_kind, load("res://mapa/anclas.gd").mover(SPAWN_POS) + Vector2(float(i) * 16.0, float(i % 3) * 14.0 - 14.0), hp_mult)
+		r.setup(r_kind, Sitio.mundo(SITIO_ENTRADA) + Vector2(float(i) * 16.0, float(i % 3) * 14.0 - 14.0), hp_mult)
 		r.gone.connect(_on_raider_gone)
 		raiders.append(r)
 	return total
