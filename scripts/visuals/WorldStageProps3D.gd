@@ -1,6 +1,7 @@
 @tool
 extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
+const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
 
 ## Puesto del Paso, cementerio, alcantarillas, objetos de la época, farolas y objetos/props dinámicos 3D.
 
@@ -1106,8 +1107,10 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 			_add_box_2d(root, pos + Vector2(0, 4.0), Vector2(12.5, 5.2), 0.0, 2.2, m_dark)
 			_add_box_2d(root, pos + Vector2(-4.5, 4.0), Vector2(2.4, 2.6), 0.0, 14.5, m_dark)
 			_add_box_2d(root, pos + Vector2(4.5, 4.0), Vector2(2.4, 2.6), 0.0, 14.5, m_dark)
-			_add_box_2d(root, pos + Vector2(0, 4.4), Vector2(16.5, 3.4), 6.2, 7.6, m_wood)
+			var tabla: MeshInstance3D = _add_box_2d(root, pos + Vector2(0, 4.4), Vector2(16.5, 3.4), 6.2, 7.6, m_wood)
 			_add_prism_2d(root, pos + Vector2(0, 4.2), Vector2(18.5, 5.8), 13.6, 3.6, m_dark, false)
+			if spr.has_meta(Cartel.META_TEXTO):
+				_escribir_poste(tabla, String(spr.get_meta(Cartel.META_TEXTO)))
 		"generator":
 			if _add_model_2d(root, "props/Crate_Metal.gltf", pos, 0.0, Vector2(16, 14), 12.0) == null:
 				_add_box_2d(root, pos, Vector2(16, 14), 0.0, 12.0, m_iron)
@@ -1423,3 +1426,14 @@ func _sync_sabotage_fx_3d() -> void:
 			var lt3 := node3d.get_node_or_null("FireLight3D") as OmniLight3D
 			if lt3 != null:
 				lt3.light_energy = 1.15 if has_fire else 0.35
+
+
+## Texto del poste de un camino en las dos caras de su tabla (mapa/cartel.gd: letras quemadas que encogen si no caben).
+func _escribir_poste(tabla: MeshInstance3D, texto: String) -> void:
+	var tam: Vector3 = (tabla.mesh as BoxMesh).size
+	for giro: float in [0.0, PI]:
+		var l: Label3D = Cartel.letras(tam, Cartel.COLOR_LETRAS_PINTADAS)
+		Cartel.escribir(l, texto, tam)
+		l.position = Basis(Vector3.UP, giro) * l.position
+		l.rotation.y = giro
+		tabla.add_child(l)

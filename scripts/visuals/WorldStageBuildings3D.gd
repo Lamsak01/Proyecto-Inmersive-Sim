@@ -7,7 +7,6 @@ extends "res://scripts/visuals/WorldStageProps3D.gd"
 const Partes = preload("res://scripts/visuals/PartesEdificio3D.gd")
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const CasaModelo = preload("res://mapa/casa_modelo.gd")
-const Cartel = preload("res://mapa/cartel.gd")
 
 func rebuild_buildings_3d() -> void:
 	_clear_children(buildings_root_3d)

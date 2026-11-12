@@ -32,8 +32,8 @@ Paso 4, trozos seguros (decorado del código → piezas), cada uno comparando la
 (volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozos 1
 (`WorldStageTerrain3D`), 2 (`VillageWorldBuilder`), 3 (`VillageTavern`), 4 (`VillageRestaurant`) y 5 (`VillageLots`) hechos. Siguientes:
 dibujo plano de `VillagePlaces`, `VillageManagerSocial`…; choques y zonas → piezas; `EcosystemManager` (174).
-**El mapa plano se ve desde arriba (P)** si está visible, opaco y con z > -2: hoy 38 cosas (letreros de pesca y bosque,
-postes, estacas del puesto). Carteles de madera en las puertas (`mapa/cartel.gd`); textos flotantes de título borrados (decisión del usuario). Antes de borrar, sacar esa lista antes y después (herramienta temporal) y fotos desde arriba.
+**El mapa plano se ve desde arriba (P)** si está visible, opaco y con z > -2: hoy 21 cosas (postes,
+estacas del puesto). Carteles de madera en las puertas (`mapa/cartel.gd`); textos flotantes borrados (decisión del usuario); los postes de los caminos y del bosque llevan su texto pintado. Las instrucciones del minijuego de pesca siguen planas (sin revisar). Antes de borrar, sacar esa lista antes y después (herramienta temporal) y fotos desde arriba.
 Corte final (anclas y ×5) solo con el usuario.
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.

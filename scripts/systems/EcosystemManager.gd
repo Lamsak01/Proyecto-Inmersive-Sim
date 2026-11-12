@@ -21,6 +21,9 @@ var boar_pool: Array[WildAnimal] = []
 ## Si la población activa es <= N_min, los aldeanos suspenden la extracción/caza de ese recurso ese día
 ## para no alterar la cadena trófica ni sobrecazar el bosque.
 const MIN_SAFE_TREES: int = 16
+const Cartel = preload("res://mapa/cartel.gd")
+const POSTE_TEX := "res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"
+const POSTE_ESCALA: float = 0.9
 const MIN_SAFE_ORE_VEINS: int = 5
 const MIN_SAFE_WILD_FLORA: int = 16
 const MIN_SAFE_RABBITS: int = 10
@@ -136,11 +139,11 @@ func _spawn_distant_forest() -> void:
 	entities_root.add_child(forest_turf)
 
 	# Carteles de Entrada al Bosque y de los 4 Hábitats Separados
-	_spawn_forest_sign(Vector2(465, 745), "🌲 Entrada al Bosque Profundo — ⬅️ Conejos y Jabalíes | ⬇️ Venados | ➡️ Cantera y Zorros")
-	_spawn_forest_sign(Vector2(-620, 810), "🐇 Soto de Madrigueras y Hierbas (Hábitat de Conejos)")
-	_spawn_forest_sign(Vector2(-640, 1410), "🐗 Robledal Profundo de Raíces y Trufas (Hábitat de Jabalíes)")
-	_spawn_forest_sign(Vector2(160, 990), "🦌 Claros del Bosque y Hongos (Hábitat de Venados)")
-	_spawn_forest_sign(Vector2(780, 815), "🦊 Riscos de Hierro y Guaridas (Hábitat de Zorros)")
+	_spawn_forest_sign(Vector2(465, 745), "Bosque Profundo · Oeste: conejos y jabalíes · Sur: venados · Este: cantera y zorros")
+	_spawn_forest_sign(Vector2(-620, 810), "Soto de Madrigueras (conejos)")
+	_spawn_forest_sign(Vector2(-640, 1410), "Robledal Profundo (jabalíes)")
+	_spawn_forest_sign(Vector2(160, 990), "Claros del Bosque (venados)")
+	_spawn_forest_sign(Vector2(780, 815), "Riscos de Hierro (zorros)")
 
 	# 1. Madrigueras de Conejos y Guaridas de Zorro (Props visuales en el suelo del bosque)
 	for i in range(burrow_positions.size()):
@@ -550,36 +553,16 @@ func _notify_ecological_shift() -> void:
 	elif r_count == 0 and d_count == 0:
 		player.show_hint("⚠️ La sobre-caza ha dejado el bosque sin herbívoros.")
 
+## Poste de madera con el texto en su tabla: el dibujo «sign_1» pasa a 3D como los postes de los caminos
+## (WorldStageProps3D, «sign»; texto con mapa/cartel.gd).
 func _spawn_forest_sign(pos: Vector2, txt: String) -> void:
-	pos = load("res://mapa/anclas.gd").mover(pos, "letrero", txt)
-	var post := Polygon2D.new()
-	post.polygon = PackedVector2Array([
-		Vector2(-2, -10), Vector2(2, -10), Vector2(2, 4), Vector2(-2, 4)
-	])
-	post.color = Color(0.42, 0.27, 0.14, 1.0)
-	post.global_position = pos
-	post.z_index = -1
-	entities_root.add_child(post)
-
-	var board := Polygon2D.new()
-	board.polygon = PackedVector2Array([
-		Vector2(-9, -12), Vector2(9, -12), Vector2(9, -5), Vector2(-9, -5)
-	])
-	board.color = Color(0.58, 0.39, 0.20, 1.0)
-	board.global_position = pos
-	board.z_index = -1
-	entities_root.add_child(board)
-
-	var lbl := Label.new()
-	lbl.text = txt
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.position = pos + Vector2(-150, -28)
-	lbl.custom_minimum_size = Vector2(300, 16)
-	lbl.add_theme_font_size_override("font_size", 8)
-	lbl.add_theme_color_override("font_color", Color(0.78, 0.96, 0.70))
-	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	lbl.add_theme_constant_override("outline_size", 3)
-	entities_root.add_child(lbl)
+	var poste := Sprite2D.new()
+	poste.texture = load(POSTE_TEX)
+	poste.global_position = load("res://mapa/anclas.gd").mover(pos, "letrero", txt)
+	poste.scale = Vector2.ONE * POSTE_ESCALA
+	poste.z_index = -1
+	poste.set_meta(Cartel.META_TEXTO, txt)
+	entities_root.add_child(poste)
 
 func _save_pool(pool: Array[WildAnimal]) -> Array[Dictionary]:
 	var arr: Array[Dictionary] = []

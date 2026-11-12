@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Los textos de los caminos, pintados en sus postes (Claude Code)
+- Los 6 postes de los caminos y los 5 avisos del bosque llevan su texto pintado en la tabla (letras claras por las dos
+  caras; `Cartel.letras`/`escribir`, meta `texto_cartel`, `_escribir_poste` en `WorldStageProps3D`). Los avisos del
+  bosque ya son postes de verdad (antes, palos y letrero planos solo visibles desde arriba).
+- Borrados los nombres flotantes de la pesca («Lago del Oeste», «Ribera de Pesca del Río»); quedan las instrucciones
+  del minijuego de pesca, que siguen siendo texto plano (pendiente de revisar).
+- Comprobado: fotos de los 11 postes en primera persona; lista de lo visible desde arriba (38 → 21, solo se van los
+  textos de pesca y los postes planos del bosque); verify_all.
+
 ## 2026-11-12 — Fuera los nombres flotantes sobre el mapa (Claude Code)
 - Decisión del usuario: nada de texto flotante; el nombre va en el cartel de la puerta y lo demás lo cuenta el mundo.
   Borrados los 63 títulos (edificios, «Solar libre», parque, mirador, lavadero, urna, mercado, puesto del paso,

@@ -32,7 +32,6 @@ var _is_fish_inside: bool = false
 
 var dock_pos: Vector2 = Vector2(36, 0)
 var is_river_spot: bool = false
-var spot_title: String = "🎣 Lago del Oeste"
 
 ## Río y arroyo que cruza el pueblo de norte a sur (Caso I: molino viejo abandonado, claro del arroyo y puente viejo).
 const ABANDONED_MILL_CENTER := Vector2(188.0, -1060.0)
@@ -380,7 +379,6 @@ func _build_lake_visuals() -> void:
 		var p_dock_r := _add_poly([Vector2(0, -6), Vector2(18, -6), Vector2(18, 6), Vector2(0, 6)], Color(0.46, 0.30, 0.16, 1.0), -1)
 		if p_dock_r != null:
 			p_dock_r.add_to_group("ranch_fence_2d")
-		_make_lbl(spot_title, Vector2(-60, -24), Vector2(140, 16), Color(0.65, 0.92, 1.0))
 	else:
 		# El nodo está en LAKE_NODE_POS × E (mapa ×E): el lago se dibuja en coordenadas locales estiradas y el muelle, en la orilla este
 		var sx: float = (lake_east_shore_x(LAKE_NODE_POS.y) - LAKE_NODE_POS.x) * Mapa3D.E
@@ -405,7 +403,6 @@ func _build_lake_visuals() -> void:
 			if ci_2d != null:
 				ci_2d.add_to_group("ranch_fence_2d")
 
-		_make_lbl("🎣 Lago del Oeste", Vector2(-265, 57), Vector2(160, 18), Color(0.65, 0.92, 1.0))
 
 	# 6. Ondas y sombras de peces animadas
 	var tex_ripples := _load_tex("res://assests/world/fishing/fish_spot_ripples.png")

@@ -1,6 +1,8 @@
 @tool
 extends RefCounted
 const Marca = preload("res://mapa/marca.gd")
+const Cartel = preload("res://mapa/cartel.gd")
+const POSTE_TEX := "res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"
 
 ## Construcción inicial del pueblo (caminos, edificios y mobiliario). Extraído de VillageManager.gd:
 ## cada función recibe al VillageManager como primer parámetro (`vm`) y solo se ejecuta al montar el mundo.
@@ -10,20 +12,20 @@ const Marca = preload("res://mapa/marca.gd")
 # ==============================================================================
 static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 	# El suelo de caminos y plaza es 3D (terreno y «Caminos» del editor); aquí solo quedan los postes indicadores
-	_spawn_world_signpost(vm, Vector2(-655, 12)) # «🏕️ Campamento y Lago del Oeste | ➡️ Camino Largo a la Aldea»
-	_spawn_world_signpost(vm, Vector2(-1010, 12)) # «⬅️ Oeste Lejano: Llanura Salvaje (N) y Ciénaga de Ranas (S)»
-	_spawn_world_signpost(vm, Vector2(465, 580)) # «⬇️ Sendero al Bosque Profundo del Sur»
-	_spawn_world_signpost(vm, Vector2(668, 72)) # «➡️ Este: 🏥 Hospital y Morgue Forense | 🚓 Comisaría y Cárcel»
+	_spawn_world_signpost(vm, Vector2(-655, 12), "Campamento y Lago del Oeste · Camino a la Aldea")
+	_spawn_world_signpost(vm, Vector2(-1010, 12), "Oeste Lejano: Llanura al norte, Ciénaga al sur")
+	_spawn_world_signpost(vm, Vector2(465, 580), "Sendero al Bosque Profundo")
+	_spawn_world_signpost(vm, Vector2(668, 72), "Al este: Hospital, Morgue, Comisaría y Cárcel")
 
-## Poste indicador: su dibujo pasa a 3D (WorldStageProps3D, «sign»). El texto que tenía va en un comentario en cada
-## llamada: hoy el poste 3D no lo muestra.
-static func _spawn_world_signpost(vm: VillageManager, pos: Vector2) -> void:
-	vm._add_sprite_prop(vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"), pos, Vector2(0.9, 0.9), -1)
+## Poste indicador: su dibujo pasa a 3D (WorldStageProps3D, «sign») con el texto escrito en la tabla (mapa/cartel.gd).
+static func _spawn_world_signpost(vm: VillageManager, pos: Vector2, texto: String) -> void:
+	var poste: Sprite2D = vm._add_sprite_prop(vm._load_tex(POSTE_TEX), pos, Vector2(0.9, 0.9), -1)
+	poste.set_meta(Cartel.META_TEXTO, texto)
 
 static func _spawn_western_plains_and_frog_marsh(vm: VillageManager) -> void:
 	# Llanura y ciénaga se ven en 3D (terreno y agua del terreno); aquí solo quedan los postes indicadores
-	_spawn_world_signpost(vm, Vector2(-1140, -22)) # «🌾 Llanura Salvaje del Noroeste — ⚠️ Ruinas y Bandidos»
-	_spawn_world_signpost(vm, Vector2(-1480, 108)) # «🌫️ Ciénaga del Suroeste — ⚠️ Bandidos escondidos»
+	_spawn_world_signpost(vm, Vector2(-1140, -22), "Llanura Salvaje · Cuidado: bandidos")
+	_spawn_world_signpost(vm, Vector2(-1480, 108), "Ciénaga del Suroeste · Cuidado: bandidos")
 
 # EDIFICIO MIXTO #1: GRAN POSADA DE 2 PLANTAS, TABERNA, CASINO Y SÓTANO DE PELEAS
 static func _spawn_tavern_and_rooms(vm: VillageManager) -> void:
@@ -424,7 +426,6 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	var river_fish_spot := FishingSpot.new()
 	river_fish_spot.name = "RiverFishingSpot"
 	river_fish_spot.is_river_spot = true
-	river_fish_spot.spot_title = "🎣 Ribera de Pesca del Río"
 	river_fish_spot.dock_pos = Vector2(18.0, 0.0)
 	river_fish_spot.position = Vector2(fish_banks.y - 10.0, y_pesca)
 	vm.entities_root.add_child(river_fish_spot)
