@@ -24,9 +24,9 @@ mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## c) Siguiente paso técnico inmediato
 Seguir el paso 1, en este orden:
-1. **Marcas de edificios únicos: hechas** y `verify_all.gd` en verde (118 bloques). Falta volver a medir el inventario. Quedan como números a propósito: rejas y puerta de la celda, bancos de
+1. **Marcas de edificios únicos: hechas**, `verify_all.gd` en verde (118 bloques) e inventario medido (609 / 138). Quedan como números a propósito: rejas y puerta de la celda, bancos de
    la capilla, salas, pasos, tabiques, sillas (pegadas a su mesa), paredes invisibles de muebles y decorado suelto.
-2. **Capilla**: 14 muebles salen fuera del edificio (fallo visible); están así también en su escena: recolocarlos.
+2. **Capilla: hecha** (6 muebles estaban a 170 m; recolocados en su escena y vistos en foto).
 3. **Casas y tiendas de solar con escena base**: incluye los oficios en solares y la posada (`VillageTrades`,
    `VillageCivic.inn_guest_beds`, `VillageLots.shop_house_layout`): comparten molde con lo que se construye en partida.
 4. **Planta y puerta desde la escena** (tamaño y lado de la puerta como propiedades de la pieza, no números del código).

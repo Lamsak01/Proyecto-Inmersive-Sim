@@ -13,6 +13,8 @@ const SITIOS: Array = [
 	["molino", Vector2(190, -1040), -PI / 2.0],
 	["mansion", Vector2(1315, -330), -PI / 2.0],
 	["taberna_dentro", Vector2(420, -198), 0.0],
+	["capilla_altar", Vector2(745, 296), PI / 2.0],
+	["capilla_fondo", Vector2(745, 318), -PI / 2.0],
 ]
 
 func _initialize() -> void:

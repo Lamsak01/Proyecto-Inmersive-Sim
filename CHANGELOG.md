@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Capilla: los muebles vuelven dentro (Claude Code)
+- El altar, el atril, la mesilla, la mesa, la silla y la cama del sacerdote estaban guardados en la escena a unos 170 m de la capilla (se apuntaron con coordenadas del mapa sin agrandar). Recolocados dentro, en el mismo sitio que sus marcas. Visto en dos fotos nuevas de `capturas_fijas.gd` (`capilla_altar`, `capilla_fondo`).
+- Inventario vuelto a medir tras las marcas: sigue 4.161, quieto 609, doble 0, otro sitio 138 (igual que antes: las marcas no cambian qué sale del editor).
+
 ## 2026-11-11 — Prueba del juego entero en verde tras las marcas (Claude Code)
 - `verify_all.gd` pasa entera (118 bloques, «TESTS PASSED») por primera vez desde que empezó el paso 1. Hizo falta ajustar dos comprobaciones de la propia prueba que leían números ya borrados (el cáliz de la capilla y la celda); el juego no fallaba. Nuevo `VillageUnderworld.heist_target_pos()` para saber dónde está el objeto de un encargo.
 

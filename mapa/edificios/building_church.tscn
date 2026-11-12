@@ -262,49 +262,49 @@ modelo = "props/Bench.gltf"
 tam3 = Vector3(1.288, 0.71860003, 0.34719998)
 
 [node name="altar-stone" type="Node3D" parent="Muebles" unique_id=667478776]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -166.88, -0.12681177, -68.544)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21135297, 1.344)
 script = ExtResource("7_vopik")
 clave = "building_church#0|altar-stone|745|336"
-pos_original = Vector2(-2235, -912)
-local_original = Vector3(-166.88, -0.12681177, -68.544)
+pos_original = Vector2(745, 336)
+local_original = Vector3(0, 0.21135297, 1.344)
 modelo = "graveyard/altar-stone.glb"
 tam3 = Vector3(1.568, 0.8665471, 0.532)
 
 [node name="BookStand" type="Node3D" parent="Muebles" unique_id=1341292166]
-transform = Transform3D(-0.9396926, 0, 0.3420202, 0, 1, 0, -0.3420202, 0, -0.9396926, -168.224, -0.0422706, -68.656)
+transform = Transform3D(-0.9396926, 0, 0.3420202, 0, 1, 0, -0.3420202, 0, -0.9396926, -1.344, 0.21135297, 1.232)
 script = ExtResource("7_vopik")
 clave = "building_church#0|BookStand|721|334"
-pos_original = Vector2(-2259, -914)
-local_original = Vector3(-168.224, -0.0422706, -68.656)
+pos_original = Vector2(721, 334)
+local_original = Vector3(-1.344, 0.21135297, 1.232)
 giro_original = 160.0
 modelo = "props/BookStand.gltf"
 tam3 = Vector3(0.42, 1.1624413, 0.42)
 
 [node name="Nightstand_Shelf" type="Node3D" parent="Muebles" unique_id=2108508604]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -165.53601, -0.0422706, -68.656)
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1.344, 0.21135297, 1.232)
 script = ExtResource("7_vopik")
 clave = "building_church#0|Nightstand_Shelf|769|334"
-pos_original = Vector2(-2211.0002, -914)
-local_original = Vector3(-165.53601, -0.0422706, -68.656)
+pos_original = Vector2(769, 334)
+local_original = Vector3(1.344, 0.21135297, 1.232)
 giro_original = 180.0
 modelo = "props/Nightstand_Shelf.gltf"
 tam3 = Vector3(0.504, 0.7820059, 0.364)
 
 [node name="Table_Large" type="Node3D" parent="Muebles" unique_id=231551807]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -169.62401, -0.1671944, -71.68)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.744, 0.21135297, -1.792)
 script = ExtResource("7_vopik")
 clave = "building_church#0|Table_Large|696|280"
-pos_original = Vector2(-2284.0002, -968)
-local_original = Vector3(-169.62401, -0.1671944, -71.68)
+pos_original = Vector2(696, 280)
+local_original = Vector3(-2.744, 0.21135297, -1.792)
 modelo = "props/Table_Large.gltf"
 tam3 = Vector3(0.784, 0.7820059, 0.504)
 
 [node name="Chair_1" type="Node3D" parent="Muebles" unique_id=1203471708]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -169.62401, -0.1782082, -72.128)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.744, 0.21135297, -2.24)
 script = ExtResource("7_vopik")
 clave = "building_church#0|Chair_1|696|272"
-pos_original = Vector2(-2284.0002, -976)
-local_original = Vector3(-169.62401, -0.1782082, -72.128)
+pos_original = Vector2(696, 272)
+local_original = Vector3(-2.744, 0.21135297, -2.24)
 modelo = "props/Chair_1.gltf"
 tam3 = Vector3(0.308, 0.8665471, 0.308)
 
@@ -319,11 +319,11 @@ modelo = "props/Cabinet.gltf"
 tam3 = Vector3(0.616, 1.3737942, 0.336)
 
 [node name="Bed_Twin1" type="Node3D" parent="Muebles" unique_id=176975291]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -164.024, -0.12681177, -71.68)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.856, 0.21135297, -1.792)
 script = ExtResource("7_vopik")
 clave = "building_church#0|Bed_Twin1|796|280"
-pos_original = Vector2(-2184, -968)
-local_original = Vector3(-164.024, -0.12681177, -71.68)
+pos_original = Vector2(796, 280)
+local_original = Vector3(2.856, 0.21135297, -1.792)
 modelo = "props/Bed_Twin1.gltf"
 tam3 = Vector3(0.84, 0.89825004, 1.176)
 
