@@ -169,21 +169,10 @@ static func site_work_pos(id: String) -> Vector2:
 	return (d["center"] as Vector2) + Vector2(0, off if bool(d["door_south"]) else -off)
 
 # ---------------------------------------------------------------- mapa
-## Al montar el pueblo: calles nuevas hacia los solares del borde y un cartel en cada solar libre.
+## Al montar el pueblo: pozo de la ronda, Molino del Este y lo de cada solar. Las calles hacia los solares
+## del borde se ven en 3D (terreno y «Caminos» del editor), así que aquí no se dibujan.
 static func build_world(vm) -> void:
-	var dirt := Color(0.46, 0.36, 0.24, 0.65)
 	_build_gap_pockets(vm)
-	for r in ROADS:
-		_road(vm, r, dirt)
-	for cr in CURVED_ROADS:
-		var pts: PackedVector2Array = curved_road_points(cr)
-		var hw: float = float(cr["w"]) * 0.5
-		for i in range(pts.size() - 1):
-			var a: Vector2 = pts[i]
-			var b: Vector2 = pts[i + 1]
-			var nrm: Vector2 = (b - a).normalized().orthogonal() * hw
-			var ext: Vector2 = (b - a).normalized() * 2.0 # solapa un poco los tramos para que no queden rendijas
-			vm._add_poly(PackedVector2Array([a - ext + nrm, b + ext + nrm, b + ext - nrm, a - ext - nrm]), dirt, -3)
 	# Molino del Este: base de piedra sólida (los vecinos lo rodean) y su cartel
 	vm._add_solid_wall_segment(EAST_MILL_POS, Vector2(34, 34), vm._load_tex("res://assests/world/village/wall_stone_h.png"))
 	vm._add_title_label(EAST_MILL_POS + Vector2(-60, -40), Vector2(120, 14), "🌾 Molino del Este", Color(0.86, 0.80, 0.62), 7)
@@ -204,16 +193,6 @@ static func _build_gap_pockets(vm) -> void:
 				var wl: Label = vm._make_station_label(p + Vector2(-135, -28), str(g["title"]))
 				vm.entities_root.add_child(wl)
 				vm._extra_station_labels.append([wl, p])
-			"garden":
-				vm._add_poly(_rect_pts(p, Vector2(96, 70)), Color(0.40, 0.30, 0.18, 0.35), -4)
-				var soil: Texture2D = vm._load_tex("res://assests/world/farming/soil_dry.png")
-				for gy in [-14.0, 14.0]:
-					for gx in [-28.0, 0.0, 28.0]:
-						vm._add_sprite_prop(soil, p + Vector2(gx, gy), Vector2(1.35, 1.35), -1)
-				vm._add_title_label(p + Vector2(-60, -48), Vector2(120, 14), str(g["title"]), Color(0.70, 0.86, 0.55), 7)
-
-static func _road(vm, rect: Rect2, col: Color) -> void:
-	vm._add_poly(PackedVector2Array([rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]), col, -3)
 
 ## Dibuja lo que toque según el estado: cartel de solar libre, obra o edificio terminado. Lo creado se apunta para
 ## poder quitarlo al cargar otra partida.
@@ -235,11 +214,9 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 	var snap: Dictionary = _capture_begin(vm)
 	match str(st["status"]):
 		"empty":
-			vm._add_poly(_rect_pts(c, sz), Color(0.40, 0.34, 0.22, 0.22), -4)
 			vm._add_sprite_prop(vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"), site_work_pos(id), Vector2(0.8, 0.8), -1)
 			vm._add_title_label(site_work_pos(id) + Vector2(-60, -26), Vector2(120, 14), "📜 Solar libre", Color(0.86, 0.80, 0.62), 7)
 		"building":
-			vm._add_poly(_rect_pts(c, sz), Color(0.42, 0.32, 0.20, 0.45), -4)
 			for off in [Vector2(-30, -10), Vector2(24, 8), Vector2(-6, 18)]:
 				vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/crates_0.png", c + off, Vector2(0.5, 0.5))
 			var lbl: Label = vm._add_title_label(c + Vector2(-90, -sz.y * 0.5 - 4), Vector2(180, 14), "", Color(1.0, 0.82, 0.42), 8)
@@ -257,10 +234,6 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 				nb[k] = old_biz[k] # Conserva dueño, caja, sabotaje y existencias al redibujar
 	if vm.has_method("refresh_world_stage_3d"):
 		vm.refresh_world_stage_3d()
-
-static func _rect_pts(c: Vector2, sz: Vector2) -> PackedVector2Array:
-	var h := sz * 0.5
-	return PackedVector2Array([c - h, c + Vector2(h.x, -h.y), c + h, c + Vector2(-h.x, h.y)])
 
 static func _build_kind(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = lot_def(id)

@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 4, trozo 5: fuera el suelo plano de calles y solares (Claude Code)
+- `VillageLots` ya no dibuja en plano las calles hacia los solares, las callejas curvas ni el suelo de solar libre o en
+  obra (84 polígonos por debajo de la imagen 3D). Borrados `_road`, `_rect_pts` y el huerto (ya no estaba en la lista).
+  Los letreros de solar se quedan: hoy no salen nunca (como los 63 de título); pendiente de mirarlo con el usuario.
+- Comprobado: escena 3D idéntica; lo visible desde arriba, igual; fotos desde arriba de calle norte, calleja, pozo de
+  la ronda, Molino del Este y enlace; `verify_all`.
+
 ## 2026-11-12 — Paso 4, trozo 4: fuera el dibujo plano de la casa de comidas (Claude Code)
 - `VillageRestaurant` ya no dibuja en plano suelos de sala, manteles, hielo y carne de la cámara, losas, sendero y
   sillas de la terraza (37 polígonos ocultos). Borradas `_build_room_floors` y `PATH_RECT`. Muebles que pasan a 3D, igual.

@@ -30,10 +30,10 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 ## c) Siguiente paso técnico inmediato
 Paso 4, trozos seguros (decorado del código → piezas), cada uno comparando la escena entera antes y después
 (volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozos 1
-(`WorldStageTerrain3D`), 2 (`VillageWorldBuilder`), 3 (`VillageTavern`) y 4 (`VillageRestaurant`) hechos. Siguientes: dibujo plano
-de `VillageLots`, `VillagePlaces`…; choques y zonas → piezas; `EcosystemManager` (174).
+(`WorldStageTerrain3D`), 2 (`VillageWorldBuilder`), 3 (`VillageTavern`), 4 (`VillageRestaurant`) y 5 (`VillageLots`) hechos. Siguientes:
+dibujo plano de `VillagePlaces`, `VillageManagerSocial`…; choques y zonas → piezas; `EcosystemManager` (174).
 **El mapa plano se ve desde arriba (P)** si está visible, opaco y con z > -2: hoy 38 cosas (letreros de pesca y bosque,
-postes, estacas del puesto). Antes de borrar, sacar esa lista antes y después (herramienta temporal) y fotos desde arriba.
+postes, estacas del puesto). Los letreros de título (63) no salen nunca (¿×5?; preguntar). Antes de borrar, sacar esa lista antes y después (herramienta temporal) y fotos desde arriba.
 Corte final (anclas y ×5) solo con el usuario.
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
