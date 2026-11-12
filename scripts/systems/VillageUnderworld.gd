@@ -488,37 +488,6 @@ static func build_sewers_world(vm) -> void:
 	net_root.add_to_group("sewer_network_2d")
 	vm.entities_root.add_child(net_root)
 
-	var vis_2d := Node2D.new()
-	vis_2d.name = "SewersVisual2D"
-	vis_2d.z_index = -2
-	vis_2d.add_to_group("sewer_visual_2d")
-	net_root.add_child(vis_2d)
-
-	var add_rect_2d := func(center: Vector2, sz: Vector2, col: Color) -> void:
-		var p := Polygon2D.new()
-		var h: Vector2 = sz * 0.5
-		p.polygon = PackedVector2Array([
-			center + Vector2(-h.x, -h.y),
-			center + Vector2(h.x, -h.y),
-			center + Vector2(h.x, h.y),
-			center + Vector2(-h.x, h.y),
-		])
-		p.color = col
-		vis_2d.add_child(p)
-
-	# Losa oscura subterránea alrededor de las galerías (bajo el centro del pueblo, en y = SEWER_Y)
-	add_rect_2d.call(Vector2(420.0, SEWER_Y), Vector2(480.0, 120.0), Color(0.08, 0.10, 0.09, 0.96))
-	# Suelos de piedra y canal de aguas turbias de las 3 cámaras
-	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
-		var c: Vector2 = SEWER_LOCATIONS_BASE[loc_id]["chamber_center"]
-		add_rect_2d.call(c, Vector2(110.0, 80.0), Color(0.24, 0.28, 0.26))
-		add_rect_2d.call(c + Vector2(0.0, -8.0), Vector2(104.0, 52.0), Color(0.32, 0.36, 0.34))
-		add_rect_2d.call(c + Vector2(0.0, 26.0), Vector2(106.0, 18.0), Color(0.12, 0.40, 0.32, 0.92))
-	# Dos galerías de paso entre las cámaras (x = 315..365 y x = 475..525)
-	for corr_x in [340.0, 500.0]:
-		add_rect_2d.call(Vector2(corr_x, SEWER_Y), Vector2(54.0, 40.0), Color(0.28, 0.32, 0.30))
-		add_rect_2d.call(Vector2(corr_x, SEWER_Y + 14.0), Vector2(54.0, 10.0), Color(0.12, 0.40, 0.32, 0.90))
-
 	# Paredes físicas StaticBody2D que encierran las 3 cámaras y los 2 pasillos conectados
 	var walls_body := StaticBody2D.new()
 	walls_body.name = "SewerTunnelWallsBody"
@@ -551,7 +520,6 @@ static func build_sewers_world(vm) -> void:
 	for seg in wall_segments:
 		var w_pos: Vector2 = seg[0]
 		var w_sz: Vector2 = seg[1]
-		add_rect_2d.call(w_pos, w_sz, Color(0.16, 0.20, 0.18))
 		var col := CollisionShape2D.new()
 		var rshape := RectangleShape2D.new()
 		rshape.size = w_sz
@@ -590,9 +558,6 @@ static func sync_sewer_visibility(vm) -> void:
 	var in_sewers: bool = is_player_in_sewers(vm)
 	var net_root: Node2D = vm.entities_root.get_node_or_null("SewersNetwork2D") as Node2D
 	if is_instance_valid(net_root):
-		var vis_2d: Node2D = net_root.get_node_or_null("SewersVisual2D") as Node2D
-		if is_instance_valid(vis_2d):
-			vis_2d.visible = false # dibujo plano de las alcantarillas: ya solo existen en 3D
 		var walls_body: StaticBody2D = net_root.get_node_or_null("SewerTunnelWallsBody") as StaticBody2D
 		if is_instance_valid(walls_body):
 			walls_body.collision_layer = 1 if in_sewers else 0

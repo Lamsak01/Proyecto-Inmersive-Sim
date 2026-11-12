@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Capa 2, tanda 2: fuera los polígonos planos (Claude Code)
+- El 3D no leía ningún polígono plano (solo los escondía): borrados umbrales de puertas, escritorio, urna, biblioteca,
+  sala oculta, pupitres, pizarra, mercado (`_draw_market`), parque, mirador, campos/corral/cantera, camas de mascota,
+  brillo de farolas (`_update_streetlights_glow`), suelo del bosque, alcantarillas y club (suelos y paredes pintadas;
+  sus choques siguen) y los dibujos apagados de las piezas con [E] (`WorldInteractableProp`, 17 `_draw_*_2d`).
+- Inventario: 1.629 → 1.367 dibujos planos; polígonos 268 → 9 (pesca y gallinero). Lista visible: 0.
+- Sin 3D todavía (no se borran; hay que hacerles versión 3D): charcos de sangre y huellas, campamento de vagabundos.
+
 ## 2026-11-12 — Capa 2, tanda 1: fuera los letreros planos (Claude Code)
 - Borrados ~1.190 letreros planos que nunca se veían en primera persona: el de cada árbol, roca y planta
   (`HarvestableNode.prompt_label`), los de puertas, ventanas, cofres, mostradores, pozos, posada, hospital, morgue,

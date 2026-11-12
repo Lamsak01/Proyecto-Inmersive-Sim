@@ -568,26 +568,6 @@ static func build_world(vm) -> void:
 	root.name = "FightClub2D"
 	root.add_to_group("club_world")
 	vm.entities_root.add_child(root)
-	var vis := Node2D.new()
-	vis.name = "FightClubVisual2D"
-	vis.z_index = -1
-	vis.add_to_group("sewer_visual_2d")
-	root.add_child(vis)
-	var add_rect := func(center: Vector2, sz: Vector2, col: Color) -> void:
-		var p := Polygon2D.new()
-		var h: Vector2 = sz * 0.5
-		p.polygon = PackedVector2Array([center + Vector2(-h.x, -h.y), center + Vector2(h.x, -h.y), center + Vector2(h.x, h.y), center + Vector2(-h.x, h.y)])
-		p.color = col
-		vis.add_child(p)
-	add_rect.call(CLUB_CENTER, Vector2(368.0, 204.0), Color(0.08, 0.09, 0.08, 0.98)) # roca bajo toda la huella de la taberna
-	add_rect.call(CLUB_CENTER, CLUB_SIZE, Color(0.36, 0.27, 0.18)) # suelo de tierra del sótano
-	var rope := Line2D.new()
-	rope.width = 2.0
-	rope.default_color = Color(0.78, 0.66, 0.42)
-	for i in range(25):
-		var a: float = TAU * float(i) / 24.0
-		rope.add_point(CLUB_CENTER + Vector2(cos(a), sin(a)) * RING_RADIUS)
-	vis.add_child(rope)
 	# Paredes de piedra
 	var body := StaticBody2D.new()
 	body.name = "FightClubWallsBody"
@@ -597,7 +577,6 @@ static func build_world(vm) -> void:
 	var hs: Vector2 = CLUB_SIZE * 0.5
 	for seg in [[CLUB_CENTER + Vector2(0, -hs.y - 3), Vector2(CLUB_SIZE.x + 12, 6)], [CLUB_CENTER + Vector2(0, hs.y + 3), Vector2(CLUB_SIZE.x + 12, 6)],
 			[CLUB_CENTER + Vector2(-hs.x - 3, 0), Vector2(6, CLUB_SIZE.y)], [CLUB_CENTER + Vector2(hs.x + 3, 0), Vector2(6, CLUB_SIZE.y)]]:
-		add_rect.call(seg[0], seg[1], Color(0.20, 0.20, 0.19))
 		var col := CollisionShape2D.new()
 		var rs := RectangleShape2D.new()
 		rs.size = seg[1]
@@ -620,9 +599,6 @@ static func sync_club_visibility(vm) -> void:
 	var in_club: bool = is_player_in_club(vm)
 	var root: Node2D = vm.entities_root.get_node_or_null("FightClub2D") as Node2D
 	if is_instance_valid(root):
-		var vis: Node2D = root.get_node_or_null("FightClubVisual2D") as Node2D
-		if is_instance_valid(vis):
-			vis.visible = false # dibujo plano del club: ya solo existe en 3D
 		var body: StaticBody2D = root.get_node_or_null("FightClubWallsBody") as StaticBody2D
 		if is_instance_valid(body):
 			body.collision_layer = 1 if in_club else 0

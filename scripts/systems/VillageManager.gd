@@ -144,7 +144,6 @@ func _process(delta: float) -> void:
 	if _sighting_check_timer <= 0.0:
 		_sighting_check_timer = 0.35
 		_track_player_building_sightings(player)
-		_update_streetlights_glow()
 		_check_authority_vacancy_announcements()
 
 	if not _deployed_bear_traps.is_empty():

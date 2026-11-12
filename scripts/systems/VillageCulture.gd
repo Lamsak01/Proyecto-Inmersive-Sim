@@ -1925,7 +1925,6 @@ static func sabotage_grid(vm, node_target: String = "all", check_risk: bool = fa
 		GameManager.set_flag("electric_grid_active", false)
 	if GameManager != null:
 		GameManager.set_flag("sprinkler_grid_disabled", bool(g.get("sprinkler_disabled", false)))
-	vm._update_streetlights_glow()
 	var desc_map: Dictionary = {
 		"all": "el generador general",
 		"lamps": "el circuito de farolas",
@@ -1946,7 +1945,6 @@ static func repair_grid(vm) -> bool:
 	if GameManager != null:
 		GameManager.set_flag("electric_grid_active", _generator_on()) # Reparar no crea corriente si no hay generador
 		GameManager.set_flag("sprinkler_grid_disabled", false)
-	vm._update_streetlights_glow()
 	return true
 
 static func library_pos() -> Vector2:
@@ -1990,15 +1988,12 @@ static func build(vm, id: String, st: Dictionary) -> void:
 	match str(st["kind"]):
 		"library":
 			for sx in [-44, -18, 8]: # Estanterías del fondo (dejando el cuadrante NE para la Sala Oculta)
-				vm._add_rect_poly(c + Vector2(sx, 36 * m), Vector2(11, 4), Color(0.42, 0.26, 0.14, 1.0), -1)
-				vm._add_rect_poly(c + Vector2(sx, 33 * m), Vector2(9, 1.5), Color(0.75, 0.30, 0.25, 1.0), 0)
 				vm._add_prop_collider(c + Vector2(sx, 36 * m), Vector2(18.0, 6.5))
 				vm.register_no_stand_furniture(c + Vector2(sx, 36 * m), Vector2(20.0, 7.0))
 			for side_x in [-53]:
 				vm._add_prop_collider(c + Vector2(side_x, 14 * m), Vector2(6.5, 16.0))
 				vm.register_no_stand_furniture(c + Vector2(side_x, 14 * m), Vector2(7.0, 18.0))
 			# Punto 5 (Caso I): Sala oculta tras estantería con libro-palanca en el cuadrante noreste (`c + Vector2(24..62, -46..-4)`)
-			vm._add_rect_poly(c + Vector2(43, 25 * m), Vector2(36, 40), Color(0.18, 0.14, 0.16, 0.96), -2)
 			vm._add_prop_collider(c + Vector2(24, 34 * m), Vector2(4.0, 20.0)) # Tabique oeste de la sala oculta
 			vm._add_prop_collider(c + Vector2(46, 40 * m), Vector2(24.0, 4.0)) # Mesa y estantería interior prohibida
 			vm.register_no_stand_furniture(c + Vector2(42, 28 * m), Vector2(25.0, 10.5))
@@ -2016,10 +2011,6 @@ static func build(vm, id: String, st: Dictionary) -> void:
 			vm._spawn_decor_prop(props + "table_chairs_1.png", reading_spot())
 			vm.register_no_stand_furniture(reading_spot(), Vector2(22.0, 12.5))
 			vm._add_station_area("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
-		"school":
-			for p in [Vector2(-30, -8), Vector2(0, -8), Vector2(30, -8), Vector2(-30, 12), Vector2(0, 12), Vector2(30, 12)]:
-				vm._add_rect_poly(c + Vector2(p.x, -p.y * m), Vector2(9, 5), Color(0.55, 0.38, 0.20, 1.0), -1) # Pupitres (como en 3D)
-			vm._add_rect_poly(c + Vector2(0, 26 * m), Vector2(30, 3), Color(0.15, 0.25, 0.18, 1.0), -1) # Pizarra, enfrente de la puerta
 
 # ---------------------------------------------------------------- biblioteca
 ## VillagePlaces: alguien ha llegado a la biblioteca.
@@ -2160,7 +2151,6 @@ static func open_market(vm) -> int:
 	st["market_sellers"] = sellers
 	st["market_day"] = int(WorldClock.current_day) if WorldClock else 0
 	st["markets_held"] = int(st["markets_held"]) + 1
-	_draw_market(vm)
 	return sellers.size()
 
 static func close_market(vm) -> void:
@@ -2172,22 +2162,6 @@ static func close_market(vm) -> void:
 		if n.errand_kind == "market":
 			n.end_errand()
 	st["market_sellers"] = {}
-	_clear_market(vm)
-
-static func _draw_market(vm) -> void:
-	_clear_market(vm)
-	var cap: Dictionary = VillageLots._capture_begin(vm)
-	for e in (state(vm)["market_sellers"] as Dictionary).values():
-		var p: Vector2 = _AN_SITIOS.desmover(Sitio.serie(SITIOS_MERCADO)[int(e["spot"])]) # lo que se dibuja aún se traduce
-		vm._add_rect_poly(p + Vector2(0, -10), Vector2(14, 4), Color(0.55, 0.36, 0.18, 1.0), -1) # Mesa
-		vm._add_rect_poly(p + Vector2(0, -16), Vector2(15, 2), Color(0.85, 0.25, 0.22, 0.95), 0) # Toldo
-	vm.set_meta("market_nodes", VillageLots._capture_end(vm, cap)[0])
-
-static func _clear_market(vm) -> void:
-	for nd in vm.get_meta("market_nodes", []):
-		if is_instance_valid(nd):
-			nd.queue_free()
-	vm.set_meta("market_nodes", [])
 
 static func _sellers(vm) -> Array:
 	var out: Array = []

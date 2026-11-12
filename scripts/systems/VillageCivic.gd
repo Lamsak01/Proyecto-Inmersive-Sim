@@ -94,7 +94,6 @@ static func build(vm, id: String, st: Dictionary) -> void:
 				"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 			var sp: Dictionary = hall_spots()
 			vm._spawn_decor_prop(props + "table_chairs_1.png", sp["desk"])
-			vm._add_rect_poly(sp["ballot"], Vector2(6, 5), Color(0.55, 0.36, 0.18, 1.0), -1) # Urna
 			vm._spawn_house_chest(sp["coffers"], "Arcas del Pueblo", "town_hall")
 		"shelter":
 			vm._construct_solid_building(SHELTER_ID, SHELTER_TITLE, c,

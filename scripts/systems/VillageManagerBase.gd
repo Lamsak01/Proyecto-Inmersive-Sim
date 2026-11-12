@@ -474,7 +474,6 @@ func _construct_solid_building(
 
 		_add_solid_wall_segment(Vector2(rect.position.x + left_seg_w * 0.5, door_pos.y), Vector2(left_seg_w, wall_t), tex_h)
 		_add_solid_wall_segment(Vector2(rect.end.x - right_seg_w * 0.5, door_pos.y), Vector2(right_seg_w, wall_t), tex_h)
-		_add_rect_poly(door_pos, Vector2(door_width * 0.5, 3.0), Color(0.72, 0.54, 0.30, 0.85), -2)
 	else:
 		_add_solid_wall_segment(Vector2(center.x, rect.position.y), Vector2(size.x, wall_t), tex_h)
 		_add_solid_wall_segment(Vector2(center.x, rect.end.y), Vector2(size.x, wall_t), tex_h)
@@ -490,7 +489,6 @@ func _construct_solid_building(
 
 		_add_solid_wall_segment(Vector2(door_pos.x, rect.position.y + top_seg_h * 0.5), Vector2(wall_t, top_seg_h), tex_v)
 		_add_solid_wall_segment(Vector2(door_pos.x, rect.end.y - bot_seg_h * 0.5), Vector2(wall_t, bot_seg_h), tex_v)
-		_add_rect_poly(door_pos, Vector2(3.0, door_width * 0.5), Color(0.72, 0.54, 0.30, 0.85), -2)
 
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir, window_pos)
 	Anclas.pausa -= 1
@@ -1299,20 +1297,6 @@ func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> St
 	Anclas.girar_choque(ancla, sb, sz)
 	entities_root.add_child(sb)
 	return sb
-
-func _update_streetlights_glow() -> void:
-	if Engine.is_editor_hint():
-		return
-	var is_night: bool = WorldClock != null and (WorldClock.current_hour >= 19 or WorldClock.current_hour < 6)
-	var grid_on: bool = GameManager != null and bool(GameManager.get_flag("electric_grid_active", false)) and VillageCulture.is_lamps_powered(self)
-	for sl in streetlights:
-		var glow: Polygon2D = sl.get("glow")
-		var spr: Sprite2D = sl.get("sprite")
-		if is_instance_valid(glow):
-			glow.visible = VillageCulture.is_lamps_powered(self) and (is_night or grid_on)
-			glow.color = Color(0.55, 0.96, 1.0, 0.28) if grid_on else Color(1.0, 0.85, 0.45, 0.16)
-		if is_instance_valid(spr):
-			spr.modulate = Color(0.90, 1.08, 1.18) if grid_on else Color.WHITE
 
 ## Mueble o adorno con choque. Ya no se dibuja en plano (2026-11-12): su versión 3D está en la escena del edificio
 ## o en una pieza del mapa; aquí solo queda la pared invisible que lo hace sólido, según el dibujo de origen.

@@ -131,13 +131,6 @@ func _spawn_distant_forest() -> void:
 	var tex_burrow: Texture2D = _load_tex("res://assests/world/harvest/rabbit_burrow.png")
 	var tex_den: Texture2D = _load_tex("res://assests/world/harvest/fox_den.png")
 
-	# 0. Suelo orgánico del Bioma de Bosque Profundo (y = 730..2390, ~3.5x más grande y sin línea recta perimetral)
-	var forest_turf := Polygon2D.new()
-	forest_turf.polygon = PackedVector2Array(FOREST_POLY) * Transform2D(0.0, Vector2.ONE * load("res://scripts/fisica/Mapa3D.gd").E, 0.0, Vector2.ZERO) # mapa ×E
-	forest_turf.color = Color(0.11, 0.25, 0.14, 0.42)
-	forest_turf.z_index = -4
-	entities_root.add_child(forest_turf)
-
 	# Carteles de Entrada al Bosque y de los 4 Hábitats Separados
 	_spawn_forest_sign(Vector2(465, 745), "Bosque Profundo · Oeste: conejos y jabalíes · Sur: venados · Este: cantera y zorros")
 	_spawn_forest_sign(Vector2(-620, 810), "Soto de Madrigueras (conejos)")

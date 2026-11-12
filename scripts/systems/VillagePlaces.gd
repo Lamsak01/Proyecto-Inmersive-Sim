@@ -21,7 +21,6 @@ const LIBRARY_CHAIRS: int = 6        ## sillas de lectura (marcas silla_lectura_
 const TAVERN_ID := "building_tavern"
 const RESTAURANT_ID := "building_restaurant"
 
-const PARK_RECT: Rect2 = Rect2(Vector2(168, 208), Vector2(272, 146))
 const PLACES: Array = [
 	{"id": "park_lawn", "kind": "park", "label": "el Parque del Roble", "text": "🌳 Paseando por el parque"},
 	{"id": "park_bench", "kind": "bench", "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
@@ -78,24 +77,7 @@ static func state(vm) -> Dictionary:
 static func build_world(vm) -> void:
 	var dec: String = "res://assests/Comprados/Epic RPG World - The Village V2.1/"
 	var bench: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/bench_0.png"
-	# Parque: césped natural (sin capa verde menta), paseos en cruz, bordillo de piedra, pinos, flores y bancos
-	var r: Rect2 = PARK_RECT
-	var park_poly: Polygon2D = vm._add_poly(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), Color(0.24, 0.38, 0.18, 0.14), -4)
-	if park_poly != null:
-		park_poly.add_to_group("ranch_fence_2d")
-	var park_path_h: Polygon2D = vm._add_rect_poly(Vector2(r.get_center().x, 280.0), Vector2((r.size.x - 16.0) * 0.5, 9.0), Color(0.54, 0.44, 0.31, 0.78), -3)
-	if park_path_h != null:
-		park_path_h.add_to_group("ranch_fence_2d")
-	var park_path_v: Polygon2D = vm._add_rect_poly(r.get_center(), Vector2(9.0, (r.size.y - 16.0) * 0.5), Color(0.54, 0.44, 0.31, 0.78), -3)
-	if park_path_v != null:
-		park_path_v.add_to_group("ranch_fence_2d")
-	var border := Line2D.new()
-	border.width = 2.5
-	border.default_color = Color(0.52, 0.48, 0.42, 0.88)
-	border.points = PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y), r.position])
-	border.z_index = -3
-	border.add_to_group("ranch_fence_2d")
-	vm.entities_root.add_child(border)
+	# Parque: sus pinos (el 3D los copia de aquí) y bancos; césped, paseos y bordillo los dibuja el terreno 3D
 	var tree: Texture2D = vm._load_tex(dec + "tilesets and props/props-sprites/pine-tree_0.png")
 	for tp in [Vector2(188, 224), Vector2(420, 224), Vector2(188, 338), Vector2(420, 338), Vector2(304, 228)]:
 		vm._add_sprite_prop(tree, tp, Vector2(0.7, 0.7), 0)
@@ -106,14 +88,7 @@ static func build_world(vm) -> void:
 	vm._spawn_decor_prop(bench, Vector2(468, 82))
 	# Mirador del lago: barandilla de madera y un banco
 	var lv: Vector2 = Sitio.original(SITIO_OCIO % "lake_view") # lo que se dibuja aún se traduce: se le da el mapa original
-	var rail_top: Polygon2D = vm._add_rect_poly(lv + Vector2(0, -12), Vector2(36, 2), Color(0.50, 0.34, 0.18, 0.95), -1)
-	if rail_top != null:
-		rail_top.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(lv + Vector2(0, -12), Vector2(72.0, 5.0))
-	for px in [-34, -12, 12, 34]:
-		var rail_post: Polygon2D = vm._add_rect_poly(lv + Vector2(px, -9), Vector2(1.5, 4), Color(0.42, 0.28, 0.14, 0.95), -1)
-		if rail_post != null:
-			rail_post.add_to_group("ranch_fence_2d")
 	vm._spawn_decor_prop(bench, lv + Vector2(0, -2))
 
 ## Para las quedadas del SocialDirector.

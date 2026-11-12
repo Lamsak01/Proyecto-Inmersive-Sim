@@ -31,7 +31,7 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 Paso 4, trozos seguros (decorado del código → piezas), comparando árbol 3D y lógica antes y después. Hechos: terreno,
 constructor, taberna, restaurante, solares. Siguen: `VillagePlaces`, `VillageManagerSocial`…, `EcosystemManager`.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
-plano). Capa 1 hecha (lista visible 0). Capa 2 en curso (tanda 1: letreros, 2.818 → 1.629 dibujos planos): los dibujos planos ocultos que hacen
+plano). Capa 1 hecha (lista visible 0). Capa 2 en curso (tandas 1–2: letreros y polígonos, 2.818 → 1.367; faltan 3D de sangre/huellas y vagabundos): los dibujos planos ocultos que hacen
 de plano del 3D (`_add_rect_poly`/`_add_poly`, sprites fuente de `WorldStageProps3D`, etiquetas de estación) → piezas o
 borrar. Comprobar cada tanda con la lista de lo visible y fotos. Pesca: instrucciones del minijuego planas (sin revisar).
 Corte final (anclas y ×5) solo con el usuario.
@@ -39,7 +39,7 @@ Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; tamaños (`Vill
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
 
 ## d) Bloqueos activos
-- Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). Igual «No two conscious villagers may overlap» (dos vecinos en la terraza del restaurante; 1 de 2 veces, 2026-11-12).
+- Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). Igual «No two conscious villagers may overlap» (dos vecinos en la terraza del restaurante; 2 de cada 4 veces, 2026-11-12: arreglar).
 - Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración. Inventario 2026-11-12
   (`docs/INVENTARIO_MUNDO.md`): sigue 5.297, quieto 75 (río, luces, sitios del código que quedan), doble 0, otro
   sitio 123 (ruido entre partidas y sitios al aire libre).

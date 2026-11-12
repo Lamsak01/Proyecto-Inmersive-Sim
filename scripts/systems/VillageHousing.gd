@@ -273,7 +273,6 @@ static func stock_player_shop(vm, inv) -> int:
 			break
 	if added > 0:
 		ps["stock"] = int(ps.get("stock", 0)) + added
-		_refresh_shop_counter_visual(vm)
 	return added
 
 static func collect_player_shop_till(vm, inv) -> int:
@@ -287,7 +286,6 @@ static func collect_player_shop_till(vm, inv) -> int:
 	ps["till_since_day"] = -99
 	if inv != null:
 		inv.add_gold(gain)
-	_refresh_shop_counter_visual(vm)
 	return gain
 
 static func player_shop_lot(vm) -> String:
@@ -353,7 +351,6 @@ static func pay_player_shop_clerk(vm) -> bool:
 		ps["till_gold"] = int(ps["till_gold"]) - CLERK_WAGE
 		clerk.personal_gold += CLERK_WAGE
 		ps["last_wage_day"] = today()
-		_refresh_shop_counter_visual(vm)
 		return true
 	return false
 
@@ -474,7 +471,6 @@ static func on_customer_arrived(vm, customer) -> bool:
 	var clerk = get_player_shop_clerk(vm)
 	if clerk != null:
 		clerk._spawn_floating_text("💰 +%d Oro (Caja)" % price, Color.SPRING_GREEN, -30.0)
-	_refresh_shop_counter_visual(vm)
 	return true
 
 static func advertise_player_shop(vm, inv) -> bool:
@@ -1610,22 +1606,6 @@ static func home_prop_pos(_vm, lot_id: String, kind: String) -> Vector2:
 	return c
 
 
-static func _refresh_home_table_visual(vm) -> void:
-	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
-		return
-	for child in vm.entities_root.get_children():
-		if is_instance_valid(child) and child.is_in_group("home_table") and child.has_method("_rebuild_visual_and_area"):
-			child.call("_rebuild_visual_and_area")
-
-
-static func _refresh_shop_counter_visual(vm) -> void:
-	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
-		return
-	for child in vm.entities_root.get_children():
-		if is_instance_valid(child) and child.is_in_group("player_shop_counter") and child.has_method("_rebuild_visual_and_area"):
-			child.call("_rebuild_visual_and_area")
-
-
 static func sync_home_props(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
 		return
@@ -2063,7 +2043,6 @@ static func put_food_on_home_table(vm, inv, max_to_put: int = -1) -> int:
 		hs["table_rations"] = cur_r + added
 		if not g.is_empty():
 			g["food_rations"] = int(hs["table_rations"])
-		_refresh_home_table_visual(vm)
 	return added
 
 
@@ -2323,7 +2302,6 @@ static func on_caterer_arrived(vm, npc) -> void:
 		var needed: int = maxi(2, (g.get("guests", []) as Array).size() * 2)
 		hs["table_rations"] = maxi(int(hs.get("table_rations", 0)), needed)
 		g["food_rations"] = int(hs["table_rations"])
-		_refresh_home_table_visual(vm)
 		npc._spawn_floating_text("🍲 «¡La cena está lista y servida en tu mesa!»", Color.GOLD, -36.0)
 
 
@@ -2537,7 +2515,6 @@ static func _complete_gathering(vm) -> void:
 	if str(g.get("place", "")) == "home":
 		var used_r: int = (g.get("guests", []) as Array).size() * 2
 		hs["table_rations"] = maxi(0, int(hs.get("table_rations", 0)) - used_r)
-		_refresh_home_table_visual(vm)
 
 	if kind == "dinner":
 		if not arrived_npcs.is_empty():

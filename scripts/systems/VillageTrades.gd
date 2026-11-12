@@ -169,43 +169,18 @@ static func _build_extras_en_mundo(vm, id: String, c: Dictionary, lc: Vector2, h
 	var y1: float = lc.y + half.y - 10.0
 	match str(c["extras"]):
 		"farm":
-			var p_soil: Polygon2D = vm._add_poly(_rect(x0, y0, x1, y1), Color(0.40, 0.30, 0.18, 0.75), -4) # Tierra arada
-			if p_soil != null:
-				p_soil.add_to_group("ranch_fence_2d")
-			var yy: float = y0 + 8.0
-			while yy < y1 - 4.0:
-				var p_furrow: Polygon2D = vm._add_poly(_rect(x0 + 4.0, yy, x1 - 4.0, yy + 4.0), Color(0.62, 0.66, 0.24, 0.85), -3) # Surcos de trigo
-				if p_furrow != null:
-					p_furrow.add_to_group("ranch_fence_2d")
-				yy += 14.0
 			if not is_fields_lot:
 				vm._spawn_decor_prop(props + "hay_0.png", Vector2(x1 - 14.0, y1 - 10.0))
 		"ranch":
-			var border := Line2D.new() # Valla del corral
-			border.width = 2.0
-			border.default_color = Color(0.52, 0.36, 0.20, 0.95)
-			border.points = PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1), Vector2(x0, y0)])
-			border.z_index = -2
-			border.add_to_group("ranch_fence_2d")
-			vm.entities_root.add_child(border)
-			var p_ranch: Polygon2D = vm._add_poly(_rect(x0, y0, x1, y1), Color(0.44, 0.56, 0.26, 0.55), -4)
-			if p_ranch != null:
-				p_ranch.add_to_group("ranch_fence_2d")
 			vm._spawn_decor_prop(props + "hay_2.png", Vector2(x0 + 12.0, y1 - 12.0))
 			load("res://scripts/systems/VillageHousing.gd").sync_livestock(vm)
 		"quarry":
-			var p_quarry: Polygon2D = vm._add_poly(_rect(x0, y0, x1, y1), Color(0.46, 0.44, 0.40, 0.8), -4) # Roca a cielo abierto
-			if p_quarry != null:
-				p_quarry.add_to_group("ranch_fence_2d")
 			var rock: Texture2D = vm._load_tex("res://assests/world/harvest/rock_iron_vein.png")
 			for rp in [Vector2(x0 + 18, y0 + 22), Vector2(x1 - 20, y0 + 40), Vector2(x0 + 30, y1 - 24), Vector2(x1 - 30, y1 - 18)]:
 				vm._add_sprite_prop(rock, rp, Vector2(0.8, 0.8), 0).set_meta(META_TIPO_3D, TIPO_3D_ROCA)
 		"woods":
 			for lp in [Vector2(-82, 10), Vector2(82, 14)]:
 				vm._spawn_decor_prop(props + "logs_0.png", VillageLots.building_center(id) + dc + lp)
-
-static func _rect(x0: float, y0: float, x1: float, y1: float) -> PackedVector2Array:
-	return PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1)])
 
 ## Los solares de estos oficios siempre tienen su tienda (también en partidas guardadas antes de V5).
 static func ensure_lots(vm) -> void:

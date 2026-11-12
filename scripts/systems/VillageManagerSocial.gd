@@ -438,16 +438,8 @@ func _spawn_pet_bed_and_bowl(pos: Vector2, p_type: int, _p_name: String) -> void
 	var bed_root := Node2D.new()
 	bed_root.name = "PetBed_" + _p_name
 	bed_root.global_position = pos
-	bed_root.z_index = -1
 	bed_root.set_meta("pet_type", p_type)
-	bed_root.add_to_group("ranch_fence_2d")
 	entities_root.add_child(bed_root)
-	var p1 := _add_poly(PackedVector2Array([Vector2(-9, -5), Vector2(9, -5), Vector2(10, 5), Vector2(-10, 5)]), Color(0.45, 0.28, 0.15, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.52, 0.34, 0.22, 0.95), 0, Vector2.ZERO, bed_root)
-	var p2 := _add_poly(PackedVector2Array([Vector2(-7, -3), Vector2(7, -3), Vector2(8, 3), Vector2(-8, 3)]), Color(0.76, 0.28, 0.24, 0.95) if p_type == DomesticPet.PetType.DOG else Color(0.32, 0.56, 0.78, 0.95), 0, Vector2.ZERO, bed_root)
-	var p3 := _add_poly(PackedVector2Array([Vector2(11, -1), Vector2(16, -1), Vector2(15, 3), Vector2(12, 3)]), Color(0.78, 0.68, 0.32, 0.95), 0, Vector2.ZERO, bed_root)
-	for p_it in [p1, p2, p3]:
-		if p_it != null:
-			p_it.add_to_group("ranch_fence_2d")
 
 func can_family_feed_pet(fam_id: String) -> bool:
 	if fam_id == "player_farm":

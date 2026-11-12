@@ -455,9 +455,7 @@ static func _spawn_electric_streetlights(vm: VillageManager) -> void:
 	for li in range(lamp_positions.size()):
 		var l_pos: Vector2 = load("res://mapa/objeto.gd").pos("farola_%d" % li, lamp_positions[li])
 		var l_spr := vm._add_sprite_prop(lamp_tex, l_pos, Vector2(0.75, 0.75), 1)
-		var glow := vm._add_poly(PackedVector2Array([Vector2(-26, -18), Vector2(26, -18), Vector2(34, 18), Vector2(-34, 18)]), Color(1.0, 0.92, 0.55, 0.22), -1, l_pos)
-		glow.visible = false
-		vm.streetlights.append({"sprite": l_spr, "glow": glow, "pos": l_pos})
+		vm.streetlights.append({"sprite": l_spr, "pos": l_pos})
 
 static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
 	var well_tex := vm._load_tex("res://assests/world/village/water_well.png")
