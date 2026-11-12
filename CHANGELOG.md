@@ -4,6 +4,9 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Prueba del juego entero en verde tras las marcas (Claude Code)
+- `verify_all.gd` pasa entera (118 bloques, «TESTS PASSED») por primera vez desde que empezó el paso 1. Hizo falta ajustar dos comprobaciones de la propia prueba que leían números ya borrados (el cáliz de la capilla y la celda); el juego no fallaba. Nuevo `VillageUnderworld.heist_target_pos()` para saber dónde está el objeto de un encargo.
+
 ## 2026-11-11 — Paso 1, octava tanda: la taberna con marcas (Claude Code)
 - 22 marcas en la taberna: `barra`, `trabajo`, `pasaplatos`, `toneles`, `fogones`, `mesa_corte`, `chimenea`, `mesa_central`, `poker`, `billar`, `mesa_1..6` y las seis camas de arriba (`cama_marta`, `cama_alistair`, `cama_huesped_1..3`, `cama_jugador`). `VillageTavern` las lee con `sitio(M_…)`, `dining_tables()`, `guest_beds()`, `all_upper_beds()` y `poker_chairs()`; números borrados (también en `VillageManager*`, `VillageMigration` y pruebas).
 - Comprobado: 189 sitios y 9.143 cosas del mapa idénticos; sondeo 29/29; física 3D PASSED. Total: 138 marcas en 22 edificios. Ya no quedan edificios únicos sin marcas.

@@ -4592,9 +4592,9 @@ func _initialize() -> void:
 	var fis2_rects: Dictionary = {}
 	for bf_fis2 in vm.building_footprints:
 		fis2_rects[str(bf_fis2.get("id", ""))] = bf_fis2.get("rect", Rect2())
-	assert((fis2_rects.get("building_mansion", Rect2()) as Rect2).has_point(M((vun.HEIST_TARGETS[0] as Dictionary)["pos"])), "FIS2.3a: Sello de Lacre Noble is inside the Mansion")
-	assert((fis2_rects.get("building_church", Rect2()) as Rect2).has_point(M((vun.HEIST_TARGETS[1] as Dictionary)["pos"])), "FIS2.3b: Cáliz de Plata de la Capilla is inside the Chapel")
-	assert((fis2_rects.get("building_town_hall", Rect2()) as Rect2).has_point(M((vun.HEIST_TARGETS[2] as Dictionary)["pos"])), "FIS2.3c: Libro Mayor de los Gremios is inside the Town Hall")
+	assert((fis2_rects.get("building_mansion", Rect2()) as Rect2).has_point(M(vun.heist_target_pos(vun.HEIST_TARGETS[0]))), "FIS2.3a: Sello de Lacre Noble is inside the Mansion")
+	assert((fis2_rects.get("building_church", Rect2()) as Rect2).has_point(M(vun.heist_target_pos(vun.HEIST_TARGETS[1]))), "FIS2.3b: Cáliz de Plata de la Capilla is inside the Chapel")
+	assert((fis2_rects.get("building_town_hall", Rect2()) as Rect2).has_point(M(vun.heist_target_pos(vun.HEIST_TARGETS[2]))), "FIS2.3c: Libro Mayor de los Gremios is inside the Town Hall")
 	var fis2_uw_bak: Dictionary = vun.state(vm).duplicate(true)
 	var fis2_hr_bak: int = int(t5_wc.current_hour)
 	vun.state(vm)["active_heist"] = {}
@@ -4608,7 +4608,7 @@ func _initialize() -> void:
 	assert(str(fis2_heist_node.call("get_interact_label", p70_pl)).begins_with("Robar "), "FIS2.3f: Heist target prop has [E] Robar ... label")
 	t5_wc.current_hour = 23
 	p70_pl.global_position = M(Vector2(-5000.0, -5000.0))
-	var fis2_caliz_pos: Vector2 = M((vun.HEIST_TARGETS[1] as Dictionary)["pos"])
+	var fis2_caliz_pos: Vector2 = M(vun.heist_target_pos(vun.HEIST_TARGETS[1]))
 	var fis2_stole: bool = vun.try_interact(vm, p70_pl, fis2_caliz_pos)
 	assert(fis2_stole and bool(vun.state(vm)["active_heist"].get("stolen", false)), "FIS2.3g: Interacting with heist target at night steals the object")
 	assert(root.get_tree().get_nodes_in_group("heist_target_prop").size() == 0, "FIS2.3h: Stolen heist target prop disappears from the world")
@@ -6790,7 +6790,7 @@ func _initialize() -> void:
 	assert(b2_vj.is_npc_jailed(vm, b2_culprit), "B2.1: Guard catching an NPC on a night job arrests them")
 	assert("calabozo" in b2_culprit.get_activity_description(), "B2.2: Arrested NPC activity description shows jail status")
 	# 2. Al llegar a la celda queda encerrado tras la reja y el diálogo muestra opciones de visita/fuga
-	b2_culprit.global_position = M(b2_vj.CELL_POS)
+	b2_culprit.global_position = M(b2_vj._celda_original())
 	assert(b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1), "B2.3: Jail step takes control of the inmate's routine")
 	assert(str(b2_vj.get_inmate_record(vm, b2_culprit).get("status", "")) == "jailed", "B2.4: Reaching the cell transitions inmate to jailed status")
 	var b2_aff_diag: int = b2_culprit.affinity
@@ -6804,7 +6804,7 @@ func _initialize() -> void:
 	assert(not b2_vj.is_npc_jailed(vm, b2_culprit), "B2.6: Inmate is released automatically when hours_left reaches 0")
 	# 4. Pagar su fianza al comisario o guardia suma el oro a las arcas municipales (suma cero) y lo libera
 	b2_vj.arrest_npc(vm, b2_culprit, b2_sheriff, "robo nocturno", 24, 30)
-	b2_culprit.global_position = M(b2_vj.CELL_POS)
+	b2_culprit.global_position = M(b2_vj._celda_original())
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
 	var b2_diag_sheriff: Dictionary = b2_sheriff._inject_character_lore_into_dialogue(b2_sheriff._build_dialogue())
 	assert(b2_diag_sheriff.has("jail_bail_confirm_" + b2_culprit.get_person_key()), "B2.7: Sheriff dialogue offers jail_bail_confirm while there are inmates")
@@ -6814,7 +6814,7 @@ func _initialize() -> void:
 	assert(not b2_vj.is_npc_jailed(vm, b2_culprit) and int(p70_inv.gold) == 70 and int(vm.VillageTown.state(vm)["treasury"]) == 80 and b2_culprit.affinity > b2_aff0, "B2.9: Bail payment is strictly zero-sum into municipal treasury, frees the inmate and raises affinity")
 	# 5. Forzar la cerradura para sacarlo: si un guardia está cerca y mira, te buscan por complicidad; sin testigos sale agradecido
 	b2_vj.arrest_npc(vm, b2_culprit, b2_guard, "sabotaje nocturno", 24, 30)
-	b2_culprit.global_position = M(b2_vj.CELL_POS)
+	b2_culprit.global_position = M(b2_vj._celda_original())
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
 	var b2_pl_pos_bak: Vector2 = p70_pl.global_position
 	p70_pl.global_position = M(b2_vj.CELL_OUTSIDE_POS)

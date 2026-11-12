@@ -24,7 +24,7 @@ mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## c) Siguiente paso técnico inmediato
 Seguir el paso 1, en este orden:
-1. **Marcas de edificios únicos: hechas.** Pasar `verify_all.gd` (pendiente desde la primera tanda) y el inventario. Quedan como números a propósito: rejas y puerta de la celda, bancos de
+1. **Marcas de edificios únicos: hechas** y `verify_all.gd` en verde (118 bloques). Falta volver a medir el inventario. Quedan como números a propósito: rejas y puerta de la celda, bancos de
    la capilla, salas, pasos, tabiques, sillas (pegadas a su mesa), paredes invisibles de muebles y decorado suelto.
 2. **Capilla**: 14 muebles salen fuera del edificio (fallo visible); están así también en su escena: recolocarlos.
 3. **Casas y tiendas de solar con escena base**: incluye los oficios en solares y la posada (`VillageTrades`,
@@ -34,6 +34,5 @@ Volver a medir con el inventario al cerrar cada grupo (`docs/specs/PRUEBAS.md`).
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).
-- No se ha pasado `verify_all.gd` tras este avance (solo puertas, sondeo, inventario y fotos): pasarla al cerrar el paso 1.
 - Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración; el inventario aún da 609 cosas en
   el sitio viejo (plantas hechas por código, farolas, solares, suelo) y 137 en otro sitio (pasos 2 y 3).

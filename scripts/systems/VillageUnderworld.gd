@@ -109,6 +109,12 @@ const HEIST_TARGETS: Array[Dictionary] = [
 	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "pos": Vector2(764.0, -449.0), "reward": 55},
 ]
 
+## Dónde está el objeto de un encargo, en el mapa original: su marca en la escena del edificio si la tiene, o su número.
+static func heist_target_pos(objetivo: Dictionary) -> Vector2:
+	if objetivo.has("marca"):
+		return load("res://mapa/marca.gd").call("sitio", objetivo["edificio"], objetivo["marca"])
+	return objetivo["pos"]
+
 ## Lo que el perista acepta como «mercancía caliente» y cuánto paga (de su bolsillo). Antes daba 25 sin pedir nada.
 const FENCE_PRICES: Dictionary = {"royal_safe_conduct": 25, "master_lockpick": 20, "surgical_kit": 18, "golden_egg": 15, "bandit_scrap": 12, "fox_pelt": 10, "steel_ingot": 10, "copper_coil": 9}
 const DUST_PRICE: int = 30
@@ -1440,8 +1446,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "underworld_take_heist":
 		var idx: int = int(st.get("heists_done", 0)) % HEIST_TARGETS.size()
 		var t: Dictionary = HEIST_TARGETS[idx]
-		var original: Vector2 = load("res://mapa/marca.gd").call("sitio", t["edificio"], t["marca"]) if t.has("marca") else t["pos"]
-		var p: Vector2 = _AN_SITIOS.mover(original) # se guarda ya en el mundo (mapa ×E, edificio movido)
+		var p: Vector2 = _AN_SITIOS.mover(heist_target_pos(t)) # se guarda ya en el mundo (mapa ×E, edificio movido)
 		st["active_heist"] = {"id": str(t["id"]), "label": str(t["label"]), "pos_x": p.x, "pos_y": p.y, "reward": int(t["reward"]), "stolen": false}
 		sync_heist_visuals(vm)
 		npc._spawn_floating_text("🕶️💎 «Un coleccionista paga 55 de oro por %s. Tráemelo tú: ve allí de noche y que nadie te vea.»" % str(t["label"]), Color.GOLD, -46.0)

@@ -123,7 +123,7 @@ func _initialize() -> void:
 		var vm_u = root.find_child("VillageManager", true, false)
 		var vun = vm_u.VillageUnderworld
 		var t_heist: Dictionary = vun.HEIST_TARGETS[1] # Cáliz de Plata de la Capilla en el altar
-		var hp: Vector2 = t_heist["pos"]
+		var hp: Vector2 = vun.heist_target_pos(t_heist)
 		vun.state(vm_u)["active_heist"] = {"id": str(t_heist["id"]), "label": str(t_heist["label"]), "pos_x": hp.x, "pos_y": hp.y, "reward": int(t_heist["reward"]), "stolen": false}
 		vun.sync_heist_visuals(vm_u)
 		SPOTS["robo"] = hp + Vector2(0, -10)
