@@ -50,11 +50,12 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   de recién llegados ya no son piezas sueltas: salen en su solar. Si el solar tiene un edificio propio en «Edificios»
   (tiendas, ayuntamiento, escuela…), muévelos **juntos** (clic en uno, Mayúsculas+clic en el otro). **No cambies «Id solar»**.
   El **Puesto del Paso** (frontera este) es un solar más: muévelo y van con él su camino, estacas, sacos, foco y letrero.
-- **Sitios (78):** cruces con nombre, sin dibujo: por dónde pasean los vecinos sin oficio (`paseo_…`), dónde esperan
+- **Sitios (86):** cruces con nombre, sin dibujo: por dónde pasean los vecinos sin oficio (`paseo_…`), dónde esperan
   los recién llegados (`espera_…`), a dónde sale cada artesano por la mañana (`expedicion_…`), dónde trabajan los
   jornaleros (`jornal_…`), por dónde entran los asaltantes, el carro, el mirador y el contrabandista; los sitios de ocio (`ocio_…`), la ronda
   nocturna (`ronda_noche_…`), los puestos del mercado (`mercado_…`), el lavadero, la caravana, la puerta del este, el
-  caballo, el botín de los asaltantes, el callejón del perista y las dos entradas del pueblo (`entrada_…`). Mueve una cruz y
+  caballo, el botín de los asaltantes, el callejón del perista, las dos entradas del pueblo (`entrada_…`), la cama y el cuenco de cada mascota
+  (`mascota_…`) y el claro del Caso I (`claro_caso1`, `cuerpo_caso1`). Mueve una cruz y
   los vecinos irán ahí. Si mueves un campo o el lago, mueve también sus cruces. **No cambies «Id sitio».**
 - **Zonas (3):** la plaza, el lago y la ciénaga (losas azules translúcidas con su nombre). Mueve una y van con ella su
   suelo o su agua, la hondonada del terreno, el muelle y dónde se nada y se pesca. No se giran ni cambian de forma. Los

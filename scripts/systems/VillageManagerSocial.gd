@@ -416,7 +416,7 @@ func _spawn_unemployed_tavern_guests() -> void:
 		unemployed_npcs.append(npc)
 
 func _spawn_case1_clearing_corpse() -> void:
-	var victim_pos: Vector2 = load("res://mapa/anclas.gd").mover(Vector2(138.0, -870.0)) # sigue a la pieza del claro (editor 3D)
+	var victim_pos: Vector2 = VillageWork.Sitio.mundo(VillageCase1.SITIO_CUERPO) # cruz de «Sitios» en el claro, ya en el mundo
 	var tex_victim := _load_tex("res://assests/world/village/villager_traveler.png")
 	var npc := VillageNPC.new()
 	npc.name = "NPC_Case1_Victim"
@@ -452,17 +452,17 @@ func _spawn_case1_clearing_corpse() -> void:
 func _spawn_domestic_pets() -> void:
 	var is_demo: bool = (GameManager == null) or (GameManager.has_method("is_demo_mode") and bool(GameManager.call("is_demo_mode")))
 	var pet_defs: Array[Dictionary] = [
-		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "pos": Vector2(-1825, -82), "guard": true, "tint": Color(1.0, 0.96, 0.90)},
-		{"type": DomesticPet.PetType.DOG, "name": "Sultán", "owner": "Herrería Yunque Gris", "fam": "family_smith", "pos": Vector2(365, 16), "guard": false, "tint": Color(0.88, 0.82, 0.78)},
-		{"type": DomesticPet.PetType.DOG, "name": "Canela", "owner": "Barrio Residencial", "fam": "family_carpenter", "pos": Vector2(745, -135), "guard": false, "tint": Color(1.0, 0.85, 0.72)},
-		{"type": DomesticPet.PetType.CAT, "name": "Michi", "owner": "Posada El Jabalí Dorado", "fam": "family_tavern", "pos": Vector2(226, -212), "guard": false, "tint": Color(1.0, 0.92, 0.82)},
-		{"type": DomesticPet.PetType.CAT, "name": "Pelusa", "owner": "Botica Raíz Verde", "fam": "family_herbalist", "pos": Vector2(325, 96), "guard": false, "tint": Color(0.92, 0.92, 0.98)},
-		{"type": DomesticPet.PetType.CAT, "name": "Sombra", "owner": "Pescadería Aguas Claras", "fam": "family_fishmonger", "pos": Vector2(465, 96), "guard": false, "tint": Color(0.75, 0.78, 0.85)}
+		{"type": DomesticPet.PetType.DOG, "name": "Toby", "owner": "Granja del Jugador", "fam": "player_farm", "sitio": "mascota_toby", "guard": true, "tint": Color(1.0, 0.96, 0.90)},
+		{"type": DomesticPet.PetType.DOG, "name": "Sultán", "owner": "Herrería Yunque Gris", "fam": "family_smith", "sitio": "mascota_sultan", "guard": false, "tint": Color(0.88, 0.82, 0.78)},
+		{"type": DomesticPet.PetType.DOG, "name": "Canela", "owner": "Barrio Residencial", "fam": "family_carpenter", "sitio": "mascota_canela", "guard": false, "tint": Color(1.0, 0.85, 0.72)},
+		{"type": DomesticPet.PetType.CAT, "name": "Michi", "owner": "Posada El Jabalí Dorado", "fam": "family_tavern", "sitio": "mascota_michi", "guard": false, "tint": Color(1.0, 0.92, 0.82)},
+		{"type": DomesticPet.PetType.CAT, "name": "Pelusa", "owner": "Botica Raíz Verde", "fam": "family_herbalist", "sitio": "mascota_pelusa", "guard": false, "tint": Color(0.92, 0.92, 0.98)},
+		{"type": DomesticPet.PetType.CAT, "name": "Sombra", "owner": "Pescadería Aguas Claras", "fam": "family_fishmonger", "sitio": "mascota_sombra", "guard": false, "tint": Color(0.75, 0.78, 0.85)}
 	]
 	for pdef in pet_defs:
 		if is_demo and str(pdef["fam"]) == "player_farm":
 			continue
-		var p_pos: Vector2 = sitio(pdef["pos"]) # casa de la mascota: número fijo del mapa, al mundo
+		var p_pos: Vector2 = VillageWork.Sitio.mundo(str(pdef["sitio"])) # cama y cuenco: su cruz de «Sitios», ya en el mundo
 		_spawn_pet_bed_and_bowl(p_pos, pdef["type"], str(pdef["name"]))
 		var pet := DomesticPet.new()
 		pet.name = "Pet_" + str(pdef["name"])

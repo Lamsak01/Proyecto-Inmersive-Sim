@@ -710,7 +710,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 
 	# 6. Claro del Arroyo (Caso I) — etiqueta y área de inspección del lugar
 	vm._add_title_label(Vector2(68.0, -902.0), Vector2(160.0, 16.0), "🌲 Claro del Arroyo", Color(0.84, 0.92, 0.78), 8)
-	vm._add_station_area("Case1ClearingArea", FishingSpot.CASE1_CLEARING_POS, 22.0, "case1_clearing")
+	vm._add_station_area("Case1ClearingArea", vm.VillageCase1.Sitio.original(vm.VillageCase1.SITIO_CLARO), 22.0, "case1_clearing") # aún se traduce: va el original
 
 	# 7. Molino Viejo Abandonado río arriba del claro (`Vector2(188, -1060)`, tamaño `Vector2(124, 92)`)
 	var mill_center: Vector2 = FishingSpot.ABANDONED_MILL_CENTER

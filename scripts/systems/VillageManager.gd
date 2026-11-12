@@ -717,7 +717,7 @@ func interact(player: Node2D) -> void:
 			Color(0.92, 0.82, 0.45)
 		)
 		return
-	if o.distance_squared_to(FishingSpot.CASE1_CLEARING_POS) <= 28.0 * 28.0:
+	if pos.distance_to(VillageCase1.Sitio.mundo(VillageCase1.SITIO_CLARO)) <= VillageCase1.CLARO_RADIO_PX * VillageCase1.Mapa3D.E:
 		if not VillageCase1.empezado(): # día de margen: todavía no ha pasado nada aquí
 			_msg_player(player, "🌲 Un recodo tranquilo del arroyo. Nada llama la atención… por ahora.", Color(0.84, 0.72, 0.54))
 			return

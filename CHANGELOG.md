@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 3, grupo 5: mascotas, claro del Caso I y reservas (Claude Code)
+- Cruces nuevas en «Sitios»: `mascota_toby`, `_sultan`, `_canela`, `_michi`, `_pelusa`, `_sombra`, `claro_caso1`, `cuerpo_caso1`. Borrados los `pos` de las mascotas, `FishingSpot.CASE1_CLEARING_POS` y el número del cuerpo.
+- Reservas con número fuera: quien busca a la policía sin policía a mano va al escritorio de la comisaría (marca); quien visita una tumba sin pueblo se queda donde está.
+- **Fallos arreglados:** esas dos reservas y el aviso del cuadro eléctrico sin jugador usaban números del mapa viejo como si fueran del mundo.
+- Lección: las cruces deben medirse con la partida arrancada (la carpintería y la posada se colocan al arrancar); dos camas de mascota se corrigieron por eso.
+- Comprobado: volcado de sitios idéntico, sondeos, física, `partida_caso1` (25 ✅), `verify_all`.
+
 ## 2026-11-12 — Paso 3, grupo 4: sitios dentro de edificios a marcas (Claude Code)
 - Marcas nuevas: comisaría `celda_puerta` y `celda_salida`; ayuntamiento `libro_gremial`; casa de comidas `terraza` y `comedor`; biblioteca `silla_lectura_1…6`. La taberna usa sus marcas `poker` y `mesa_central`, la mansión su `despacho`.
 - Borrados `CELL_RECT`, `CELL_GATE_POS`, `CELL_OUTSIDE_POS` (el calabozo es un rectángulo alrededor de la marca «celda»), los `pos` de `HEIST_TARGETS`, los de taberna y comedor en `VillagePlaces` y las sillas de la biblioteca.

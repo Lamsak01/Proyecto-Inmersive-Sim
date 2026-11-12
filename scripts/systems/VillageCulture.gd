@@ -2598,7 +2598,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var target: String = action_id.substr("culture_sabotage_grid:".length())
 		# El arreglador o cualquier otro vecino despierto cerca (misma planta) puede verte tocar el cuadro eléctrico
 		var pl_sab = VillageNeeds.player_of(vm)
-		var sab_pos: Vector2 = pl_sab.global_position if pl_sab != null else TINKER_GRID_PANEL_POS
+		var sab_pos: Vector2 = pl_sab.global_position if pl_sab != null else _AN_SITIOS.mover(TINKER_GRID_PANEL_POS)
 		var wit_sab = vm._find_conscious_witness_near(sab_pos, 120.0, npc) if vm.has_method("_find_conscious_witness_near") else null
 		if wit_sab != null:
 			g["last_op_day"] = today

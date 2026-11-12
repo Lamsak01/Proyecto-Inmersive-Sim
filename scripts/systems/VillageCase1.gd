@@ -19,6 +19,11 @@ const MILL_KIDNAPPERS: Dictionary = {
 	"driver": {"label": "Carretero forastero"},
 }
 const Marca = preload("res://mapa/marca.gd")
+const Sitio = preload("res://mapa/sitio.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
+const SITIO_CUERPO := "cuerpo_caso1" ## cruz de «Sitios»: dónde aparece el cuerpo en el claro del arroyo
+const SITIO_CLARO := "claro_caso1"   ## cruz de «Sitios»: centro del claro (zona que se puede examinar)
+const CLARO_RADIO_PX: float = 28.0   ## en el mapa original: a esta distancia del centro se examina el claro
 const POLICE_ID: String = "building_police"
 const MILL_ID: String = "building_abandoned_mill"
 const ReportDeskScript = preload("res://scripts/systems/Case1ReportDesk.gd")

@@ -143,7 +143,7 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - **Sitios** (`mapa/sitio.gd`, carpeta «Sitios», paso 3, 2026-11-12): cruces (`Marker3D`) con `id_sitio` para la lógica
   de vecinos fuera de edificios. Su posición es la del mundo: `Sitio.mundo(id)` y `Sitio.serie(nombre)` (`nombre_1`,
   `nombre_2`…) no se traducen. `Sitio.original(id)` (= `Anclas.desmover`) solo para funciones que aún traducen lo que
-  reciben (`setup_npc`); desaparece en el paso 4. No son anclas: mover una cruz no arrastra nada más. 78 (grupo 3: ocio,
+  reciben (`setup_npc`); desaparece en el paso 4. No son anclas: mover una cruz no arrastra nada más. 86 (grupo 5: mascotas y claro del Caso I; grupo 3: ocio,
   ronda nocturna, mercado, lavadero, caravana, puerta del este, caballo, botín, perista, entradas).
 - **Zonas** (`mapa/zona.gd`, carpeta «Zonas», 2026-11-11): `zona_plaza`, `zona_lago`, `zona_cienaga`, con `id_zona`,
   `centro_original` y `terreno_m` (tamaño en el mundo). `mapa/anclas.gd` las registra como anclas que **estiran** ×E

@@ -1,6 +1,7 @@
 @tool
 extends "res://scripts/enemies/VillageNPCBase.gd"
 const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
+const _MARCA = preload("res://mapa/marca.gd")
 
 
 func _finish_frame_movement(delta: float, apply_yield: bool = true) -> void:
@@ -266,7 +267,7 @@ func _process_family_missing_search(delta: float) -> bool:
 
 		# Buscar al policía más cercano (incluyendo si está durmiendo en la Comisaría por la noche para despertarlo)
 		var nearest_police = _find_nearest_available_authority(true)
-		var pol_dest: Vector2 = nearest_police.global_position if nearest_police != null else Vector2(886, 132)
+		var pol_dest: Vector2 = nearest_police.global_position if nearest_police != null else _comisaria_pos()
 
 		# FASE 2: Caminar personalmente hacia la policía
 		if _missing_kin_phase == 2:
@@ -667,7 +668,7 @@ func _process_unconscious_neighbor_reaction(delta: float) -> bool:
 			return true
 
 		var nearest_police = _find_nearest_available_authority(true)
-		var pol_dest: Vector2 = nearest_police.global_position if nearest_police != null else Vector2(886, 132)
+		var pol_dest: Vector2 = nearest_police.global_position if nearest_police != null else _comisaria_pos()
 
 		if _unconscious_react_phase == 2:
 			if global_position.distance_to(pol_dest) > 26.0:
@@ -1036,7 +1037,7 @@ func _get_social_target_pos() -> Vector2:
 		var vm_g = _get_vm()
 		if vm_g and vm_g.has_method("get_grave_pos_for_victim"):
 			return vm_g.call("get_grave_pos_for_victim", str(person_profile.deceased_partner_name))
-		return Vector2(888, 262)
+		return global_position # sin pueblo no hay cementerio: se queda donde está
 	var vm_s = _get_vm()
 	if _VillageTavern.RECT.has_point(_AN_SITIOS.desmover(global_position)) or (family_id == "none" and not is_vagrant_camper) or home_table_pos == tavern_social_pos:
 		if not (trade_role in [TradeRole.INNKEEPER, TradeRole.WAITER]):
@@ -1345,3 +1346,8 @@ func get_relationship_color() -> Color:
 	if affinity >= 20: return Color.LIGHT_GREEN
 	if affinity <= -35: return Color.RED
 	return Color.ORANGE if affinity <= -10 else Color(0.85, 0.88, 0.92)
+
+
+## Si no hay ningún policía a mano, se va a la comisaría: su escritorio (marca de la escena), llevado al mundo.
+func _comisaria_pos() -> Vector2:
+	return _AN_SITIOS.mover(_MARCA.sitio("building_police", _MARCA.ESCRITORIO))

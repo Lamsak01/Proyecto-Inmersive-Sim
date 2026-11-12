@@ -14513,6 +14513,54 @@ gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "entrada_este"
 
+[node name="mascota_toby" type="Marker3D" parent="Sitios" unique_id=554471653]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -511, 0, -22.96)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "mascota_toby"
+
+[node name="mascota_sultan" type="Marker3D" parent="Sitios" unique_id=336166138]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 114.52, 0, 15.008)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "mascota_sultan"
+
+[node name="mascota_canela" type="Marker3D" parent="Sitios" unique_id=197670754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 208.6, 0, -51.24)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "mascota_canela"
+
+[node name="mascota_michi" type="Marker3D" parent="Sitios" unique_id=1648280062]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 109.872, 0, -62.048)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "mascota_michi"
+
+[node name="mascota_pelusa" type="Marker3D" parent="Sitios" unique_id=902418183]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 112.28, 0, 19.488)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "mascota_pelusa"
+
+[node name="mascota_sombra" type="Marker3D" parent="Sitios" unique_id=1588358735]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120.12, 0, 19.488)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "mascota_sombra"
+
+[node name="claro_caso1" type="Marker3D" parent="Sitios" unique_id=521408794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.64, 0, -240.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "claro_caso1"
+
+[node name="cuerpo_caso1" type="Marker3D" parent="Sitios" unique_id=2005434945]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.64, 0, -241.36)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "cuerpo_caso1"
+
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 
 [node name="Zona_3_0" type="Node3D" parent="Decorado" unique_id=1449909008]

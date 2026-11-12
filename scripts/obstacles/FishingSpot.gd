@@ -38,7 +38,6 @@ var spot_title: String = "🎣 Lago del Oeste"
 const ABANDONED_MILL_CENTER := Vector2(188.0, -1060.0)
 const ABANDONED_MILL_SIZE := Vector2(124.0, 92.0)
 const ABANDONED_MILL_RECT := Rect2(Vector2(126.0, -1106.0), Vector2(124.0, 92.0))
-const CASE1_CLEARING_POS := Vector2(138.0, -860.0)
 const OLD_BRIDGE_POS := Vector2(126.0, 50.0)
 
 const RIVER_WAYPOINTS: Array[Vector2] = [
