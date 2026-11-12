@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 3: 17 cruces de «Sitios» recolocadas (Claude Code)
+- `paseo_12…18`, `espera_11…14`, `espera_16`, `espera_17`, `jornal_quarry_1`, `jornal_woodcutter_1`, `_2` y `callejon_perista` se habían medido sin la partida arrancada; las casas de solar que se colocan al arrancar las movían, y antes el juego mandaba a los vecinos a ese sitio movido. Ahora la cruz está donde iban de verdad.
+- Revisadas las 86 cruces con la partida arrancada: el resto cuadra. Comprobado: sondeos, `atascos_vecinos`, `verify_all`.
+
 ## 2026-11-12 — Paso 3, grupo 5: mascotas, claro del Caso I y reservas (Claude Code)
 - Cruces nuevas en «Sitios»: `mascota_toby`, `_sultan`, `_canela`, `_michi`, `_pelusa`, `_sombra`, `claro_caso1`, `cuerpo_caso1`. Borrados los `pos` de las mascotas, `FishingSpot.CASE1_CLEARING_POS` y el número del cuerpo.
 - Reservas con número fuera: quien busca a la policía sin policía a mano va al escritorio de la comisaría (marca); quien visita una tumba sin pueblo se queda donde está.

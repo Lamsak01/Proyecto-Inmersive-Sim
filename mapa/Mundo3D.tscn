@@ -14112,43 +14112,43 @@ script = ExtResource("35_7jlh3")
 id_sitio = "paseo_11"
 
 [node name="paseo_12" type="Marker3D" parent="Sitios" unique_id=1340448383]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.4438412, -98.56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0, -114.912)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_12"
 
 [node name="paseo_13" type="Marker3D" parent="Sitios" unique_id=1387451649]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 145.6, 0.4438412, -98.56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 135.296, 0, -114.912)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_13"
 
 [node name="paseo_14" type="Marker3D" parent="Sitios" unique_id=344691228]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 207.2, 0.4438412, -98.56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 211.68, 0, -116.032)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_14"
 
 [node name="paseo_15" type="Marker3D" parent="Sitios" unique_id=1456349766]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 263.2, 0.4438412, -98.56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 257.376, 0, -116.032)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_15"
 
 [node name="paseo_16" type="Marker3D" parent="Sitios" unique_id=1673777837]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 188.16, 0.28907967, -58.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204.512, 0, -55.44)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_16"
 
 [node name="paseo_17" type="Marker3D" parent="Sitios" unique_id=416726133]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 161, 0, 63)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.24, 0, 45.752)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_17"
 
 [node name="paseo_18" type="Marker3D" parent="Sitios" unique_id=731443910]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 231, 0.33816472, 63)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 213.08, 0, 45.752)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_18"
@@ -14214,25 +14214,25 @@ script = ExtResource("35_7jlh3")
 id_sitio = "espera_10"
 
 [node name="espera_11" type="Marker3D" parent="Sitios" unique_id=768002946]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 188.16, 0.28907967, -58.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 204.512, 0, -55.44)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_11"
 
 [node name="espera_12" type="Marker3D" parent="Sitios" unique_id=91552948]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0.4438412, -98.56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 92.4, 0, -114.912)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_12"
 
 [node name="espera_13" type="Marker3D" parent="Sitios" unique_id=1302829215]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 170.8, 0.4438412, -98.56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 169.904, 0, -116.032)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_13"
 
 [node name="espera_14" type="Marker3D" parent="Sitios" unique_id=1201126142]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 249.2, 0.4438412, -98.56)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 254.576, 0, -116.032)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_14"
@@ -14244,13 +14244,13 @@ script = ExtResource("35_7jlh3")
 id_sitio = "espera_15"
 
 [node name="espera_16" type="Marker3D" parent="Sitios" unique_id=855849453]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 161, 0, 63)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.24, 0, 45.752)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_16"
 
 [node name="espera_17" type="Marker3D" parent="Sitios" unique_id=590757531]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 229.6, 0.33816472, 63)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0, 45.752)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_17"
@@ -14328,7 +14328,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "jornal_rancher_2"
 
 [node name="jornal_quarry_1" type="Marker3D" parent="Sitios" unique_id=1013731267]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -61.88, 0.36986765, -93.52)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.08, 0, -93.52)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "jornal_quarry_1"
@@ -14340,13 +14340,13 @@ script = ExtResource("35_7jlh3")
 id_sitio = "jornal_quarry_2"
 
 [node name="jornal_woodcutter_1" type="Marker3D" parent="Sitios" unique_id=1174631070]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -131.6, -0.032931373, 175)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -122.64, 0, 159.544)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "jornal_woodcutter_1"
 
 [node name="jornal_woodcutter_2" type="Marker3D" parent="Sitios" unique_id=132437963]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -109.2, -0.020518571, 177.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -118.16, 0, 160.104)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "jornal_woodcutter_2"
@@ -14496,7 +14496,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "botin_plaza"
 
 [node name="callejon_perista" type="Marker3D" parent="Sitios" unique_id=59974862]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.96, 0.2250908, -83.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110.208, 0, -66.864)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "callejon_perista"
