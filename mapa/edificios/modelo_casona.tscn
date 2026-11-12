@@ -178,6 +178,13 @@ local_original = Vector3(1.6800079, 0.21135294, 0.8959961)
 modelo = "props/Bookcase_2.gltf"
 tam3 = Vector3(0.784, 1.6908236, 0.336)
 
+[node name="Bed_Twin3" type="Node3D" parent="Muebles" unique_id=84638890]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.688, 0.21135294, 0.3024)
+script = ExtResource("7_ddaji")
+local_original = Vector3(2.688, 0.21135294, 0.3024)
+modelo = "props/Bed_Twin1.gltf"
+tam3 = Vector3(0.84, 0.89825004, 1.176)
+
 [node name="Marcas" type="Node3D" parent="." unique_id=331946232]
 
 [node name="cama_1" type="Marker3D" parent="Marcas" unique_id=275194949]

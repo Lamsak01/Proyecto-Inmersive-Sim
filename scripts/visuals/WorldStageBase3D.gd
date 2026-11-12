@@ -53,16 +53,6 @@ var _construyendo_estatico: bool = false
 static var grabar_decorado: bool = false
 static var decorado_en_escena: bool = false
 var decorado_grabado: Array = []
-## Muebles de los edificios en mapa/Mundo3D.tscn → «Edificios» → <edificio> → «Muebles» (mapa/mueble.gd), 2026-11-10.
-## grabar_muebles (tools/hornear_edificios.gd): se anotan y no se dibujan, para que las fotos de los edificios salgan vacías.
-static var grabar_muebles: bool = false
-## Conversión de edificios a escenas (tools/convertir_edificios.gd): se construyen todos por código, aunque ya tengan
-## escena, y sin juntar sus mallas (la herramienta las junta después de pasarlas a coordenadas del edificio).
-static var edificios_por_codigo: bool = false
-static var juntar_edificios: bool = true
-var muebles_grabados: Array = []
-var _muebles_activos: bool = false # solo mientras se amuebla un edificio (no los cofres, que ya van por anclas)
-var _muebles_claves: Dictionary = {}
 ## Cuánto más «bajo» cuenta un píxel de altura que uno de suelo (≈ 0,53). Los muñecos se estiran 1/_cos_p en vertical
 ## en la vista desde arriba para cuadrar con las casas; en 1.ª persona no (paso 0b).
 var _cos_p: float = Mapa3D.ESCALA / Mapa3D.ALTO
@@ -896,21 +886,6 @@ func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_
 	if _current_building_id != "" and sz_2d != Vector2.ZERO and height_px >= 2.0 and not rel_path.begins_with("graveyard/iron-fence"):
 		var floor_base_h: float = 2.0 if _current_building_floor == 0 else VillageTavern.FLOOR_1_H
 		if absf(bottom_h_px - floor_base_h) <= 2.5:
-			if _muebles_activos:
-				var clave_m := "%s#%d|%s|%d|%d" % [_current_building_id, _current_building_floor, rel_path.get_file().get_basename(), roundi(center_2d.x), roundi(center_2d.y)]
-				while _muebles_claves.has(clave_m):
-					clave_m += "+"
-				_muebles_claves[clave_m] = true
-				if grabar_muebles:
-					muebles_grabados.append({"id": _current_building_id, "piso": _current_building_floor, "clave": clave_m, "modelo": rel_path,
-						"pos": center_2d, "p3": to_3d(center_2d, bottom_h_px), "giro": rot_y_deg, "tam3": size_3d(sz_2d, height_px)})
-					var anotado := Node3D.new() # vacío pero no nulo: quien llama no debe dibujar su mueble de cajas de repuesto
-					parent.add_child(anotado)
-					return anotado
-				var aj: Array = load("res://mapa/mueble.gd").ajuste(clave_m)
-				if not aj.is_empty():
-					center_2d += aj[0]
-					rot_y_deg += float(aj[1])
 			_register_furniture_rect(rel_path.get_file().get_basename(), center_2d, sz_2d, rot_y_deg)
 	if _is_headless or not AssetLib.has_curated_assets():
 		return null

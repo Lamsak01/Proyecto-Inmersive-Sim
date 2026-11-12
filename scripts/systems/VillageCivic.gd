@@ -29,7 +29,7 @@ const MAYOR_OFFICE_HOUR: int = 14 # Sábado por la tarde (los talleres cierran a
 
 # ---------------------------------------------------------------- montaje
 static func setup_world(vm) -> void:
-	var lay: Dictionary = VillageLots.shop_house_layout(INN_LOT, VillageLots.shop_house_id(INN_FAMILY))
+	var lay: Dictionary = VillageLots.shop_house_layout(VillageLots.shop_house_id(INN_FAMILY))
 	vm.trade_configs[VillageNPC.TradeRole.LODGEKEEPER] = {
 		"family_id": INN_FAMILY, "family_name": "Casa del Candil", "shop_title": INN_TITLE,
 		"shop_center": VillageLots.lot_def(INN_LOT)["center"], "is_mixed_building": true,

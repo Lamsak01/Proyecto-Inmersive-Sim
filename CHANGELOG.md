@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Casas modelo, trozo 3: ya no se dibuja ningún edificio por código (Claude Code)
+- Las tiendas con vivienda de los solares y la posada leen también sus dos tabiques de marcas (`tabique_1`, `tabique_2`; 16 marcas nuevas en 8 escenas). Borrado el molde de números de `VillageLots`. No hizo falta una «tienda modelo»: el juego nunca levanta una tienda que no tenga ya su escena.
+- Borrado todo el dibujo de edificios por código de `WorldStageBuildings3D` (muros, puerta, ventana, tejado, interior genérico, estilos; de 531 a 266 líneas), sus interruptores en `WorldStageBase3D`, los ajustes de mueble por clave y las herramientas `convertir_edificios.gd` y `guardar_recursos_comunes.gd`. Un edificio sin escena da error y no se dibuja.
+- La casona tiene ya su tercera cama dibujada (antes tenía la plaza pero no la cama).
+- Comprobado: sitios y cosas idénticos antes y después; sondeo 29/29; `verify_all.gd` en verde. Total: 231 marcas en 33 escenas.
+
 ## 2026-11-11 — Casas modelo, trozo 2: las casas de recién llegados salen de tres casas modelo (Claude Code)
 - Tres escenas nuevas (`mapa/edificios/modelo_casita`, `modelo_casa`, `modelo_casona`) con muros, tejado, muebles y marcas (`cama_1..`, `cama_alta_1..2` para el altillo, `mesa`, `cofre`). Cada casa de solar, las 9 del valle y las que se construyan jugando, es una copia de la de su tamaño (`mapa/casa_modelo.gd`). Con la puerta al norte, la misma casa con media vuelta: en esas casas camas, ventana y muebles cambian de lado.
 - Borrado: los números de camas, mesa y cofre de `VillageLots`, el dibujo por código del interior de las casas y las 9 «fotos» de `mapa/edificios_vista/`. Todas las casas del mismo tamaño tienen ahora la misma altura de muro.

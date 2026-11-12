@@ -8,7 +8,7 @@ toca el código del mundo** (la que hizo este avance; el usuario lo confirmó el
 mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## b) Último avance completado
-- 2026-11-11: paso 1, **215 marcas en 33 escenas**: todos los edificios únicos, los oficios en solares y las tres casas
+- 2026-11-11: paso 1, **231 marcas en 33 escenas**: todos los edificios únicos, los oficios en solares y las tres casas
   modelo. El código las lee y sus números están borrados.
 - Marcas: `mapa/marca.gd` (`Marker3D` con `id_marca`, grupo «Marcas» de `mapa/edificios/<id>.tscn`).
   `Marca.sitio(id_edificio, marca)` da el sitio en el mapa ORIGINAL (centro original de la escena + posición local): lo
@@ -21,17 +21,18 @@ mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 - Método de cada tanda: script temporal `tools/tests/_tmp_*.gd` (no se guarda) → cambiar código → comparar un volcado
   de sitios y de todo `entities_root` antes y después (para casas de solar hay que levantarlas con
   `build_instant_house`: al arrancar no hay ninguna) + fotos con `capturas_fijas.gd` (sitios `casa_*`).
-- Conocido: la casona tiene 3 plazas (`cama_3`) pero solo 2 camas dibujadas (ya era así); el usuario puede añadir la
-  tercera cama en `modelo_casona`.
+- **Sin dibujo por código** (trozo 3, hecho): `WorldStageBuildings3D` solo carga escenas; un edificio sin escena da
+  error. Tiendas de solar y posada: todo de marcas, también los tabiques (`tabique_1|2`, `VillageLots.shop_house_layout`).
+  Borradas las herramientas de conversión. La casona ya tiene su tercera cama.
 
 ## c) Siguiente paso técnico inmediato
-Paso 1, último trozo de las **casas modelo** (plan aprobado por el usuario el 2026-11-11):
-3. **Tienda con vivienda base** (128×96) para lo que se levanta en partida, igual que las casas modelo; fuera
-   `_shop_house_mold` y el dibujo por código que quede en `WorldStageBuildings3D` (`_construir_edificio_por_codigo`,
-   `_muros_3d`, `_puerta_y_ventana_3d`, `_tejado_3d`, `_populate_building_interior_3d`). Ojo: mirar antes qué otros
-   edificios levantados en partida (cívicos, escuela, mansión…) pasan aún por ese dibujo. `verify_all.gd` al final.
-Después: **planta y puerta desde la escena** (tamaño y lado de la puerta como propiedades de la pieza).
-Volver a medir con el inventario al cerrar (`docs/specs/PRUEBAS.md`).
+Cierre del paso 1: **planta y puerta desde la escena** (tamaño de la planta, lado y ancho de la puerta y sitio de la
+ventana como propiedades o marcas de la pieza, en vez de los números de cada `_construct_solid_building`: 15 llamadas
+en `VillageWorldBuilder`, `VillageLots`, `VillageCivic`, `VillageCulture`, `VillageNobility`, `VillageTavern`,
+`VillageRestaurant`). Toca más de 2 scripts: plan corto y confirmación del usuario antes de empezar.
+Siguen como números (apuntado): sitios de trabajo al aire libre (cantero, granjero, ganadero, leñador), muebles de
+mejoras de la casa del jugador (`VillageHousing.home_prop_pos`), rejas y bancos sueltos de `VillageWorldBuilder`.
+Volver a medir con el inventario al cerrar (`docs/specs/PRUEBAS.md`), con ventana (~1 min).
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).

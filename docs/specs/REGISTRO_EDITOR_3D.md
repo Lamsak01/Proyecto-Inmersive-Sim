@@ -113,7 +113,7 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 ## Edificios como escenas (2026-11-11, paso 1 de `docs/PLAN_MUNDO_DESDE_EDITOR.md`)
 - Los 29 edificios fijos son escenas en `mapa/edificios/<id>.tscn` (mallas y texturas compartidas en `comun/`); en
   Mundo3D → «Edificios» cada pieza es una copia de su escena. Grupos fijos (`scripts/visuals/PartesEdificio3D.gd`):
-  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (`Marker3D` con `mapa/marca.gd` e `id_marca`: sitios de la lógica; 215 marcas en 33 escenas a 2026-11-11, lista en `docs/ESTADO_ACTUAL.md`; el código los lee con `Marca.sitio`).
+  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (`Marker3D` con `mapa/marca.gd` e `id_marca`: sitios de la lógica; 231 marcas en 33 escenas a 2026-11-11, lista en `docs/ESTADO_ACTUAL.md`; el código los lee con `Marca.sitio`).
 - Para cambiar un edificio por dentro: abrir su escena (doble clic en `mapa/edificios/…`), mover muebles, guardar.
 - Lo que se mueve jugando (puerta, postigo, luces de noche, reja de la celda, puertas de cuarto, cuerpos de la morgue)
   lleva una etiqueta (metadato `rol`); el juego lo busca por la etiqueta, no por nombre ni posición.
@@ -124,8 +124,9 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   valle, que no cuenta como giro del usuario) y la ventana lógica pasa al otro lado. Camas, mesa y cofre salen de sus
   marcas (`cama_N`, `cama_alta_N` con altillo, `mesa`, `cofre`) respecto al centro del solar. Las casas que se levantan
   jugando no tienen pieza en el valle: usan la casa modelo directamente. Sus muebles no llevan `clave` (sin anclas).
-- `tools/convertir_edificios.gd` convierte lo que el código aún dibuje y no tenga escena; lo ya convertido no se rehace
-  (su código ya no existe: la escena es el original). `tools/hornear_edificios.gd` está borrado.
+- Ya no queda dibujo de edificios por código (2026-11-11): un edificio sin escena da un error al arrancar y no se
+  dibuja. Las herramientas de conversión (`convertir_edificios.gd`, `guardar_recursos_comunes.gd`) se borraron al
+  terminar; un edificio nuevo se hace copiando una escena de `mapa/edificios/` en el editor.
 - Las texturas de los muros pueden verse corridas unos centímetros respecto a antes (se pegan al edificio, no al mundo).
 
 ## Mapa ×5 (2026-11-11/12)
