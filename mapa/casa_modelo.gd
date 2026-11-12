@@ -1,5 +1,6 @@
 extends RefCounted
 const Marca = preload("res://mapa/marca.gd")
+const Planta = preload("res://mapa/planta.gd")
 
 ## Casas modelo de los recién llegados (2026-11-11, paso 1 de docs/PLAN_MUNDO_DESDE_EDITOR.md): hay tres escenas
 ## (casita, casa y casona) y cada casa que se levanta en un solar es una copia de la de su tamaño. Lo que cambies en
@@ -29,6 +30,12 @@ static func solar_de(id_edificio: String) -> String:
 
 static func escena(tamano: String) -> PackedScene:
 	return load(ESCENAS[tamano]) as PackedScene
+
+
+## Planta (tamaño, puerta y ventana; mapa/planta.gd) de la casa de ese tamaño según a dónde mire la puerta del solar.
+static func planta(tamano: String, puerta_sur: bool) -> Dictionary:
+	var de_fabrica: Dictionary = Planta.de_escena(escena(tamano))
+	return de_fabrica if puerta_sur else Planta.con_media_vuelta(de_fabrica)
 
 
 ## Lo que hay que girar la casa modelo para que su puerta mire a donde mira la del solar.

@@ -71,6 +71,8 @@ size = Vector3(0.672, 0.8665471, 0.5208)
 
 [node name="modelo_casona" type="Node3D" unique_id=1039313969]
 script = ExtResource("1_ykufb")
+planta_m = Vector2(6.944, 5.04)
+puerta_ancho_m = 2.128
 
 [node name="Muros" type="Node3D" parent="." unique_id=2115708252]
 
@@ -228,3 +230,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.68)
 gizmo_extents = 0.5
 script = ExtResource("8_w4o1i")
 id_marca = "cofre"
+
+[node name="puerta" type="Marker3D" parent="Marcas" unique_id=893387856]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.52)
+gizmo_extents = 0.5
+script = ExtResource("8_w4o1i")
+id_marca = "puerta"
+
+[node name="ventana" type="Marker3D" parent="Marcas" unique_id=954222788]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.072, 0, 2.52)
+gizmo_extents = 0.5
+script = ExtResource("8_w4o1i")
+id_marca = "ventana"

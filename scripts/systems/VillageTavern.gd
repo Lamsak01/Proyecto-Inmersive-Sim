@@ -31,7 +31,6 @@ const SIZE: Vector2 = Vector2(348.0, 184.0)
 const RECT: Rect2 = Rect2(BASE, SIZE)
 const CENTER: Vector2 = Vector2(434.0, -224.0)
 const DOOR_POS: Vector2 = Vector2(454.0, -132.0)
-const DOOR_W: float = 44.0
 
 ## Alturas 3D de la posada de 2 pisos
 const FLOOR_1_H: float = 34.0
@@ -166,14 +165,9 @@ static func setup_world(vm) -> void:
 	var tex_stall: Texture2D = vm._load_tex("res://assests/world/village/work_stall.png")
 	var tex_innkeeper: Texture2D = vm._load_tex("res://assests/world/village/villager_innkeeper.png")
 
-	vm._construct_solid_building(
-		BUILDING_ID, TITLE,
-		CENTER, SIZE, true,
-		"res://assests/world/village/floor_wood_planks.png",
-		"res://assests/world/village/wall_timber_h.png",
-		"res://assests/world/village/wall_timber_v.png",
-		DOOR_W, 20.0, Color(1.0, 0.88, 0.45)
-	)
+	vm._construct_solid_building(BUILDING_ID, TITLE, CENTER,
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
+		Color(1.0, 0.88, 0.45))
 
 	# Alfombra discreta bajo el salón del casino en Planta 0 (z_index = -2, bajo las mesas)
 	var cas_rug: Polygon2D = vm._add_rect_poly(Vector2(543.0, -182.0), Vector2(52.0, 38.0), Color(0.44, 0.16, 0.14, 0.36), -2)
@@ -310,7 +304,6 @@ static func setup_world(vm) -> void:
 		"family_name": "Posada El Jabalí",
 		"shop_title": "🍺 Servicio de Salón — El Jabalí Dorado",
 		"shop_center": sitio(M_PASAPLATOS),
-		"shop_door_south": true,
 		"is_mixed_building": true,
 		"house_title": TITLE,
 		"house_center": guest_beds()[1],

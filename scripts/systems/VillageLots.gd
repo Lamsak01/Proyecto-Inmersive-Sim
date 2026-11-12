@@ -357,10 +357,10 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			var fam: String = "family_lot_" + id
 			var has_up: bool = bool((st.get("upgrades", {}) as Dictionary).get("upper_floor", false))
 			var beds: Array = _house_beds(id, has_up)
-			# La casa es una copia de la casa modelo de su tamaño; con la puerta al norte va con media vuelta, y con ella su ventana
-			vm._construct_solid_building(CasaModelo.PREFIJO + id, str(st["title"]), c, HOUSE_PLOTS[plot_of(id)]["size"], bool(d["door_south"]),
-				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
-				"res://assests/world/village/wall_timber_v.png", 38.0, 0.0, Color(0.92, 0.88, 0.72), not bool(d["door_south"]))
+			# La casa es una copia de la casa modelo de su tamaño (con la puerta al norte, con media vuelta): de ella sale su planta
+			vm._construct_solid_building(CasaModelo.PREFIJO + id, str(st["title"]), c,
+				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
+				Color(0.92, 0.88, 0.72), CasaModelo.planta(plot_of(id), bool(d["door_south"])))
 			for b in beds:
 				vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
 			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", house_site(id, Marca.MESA), Vector2(0.45, 0.45))
@@ -382,7 +382,6 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 const SHOP_HOUSE_MARKS: Dictionary = {"work_pos": Marca.TRABAJO, "kin_work_pos": Marca.TRABAJO_FAMILIAR, "bed1_pos": Marca.CAMA_1,
 	"bed2_pos": Marca.CAMA_2, "table_pos": Marca.MESA, "stall_pos": Marca.PUESTO, "chest_pos": Marca.COFRE,
 	"wall_l": "tabique_1", "wall_r": "tabique_2"}
-const SHOP_HOUSE_SIZE: Vector2 = Vector2(128, 96)
 const SHOP_HOUSE_PARTITION: Vector2 = Vector2(40, 6)
 
 static func shop_house_id(family_id: String) -> String:
@@ -400,9 +399,9 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	var role: int = int(st["role"])
 	var fam: String = str(st.get("family_id", "family_lot_" + id))
 	var lay: Dictionary = shop_house_layout(shop_house_id(fam))
-	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c, SHOP_HOUSE_SIZE, bool(d["door_south"]),
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
-		"res://assests/world/village/wall_timber_v.png", 42.0, 0.0, Color(0.96, 0.86, 0.62))
+	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c,
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
+		Color(0.96, 0.86, 0.62))
 	var tex_wall_h: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_h.png")
 	vm._add_solid_wall_segment(lay["wall_l"], SHOP_HOUSE_PARTITION, tex_wall_h)
 	vm._add_solid_wall_segment(lay["wall_r"], SHOP_HOUSE_PARTITION, tex_wall_h)

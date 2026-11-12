@@ -115,7 +115,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		VillageNPC.TradeRole.BLACKSMITH: {
 			"family_id": "family_smith", "family_name": "Familia Yunque Gris",
 			"shop_title": "⚒️ Herrería y Armería 'Yunque Gris'", "shop_center": Vector2(335, -36),
-			"shop_door_south": true, "is_mixed_building": false,
+			"is_mixed_building": false,
 			"house_title": "🏠 Residencia Familia Yunque Gris", "house_center": Vector2(745, -195),
 			"name": "Thoran", "title": "Maestro Herrero y Armero",
 			"tex": vm._load_tex("res://assests/world/village/villager_smith.png"),
@@ -125,7 +125,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		VillageNPC.TradeRole.BUTCHER: {
 			"family_id": "family_butcher", "family_name": "Familia Colmillo",
 			"shop_title": "🥩 Carnicería y Peletería 'El Colmillo'", "shop_center": Vector2(585, -36),
-			"shop_door_south": true, "is_mixed_building": false,
+			"is_mixed_building": false,
 			"house_title": "🏠 Residencia Familia Colmillo", "house_center": Vector2(905, -195),
 			"name": "Garrick", "title": "Maestro Carnicero",
 			"tex": vm._load_tex("res://assests/world/village/villager_butcher.png"),
@@ -135,7 +135,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		VillageNPC.TradeRole.CARPENTER: {
 			"family_id": "family_carpenter", "family_name": "Familia Roble Viejo",
 			"shop_title": "🪚 Carpintería y Aserradero 'Roble Viejo'", "shop_center": Vector2(585, 148),
-			"shop_door_south": false, "is_mixed_building": false,
+			"is_mixed_building": false,
 			"house_title": "🏠 Residencia Familia Roble Viejo", "house_center": Vector2(745, -36),
 			"name": "Bram", "title": "Maestro Carpintero",
 			"tex": vm._load_tex("res://assests/world/village/villager_carpenter.png"),
@@ -145,7 +145,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		VillageNPC.TradeRole.FISHMONGER: {
 			"family_id": "family_fishmonger", "family_name": "Familia Aguas Claras",
 			"shop_title": "🐟 Pescadería y Molino 'Aguas Claras'", "shop_center": Vector2(465, 148),
-			"shop_door_south": false, "is_mixed_building": false,
+			"is_mixed_building": false,
 			"house_title": "🏠 Residencia Familia Aguas Claras", "house_center": Vector2(905, -36),
 			"name": "Marlo", "title": "Pescador y Molinero",
 			"tex": vm._load_tex("res://assests/world/village/villager_fishmonger.png"),
@@ -155,7 +155,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		VillageNPC.TradeRole.HERBALIST: {
 			"family_id": "family_herbalist", "family_name": "Familia Raíz Verde",
 			"shop_title": "🌿 Botica y Casa-Jardín 'Raíz Verde'", "shop_center": Vector2(325, 155),
-			"shop_door_south": false, "is_mixed_building": true,
+			"is_mixed_building": true,
 			"house_title": "🌿 Botica y Vivienda Raíz Verde", "house_center": Vector2(325, 155),
 			"name": "Elena", "title": "Herborista y Alquimista",
 			"tex": vm._load_tex("res://assests/world/village/villager_herbalist.png"),
@@ -184,7 +184,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), tex_bed, tex_stall, bed1_pos, bed2_pos, table_pos, fam_id, int(role_key))
 		else:
 			var is_smithy: bool = (role_key == VillageNPC.TradeRole.BLACKSMITH)
-			_build_enclosed_shop_visuals(vm, sc, str(cfg["shop_title"]), tex_stall, bool(cfg["shop_door_south"]), is_smithy, fam_id, int(role_key))
+			_build_enclosed_shop_visuals(vm, sc, str(cfg["shop_title"]), tex_stall, is_smithy, fam_id, int(role_key))
 			_build_residential_house_visuals(vm, hc, str(cfg["house_title"]), tex_bed, bed1_pos, bed2_pos, table_pos, fam_id)
 
 		cfg["work_pos"] = work_pos
@@ -215,16 +215,14 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		kin_npc.setup_npc(tex_family, kin_work_pos, bed2_pos, {}, table_pos, fam_id, str(cfg["family_name"]))
 		vm.family_npcs[role_key] = kin_npc
 
-static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_title: String, tex_stall: Texture2D, door_on_south: bool, is_blacksmith: bool, fam_id: String, role_id: int = -1) -> void:
+static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_title: String, tex_stall: Texture2D, is_blacksmith: bool, fam_id: String, role_id: int = -1) -> void:
 	var floor_p: String = "res://assests/world/village/floor_stone_forge.png" if is_blacksmith else "res://assests/world/village/floor_wood_planks.png"
 	var wall_h_p: String = "res://assests/world/village/wall_stone_h.png" if is_blacksmith else "res://assests/world/village/wall_timber_h.png"
 	var wall_v_p: String = "res://assests/world/village/wall_stone_v.png" if is_blacksmith else "res://assests/world/village/wall_timber_v.png"
 
-	vm._construct_solid_building(
-		"shop_" + fam_id, shop_title, sc, Vector2(116, 76), door_on_south,
-		floor_p, wall_h_p, wall_v_p, 40.0, 0.0,
-		Color(1.0, 0.88, 0.52) if is_blacksmith else Color(0.95, 0.90, 0.68)
-	)
+	vm._construct_solid_building("shop_" + fam_id, shop_title, sc,
+		floor_p, wall_h_p, wall_v_p,
+		Color(1.0, 0.88, 0.52) if is_blacksmith else Color(0.95, 0.90, 0.68))
 	var stall_pos: Vector2 = Marca.sitio("shop_" + fam_id, Marca.PUESTO)
 	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.32, 1.32), -1)
 	if role_id >= 0:
@@ -237,13 +235,9 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 		vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/stand-1_part5.png", sc + Vector2(26, -12), Vector2(0.65, 0.65))
 
 static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, house_title: String, tex_bed: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String) -> void:
-	vm._construct_solid_building(
-		"house_" + fam_id, house_title, hc, Vector2(112, 78), true,
-		"res://assests/world/village/floor_wood_planks.png",
-		"res://assests/world/village/wall_timber_h.png",
-		"res://assests/world/village/wall_timber_v.png",
-		38.0, 0.0, Color(0.92, 0.88, 0.72)
-	)
+	vm._construct_solid_building("house_" + fam_id, house_title, hc,
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
+		Color(0.92, 0.88, 0.72))
 	vm._add_rect_poly(hc + Vector2(0, 5), Vector2(24, 13), Color(0.52, 0.24, 0.20, 0.55), -2)
 	for b_pos in [bed1_pos, bed2_pos]:
 		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
@@ -252,13 +246,9 @@ static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, ho
 	vm._spawn_house_chest(Marca.sitio("house_" + fam_id, Marca.COFRE), "Cofre Familiar (" + house_title + ")", fam_id)
 
 static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, tex_bed: Texture2D, tex_stall: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String, role_id: int = -1) -> void:
-	vm._construct_solid_building(
-		"mixed_" + fam_id, title, center, Vector2(128, 96), false,
-		"res://assests/world/village/floor_wood_planks.png",
-		"res://assests/world/village/wall_timber_h.png",
-		"res://assests/world/village/wall_timber_v.png",
-		42.0, 0.0, Color(0.75, 0.96, 0.68)
-	)
+	vm._construct_solid_building("mixed_" + fam_id, title, center,
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
+		Color(0.75, 0.96, 0.68))
 	var tex_wall_h := vm._load_tex("res://assests/world/village/wall_timber_h.png")
 	vm._add_solid_wall_segment(center + Vector2(-42, 4), Vector2(40, 6), tex_wall_h)
 	vm._add_solid_wall_segment(center + Vector2(42, 4), Vector2(40, 6), tex_wall_h)
@@ -283,14 +273,9 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 
 # PASO 1: 🏥 HOSPITAL DE URGENCIAS Y ⚰️ MORGUE FORENSE (`Vector2(745, 148)`)
 static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
-	vm._construct_solid_building(
-		"building_hospital", "🏥 Hospital de Urgencias y ⚰️ Morgue Forense",
-		vm._hospital_center, Vector2(138, 96), false,
-		"res://assests/world/village/floor_hospital_tile.png",
-		"res://assests/world/village/wall_stone_h.png",
-		"res://assests/world/village/wall_stone_v.png",
-		44.0, 0.0, Color(0.68, 0.98, 0.88)
-	)
+	vm._construct_solid_building("building_hospital", "🏥 Hospital de Urgencias y ⚰️ Morgue Forense", vm._hospital_center,
+		"res://assests/world/village/floor_hospital_tile.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
+		Color(0.68, 0.98, 0.88))
 	var tex_wall_h := vm._load_tex("res://assests/world/village/wall_stone_h.png")
 	vm._add_solid_wall_segment(vm._hospital_center + Vector2(-46, 4), Vector2(44, 6), tex_wall_h)
 	vm._add_solid_wall_segment(vm._hospital_center + Vector2(46, 4), Vector2(44, 6), tex_wall_h)
@@ -332,14 +317,9 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 
 # PASO 2: 🚓 COMISARÍA, 🔒 CÁRCEL Y GUARDIAS DE LA LEY (`Vector2(915, 148)`)
 static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
-	vm._construct_solid_building(
-		"building_police", "🚓 Comisaría de Policía y 🔒 Cárcel del Valle",
-		vm._police_center, Vector2(142, 96), false,
-		"res://assests/world/village/floor_stone_forge.png",
-		"res://assests/world/village/wall_stone_h.png",
-		"res://assests/world/village/wall_stone_v.png",
-		44.0, 0.0, Color(0.62, 0.85, 1.0)
-	)
+	vm._construct_solid_building("building_police", "🚓 Comisaría de Policía y 🔒 Cárcel del Valle", vm._police_center,
+		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
+		Color(0.62, 0.85, 1.0))
 	var tex_bars_h := vm._load_tex("res://assests/world/village/jail_bars_h.png")
 	var tex_bars_v := vm._load_tex("res://assests/world/village/jail_bars_v.png")
 	var tex_bed := vm._load_tex("res://assests/world/village/tavern_bed.png")
@@ -406,14 +386,9 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 
 # PASO 2B: ☀️ CAPILLA DEL ALBA Y 🪦 CEMENTERIO PARROQUIAL (`Vector2(745, 312)`)
 static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
-	vm._construct_solid_building(
-		"building_church", "☀️ Capilla del Alba",
-		vm._church_center, Vector2(132, 92), false,
-		"res://assests/world/village/floor_stone_forge.png",
-		"res://assests/world/village/wall_stone_h.png",
-		"res://assests/world/village/wall_stone_v.png",
-		42.0, 0.0, Color(0.92, 0.86, 1.0)
-	)
+	vm._construct_solid_building("building_church", "☀️ Capilla del Alba", vm._church_center,
+		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
+		Color(0.92, 0.86, 1.0))
 	# Alfombra central sobria bajo el pasillo de bancos (con posición centrada y z_index = -2 para no montar sobre el tejado)
 	vm._add_rect_poly(vm._church_center + Vector2(0, -4), Vector2(10, 32), Color(0.54, 0.24, 0.20, 0.62), -2)
 
@@ -749,19 +724,9 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	# 7. Molino Viejo Abandonado río arriba del claro (`Vector2(188, -1060)`, tamaño `Vector2(124, 92)`)
 	var mill_center: Vector2 = FishingSpot.ABANDONED_MILL_CENTER
 	var mill_size: Vector2 = FishingSpot.ABANDONED_MILL_SIZE
-	vm._construct_solid_building(
-		vm.ID_MOLINO,
-		"🏚️ Molino Viejo Abandonado",
-		mill_center,
-		mill_size,
-		true,
-		"res://assests/world/village/floor_wood_planks.png",
-		"res://assests/world/village/wall_stone_h.png",
-		"res://assests/world/village/wall_stone_v.png",
-		42.0,
-		0.0,
-		Color(0.82, 0.66, 0.52)
-	)
+	vm._construct_solid_building(vm.ID_MOLINO, "🏚️ Molino Viejo Abandonado", mill_center,
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
+		Color(0.82, 0.66, 0.52))
 	# Rueda de molino parada en el exterior oeste (sobre el cauce del arroyo) en 2D
 	var wheel_2d := vm._add_rect_poly(Vector2(mill_center.x - mill_size.x * 0.5 - 5.0, mill_center.y), Vector2(8.0, 34.0), Color(0.28, 0.19, 0.12, 0.98), 0)
 	if wheel_2d != null:

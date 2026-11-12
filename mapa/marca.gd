@@ -29,6 +29,8 @@ const PAJAR := "pajar"                    ## molino abandonado (Caso I): montón
 const HOGAR := "hogar"                    ## molino abandonado (Caso I): hogar con ceniza
 const CORDEL := "cordel"                  ## molino abandonado (Caso I): banco con el rollo de cordel
 const MESA_PAPEL := "mesa_papel"          ## molino abandonado (Caso I): mesa con el papel
+const PUERTA := "puerta"                  ## todos: centro del hueco de la puerta, sobre el muro (mapa/planta.gd)
+const VENTANA := "ventana"                ## todos: centro de la ventana, en el mismo muro que la puerta
 const SOTANO := "sotano"                  ## molino abandonado (Caso I): foso con la reja al canal
 const LETRERO_ALTURA_M: float = 1.2
 const LETRERO_TAM_PIXEL: float = 0.008    ## metros por píxel de letra: se lee al acercarse, no tapa el edificio
@@ -86,11 +88,11 @@ static func de_escena(escena: PackedScene) -> Dictionary:
 	if escena == null:
 		return out
 	var estado: SceneState = escena.get_state()
-	var centro: Vector2 = _propiedades(estado, 0).get("centro_original", Vector2.ZERO)
+	var centro: Vector2 = propiedades(estado, 0).get("centro_original", Vector2.ZERO)
 	for i in range(estado.get_node_count()):
 		if not str(estado.get_node_path(i)).begins_with("./" + CARPETA + "/"):
 			continue
-		var propiedades: Dictionary = _propiedades(estado, i)
+		var propiedades: Dictionary = propiedades(estado, i)
 		var id := String(propiedades.get("id_marca", ""))
 		if id.is_empty():
 			continue
@@ -99,7 +101,7 @@ static func de_escena(escena: PackedScene) -> Dictionary:
 	return out
 
 
-static func _propiedades(estado: SceneState, nodo: int) -> Dictionary:
+static func propiedades(estado: SceneState, nodo: int) -> Dictionary:
 	var out: Dictionary = {}
 	for k in range(estado.get_node_property_count(nodo)):
 		out[String(estado.get_node_property_name(nodo, k))] = estado.get_node_property_value(nodo, k)

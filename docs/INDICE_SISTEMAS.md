@@ -15,7 +15,7 @@
 | `scripts/ui/` · `scenes/ui_root.gd` | Paneles (detective, mapa, mochila, salud, casino, crónica); `InteractionSelector` (tecla E); HUD y pausa |
 | `scripts/data/` | Datos fijos: nombres, rasgos, frases, fichas de vecinos |
 | `scenes/` | `World.tscn`, `MenuPrincipal.tscn`, interfaz |
-| `mapa/` | Mapa editable `Mundo3D.tscn` y sus piezas (`pieza.gd`, `edificio.gd`, `mueble.gd`, `marca.gd`, `casa_modelo.gd`, `camino.gd`, `rio.gd`, `anclas.gd`) |
+| `mapa/` | Mapa editable `Mundo3D.tscn` y sus piezas (`pieza.gd`, `edificio.gd`, `mueble.gd`, `marca.gd`, `planta.gd`, `casa_modelo.gd`, `camino.gd`, `rio.gd`, `anclas.gd`) |
 | `shaders/` | `agua.gdshader` y filtros retro |
 | `tools/` · `tools/tests/` | Herramientas del mapa (`hornear_*.gd`, `esparcir_arboles.gd`, `screenshot_3d.gd`) · pruebas automáticas |
 | `addons/` | Pincel del mapa (nuestro) y Asset Placer (ajeno, no tocar) |

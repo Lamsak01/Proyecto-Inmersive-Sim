@@ -4,6 +4,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const Anclas = preload("res://mapa/anclas.gd")
 const Marca = preload("res://mapa/marca.gd")
+const Planta = preload("res://mapa/planta.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const Vista = preload("res://scripts/fisica/Vista.gd")
 
@@ -393,12 +394,20 @@ func get_door_lanes(b_or_door: Dictionary, lane_shift: float = 0.0) -> Dictionar
 		"enter_inside_pt": enter_lane_center + in_dir * 16.0,
 	}
 
+## Levanta la parte del edificio que se pisa y choca. Tamaño, puerta y ventana salen de la escena del edificio
+## (mapa/planta.gd); las casas de recién llegados pasan la `planta` de su casa modelo.
 func _construct_solid_building(
-	b_id: String, b_title: String, center: Vector2, size: Vector2, door_on_south,
+	b_id: String, b_title: String, center: Vector2,
 	floor_tex_path: String, wall_h_path: String, wall_v_path: String,
-	door_width: float = 42.0, door_offset_x: float = 0.0, title_color: Color = Color(0.96, 0.90, 0.68),
-	window_on_right: bool = false
+	title_color: Color = Color(0.96, 0.90, 0.68), planta: Dictionary = {}
 ) -> void:
+	if planta.is_empty():
+		planta = Planta.de_edificio(b_id)
+	var size: Vector2 = planta["size"]
+	var door_dir: String = planta["door_dir"]
+	var door_width: float = planta["door_width"]
+	var door_offset_x: float = planta["door_offset"]
+	var window_offset: float = planta["window_offset"]
 	# Editor del mapa 3D (2026-11-10): si el usuario movió el edificio en mapa/Mundo3D.tscn, se construye en el sitio nuevo
 	var d_edif: Vector2 = EdificioEditor.desplazamiento(b_id)
 	var g_edif: float = EdificioEditor.giro(b_id)
@@ -409,13 +418,6 @@ func _construct_solid_building(
 	Anclas.pausa += 1 # sus muros ya van desplazados; que las anclas no los muevan otra vez
 	var half := size * 0.5
 	var rect := Rect2(center - half, size)
-	var door_dir: String = "south"
-	if typeof(door_on_south) == TYPE_STRING:
-		var dd_s: String = str(door_on_south).to_lower().strip_edges()
-		if dd_s in ["south", "north", "east", "west"]:
-			door_dir = dd_s
-	else:
-		door_dir = "south" if bool(door_on_south) else "north"
 	if g_edif > 0.5:
 		# Girado en el editor (de 90 en 90): se gira la planta, la puerta y su sitio; el resto del código no cambia
 		var m_g: Transform2D = Anclas.matriz(g_edif)
@@ -425,6 +427,8 @@ func _construct_solid_building(
 		orig_info["door_south_orig"] = door_dir == "south"
 		orig_info["giro"] = g_edif
 		var v2: Vector2 = m_g.basis_xform(v_door)
+		var v_win: Vector2 = Vector2(window_offset, v_door.y) if horiz0 else Vector2(v_door.x, window_offset)
+		var v2_win: Vector2 = m_g.basis_xform(v_win)
 		door_width *= m_g.basis_xform(Vector2(1, 0) if horiz0 else Vector2(0, 1)).length()
 		size = Vector2(absf(m_g.x.x) * size.x + absf(m_g.y.x) * size.y, absf(m_g.x.y) * size.x + absf(m_g.y.y) * size.y)
 		half = size * 0.5
@@ -432,6 +436,7 @@ func _construct_solid_building(
 		var giros: Array = ["south", "east", "north", "west"]
 		door_dir = giros[(giros.find(door_dir) + int(roundf(g_edif / 90.0))) % 4]
 		door_offset_x = v2.x if door_dir in ["south", "north"] else v2.y
+		window_offset = v2_win.x if door_dir in ["south", "north"] else v2_win.y
 	var is_south: bool = (door_dir == "south")
 	var is_horiz_door: bool = (door_dir in ["south", "north"])
 	var door_pos: Vector2
@@ -442,6 +447,7 @@ func _construct_solid_building(
 		var is_east: bool = (door_dir == "east")
 		var door_x: float = (center.x + half.x) if is_east else (center.x - half.x)
 		door_pos = Vector2(door_x, center.y + door_offset_x)
+	var window_pos: Vector2 = Vector2(center.x + window_offset, door_pos.y) if is_horiz_door else Vector2(door_pos.x, center.y + window_offset)
 
 	building_footprints.append({
 		"id": b_id, "title": b_title, "rect": rect, "door_pos": door_pos,
@@ -500,11 +506,8 @@ func _construct_solid_building(
 
 	var t_lbl := _add_title_label(center + Vector2(-125, -half.y - 18.0), Vector2(250, 14), b_title, title_color, 7)
 	t_lbl.set_meta("anchor_pos", door_pos)
-	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir, window_on_right)
+	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir, window_pos)
 	Anclas.pausa -= 1
-
-const VENTANA_SEPARACION_PX: float = 18.0 ## del borde de la puerta al centro de la ventana
-const VENTANA_MARGEN_PX: float = 14.0     ## lo más cerca que puede quedar de una esquina
 
 func _spawn_building_door_and_window(
 	b_id: String,
@@ -513,11 +516,10 @@ func _spawn_building_door_and_window(
 	door_pos: Vector2,
 	door_on_south: bool,
 	door_width: float,
-	door_dir: String = "",
-	window_on_right: bool = false
+	door_dir: String,
+	win_pos: Vector2
 ) -> void:
-	var eff_dir: String = door_dir if door_dir != "" else ("south" if door_on_south else "north")
-	var is_horiz_door: bool = (eff_dir in ["south", "north"])
+	var is_horiz_door: bool = (door_dir in ["south", "north"])
 	var tex_door_closed := _load_tex("res://assests/world/village/door_wood_closed.png")
 	var tex_door_open := _load_tex("res://assests/world/village/door_wood_open.png")
 	var tex_win_open := _load_tex("res://assests/world/village/window_glass_open.png")
@@ -546,26 +548,13 @@ func _spawn_building_door_and_window(
 	var occ_rect: Rect2 = Rect2(door_pos - Vector2(door_width * 0.5, 4.0), Vector2(door_width, 8.0)) if is_horiz_door else Rect2(door_pos - Vector2(4.0, door_width * 0.5), Vector2(8.0, door_width))
 	building_doors.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": door_pos,
-		"door_south": door_on_south, "door_dir": eff_dir, "width": door_width, "body": d_body, "col": d_col,
+		"door_south": door_on_south, "door_dir": door_dir, "width": door_width, "body": d_body, "col": d_col,
 		"spr_closed": spr_closed, "spr_open": spr_open, "label": d_lbl,
 		"occluder_rect": occ_rect,
 		"is_open": false, "is_locked": false, "locked_by_player": false,
 		"manual_override_timer": 0.0, "npc_pass_timer": 0.0, "police_breach_timer": 0.0
 	})
 
-	var win_pos: Vector2
-	# La ventana va a un lado de la puerta (a la izquierda del mapa, salvo que se pida el otro); si no cabe, al contrario
-	var hacia: float = (door_width * 0.5 + VENTANA_SEPARACION_PX) * (1.0 if window_on_right else -1.0)
-	if is_horiz_door:
-		var win_x: float = door_pos.x + hacia
-		if win_x < rect.position.x + VENTANA_MARGEN_PX + 1.0 or win_x > rect.end.x - VENTANA_MARGEN_PX - 1.0:
-			win_x = door_pos.x - hacia
-		win_pos = Vector2(clampf(win_x, rect.position.x + VENTANA_MARGEN_PX, rect.end.x - VENTANA_MARGEN_PX), door_pos.y)
-	else:
-		var win_y: float = door_pos.y + hacia
-		if win_y < rect.position.y + VENTANA_MARGEN_PX + 1.0 or win_y > rect.end.y - VENTANA_MARGEN_PX - 1.0:
-			win_y = door_pos.y - hacia
-		win_pos = Vector2(door_pos.x, clampf(win_y, rect.position.y + VENTANA_MARGEN_PX, rect.end.y - VENTANA_MARGEN_PX))
 	var spr_win := _add_sprite_prop(tex_win_open, win_pos, Vector2.ONE, 3)
 
 	_add_station_area("WindowArea_" + b_id, win_pos, 11.0, "building_window")
@@ -574,7 +563,7 @@ func _spawn_building_door_and_window(
 
 	building_windows.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": win_pos,
-		"door_south": door_on_south, "door_dir": eff_dir, "sprite": spr_win, "label": w_lbl,
+		"door_south": door_on_south, "door_dir": door_dir, "sprite": spr_win, "label": w_lbl,
 		"is_shuttered": false, "manual_override_timer": 0.0
 	})
 

@@ -74,6 +74,8 @@ size = Vector3(0.672, 0.8665471, 0.5208)
 script = ExtResource("1_vfwcs")
 id_edificio = "shop_family_smith"
 centro_original = Vector2(335, -36)
+planta_m = Vector2(6.496, 4.256)
+puerta_ancho_m = 2.24
 
 [node name="Muros" type="Node3D" parent="." unique_id=408556103]
 
@@ -215,3 +217,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.904, 0, 0.672)
 gizmo_extents = 0.5
 script = ExtResource("9_eckyp")
 id_marca = "expositor"
+
+[node name="puerta" type="Marker3D" parent="Marcas" unique_id=779124734]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.128)
+gizmo_extents = 0.5
+script = ExtResource("9_eckyp")
+id_marca = "puerta"
+
+[node name="ventana" type="Marker3D" parent="Marcas" unique_id=388925418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.128, 0, 2.128)
+gizmo_extents = 0.5
+script = ExtResource("9_eckyp")
+id_marca = "ventana"

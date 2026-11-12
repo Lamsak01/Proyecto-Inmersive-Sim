@@ -23,8 +23,6 @@ const FAMILY_NAME: String = "Casa del Corvo"
 ## Edificio: 275 × 190, puerta al sur (mira a la Calle Mayor y a la terraza, lejos del cementerio).
 const BASE: Vector2 = Vector2(-255, -206)
 const RECT: Rect2 = Rect2(BASE, Vector2(275, 190))
-const DOOR_X: float = BASE.x + 100.0
-const DOOR_W: float = 36.0
 const ROW_Y: float = BASE.y + 80.0 ## tabique entre la fila del fondo (salas pequeñas) y la de delante (comedor y cocina)
 const KITCHEN_X: float = BASE.x + 195.0 ## tabique entre comedor y cocina (y entre el cuarto del dueño y la cámara)
 const GAP: float = 30.0 ## anchura de los pasos entre salas
@@ -111,9 +109,9 @@ static func setup_world(vm) -> void:
 
 static func build(vm) -> void:
 	var c: Vector2 = RECT.get_center()
-	vm._construct_solid_building(BUILDING_ID, TITLE, c, RECT.size, true,
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png",
-		"res://assests/world/village/wall_stone_v.png", DOOR_W, DOOR_X - c.x, Color(1.0, 0.82, 0.55))
+	vm._construct_solid_building(BUILDING_ID, TITLE, c,
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
+		Color(1.0, 0.82, 0.55))
 	_build_partitions(vm)
 	_build_room_floors(vm)
 	_build_furniture(vm)

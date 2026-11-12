@@ -202,6 +202,8 @@ radial_segments = 6
 script = ExtResource("1_vxw3n")
 id_edificio = "building_restaurant"
 centro_original = Vector2(-117.5, -111)
+planta_m = Vector2(15.4, 10.64)
+puerta_ancho_m = 2.016
 
 [node name="Muros" type="Node3D" parent="." unique_id=1822703251]
 
@@ -1001,3 +1003,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.18, 0, 6.776)
 gizmo_extents = 0.5
 script = ExtResource("9_7eih5")
 id_marca = "mesa_terraza_5"
+
+[node name="puerta" type="Marker3D" parent="Marcas" unique_id=2101800205]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.1, 0, 5.32)
+gizmo_extents = 0.5
+script = ExtResource("9_7eih5")
+id_marca = "puerta"
+
+[node name="ventana" type="Marker3D" parent="Marcas" unique_id=1616683134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.116, 0, 5.32)
+gizmo_extents = 0.5
+script = ExtResource("9_7eih5")
+id_marca = "ventana"

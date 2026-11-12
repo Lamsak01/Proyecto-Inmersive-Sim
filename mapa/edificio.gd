@@ -33,6 +33,10 @@ static var _nombres: Dictionary = {}
 ## Giro con el que esta pieza ya viene de fábrica (no lo cambies): las casas modelo se hacen con la puerta al sur y
 ## las de los solares que miran al norte son la misma casa con media vuelta. El juego solo cuenta lo que gires de más.
 @export var giro_de_fabrica: float = 0.0
+## Planta que se pisa y choca en el juego: ancho (este-oeste) × fondo (norte-sur), en metros (mapa/planta.gd).
+## La puerta y la ventana del juego están donde las marcas «puerta» y «ventana»; aquí, el ancho del hueco de la puerta.
+@export var planta_m: Vector2 = Vector2.ZERO
+@export var puerta_ancho_m: float = 0.0
 
 
 func _ready() -> void:

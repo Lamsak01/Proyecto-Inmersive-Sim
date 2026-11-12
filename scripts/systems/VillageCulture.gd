@@ -2012,9 +2012,9 @@ static func build(vm, id: String, st: Dictionary) -> void:
 	var c: Vector2 = VillageLots.building_center(id)
 	var props: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 	var m: float = -1.0 if bool(d["door_south"]) else 1.0
-	vm._construct_solid_building("building_" + str(st["kind"]), str(st["title"]), c, Vector2(128, 96), bool(d["door_south"]),
-		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
-		"res://assests/world/village/wall_timber_v.png", 42.0, 0.0, Color(0.86, 0.92, 1.0))
+	vm._construct_solid_building("building_" + str(st["kind"]), str(st["title"]), c,
+		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
+		Color(0.86, 0.92, 1.0))
 	match str(st["kind"]):
 		"library":
 			for sx in [-44, -18, 8]: # Estanterías del fondo (dejando el cuadrante NE para la Sala Oculta)

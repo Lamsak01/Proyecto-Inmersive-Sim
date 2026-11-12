@@ -172,6 +172,8 @@ size = Vector3(0.3696, 0.4438412, 0.13440001)
 script = ExtResource("1_831p4")
 id_edificio = "building_hospital"
 centro_original = Vector2(745, 148)
+planta_m = Vector2(7.728, 5.376)
+puerta_ancho_m = 2.464
 
 [node name="Muros" type="Node3D" parent="." unique_id=341032646]
 
@@ -501,3 +503,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.848, 0, 1.456)
 gizmo_extents = 0.5
 script = ExtResource("9_psfjp")
 id_marca = "mesa_morgue_3"
+
+[node name="puerta" type="Marker3D" parent="Marcas" unique_id=498958478]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.688)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "puerta"
+
+[node name="ventana" type="Marker3D" parent="Marcas" unique_id=2018043439]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.24, 0, -2.688)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "ventana"

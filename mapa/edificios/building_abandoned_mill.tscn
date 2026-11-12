@@ -89,6 +89,8 @@ size = Vector3(0.672, 0.8665471, 0.5208)
 script = ExtResource("1_7efi3")
 id_edificio = "building_abandoned_mill"
 centro_original = Vector2(188, -1060)
+planta_m = Vector2(6.944, 5.152)
+puerta_ancho_m = 2.352
 
 [node name="Muros" type="Node3D" parent="." unique_id=1459845619]
 
@@ -237,3 +239,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 0, -0.056)
 gizmo_extents = 0.5
 script = ExtResource("8_37uc6")
 id_marca = "sotano"
+
+[node name="puerta" type="Marker3D" parent="Marcas" unique_id=402952631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.576)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "puerta"
+
+[node name="ventana" type="Marker3D" parent="Marcas" unique_id=1345874766]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.184, 0, 2.576)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "ventana"

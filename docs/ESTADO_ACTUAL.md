@@ -8,7 +8,7 @@ toca el código del mundo** (la que hizo este avance; el usuario lo confirmó el
 mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## b) Último avance completado
-- 2026-11-11: paso 1, **231 marcas en 33 escenas**: todos los edificios únicos, los oficios en solares y las tres casas
+- 2026-11-11: paso 1, **295 marcas en 32 escenas**: todos los edificios únicos, los oficios en solares y las tres casas
   modelo. El código las lee y sus números están borrados.
 - Marcas: `mapa/marca.gd` (`Marker3D` con `id_marca`, grupo «Marcas» de `mapa/edificios/<id>.tscn`).
   `Marca.sitio(id_edificio, marca)` da el sitio en el mapa ORIGINAL (centro original de la escena + posición local): lo
@@ -26,13 +26,14 @@ mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
   Borradas las herramientas de conversión. La casona ya tiene su tercera cama.
 
 ## c) Siguiente paso técnico inmediato
-Cierre del paso 1: **planta y puerta desde la escena** (tamaño de la planta, lado y ancho de la puerta y sitio de la
-ventana como propiedades o marcas de la pieza, en vez de los números de cada `_construct_solid_building`: 15 llamadas
-en `VillageWorldBuilder`, `VillageLots`, `VillageCivic`, `VillageCulture`, `VillageNobility`, `VillageTavern`,
-`VillageRestaurant`). Toca más de 2 scripts: plan corto y confirmación del usuario antes de empezar.
-Siguen como números (apuntado): sitios de trabajo al aire libre (cantero, granjero, ganadero, leñador), muebles de
-mejoras de la casa del jugador (`VillageHousing.home_prop_pos`), rejas y bancos sueltos de `VillageWorldBuilder`.
-Volver a medir con el inventario al cerrar (`docs/specs/PRUEBAS.md`), con ventana (~1 min).
+Hecho el 2026-11-11: **planta, puerta y ventana desde la escena** (`mapa/planta.gd`; `planta_m`, `puerta_ancho_m` y
+marcas `puerta`/`ventana`; `_construct_solid_building(id, título, centro, texturas, color[, planta])`).
+Lo que queda para cerrar el paso 1 (proponer al usuario, tanda aparte): **tabiques interiores** como marcas (unos 25
+`_add_solid_wall_segment` en `VillageManagerBase`, `VillageWorldBuilder`, `VillageRestaurant`, `VillageTavern`).
+Siguen como números (apuntado): tamaños que aún usa otra lógica (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`,
+`HOUSE_PLOTS.size`, `FishingSpot.ABANDONED_MILL_SIZE`, `ValleyMapUI`), `door_south` de los solares (mejoras de la
+casa del jugador), sitios de trabajo al aire libre, rejas y bancos sueltos de `VillageWorldBuilder`.
+Después: volver a medir con el inventario (`docs/specs/PRUEBAS.md`, con ventana, ~1 min) y pasar al paso 2.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).

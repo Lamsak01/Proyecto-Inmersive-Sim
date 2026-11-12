@@ -91,9 +91,9 @@ static func build(vm, id: String, st: Dictionary) -> void:
 	var c: Vector2 = VillageLots.building_center(id)
 	var props: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 	var big: bool = str(st["kind"]) == "mansion"
-	vm._construct_solid_building(BUILDING_IDS[id], str(st["title"]), c, Vector2(180, 120) if big else Vector2(150, 104),
-		bool(d["door_south"]), "res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png",
-		"res://assests/world/village/wall_stone_v.png", 48.0, 0.0, Color(1.0, 0.84, 0.5) if big else Color(0.95, 0.88, 0.7))
+	vm._construct_solid_building(BUILDING_IDS[id], str(st["title"]), c,
+		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
+		Color(1.0, 0.84, 0.5) if big else Color(0.95, 0.88, 0.7))
 	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
 	for b in beds(id):
 		vm._add_sprite_prop(tex_bed, b, Vector2(1.2, 1.2), -1)

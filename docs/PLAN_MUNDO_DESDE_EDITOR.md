@@ -46,8 +46,9 @@ moviendo piezas, no con un factor.
    `tools/convertir_edificios.gd`) y el juego las carga; su código de dibujo está borrado; «dobles» del inventario 885 → 0.
    Hecho también: marcas de las 5 familias fundadoras (`mapa/marca.gd`, `tools/marcar_edificios.gd`).
    Falta: el resto de marcas para la lógica (camas, mesas, puestos, salas: `VillageTavern`, `VillageRestaurant`, `VillageWorldBuilder`…),
-   planta/puerta leídas de la escena. Hecho ya: todas las marcas (231), muebles de la capilla, casas de recién
-   llegados como copias de tres casas modelo y borrado todo el dibujo de edificios por código. Era:
+   los tabiques interiores (unos 25) como marcas. Hecho ya: todas las marcas de sitios (295 con puertas y ventanas),
+   muebles de la capilla, casas modelo, borrado todo el dibujo de edificios por código, y planta, puerta y ventana
+   leídas de la escena (`mapa/planta.gd`). Era:
    **Edificios completos en el editor**, por grupos (casas → oficios → públicos: iglesia, ayuntamiento, escuela…): muros,
    puerta, muebles, camas, mesas y puestos de trabajo como marcas dentro de cada edificio; el código las lee en vez de sus
    constantes. *Jugable tras cada grupo.* Prueba: inventario del grupo a 0 + sondeo de edificios movidos.
