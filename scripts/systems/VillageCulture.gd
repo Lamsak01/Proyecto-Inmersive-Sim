@@ -31,7 +31,7 @@ const MARKET_WEEKDAY: int = 2 # Miércoles
 const MARKET_OPEN: int = 8
 const MARKET_CLOSE: int = 13
 const MARKET_MIN_STOCK: int = 8 # Solo monta puesto quien tiene género de sobra
-const MARKET_SPOTS: Array = [Vector2(422, 26), Vector2(508, 26), Vector2(522, 52), Vector2(488, 46)]
+const SITIOS_MERCADO := "mercado" ## cruces mercado_1… de «Sitios»: dónde monta puesto cada vendedor
 const MARKET_VISIT_CHANCE: float = 0.25
 const REPAIR_PRICE: int = 8
 const REPAIRS_PER_DAY: int = 2
@@ -47,7 +47,7 @@ const RAID_RICH_TREASURY: int = 300 # Por encima de esto, las arcas llenas atrae
 const RAID_THREAT_WARN: int = 40 # A partir de aquí hay probabilidad diaria de que se decidan a atacar
 const RAID_GATHER_HOUR: int = 16 # Los defensores acuden a la entrada del pueblo
 const RAID_ATTACK_HOUR: int = 18 # El asalto llega al atardecer
-const RAID_GATE_POS: Vector2 = Vector2(1400, 50) # Camino del este, por donde llegan
+const SITIO_PUERTA_ESTE := "puerta_este" ## cruz de «Sitios»: camino del este, por donde llegan asaltos y caravanas
 const RAID_MAX_VOLUNTEERS: int = 3 # Las barricadas pagadas no pasan de +4 por incursión
 const ROUTE_CHARTER_COST: int = 25
 ## Arancel que cada pueblo de fuera paga a las arcas por cada intercambio de su ruta (oro que entra al valle).
@@ -55,7 +55,7 @@ const ROUTE_TOWN_TARIFF: int = 4
 ## Los pueblos de fuera reponen su fondo de comercio cada lunes (ganan dinero vendiendo en otros sitios), hasta este tope.
 const ROUTE_WEEKLY_REFILL: int = 20
 const ROUTE_BALANCE_CAP: int = 90
-const CARAVAN_PLAZA_POS: Vector2 = Vector2(465, 48)
+const SITIO_CARAVANA := "caravana_plaza" ## cruz de «Sitios»: dónde para la caravana en la plaza
 const ROUTE_WEEKDAYS: Dictionary = {
 	"high_pass": 0, # Lunes
 	"river_port": 1, # Martes
@@ -779,7 +779,7 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 	VillageChronicle.add(vm, "terminal_alarm", "Saltó la alarma voltaica al intentar hackear la terminal lógica (%s)" % subsystem, true)
 	return {"ok": true, "won": false, "subsystem": subsystem, "gold": 0}
 
-const HORSE_DEFAULT_POS: Vector2 = Vector2(360, 470) # junto al Rancho del Sur
+const SITIO_CABALLO := "caballo" ## cruz de «Sitios»: junto al Rancho del Sur
 const Sitio = preload("res://mapa/sitio.gd")
 const SITIO_CARRO := "carro" ## cruz de «Sitios»: junto al Rancho del Sur, al lado del caballo
 
@@ -818,7 +818,7 @@ static func sync_player_horse(vm) -> Node:
 			pl_n.set("is_mounted", false)
 		return null
 	var m: Dictionary = mounts_state(vm)
-	var pos := Vector2(float(m.get("pos_x", HORSE_DEFAULT_POS.x)), float(m.get("pos_y", HORSE_DEFAULT_POS.y)))
+	var pos := Vector2(float(m.get("pos_x", Sitio.mundo(SITIO_CABALLO).x)), float(m.get("pos_y", Sitio.mundo(SITIO_CABALLO).y)))
 	if not bool(m.get("is_mounted", false)):
 		pos = outside_of_buildings(vm, pos)
 		m["pos_x"] = pos.x
@@ -996,7 +996,7 @@ static func buy_mount(vm, kind: String, seller, inv) -> bool:
 		seller.personal_gold += HORSE_COST
 		m["has_horse"] = true
 		# Regla 2: el caballo existe en el mapa, junto al ganadero que te lo vende.
-		var spawn: Vector2 = (seller.global_position + Vector2(26, 6)) if seller is Node2D else HORSE_DEFAULT_POS
+		var spawn: Vector2 = (seller.global_position + Vector2(26, 6)) if seller is Node2D else Sitio.mundo(SITIO_CABALLO)
 		m["pos_x"] = spawn.x
 		m["pos_y"] = spawn.y
 		m["is_mounted"] = false
@@ -1231,7 +1231,7 @@ static func raid_on_hour(vm, hour: int) -> void:
 		return
 	if hour == RAID_GATHER_HOUR:
 		for n in raid_defenders(vm):
-			n.start_errand("raid_defend", _AN_SITIOS.mover(RAID_GATE_POS + Vector2(randf_range(-40.0, 40.0), randf_range(-30.0, 30.0))))
+			n.start_errand("raid_defend", Sitio.mundo(SITIO_PUERTA_ESTE) + Vector2(randf_range(-40.0, 40.0), randf_range(-30.0, 30.0)))
 			n._spawn_floating_text("🛡️", Color(1.0, 0.85, 0.5), -30.0)
 	elif hour >= RAID_ATTACK_HOUR and not bool(raid.get("attack_started", false)):
 		# Regla «todo es físico»: el asalto lo deciden los atacantes que aparecen de verdad (RaidController).
@@ -1531,7 +1531,7 @@ static func is_route_caravan_at_plaza(vm, route_id: String) -> bool:
 	var m = get_route_caravan_npc(vm, route_id)
 	if m == null or not is_instance_valid(m) or m.is_dead or m.is_downed or m._merchant_leaving:
 		return false
-	return bool(m.get_meta("at_plaza", false)) or m.global_position.distance_to(_AN_SITIOS.mover(CARAVAN_PLAZA_POS)) <= 45.0
+	return bool(m.get_meta("at_plaza", false)) or m.global_position.distance_to(Sitio.mundo(SITIO_CARAVANA)) <= 45.0
 
 static func get_mule_shipment_label(vm, route_id: String) -> String:
 	var routes: Dictionary = trade_routes_of(vm)
@@ -1623,15 +1623,15 @@ static func spawn_trade_caravan(vm, route_id: String, at_plaza: bool = false, si
 	if int(vm.merchant_suspension_days.get(route_id, 0)) > 0:
 		return null
 	var existing = get_route_caravan_npc(vm, route_id)
-	var start_pos: Vector2 = _AN_SITIOS.mover(CARAVAN_PLAZA_POS if at_plaza else RAID_GATE_POS)
+	var start_pos: Vector2 = Sitio.mundo(SITIO_CARAVANA if at_plaza else SITIO_PUERTA_ESTE)
 	if existing != null and is_instance_valid(existing):
 		if at_plaza:
-			existing.global_position = _AN_SITIOS.mover(CARAVAN_PLAZA_POS)
+			existing.global_position = Sitio.mundo(SITIO_CARAVANA)
 			existing.set_meta("at_plaza", true)
 			existing._merchant_leaving = false
 			var ex_mule = get_route_caravan_mule(vm, route_id)
 			if ex_mule != null and is_instance_valid(ex_mule):
-				ex_mule.global_position = _AN_SITIOS.mover(CARAVAN_PLAZA_POS) + Vector2(22.0, 4.0)
+				ex_mule.global_position = Sitio.mundo(SITIO_CARAVANA) + Vector2(22.0, 4.0)
 			process_caravan_route_exchange(vm, route_id)
 		return existing
 	var r: Dictionary = routes[route_id]
@@ -1647,7 +1647,7 @@ static func spawn_trade_caravan(vm, route_id: String, at_plaza: bool = false, si
 	m_npc.tavern_social_pos = vm._tavern_social_pos
 	parent.add_child(m_npc)
 	var tex_path: String = "res://assests/world/village/npcs_64/sprite_casimir.png" if route_id != "sun_plain" else "res://assests/world/village/npcs_64/sprite_valeria.png"
-	m_npc.setup_npc(vm._load_tex(tex_path), CARAVAN_PLAZA_POS, RAID_GATE_POS, {}, vm._tavern_social_pos, "none", "Ruta de " + str(r.get("name", route_id)))
+	m_npc.setup_npc(vm._load_tex(tex_path), Sitio.original(SITIO_CARAVANA), Sitio.original(SITIO_PUERTA_ESTE), {}, vm._tavern_social_pos, "none", "Ruta de " + str(r.get("name", route_id)))
 	m_npc.global_position = start_pos
 	m_npc.set_meta("at_plaza", at_plaza)
 	m_npc._merchant_leaving = false
@@ -1688,14 +1688,14 @@ static func update_caravan_merchant_ai(vm, merchant, delta: float) -> void:
 		merchant._merchant_leaving = true
 		merchant.set_meta("at_plaza", false)
 		merchant.current_activity = VillageNPC.ActivityState.WORKING
-		merchant._move_towards_point(_AN_SITIOS.mover(RAID_GATE_POS), 78.0, delta)
-		if merchant.global_position.distance_to(_AN_SITIOS.mover(RAID_GATE_POS)) <= 18.0:
+		merchant._move_towards_point(Sitio.mundo(SITIO_PUERTA_ESTE), 78.0, delta)
+		if merchant.global_position.distance_to(Sitio.mundo(SITIO_PUERTA_ESTE)) <= 18.0:
 			despawn_trade_caravan(vm, route_id)
 		return
 	merchant._merchant_leaving = false
 	merchant.current_activity = VillageNPC.ActivityState.WORKING
-	merchant._move_towards_point(_AN_SITIOS.mover(CARAVAN_PLAZA_POS), 78.0, delta)
-	if merchant.global_position.distance_to(_AN_SITIOS.mover(CARAVAN_PLAZA_POS)) <= 22.0 and not bool(merchant.get_meta("at_plaza", false)):
+	merchant._move_towards_point(Sitio.mundo(SITIO_CARAVANA), 78.0, delta)
+	if merchant.global_position.distance_to(Sitio.mundo(SITIO_CARAVANA)) <= 22.0 and not bool(merchant.get_meta("at_plaza", false)):
 		merchant.set_meta("at_plaza", true)
 		process_caravan_route_exchange(vm, route_id)
 
@@ -1725,7 +1725,7 @@ static func caravans_on_hour(vm, hour: int) -> void:
 			var m = get_route_caravan_npc(vm, rid)
 			if m == null:
 				spawn_trade_caravan(vm, rid, true, true)
-			elif not bool(m.get_meta("at_plaza", false)) and m.global_position.distance_to(_AN_SITIOS.mover(CARAVAN_PLAZA_POS)) <= 45.0:
+			elif not bool(m.get_meta("at_plaza", false)) and m.global_position.distance_to(Sitio.mundo(SITIO_CARAVANA)) <= 45.0:
 				m.set_meta("at_plaza", true)
 				process_caravan_route_exchange(vm, rid)
 		elif hour == 16:
@@ -2173,12 +2173,13 @@ static func open_market(vm) -> int:
 			cands.append(n)
 	if cands.is_empty():
 		return 0
-	var m0: Vector2 = _AN_SITIOS.mover(MARKET_SPOTS[0])
+	var puestos: Array[Vector2] = Sitio.serie(SITIOS_MERCADO)
+	var m0: Vector2 = puestos[0]
 	cands.sort_custom(func(a, b): return a.work_position.distance_to(m0) > b.work_position.distance_to(m0))
 	var sellers: Dictionary = {}
-	for i in range(mini(cands.size(), MARKET_SPOTS.size())):
+	for i in range(mini(cands.size(), puestos.size())):
 		var n = cands[i]
-		var spot: Vector2 = _AN_SITIOS.mover(MARKET_SPOTS[i]) # el dibujo del puesto (_add_*) ya se traduce solo
+		var spot: Vector2 = puestos[i]
 		sellers[n.get_person_key()] = {"x": n.work_position.x, "y": n.work_position.y, "spot": i}
 		n.work_position = spot
 		n.add_thought("Hoy monto puesto en el mercado (+3)", 3.0)
@@ -2209,7 +2210,7 @@ static func _draw_market(vm) -> void:
 	_clear_market(vm)
 	var cap: Dictionary = VillageLots._capture_begin(vm)
 	for e in (state(vm)["market_sellers"] as Dictionary).values():
-		var p: Vector2 = MARKET_SPOTS[int(e["spot"])]
+		var p: Vector2 = _AN_SITIOS.desmover(Sitio.serie(SITIOS_MERCADO)[int(e["spot"])]) # lo que se dibuja aún se traduce
 		vm._add_rect_poly(p + Vector2(0, -10), Vector2(14, 4), Color(0.55, 0.36, 0.18, 1.0), -1) # Mesa
 		vm._add_rect_poly(p + Vector2(0, -16), Vector2(15, 2), Color(0.85, 0.25, 0.22, 0.95), 0) # Toldo
 	vm._add_title_label(Vector2(405, -4), Vector2(120, 12), "🧺 Mercado del Miércoles", Color(1.0, 0.9, 0.6), 7)

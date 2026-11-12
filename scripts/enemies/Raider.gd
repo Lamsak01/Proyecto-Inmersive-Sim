@@ -14,7 +14,8 @@ const BanditModel3DScript = preload("res://scripts/visuals/BanditModel3D.gd")
 
 signal gone(raider: Node, outcome: String) # "killed", "fled", "looted"
 
-const LOOT_POS: Vector2 = Vector2(465, 48) # la plaza
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_BOTIN := "botin_plaza" ## cruz de «Sitios»: a dónde van a saquear (la plaza)
 const ENGAGE_RADIUS: float = 110.0
 const MELEE_RANGE: float = 22.0
 
@@ -232,8 +233,9 @@ func _physics_process(delta: float) -> void:
 				if sprite:
 					sprite.modulate = Color(1.35, 0.88, 0.42)
 		return
-	_move_to(LOOT_POS, speed, delta)
-	if global_position.distance_to(LOOT_POS) <= 30.0:
+	var botin: Vector2 = Sitio.mundo(SITIO_BOTIN)
+	_move_to(botin, speed, delta)
+	if global_position.distance_to(botin) <= 30.0:
 		_finish("looted")
 		queue_free()
 

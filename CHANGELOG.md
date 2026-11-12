@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 3, grupo 3: 22 cruces más en «Sitios» (ocio, mercado, lavadero, caravana…) (Claude Code)
+- Cruces nuevas: `ocio_park_lawn`, `ocio_park_bench`, `ocio_plaza_benches`, `ocio_lake_view`, `ronda_noche_1…6`, `mercado_1…4`, `lavadero`, `caravana_plaza`, `puerta_este`, `caballo`, `botin_plaza`, `callejon_perista`, `entrada_oeste`, `entrada_este`. La biblioteca usa su marca `lectura`.
+- Borrados `pos` de `VillagePlaces.PLACES` (salvo taberna y comedor, que van con su edificio), `NIGHT_STROLL_SPOTS`, `LAVADERO_POS`, `CARAVAN_PLAZA_POS`, `RAID_GATE_POS`, `HORSE_DEFAULT_POS`, `MARKET_SPOTS`, `Raider.LOOT_POS`, `FENCE_ALLEY_POS` y los números de las entradas y de los forasteros de la taberna.
+- **Fallos arreglados:** los asaltantes iban a saquear la plaza en su sitio del mapa viejo; quien llegaba andando de fuera aparecía en el borde del mapa viejo; el caballo sin dueño también; los bancos del parque, de la plaza y el mirador del lago se dibujaban traducidos dos veces (lejísimos).
+- Comprobado: volcado de sitios idéntico salvo esos tres dibujos (ahora en su sitio), sondeos de edificios y zonas, física, `verify_all`, `atascos_vecinos`.
+
 ## 2026-11-12 — Paso 3, grupo 2: carpeta «Sitios» con 56 cruces al aire libre (Claude Code)
 - Carpeta nueva «Sitios» en `mapa/Mundo3D.tscn` (`mapa/sitio.gd`): cruces con nombre cuya posición es **ya la del mundo** (`Sitio.mundo(id)`, `Sitio.serie("paseo")`; nadie las traduce). 56: `paseo_1…18`, `espera_1…18`, `expedicion_<oficio>` (5), `jornal_<oficio>_<n>` (10), `asalto_entrada`, `carro`, `mirador`, `contrabando_campamento`, `contrabando_frontera`.
 - Borrados `IDLE_STROLL_SPOTS`, `TAVERN_DAY_SPOTS`, `EXPEDITION_TARGETS`, los `spots` de `VillageWork.PLACES` (ahora `VillageWork.spots(key)`), `SPAWN_POS`, `CART_DEFAULT_POS`, `MIRADOR_POS`, `SMUGGLER_CAMP_POS` y `SMUGGLER_BORDER_POS`.

@@ -23,11 +23,13 @@ const SPOT_RADIUS: float = 50.0
 const STOCK_CAP: int = 14
 const OWNER_FOOD_RESERVE: int = 20 # F1: el dueño no se gasta en jornales lo que necesita para comer
 ## Paso 2 (2026-11-07): el Lavadero se traslada al arroyo/fuente del pueblo (al oeste de la Botica y al norte del Parque del Roble), lejos del lago.
-const LAVADERO_POS: Vector2 = Vector2(215, 145)
+const SITIO_LAVADERO := "lavadero" ## cruz de «Sitios»
+const LAVADERO_ALCANCE_PX: float = 700.0 ## en el mapa original: quien esté más lejos no va a lavarse ahí
 const LAVADERO_CHANCE: float = 0.3
 const LAVADERO_GOSSIP_RADIUS: float = 50.0
 
 const Sitio = preload("res://mapa/sitio.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
 const SITIO_JORNAL := "jornal_%s"
 
 ## Trabajos de jornalero por oficio (clave de VillageTrades.CONFIG). Dónde se trabaja: `spots(key)`.
@@ -57,7 +59,7 @@ static func master_of(vm, key: String):
 
 # ---------------------------------------------------------------- mapa
 static func build_world(vm) -> void:
-	var p: Vector2 = LAVADERO_POS
+	var p: Vector2 = Sitio.original(SITIO_LAVADERO) # lo que se dibuja aún se traduce: se le da el mapa original
 	vm._add_rect_poly(p, Vector2(18, 8), Color(0.55, 0.55, 0.58, 0.95), -2) # Pila de piedra
 	vm._add_rect_poly(p, Vector2(14, 5), Color(0.30, 0.55, 0.78, 0.95), -1) # Agua
 	vm._add_title_label(p + Vector2(-50, -24), Vector2(100, 12), "🧺 Lavadero", Color(0.75, 0.9, 1.0), 7)
@@ -224,15 +226,15 @@ static func after_load(vm) -> void:
 
 # ---------------------------------------------------------------- lavadero
 static func wash_spot(_vm, npc, default_spot: Vector2) -> Vector2:
-	var lav: Vector2 = _AN_SITIOS.mover(LAVADERO_POS)
-	# La cercanía se mide en el mapa original: con el mapa ×E el alcance crece con él
-	if _AN_SITIOS.desmover(npc.global_position).distance_to(LAVADERO_POS) < 700.0 and randf() < LAVADERO_CHANCE:
+	var lav: Vector2 = Sitio.mundo(SITIO_LAVADERO)
+	# El alcance está pensado en el mapa original: con el mapa ×E crece con él
+	if npc.global_position.distance_to(lav) < LAVADERO_ALCANCE_PX * Mapa3D.E and randf() < LAVADERO_CHANCE:
 		return lav + Vector2(randf_range(-10, 10), 12)
 	return default_spot
 
 ## Al terminar de lavarse en el lavadero, charla con quien esté allí.
 static func on_washed(vm, n) -> void:
-	var lav: Vector2 = _AN_SITIOS.mover(LAVADERO_POS)
+	var lav: Vector2 = Sitio.mundo(SITIO_LAVADERO)
 	if n.global_position.distance_to(lav) > LAVADERO_GOSSIP_RADIUS:
 		return
 	for o in VillageNeeds.living(vm):

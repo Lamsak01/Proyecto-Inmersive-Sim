@@ -143,10 +143,8 @@ static func beg_spot(vm, npc) -> Vector2:
 
 # ---------------------------------------------------------------- B4.3 paseos nocturnos (Noctámbulo, Insomne, Sonámbulo)
 
-const NIGHT_STROLL_SPOTS: Array[Vector2] = [
-	Vector2(495, 88), Vector2(390, 56), Vector2(615, 88),
-	Vector2(555, 76), Vector2(735, 78), Vector2(405, -24),
-]
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIOS_RONDA := "ronda_noche" ## cruces ronda_noche_1… de «Sitios»: paseo nocturno si no hay farolas
 
 static func night_walk_kind(npc) -> String:
 	if npc == null:
@@ -179,7 +177,8 @@ static func night_stroll_spot(vm, npc, step: int = 0) -> Vector2:
 		var spr: Sprite2D = sl.get("sprite")
 		if is_instance_valid(spr):
 			return spr.global_position + Vector2(float((h_idx % 3) - 1) * 14.0, 16.0)
-	return _AN_SITIOS.mover(NIGHT_STROLL_SPOTS[h_idx % NIGHT_STROLL_SPOTS.size()] + Vector2(float((h_idx % 5) - 2) * 8.0, float(((h_idx / 5) % 3) - 1) * 8.0))
+	var rondas: Array[Vector2] = Sitio.serie(SITIOS_RONDA)
+	return rondas[h_idx % rondas.size()] + (Vector2(float((h_idx % 5) - 2) * 8.0, float(((h_idx / 5) % 3) - 1) * 8.0))
 
 # ---------------------------------------------------------------- E5 vicios
 

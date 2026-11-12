@@ -131,7 +131,7 @@ const RACKET_WEEKLY: int = 10
 const BOSS_TRIBUTE: int = 12
 const SEWER_KEY_COST: int = 20
 ## P5b: el perista trasnocha en el callejón de detrás de la taberna (esquina noroeste, fuera del edificio ampliado).
-const FENCE_ALLEY_POS: Vector2 = Vector2(232.0, -298.0)
+const SITIO_CALLEJON := "callejon_perista" ## cruz de «Sitios»: el callejón donde espera el perista
 const FENCE_ALLEY_FROM: int = 22
 const FENCE_ALLEY_UNTIL: int = 3
 ## P5b: rumores sutiles en la taberna (raros; solo de vecinos con algo turbio).
@@ -1023,12 +1023,12 @@ static func fence_on_hour(vm, h: int) -> void:
 			return
 		if f.errand_kind != "" or f.rite_pos != Vector2.ZERO:
 			return # otro recado o rito en marcha: esta noche no sale
-		f.start_errand("fence_alley", _AN_SITIOS.mover(FENCE_ALLEY_POS))
+		f.start_errand("fence_alley", Sitio.mundo(SITIO_CALLEJON))
 	elif f.errand_kind == "fence_alley":
 		f.end_errand()
 
 static func is_in_alley(npc) -> bool:
-	return npc != null and is_instance_valid(npc) and npc.errand_kind == "fence_alley" and npc.global_position.distance_to(_AN_SITIOS.mover(FENCE_ALLEY_POS)) <= 30.0
+	return npc != null and is_instance_valid(npc) and npc.errand_kind == "fence_alley" and npc.global_position.distance_to(Sitio.mundo(SITIO_CALLEJON)) <= 30.0
 
 ## Letrero de [E]: en el callejón, quien no lo conoce solo ve una figura encapuchada.
 static func alley_interact_label(vm, npc) -> String:

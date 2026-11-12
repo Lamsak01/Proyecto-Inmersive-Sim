@@ -2600,13 +2600,13 @@ func _initialize() -> void:
 	# Lavadero
 	var v5d_lav: int = 0
 	for _i5 in range(200):
-		if vw.wash_spot(vm, v5d_worker, M(Vector2(412, 70))).distance_to(M(vw.LAVADERO_POS)) < 30.0:
+		if vw.wash_spot(vm, v5d_worker, M(Vector2(412, 70))).distance_to(vw.Sitio.mundo(vw.SITIO_LAVADERO)) < 30.0:
 			v5d_lav += 1
 	assert(v5d_lav > 20 and v5d_lav < 120, "V5d: Some people wash at the laundry (%d/200)" % v5d_lav)
 	var v5d_other = v5b_people[0]
 	var v5d_op: Vector2 = v5d_other.global_position
-	v5d_worker.global_position = M(vw.LAVADERO_POS)
-	v5d_other.global_position = M(vw.LAVADERO_POS) + Vector2(10, 0)
+	v5d_worker.global_position = vw.Sitio.mundo(vw.SITIO_LAVADERO)
+	v5d_other.global_position = vw.Sitio.mundo(vw.SITIO_LAVADERO) + Vector2(10, 0)
 	var v5d_r0: int = v5d_worker.get_relationship_with_npc(v5d_other.get_person_key())
 	vw.on_washed(vm, v5d_worker)
 	assert(v5d_worker.get_relationship_with_npc(v5d_other.get_person_key()) != v5d_r0 or v5d_r0 >= 100, "V5d: People who meet at the laundry chat")
@@ -2644,7 +2644,7 @@ func _initialize() -> void:
 	vm.shop_businesses[v5e_role]["sabotaged_days"] = 0
 	v5e_s.personal_gold = 30
 	var v5e_tr0: int = int(vm.town_state.get("treasury", 0))
-	assert(vcu.open_market(vm) >= 1 and v5e_s.work_position in vm.sitios(vcu.MARKET_SPOTS), "V5e: A seller with surplus sets up in the plaza")
+	assert(vcu.open_market(vm) >= 1 and v5e_s.work_position in vcu.Sitio.serie(vcu.SITIOS_MERCADO), "V5e: A seller with surplus sets up in the plaza")
 	assert(v5e_s.personal_gold == 30 - vcu.MARKET_STALL_FEE and int(vm.town_state.get("treasury", 0)) >= v5e_tr0 + vcu.MARKET_STALL_FEE, "V5e arcas: Each market seller pays the stall fee from their pocket into the treasury")
 	var v5e_b = v5b_people[0]
 	var v5e_bg: int = v5e_b.personal_gold
@@ -5346,7 +5346,7 @@ func _initialize() -> void:
 	for b5b_b in vm.building_footprints:
 		var b5b_r = b5b_b.get("rect", null)
 		if b5b_r is Rect2:
-			assert(not (b5b_r as Rect2).has_point(M(b5b_vun.FENCE_ALLEY_POS)), "P5b.0b: Alley spot is outside every building")
+			assert(not (b5b_r as Rect2).has_point(b5b_vun.Sitio.mundo(b5b_vun.SITIO_CALLEJON)), "P5b.0b: Alley spot is outside every building")
 	var b5b_pos_bak: Vector2 = b5b_f.global_position
 	var b5b_known_bak = b5b_vun.state(vm).get("known_fence", false)
 	b5b_f.end_errand()
@@ -5360,7 +5360,7 @@ func _initialize() -> void:
 	assert(b5b_f.errand_kind == "", "P5b.1c: At 3:00 the fence leaves the alley")
 	# 2. En el callejón y sin conocerlo: «figura encapuchada»
 	b5b_vun.fence_on_hour(vm, 22)
-	b5b_f.global_position = M(b5b_vun.FENCE_ALLEY_POS)
+	b5b_f.global_position = b5b_vun.Sitio.mundo(b5b_vun.SITIO_CALLEJON)
 	b5b_vun.state(vm)["known_fence"] = false
 	assert(b5b_vun.alley_interact_label(vm, b5b_f) == "Hablar con la figura encapuchada", "P5b.2: Hooded figure label while the fence is unknown")
 	# 3. Un vecino honrado nunca suelta un rumor, aunque se fuerce

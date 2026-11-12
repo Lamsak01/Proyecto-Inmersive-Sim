@@ -751,7 +751,7 @@ func _build_static_terrain_3d() -> void:
 	_build_bench_3d(terrain_root_3d, lv_pos + Vector2(0.0, -2.0), m_wood, m_iron)
 
 	# Lavadero Municipal, recolocado junto a una fuente/acequia del pueblo (al oeste de la Botica y al norte del Parque)
-	var wash_c: Vector2 = VillageWorkScript.LAVADERO_POS
+	var wash_c: Vector2 = VillageWorkScript.Sitio.original(VillageWorkScript.SITIO_LAVADERO)
 	_add_box_2d(terrain_root_3d, wash_c, Vector2(46, 32), 0.0, 2.0, m_stone)
 	_add_box_2d(terrain_root_3d, wash_c, Vector2(32, 14), 2.0, 5.5, m_curb)
 	_add_box_2d(terrain_root_3d, wash_c, Vector2(28, 10), 2.5, 4.8, m_water)

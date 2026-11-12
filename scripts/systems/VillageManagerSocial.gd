@@ -22,13 +22,15 @@ func _register_authority_npc(node_name: String, npc_name_str: String, title: Str
 	})
 	return npc
 
-## Devuelve la coordenada exacta en el borde del mapa (Camino Oeste `Vector2(-900, 48)` o Camino Este `Vector2(990, 48)`)
+const SITIO_ENTRADA_OESTE := "entrada_oeste" ## cruces de «Sitios»: por dónde llega andando quien viene de fuera
+const SITIO_ENTRADA_ESTE := "entrada_este"
+
+## Devuelve el punto del borde del mapa (camino del oeste o del este, cruces «entrada_…» de «Sitios», ya en el mundo)
 ## desde la que cualquier nuevo habitante entra caminando físicamente al pueblo (Prohibido el respawn instantáneo en mitad de la calle).
 
 func _get_map_edge_arrival_pos(index: int = 0) -> Vector2:
-	if index % 2 == 0:
-		return Vector2(-900.0, 48.0 + float((index % 3) - 1) * 6.0)
-	return Vector2(990.0, 48.0 + float((index % 3) - 1) * 6.0)
+	var entrada: String = SITIO_ENTRADA_OESTE if index % 2 == 0 else SITIO_ENTRADA_ESTE
+	return VillageWork.Sitio.mundo(entrada) + Vector2(0.0, float((index % 3) - 1) * 6.0)
 
 func _check_authority_vacancy_announcements() -> void:
 	for slot in _authority_slots:
@@ -398,9 +400,9 @@ func modify_family_reputation(fam_id: String, delta_amount: int, reason: String 
 func _spawn_unemployed_tavern_guests() -> void:
 	var tex_traveler := _load_tex("res://assests/world/village/villager_traveler.png")
 	var guest_defs: Array[Dictionary] = [
-		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": Vector2(440, 44), "bed_pos": VillageTavern.guest_beds()[0]},
-		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": Vector2(495, 44), "bed_pos": VillageTavern.guest_beds()[1]},
-		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": Vector2(465, 58), "bed_pos": VillageTavern.guest_beds()[2]}
+		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": VillageWork.Sitio.original("espera_1"), "bed_pos": VillageTavern.guest_beds()[0]},
+		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": VillageWork.Sitio.original("espera_2"), "bed_pos": VillageTavern.guest_beds()[1]},
+		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": VillageWork.Sitio.original("espera_3"), "bed_pos": VillageTavern.guest_beds()[2]}
 	]
 	for g in guest_defs:
 		var npc := VillageNPC.new()
@@ -535,7 +537,7 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	if Rect2(Vector2(-1910, 165), Vector2(710, 320)).grow(max_meters * 16.0).has_point(world_pos):
 		return true
 	# Arroyo / Fuente del Lavadero del pueblo
-	if world_pos.distance_squared_to(sitio(VillageWork.LAVADERO_POS)) <= max_well_dist * max_well_dist:
+	if world_pos.distance_squared_to(VillageWork.Sitio.mundo(VillageWork.SITIO_LAVADERO)) <= max_well_dist * max_well_dist:
 		return true
 	# Lavabo quirúrgico junto a la Cama de Urgencias del Hospital
 	if world_pos.distance_squared_to(sitio(_hospital_bed_pos)) <= max_well_dist * max_well_dist:

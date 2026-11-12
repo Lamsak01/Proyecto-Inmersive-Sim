@@ -12,13 +12,19 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
+const Sitio = preload("res://mapa/sitio.gd")
+const Marca = preload("res://mapa/marca.gd")
+const SITIO_OCIO := "ocio_%s"        ## cruz de «Sitios» de cada lugar al aire libre de PLACES (ocio_park_lawn…)
+const LIBRARY_ID := "building_library"
+const MARCA_LECTURA := "lectura"     ## cruz de la biblioteca donde se sientan a leer
+
 const PARK_RECT: Rect2 = Rect2(Vector2(168, 208), Vector2(272, 146))
 const PLACES: Array = [
-	{"id": "park_lawn", "kind": "park", "pos": Vector2(304, 280), "label": "el Parque del Roble", "text": "🌳 Paseando por el parque"},
-	{"id": "park_bench", "kind": "bench", "pos": Vector2(236, 268), "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
-	{"id": "plaza_benches", "kind": "bench", "pos": Vector2(516, 82), "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
-	{"id": "lake_view", "kind": "overlook", "pos": Vector2(-715, 166), "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
-	{"id": "library", "kind": "library", "pos": Vector2(906, -451), "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
+	{"id": "park_lawn", "kind": "park", "label": "el Parque del Roble", "text": "🌳 Paseando por el parque"},
+	{"id": "park_bench", "kind": "bench", "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
+	{"id": "plaza_benches", "kind": "bench", "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
+	{"id": "lake_view", "kind": "overlook", "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
+	{"id": "library", "kind": "library", "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
 ]
 const LEISURE_FREE_HOURS: Vector2i = Vector2i(17, 21) # Entre semana, al salir del trabajo
 const LEISURE_WEEKEND_HOURS: Vector2i = Vector2i(10, 21)
@@ -28,13 +34,18 @@ const CHAT_REL: int = 2
 const FRICTION_REL: int = -40 # Por debajo de esto, coincidir es incómodo
 const GOSSIP_CHANCE: float = 0.5
 
-## Plan de sitios, paso 2: los sitios de ocio están escritos en el mapa original; se entregan ya en su sitio actual
-## (si el usuario movió la taberna, el parque o un banco en el editor del mapa 3D).
+## Un lugar con su posición ya en el mundo. Los de la taberna y el comedor traen número (mapa original); los demás salen
+## de su cruz: «Sitios» del editor si están al aire libre, la marca de lectura si es la biblioteca.
 static func _actual(p: Dictionary) -> Dictionary:
 	if p.is_empty():
 		return p
 	var q: Dictionary = p.duplicate()
-	q["pos"] = preload("res://mapa/anclas.gd").mover(p["pos"])
+	if p.has("pos"):
+		q["pos"] = preload("res://mapa/anclas.gd").mover(p["pos"])
+	elif bool(p.get("indoor", false)):
+		q["pos"] = preload("res://mapa/anclas.gd").mover(Marca.sitio(LIBRARY_ID, MARCA_LECTURA))
+	else:
+		q["pos"] = Sitio.mundo(SITIO_OCIO % str(p["id"]))
 	return q
 
 static func place(id: String) -> Dictionary:
@@ -89,14 +100,14 @@ static func build_world(vm) -> void:
 		vm._add_sprite_prop(tree, tp, Vector2(0.7, 0.7), 0)
 	for fp in [Vector2(248, 226), Vector2(360, 226), Vector2(248, 334), Vector2(360, 334), Vector2(304, 316)]:
 		vm._spawn_decor_prop(dec + "buildings/Decorations_sprites/flowers_plants_0.png", fp, Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(bench, place("park_bench")["pos"] + Vector2(0, -8), Vector2(0.4, 0.4))
+	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "park_bench") + Vector2(0, -8), Vector2(0.4, 0.4))
 	vm._spawn_decor_prop(bench, Vector2(372, 260), Vector2(0.4, 0.4))
 	vm._add_title_label(Vector2(224, 194), Vector2(160, 14), "🌳 Parque del Roble", Color(0.78, 0.96, 0.66), 8)
 	# Bancos de la plaza
-	vm._spawn_decor_prop(bench, place("plaza_benches")["pos"], Vector2(0.4, 0.4))
+	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "plaza_benches"), Vector2(0.4, 0.4))
 	vm._spawn_decor_prop(bench, Vector2(468, 82), Vector2(0.4, 0.4))
 	# Mirador del lago: barandilla de madera y un banco
-	var lv: Vector2 = place("lake_view")["pos"]
+	var lv: Vector2 = Sitio.original(SITIO_OCIO % "lake_view") # lo que se dibuja aún se traduce: se le da el mapa original
 	var rail_top: Polygon2D = vm._add_rect_poly(lv + Vector2(0, -12), Vector2(36, 2), Color(0.50, 0.34, 0.18, 0.95), -1)
 	if rail_top != null:
 		rail_top.add_to_group("ranch_fence_2d")
@@ -112,7 +123,7 @@ static func build_world(vm) -> void:
 static func hangout_spots() -> Array:
 	var out: Array = []
 	for p in PLACES:
-		out.append({"id": p["id"], "pos": preload("res://mapa/anclas.gd").mover(p["pos"]), "kind": p["kind"], "label": p["label"]})
+		out.append({"id": p["id"], "pos": _actual(p)["pos"], "kind": p["kind"], "label": p["label"]})
 	return out
 
 # ---------------------------------------------------------------- ocio
@@ -155,7 +166,7 @@ static func pick_place(n) -> Dictionary:
 	for p in PLACES:
 		if is_raining() and not bool(p.get("indoor", false)):
 			continue
-		var s: float = -n.global_position.distance_to(preload("res://mapa/anclas.gd").mover(p["pos"])) / 120.0 + randf_range(0.0, 2.5)
+		var s: float = -n.global_position.distance_to(_actual(p)["pos"]) / 120.0 + randf_range(0.0, 2.5)
 		if str(p["kind"]) == "library":
 			s += 1.2 if curious else -0.8
 		if str(p["kind"]) == "overlook" and (romantic or (n.person_profile != null and "Melancólico" in n.person_profile.personality)):
@@ -199,14 +210,15 @@ static func on_hour(vm, hour: int) -> void:
 		n.set_meta("leisure_place", str(p["id"]))
 		if n.has_meta("leisure_since"):
 			n.remove_meta("leisure_since")
-		var dest_l: Vector2 = (p["pos"] as Vector2) + Vector2(randf_range(-18, 18), randf_range(-6, 10))
+		var dest_l: Vector2 = (_actual(p)["pos"] as Vector2) + Vector2(randf_range(-18, 18), randf_range(-6, 10))
 		if str(p["id"]) == "library":
 			var lib_chairs: Array[Vector2] = [
 				Vector2(887.0, -436.0), Vector2(917.0, -436.0),
 				Vector2(896.0, -424.0), Vector2(908.0, -424.0),
 				Vector2(946.0, -391.0), Vector2(874.0, -391.0),
 			]
-			dest_l = lib_chairs[absi(n.npc_name.hash() + now) % lib_chairs.size()]
+			# Las sillas aún van con número del mapa original: se llevan a donde esté la biblioteca
+			dest_l = preload("res://mapa/anclas.gd").mover(lib_chairs[absi(n.npc_name.hash() + now) % lib_chairs.size()])
 		n.start_errand("leisure", dest_l)
 
 static func _leave(n) -> void:
