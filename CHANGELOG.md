@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Fuera el dibujo plano de árboles, rocas y plantas que se recogen (Claude Code)
+- `HarvestableNode` ya no crea su `Sprite2D` (~1.050 dibujos ocultos): el 3D sale del propio nodo, su tipo y si está
+  agotado. `setup_visuals(...)` pasa a `setup_collision(radio)`; fuera texturas, temblor y encogido planos (no se veían).
+- Dibujos planos 1.367 → 309 (sprites 1.330 → 275); lista visible sin cambios. Fotos de pino, veta y hierba; verify_all.
+
 ## 2026-11-12 — Sangre, huellas y campamentos de vagabundos en 3D (Claude Code)
 - Solo existían en el plano y en primera persona no se veían. Nuevo `scripts/visuals/Rastros3D.gd` (lo llama
   `_sync_dynamic_props_3d`): charco irregular de sangre oscura, huellas que se aclaran al alejarse y campamento

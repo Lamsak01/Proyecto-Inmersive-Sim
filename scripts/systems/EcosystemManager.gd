@@ -116,14 +116,6 @@ func _load_tex(res_path: String) -> Texture2D:
 	return null
 
 func _spawn_distant_forest() -> void:
-	var tex_tree: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/pine-tree_0.png")
-	if not tex_tree:
-		tex_tree = _load_tex("res://assests/world/tree.png")
-	var tex_stump: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/logs_0.png")
-	var tex_rock: Texture2D = _load_tex("res://assests/world/harvest/rock_iron_vein.png")
-	var tex_rock_depleted: Texture2D = _load_tex("res://assests/world/harvest/rock_depleted.png")
-	var tex_herb: Texture2D = _load_tex("res://assests/world/harvest/wild_herb.png")
-	var tex_mushroom: Texture2D = _load_tex("res://assests/world/harvest/wild_mushroom.png")
 	var tex_deer: Texture2D = _load_tex("res://assests/world/harvest/wild_deer.png")
 	var tex_rabbit: Texture2D = _load_tex("res://assests/world/harvest/wild_rabbit.png")
 	var tex_fox: Texture2D = _load_tex("res://assests/world/harvest/wild_fox.png")
@@ -185,7 +177,7 @@ func _spawn_distant_forest() -> void:
 	]
 	# Editor del mapa 3D (2026-11-10): si los árboles están en mapa/Mundo3D.tscn, salen de ahí (todos talables)
 	if not arboles_en_escena():
-		_spawn_harvest_batch("ForestTree", tree_positions, HarvestableNode.HarvestType.LOGGING, "Pino del Valle", "wood", 3, "crop_seeds", 1, 30.0, 2, 0, tex_tree, tex_stump, Vector2(0.85, 0.85), 12.0)
+		_spawn_harvest_batch("ForestTree", tree_positions, HarvestableNode.HarvestType.LOGGING, "Pino del Valle", "wood", 3, "crop_seeds", 1, 30.0, 2, 0, 12.0)
 
 	var rock_positions: Array[Vector2] = [
 		Vector2(740, 860), Vector2(880, 880), Vector2(1040, 860), Vector2(1180, 910),
@@ -195,7 +187,7 @@ func _spawn_distant_forest() -> void:
 	]
 	# Editor del mapa 3D (2026-11-10): si hay vetas en mapa/Mundo3D.tscn → Vegetacion/Vetas, salen de ahí
 	if not vetas_en_escena():
-		_spawn_harvest_batch("OreVein", rock_positions, HarvestableNode.HarvestType.MINING, "Veta de Hierro y Piedra", "stone", 2, "iron_ore", 2, 35.0, 2, 0, tex_rock, tex_rock_depleted, Vector2(1.15, 1.15), 12.0)
+		_spawn_harvest_batch("OreVein", rock_positions, HarvestableNode.HarvestType.MINING, "Veta de Hierro y Piedra", "stone", 2, "iron_ore", 2, 35.0, 2, 0, 12.0)
 
 	var herb_positions: Array[Vector2] = [
 		Vector2(-980, 860), Vector2(-780, 840), Vector2(-580, 870), Vector2(-410, 850),
@@ -204,7 +196,7 @@ func _spawn_distant_forest() -> void:
 		Vector2(-720, 1360), Vector2(-520, 1380), Vector2(-180, 920), Vector2(140, 910),
 		Vector2(380, 920), Vector2(-60, 1360), Vector2(340, 1360), Vector2(740, 1380)
 	]
-	_spawn_harvest_batch("WildHerb", herb_positions, HarvestableNode.HarvestType.FORAGE, "Hierbas Medicinales", "herbs", 2, "", 0, 15.0, 1, 2, tex_herb, null, Vector2(1.1, 1.1), 8.0)
+	_spawn_harvest_batch("WildHerb", herb_positions, HarvestableNode.HarvestType.FORAGE, "Hierbas Medicinales", "herbs", 2, "", 0, 15.0, 1, 2, 8.0)
 
 	var mush_positions: Array[Vector2] = [
 		Vector2(-40, 1020), Vector2(120, 1040), Vector2(290, 1080), Vector2(440, 1120),
@@ -214,14 +206,14 @@ func _spawn_distant_forest() -> void:
 		Vector2(-940, 1440), Vector2(-760, 1490), Vector2(-580, 1540), Vector2(-440, 1620),
 		Vector2(-820, 1790), Vector2(-640, 1840), Vector2(-460, 1890), Vector2(-320, 2020)
 	]
-	_spawn_harvest_batch("WildMushroom", mush_positions, HarvestableNode.HarvestType.FORAGE, "Hongos Silvestres", "mushroom", 2, "", 0, 15.0, 1, 2, tex_mushroom, null, Vector2(1.1, 1.1), 8.0)
+	_spawn_harvest_batch("WildMushroom", mush_positions, HarvestableNode.HarvestType.FORAGE, "Hongos Silvestres", "mushroom", 2, "", 0, 15.0, 1, 2, 8.0)
 
 	_spawn_animal_pool(rabbit_pool, "WildRabbit", WildAnimal.SpeciesType.RABBIT, "Conejo Silvestre", 16, 10, burrow_positions, 45.0, 175.0, 12.0, 999.0, 28.0, 134.0, 85.0, [1, 1, "leather", 1, 0, 0, 1], tex_rabbit, Vector2(1.1, 1.1), 6.0)
 	_spawn_animal_pool(deer_pool, "WildDeer", WildAnimal.SpeciesType.DEER, "Venado del Valle", 9, 6, deer_clearing_positions, 55.0, 210.0, 26.0, 999.0, 22.0, 118.0, 95.0, [2, 1, "leather", 2, 1, 1, 1], tex_deer, Vector2(1.15, 1.15), 9.0)
 	_spawn_animal_pool(fox_pool, "WildFox", WildAnimal.SpeciesType.FOX, "Zorro del Bosque", 6, 3, fox_den_positions, 50.0, 190.0, 20.0, 999.0, 32.0, 122.0, 78.0, [1, 1, "fox_pelt", 1, 0, 1, 0], tex_fox, Vector2(1.15, 1.15), 7.5)
 	_spawn_animal_pool(boar_pool, "WildBoar", WildAnimal.SpeciesType.BOAR, "Jabalí del Bosque", 7, 5, boar_rooting_positions, 55.0, 195.0, 66.0, 22.0, 24.0, 138.0, 85.0, [3, 2, "leather", 2, 0, 1, 2], tex_boar, Vector2(1.22, 1.22), 9.5)
 
-func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: HarvestableNode.HarvestType, title: String, p_id: String, p_amt: int, b_id: String, b_amt: int, hp: float, r_days: int, bites: int, tex_main: Texture2D, tex_dep: Texture2D, sc: Vector2, rad: float) -> void:
+func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: HarvestableNode.HarvestType, title: String, p_id: String, p_amt: int, b_id: String, b_amt: int, hp: float, r_days: int, bites: int, rad: float) -> void:
 	var AN = load("res://mapa/anclas.gd")
 	for i in range(positions.size()):
 		positions[i] = AN.mover(positions[i], "naturaleza", "%s_%d" % [prefix, i])
@@ -242,7 +234,7 @@ func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: Har
 		if bites > 0:
 			node.max_animal_bites = bites
 		entities_root.add_child(node)
-		node.setup_visuals(tex_main, tex_dep, Color.WHITE, sc, rad)
+		node.setup_collision(rad)
 
 ## Editor del mapa 3D (2026-11-10): ¿hay árboles en mapa/Mundo3D.tscn → Vegetacion/Arboles? Entonces los talables salen
 ## de la escena (WorldStageTerrain3D los hace talables con crear_arbol_talable) y no de la lista de este archivo.
@@ -280,10 +272,6 @@ static func arboles_en_escena() -> bool:
 func crear_arbol_talable(pos: Vector2, nombre: String) -> Node2D:
 	if entities_root == null or not is_instance_valid(entities_root):
 		return null
-	var tex_tree: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/pine-tree_0.png")
-	if tex_tree == null:
-		tex_tree = _load_tex("res://assests/world/tree.png")
-	var tex_stump: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/logs_0.png")
 	var node := HarvestableNode.new()
 	node.name = nombre
 	node.global_position = pos
@@ -296,7 +284,7 @@ func crear_arbol_talable(pos: Vector2, nombre: String) -> Node2D:
 	node.max_hp = 30.0
 	node.respawn_days = 2
 	entities_root.add_child(node)
-	node.setup_visuals(tex_tree, tex_stump, Color.WHITE, Vector2(0.85, 0.85), 7.0)
+	node.setup_collision(7.0)
 	return node
 
 ## Una veta de hierro y piedra (mismos valores que las de siempre) en un punto del mapa 2D.
@@ -315,7 +303,7 @@ func crear_veta(pos: Vector2, nombre: String) -> Node2D:
 	node.max_hp = 35.0
 	node.respawn_days = 2
 	entities_root.add_child(node)
-	node.setup_visuals(_load_tex("res://assests/world/harvest/rock_iron_vein.png"), _load_tex("res://assests/world/harvest/rock_depleted.png"), Color.WHITE, Vector2(1.15, 1.15), 12.0)
+	node.setup_collision(12.0)
 	return node
 
 ## Un matorral destructible (2026-11-10, orden del usuario): se corta con arma u hacha y da ramas; vuelve a crecer.
@@ -332,7 +320,7 @@ func crear_matorral(pos: Vector2, nombre: String) -> Node2D:
 	node.max_hp = 8.0
 	node.respawn_days = 3
 	entities_root.add_child(node)
-	node.setup_visuals(_load_tex("res://assests/world/tree.png"), null, Color(0.55, 0.8, 0.5), Vector2(0.45, 0.45), 6.0)
+	node.setup_collision(6.0)
 	return node
 
 static func _en_cauce_del_rio(p: Vector2) -> bool:
@@ -633,10 +621,6 @@ func plant_sapling(world_pos: Vector2 = Vector2.ZERO, side_effects: bool = true)
 	return _place_planted_pine(root_search, world_pos)
 
 func _place_planted_pine(root_search: Node, world_pos: Vector2) -> HarvestableNode:
-	var tex_tree: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/pine-tree_0.png")
-	if not tex_tree:
-		tex_tree = _load_tex("res://assests/world/tree.png")
-	var tex_stump: Texture2D = _load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/logs_0.png")
 	var idx: int = count_planted_pines()
 	var pos: Vector2 = world_pos if world_pos != Vector2.ZERO else Vector2(-360.0 + float((idx % 6) * 65), 670.0 + float(int(float(idx) / 6.0) * 55))
 	var node := HarvestableNode.new()
@@ -651,5 +635,5 @@ func _place_planted_pine(root_search: Node, world_pos: Vector2) -> HarvestableNo
 	node.max_hp = 30.0
 	node.respawn_days = 2
 	root_search.add_child(node)
-	node.setup_visuals(tex_tree, tex_stump, Color(0.88, 1.05, 0.88), Vector2(0.82, 0.82), 12.0)
+	node.setup_collision(12.0)
 	return node

@@ -27,14 +27,8 @@ var animal_bites_left: int = 2
 var is_depleted: bool = false
 var respawn_on_day: int = -1
 
-var sprite: Sprite2D = null
 var body_collision: CollisionShape2D = null
 var interact_area: Area2D = null
-
-var _active_texture: Texture2D = null
-var _depleted_texture: Texture2D = null
-var _active_scale: Vector2 = Vector2.ONE
-var _active_modulate: Color = Color.WHITE
 
 func _ready() -> void:
 	if persistence_id == "":
@@ -54,22 +48,10 @@ func _ready() -> void:
 			GameManager.game_loaded.connect(_on_game_loaded)
 		_check_saved_state()
 
-func setup_visuals(tex_active: Texture2D, tex_depleted: Texture2D = null, tint: Color = Color.WHITE, spr_scale: Vector2 = Vector2.ONE, col_radius: float = 12.0) -> void:
-	_active_texture = tex_active
-	_depleted_texture = tex_depleted
-	_active_modulate = tint
-	_active_scale = spr_scale
-
-	# 1. Sprite
-	sprite = Sprite2D.new()
-	sprite.name = "Sprite2D"
-	sprite.texture = _active_texture
-	sprite.modulate = _active_modulate
-	sprite.scale = _active_scale
-	sprite.position = Vector2(0, -12) if harvest_type == HarvestType.LOGGING else Vector2.ZERO
-	add_child(sprite)
-
-	# 2. Colisión física para Árboles y Vetas de Roca
+## Solo el choque y la zona de recoger (2026-11-12): el dibujo plano se quitó; el árbol, la roca o la planta en 3D los
+## pone el escenario 3D (WorldStageTerrain3D) a partir de este nodo, su tipo y si está agotado.
+func setup_collision(col_radius: float) -> void:
+	# Colisión física para Árboles y Vetas de Roca
 	body_collision = CollisionShape2D.new()
 	body_collision.name = "CollisionShape2D"
 	var circle := CircleShape2D.new()
@@ -78,7 +60,7 @@ func setup_visuals(tex_active: Texture2D, tex_depleted: Texture2D = null, tint: 
 	body_collision.disabled = (harvest_type == HarvestType.FORAGE)
 	add_child(body_collision)
 
-	# 3. Área de Interacción / Etiqueta de ayuda
+	# Área de Interacción / Etiqueta de ayuda
 	interact_area = Area2D.new()
 	interact_area.name = "InteractArea"
 	interact_area.collision_layer = 1
@@ -110,7 +92,6 @@ func interact(player: Node) -> void:
 func harvest_by_npc(_npc: Node = null) -> bool:
 	if is_depleted or harvest_type != HarvestType.FORAGE:
 		return false
-	_play_shake(false)
 	_deplete_node()
 	return true
 
@@ -119,11 +100,8 @@ func consume_by_animal() -> bool:
 	if is_depleted or harvest_type != HarvestType.FORAGE:
 		return false
 	animal_bites_left -= 1
-	_play_shake(false)
 	if animal_bites_left <= 0:
 		_deplete_node()
-	elif sprite:
-		sprite.scale = _active_scale * 0.78
 	return true
 
 ## Golpe de arma/herramienta para Tala (LOGGING) y Minería (MINING)
@@ -154,13 +132,11 @@ func take_damage(data: DamageData) -> void:
 	if not effective:
 		if AudioManager:
 			AudioManager.emit_noise(global_position, 110.0)
-		_play_shake(true)
 		return
 
 	current_hp -= data.amount * tool_efficiency
 	if AudioManager:
 		AudioManager.emit_noise(global_position, 130.0)
-	_play_shake(false)
 
 	# Solo la herramienta especializada (Hacha/Pico con eficiencia >= 1.0) da material extra en cada golpe
 	if tool_efficiency >= 1.0:
@@ -191,16 +167,6 @@ func _give_drop(player: Node, item_id: String, amount: int, offset_y: float = -3
 			var item_name: String = player.inventory.get_item_name(item_id)
 			player._spawn_floating_text("+%d %s" % [amount, item_name], Color.SPRING_GREEN, offset_y)
 
-func _play_shake(deflected: bool) -> void:
-	if not sprite:
-		return
-	var tween := create_tween()
-	if not deflected:
-		tween.tween_property(sprite, "modulate", Color(2.5, 2.5, 2.5), 0.05)
-		tween.tween_property(sprite, "modulate", _active_modulate, 0.05)
-	tween.tween_property(sprite, "position:x", 3.0, 0.04).as_relative()
-	tween.tween_property(sprite, "position:x", -3.0, 0.04).as_relative()
-
 func _deplete_node() -> void:
 	is_depleted = true
 	var cur_day: int = WorldClock.current_day if WorldClock else 1
@@ -218,14 +184,6 @@ func _set_harvest_cols_disabled(dis: bool) -> void:
 
 func _apply_depleted_visuals() -> void:
 	_set_harvest_cols_disabled(true)
-	if sprite:
-		if _depleted_texture:
-			sprite.texture = _depleted_texture
-			sprite.position = Vector2.ZERO
-			sprite.scale = _active_scale * 0.85
-			sprite.modulate = Color(0.75, 0.75, 0.75, 0.9)
-		else:
-			sprite.visible = false
 
 func _regrow_node() -> void:
 	is_depleted = false
@@ -235,12 +193,6 @@ func _regrow_node() -> void:
 	if GameManager and persistence_id != "":
 		GameManager.set_flag(persistence_id, -1)
 	_set_harvest_cols_disabled(false)
-	if sprite:
-		sprite.visible = true
-		sprite.texture = _active_texture
-		sprite.modulate = _active_modulate
-		sprite.scale = _active_scale
-		sprite.position = Vector2(0, -12) if harvest_type == HarvestType.LOGGING else Vector2.ZERO
 
 func _on_day_passed(new_day: int) -> void:
 	if is_depleted and respawn_on_day > 0 and new_day >= respawn_on_day:
@@ -249,8 +201,6 @@ func _on_day_passed(new_day: int) -> void:
 		current_hp = max_hp
 		if harvest_type == HarvestType.FORAGE and animal_bites_left < max_animal_bites:
 			animal_bites_left = max_animal_bites
-			if sprite:
-				sprite.scale = _active_scale
 
 func _on_game_loaded(_filepath: String) -> void:
 	if not Engine.is_editor_hint():
