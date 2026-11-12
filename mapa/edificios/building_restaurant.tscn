@@ -9,6 +9,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_87d08ab5.res" id="7_oq8qv"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="8_qq31h"]
 [ext_resource type="Script" path="res://mapa/marca.gd" id="9_7eih5"]
+[ext_resource type="Script" path="res://mapa/tabique.gd" id="10_0501i"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -1015,3 +1016,50 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.116, 0, 5.32)
 gizmo_extents = 0.5
 script = ExtResource("9_7eih5")
 id_marca = "ventana"
+
+[node name="Tabiques" type="Node3D" parent="." unique_id=1319856094]
+
+[node name="Tabique" type="Node3D" parent="Tabiques" unique_id=848522180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.944, 0, -0.84)
+script = ExtResource("10_0501i")
+tam_m = Vector2(1.512, 0.336)
+
+[node name="Tabique2" type="Node3D" parent="Tabiques" unique_id=1193952051]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.388, 0, -0.84)
+script = ExtResource("10_0501i")
+tam_m = Vector2(2.24, 0.336)
+
+[node name="Tabique3" type="Node3D" parent="Tabiques" unique_id=1397594968]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.112, 0, -0.84)
+script = ExtResource("10_0501i")
+tam_m = Vector2(1.4, 0.336)
+
+[node name="Tabique4" type="Node3D" parent="Tabiques" unique_id=327773959]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.556, 0, -0.84)
+script = ExtResource("10_0501i")
+tam_m = Vector2(2.128, 0.336)
+
+[node name="Tabique5" type="Node3D" parent="Tabiques" unique_id=2000853706]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -0.84)
+script = ExtResource("10_0501i")
+tam_m = Vector2(1.4, 0.336)
+
+[node name="Tabique6" type="Node3D" parent="Tabiques" unique_id=1548155510]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.94, 0, -3.08)
+script = ExtResource("10_0501i")
+tam_m = Vector2(0.336, 4.48)
+
+[node name="Tabique7" type="Node3D" parent="Tabiques" unique_id=1452481558]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, 0, -3.08)
+script = ExtResource("10_0501i")
+tam_m = Vector2(0.336, 4.48)
+
+[node name="Tabique8" type="Node3D" parent="Tabiques" unique_id=199622220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.22, 0, -1.96)
+script = ExtResource("10_0501i")
+tam_m = Vector2(0.336, 6.72)
+
+[node name="Tabique9" type="Node3D" parent="Tabiques" unique_id=543033046]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.22, 0, 4.2)
+script = ExtResource("10_0501i")
+tam_m = Vector2(0.336, 2.24)

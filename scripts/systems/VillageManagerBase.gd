@@ -394,8 +394,10 @@ func get_door_lanes(b_or_door: Dictionary, lane_shift: float = 0.0) -> Dictionar
 		"enter_inside_pt": enter_lane_center + in_dir * 16.0,
 	}
 
-## Levanta la parte del edificio que se pisa y choca. Tamaño, puerta y ventana salen de la escena del edificio
-## (mapa/planta.gd); las casas de recién llegados pasan la `planta` de su casa modelo.
+var interior_walls: Dictionary = {} ## id del edificio → sus paredes de dentro (Array[StaticBody2D]): la taberna las apaga al subir de planta
+
+## Levanta la parte del edificio que se pisa y choca. Tamaño, puerta, ventana y paredes de dentro salen de la escena
+## del edificio (mapa/planta.gd); las casas de recién llegados pasan la `planta` de su casa modelo.
 func _construct_solid_building(
 	b_id: String, b_title: String, center: Vector2,
 	floor_tex_path: String, wall_h_path: String, wall_v_path: String,
@@ -408,6 +410,7 @@ func _construct_solid_building(
 	var door_width: float = planta["door_width"]
 	var door_offset_x: float = planta["door_offset"]
 	var window_offset: float = planta["window_offset"]
+	var center_orig: Vector2 = center
 	# Editor del mapa 3D (2026-11-10): si el usuario movió el edificio en mapa/Mundo3D.tscn, se construye en el sitio nuevo
 	var d_edif: Vector2 = EdificioEditor.desplazamiento(b_id)
 	var g_edif: float = EdificioEditor.giro(b_id)
@@ -508,6 +511,12 @@ func _construct_solid_building(
 	t_lbl.set_meta("anchor_pos", door_pos)
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir, window_pos)
 	Anclas.pausa -= 1
+	# Paredes de dentro (grupo «Tabiques» de la escena): van escritas respecto al centro y siguen al edificio por sus anclas
+	var tabiques: Array[StaticBody2D] = []
+	for tabique: Dictionary in planta["partitions"]:
+		var tam: Vector2 = tabique["size"]
+		tabiques.append(_add_solid_wall_segment(center_orig + (tabique["offset"] as Vector2), tam, tex_h if tam.x >= tam.y else tex_v, bool(tabique["blocks_vision"])))
+	interior_walls[b_id] = tabiques
 
 func _spawn_building_door_and_window(
 	b_id: String,
@@ -567,7 +576,7 @@ func _spawn_building_door_and_window(
 		"is_shuttered": false, "manual_override_timer": 0.0
 	})
 
-func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_vision: bool = true) -> void:
+func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_vision: bool = true) -> StaticBody2D:
 	var ancla: Dictionary = Anclas.buscar(pos) # mapa ×E (2026-11-11): los tabiques escritos a mano siguen a su edificio
 	pos = Anclas.aplicar(ancla, pos)
 	var sb := StaticBody2D.new()
@@ -595,6 +604,7 @@ func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_v
 		tex_rect.z_index = 2
 		sb.add_child(tex_rect)
 	entities_root.add_child(sb)
+	return sb
 
 func _segment_intersects_rect(p1: Vector2, p2: Vector2, r: Rect2) -> bool:
 	var min_x: float = minf(p1.x, p2.x)

@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Las paredes de dentro de los edificios salen del editor (Claude Code)
+- Pieza nueva `mapa/tabique.gd` (grupo «Tabiques» de cada escena, caja roja translúcida en el editor, con tamaño y «tapa vista»): 39 tabiques en 13 edificios (taberna 7, casa de comidas 9, comisaría 3 rejas, hospital 2, botica 2 y 2 en cada tienda de solar y la posada). `_construct_solid_building` los crea al levantar el edificio.
+- Borrados sus números: tabiques de taberna, casa de comidas, hospital, botica y rejas de la celda; las marcas `tabique_1|2` del trozo anterior pasan a ser piezas.
+- Comprobado: los 9.377 objetos y todos los muros (sitio, tamaño, grupos y capa) idénticos; sondeo 29/29; `partida_caso1.gd` 25/25; `verify_all.gd` en verde. Total: 279 marcas y 39 tabiques en 32 escenas.
+
 ## 2026-11-11 — Planta, puerta y ventana de cada edificio salen del editor (Claude Code)
 - Cada escena de edificio (32) guarda su planta («Planta m»), el ancho de la puerta y dos marcas nuevas, `puerta` y `ventana`. `mapa/planta.gd` lo lee y `_construct_solid_building` ya no recibe tamaño, lado, ancho ni desvío de puerta: borrados de sus 15 llamadas (y los restos `shop_door_south`, `DOOR_W`, `DOOR_X`).
 - La ventana que usa el juego sale de su marca y gira con el edificio (antes se calculaba «a la izquierda de la puerta» y al girar no coincidía con la dibujada).

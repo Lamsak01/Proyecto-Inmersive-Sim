@@ -9,6 +9,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_2e0065af.res" id="7_ny8xa"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="8_8y6vv"]
 [ext_resource type="Script" path="res://mapa/marca.gd" id="9_8sxys"]
+[ext_resource type="Script" path="res://mapa/tabique.gd" id="10_rfrws"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -239,18 +240,6 @@ gizmo_extents = 0.5
 script = ExtResource("9_8sxys")
 id_marca = "cofre"
 
-[node name="tabique_1" type="Marker3D" parent="Marcas" unique_id=1368645975]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.352, 0, -0.224)
-gizmo_extents = 0.5
-script = ExtResource("9_8sxys")
-id_marca = "tabique_1"
-
-[node name="tabique_2" type="Marker3D" parent="Marcas" unique_id=638394945]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.352, 0, -0.224)
-gizmo_extents = 0.5
-script = ExtResource("9_8sxys")
-id_marca = "tabique_2"
-
 [node name="puerta" type="Marker3D" parent="Marcas" unique_id=1803950750]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.688)
 gizmo_extents = 0.5
@@ -262,3 +251,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.184, 0, 2.688)
 gizmo_extents = 0.5
 script = ExtResource("9_8sxys")
 id_marca = "ventana"
+
+[node name="Tabiques" type="Node3D" parent="." unique_id=1607175470]
+
+[node name="Tabique" type="Node3D" parent="Tabiques" unique_id=768352933]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.352, 0, -0.224)
+script = ExtResource("10_rfrws")
+tam_m = Vector2(2.24, 0.336)
+
+[node name="Tabique2" type="Node3D" parent="Tabiques" unique_id=56824704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.352, 0, -0.224)
+script = ExtResource("10_rfrws")
+tam_m = Vector2(2.24, 0.336)

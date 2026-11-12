@@ -10,6 +10,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_bdf284d5.res" id="8_edy8v"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="9_27ef6"]
 [ext_resource type="Script" path="res://mapa/marca.gd" id="10_2sijn"]
+[ext_resource type="Script" path="res://mapa/tabique.gd" id="11_ehpq8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -891,3 +892,40 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.12, 0, 5.152)
 gizmo_extents = 0.5
 script = ExtResource("10_2sijn")
 id_marca = "ventana"
+
+[node name="Tabiques" type="Node3D" parent="." unique_id=856965283]
+
+[node name="Tabique" type="Node3D" parent="Tabiques" unique_id=579250310]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.544, 0, -0.448)
+script = ExtResource("11_ehpq8")
+tam_m = Vector2(8.4, 0.336)
+
+[node name="Tabique2" type="Node3D" parent="Tabiques" unique_id=1095895924]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, 0, -0.448)
+script = ExtResource("11_ehpq8")
+tam_m = Vector2(3.36, 0.336)
+
+[node name="Tabique3" type="Node3D" parent="Tabiques" unique_id=722976193]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.664, 0, -0.448)
+script = ExtResource("11_ehpq8")
+tam_m = Vector2(0.56, 0.336)
+
+[node name="Tabique4" type="Node3D" parent="Tabiques" unique_id=914631321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.944, 0, 0.056)
+script = ExtResource("11_ehpq8")
+tam_m = Vector2(0.28, 2.352)
+
+[node name="Tabique5" type="Node3D" parent="Tabiques" unique_id=286828556]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.688, 0, -4.508)
+script = ExtResource("11_ehpq8")
+tam_m = Vector2(0.336, 1.288)
+
+[node name="Tabique6" type="Node3D" parent="Tabiques" unique_id=632217047]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.688, 0, -0.42)
+script = ExtResource("11_ehpq8")
+tam_m = Vector2(0.336, 3.08)
+
+[node name="Tabique7" type="Node3D" parent="Tabiques" unique_id=1503084281]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.688, 0, 4.368)
+script = ExtResource("11_ehpq8")
+tam_m = Vector2(0.336, 1.568)

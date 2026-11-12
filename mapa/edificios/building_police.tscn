@@ -8,6 +8,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_349111c4.res" id="6_1afjj"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="7_iq1q7"]
 [ext_resource type="Script" path="res://mapa/marca.gd" id="8_cp56h"]
+[ext_resource type="Script" path="res://mapa/tabique.gd" id="9_bpgh2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ey1wr"]
 albedo_color = Color(0.649, 0.6535, 0.6625, 1)
@@ -509,3 +510,23 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.24, 0, -2.688)
 gizmo_extents = 0.5
 script = ExtResource("8_cp56h")
 id_marca = "ventana"
+
+[node name="Tabiques" type="Node3D" parent="." unique_id=1805963324]
+
+[node name="Tabique" type="Node3D" parent="Tabiques" unique_id=601014842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.632, 0, 0.224)
+script = ExtResource("9_bpgh2")
+tam_m = Vector2(2.352, 0.336)
+tapa_vista = false
+
+[node name="Tabique2" type="Node3D" parent="Tabiques" unique_id=1370684862]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.632, 0, 0.224)
+script = ExtResource("9_bpgh2")
+tam_m = Vector2(2.352, 0.336)
+tapa_vista = false
+
+[node name="Tabique3" type="Node3D" parent="Tabiques" unique_id=1905034664]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.456)
+script = ExtResource("9_bpgh2")
+tam_m = Vector2(0.336, 2.352)
+tapa_vista = false

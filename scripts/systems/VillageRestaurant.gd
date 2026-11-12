@@ -23,9 +23,6 @@ const FAMILY_NAME: String = "Casa del Corvo"
 ## Edificio: 275 × 190, puerta al sur (mira a la Calle Mayor y a la terraza, lejos del cementerio).
 const BASE: Vector2 = Vector2(-255, -206)
 const RECT: Rect2 = Rect2(BASE, Vector2(275, 190))
-const ROW_Y: float = BASE.y + 80.0 ## tabique entre la fila del fondo (salas pequeñas) y la de delante (comedor y cocina)
-const KITCHEN_X: float = BASE.x + 195.0 ## tabique entre comedor y cocina (y entre el cuarto del dueño y la cámara)
-const GAP: float = 30.0 ## anchura de los pasos entre salas
 
 ## Salas (para que los vecinos crucen los tabiques por los pasos). Fila de delante: comedor y cocina.
 const ROOMS: Dictionary = {
@@ -112,43 +109,12 @@ static func build(vm) -> void:
 	vm._construct_solid_building(BUILDING_ID, TITLE, c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
 		Color(1.0, 0.82, 0.55))
-	_build_partitions(vm)
 	_build_room_floors(vm)
 	_build_furniture(vm)
 	_build_terrace(vm)
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex(PROPS + "storage_countertop_0.png"), sitio(M_BARRA), Vector2(0.55, 0.55), -1)
 	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, _AN_SITIOS.mover(sitio(M_BARRA)), stall) # el puesto se guarda en el mundo
 	vm._spawn_house_chest(sitio(M_COFRE), "Cofre de " + TITLE, FAMILY_ID)
-
-## Tabiques con sus pasos (huecos de GAP px). Muros de piedra, igual que el exterior.
-static func _build_partitions(vm) -> void:
-	var th: Texture2D = vm._load_tex("res://assests/world/village/wall_stone_h.png")
-	var tv: Texture2D = vm._load_tex("res://assests/world/village/wall_stone_v.png")
-	var x0: float = RECT.position.x
-	var x1: float = RECT.end.x
-	# Tabique horizontal del fondo, con los pasos de reservado, bodega, cuarto y cámara
-	var gaps: Array[float] = []
-	for o in OPENINGS:
-		if str(o["axis"]) == "h":
-			gaps.append(float((o["pos"] as Vector2).x))
-	gaps.sort()
-	var cur: float = x0
-	for gx in gaps:
-		var a: float = gx - GAP * 0.5
-		if a - cur > 2.0:
-			vm._add_solid_wall_segment(Vector2((cur + a) * 0.5, ROW_Y), Vector2(a - cur, 6.0), th)
-		cur = gx + GAP * 0.5
-	if x1 - cur > 2.0:
-		vm._add_solid_wall_segment(Vector2((cur + x1) * 0.5, ROW_Y), Vector2(x1 - cur, 6.0), th)
-	# Tabiques verticales de la fila del fondo
-	for vx in [BASE.x + 85.0, BASE.x + 140.0]:
-		vm._add_solid_wall_segment(Vector2(vx, (RECT.position.y + ROW_Y) * 0.5), Vector2(6.0, ROW_Y - RECT.position.y), tv)
-	# Tabique comedor | cocina (y cuarto | cámara), con el paso de la cocina en la fila de delante
-	var top: float = RECT.position.y
-	var bottom: float = RECT.end.y
-	var gy: float = BASE.y + 135.0
-	vm._add_solid_wall_segment(Vector2(KITCHEN_X, (top + gy - GAP * 0.5) * 0.5), Vector2(6.0, gy - GAP * 0.5 - top), tv)
-	vm._add_solid_wall_segment(Vector2(KITCHEN_X, (gy + GAP * 0.5 + bottom) * 0.5), Vector2(6.0, bottom - gy - GAP * 0.5), tv)
 
 ## Suelos por sala (cocina de baldosa, cámara de piedra fría, reservado con alfombra roja).
 static func _build_room_floors(vm) -> void:

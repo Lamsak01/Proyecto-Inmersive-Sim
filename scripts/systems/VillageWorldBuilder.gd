@@ -249,9 +249,6 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 	vm._construct_solid_building("mixed_" + fam_id, title, center,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
 		Color(0.75, 0.96, 0.68))
-	var tex_wall_h := vm._load_tex("res://assests/world/village/wall_timber_h.png")
-	vm._add_solid_wall_segment(center + Vector2(-42, 4), Vector2(40, 6), tex_wall_h)
-	vm._add_solid_wall_segment(center + Vector2(42, 4), Vector2(40, 6), tex_wall_h)
 
 	var stall_pos: Vector2 = Marca.sitio("mixed_" + fam_id, Marca.PUESTO)
 	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.3, 1.3), -1)
@@ -276,9 +273,6 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm._construct_solid_building("building_hospital", "🏥 Hospital de Urgencias y ⚰️ Morgue Forense", vm._hospital_center,
 		"res://assests/world/village/floor_hospital_tile.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
 		Color(0.68, 0.98, 0.88))
-	var tex_wall_h := vm._load_tex("res://assests/world/village/wall_stone_h.png")
-	vm._add_solid_wall_segment(vm._hospital_center + Vector2(-46, 4), Vector2(44, 6), tex_wall_h)
-	vm._add_solid_wall_segment(vm._hospital_center + Vector2(46, 4), Vector2(44, 6), tex_wall_h)
 
 	var tex_hbed := vm._load_tex("res://assests/world/village/hospital_bed.png")
 	for b_pos in [vm._hospital_bed_pos, Marca.sitio(vm.ID_HOSPITAL, Marca.CAMA_1)]:
@@ -324,9 +318,6 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	var tex_bars_v := vm._load_tex("res://assests/world/village/jail_bars_v.png")
 	var tex_bed := vm._load_tex("res://assests/world/village/tavern_bed.png")
 
-	vm._add_solid_wall_segment(Vector2(868, 152), Vector2(42, 6), tex_bars_h, false)
-	vm._add_solid_wall_segment(Vector2(962, 152), Vector2(42, 6), tex_bars_h, false)
-	vm._add_solid_wall_segment(Vector2(915, 174), Vector2(6, 42), tex_bars_v, false)
 
 	vm._jail_cell_gate_body = StaticBody2D.new()
 	vm._jail_cell_gate_body.name = "JailCellGateBody"

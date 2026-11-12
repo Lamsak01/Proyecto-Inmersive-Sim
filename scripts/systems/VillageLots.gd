@@ -377,12 +377,10 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			load("res://scripts/systems/VillageNobility.gd").build(vm, id, st)
 
 ## V5: tienda y vivienda en un solo edificio (como la Botica), con la puerta hacia la calle del solar. Todos sus
-## sitios salen de las marcas de la escena del edificio (mapa/marca.gd): puesto, camas, mesa, cofre y los dos tabiques
-## que separan la tienda de la vivienda.
+## sitios salen de las marcas de la escena del edificio (mapa/marca.gd): puesto, camas, mesa y cofre. Los dos tabiques
+## que separan la tienda de la vivienda son piezas «Tabiques» de la escena y los pone `_construct_solid_building`.
 const SHOP_HOUSE_MARKS: Dictionary = {"work_pos": Marca.TRABAJO, "kin_work_pos": Marca.TRABAJO_FAMILIAR, "bed1_pos": Marca.CAMA_1,
-	"bed2_pos": Marca.CAMA_2, "table_pos": Marca.MESA, "stall_pos": Marca.PUESTO, "chest_pos": Marca.COFRE,
-	"wall_l": "tabique_1", "wall_r": "tabique_2"}
-const SHOP_HOUSE_PARTITION: Vector2 = Vector2(40, 6)
+	"bed2_pos": Marca.CAMA_2, "table_pos": Marca.MESA, "stall_pos": Marca.PUESTO, "chest_pos": Marca.COFRE}
 
 static func shop_house_id(family_id: String) -> String:
 	return "mixed_" + family_id
@@ -402,9 +400,6 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
 		Color(0.96, 0.86, 0.62))
-	var tex_wall_h: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_h.png")
-	vm._add_solid_wall_segment(lay["wall_l"], SHOP_HOUSE_PARTITION, tex_wall_h)
-	vm._add_solid_wall_segment(lay["wall_r"], SHOP_HOUSE_PARTITION, tex_wall_h)
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/work_stall.png"), lay["stall_pos"], Vector2(1.3, 1.3), -1)
 	vm._register_shop_business_stall(role, str(st["title"]), fam, stall.global_position, stall)
 	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")

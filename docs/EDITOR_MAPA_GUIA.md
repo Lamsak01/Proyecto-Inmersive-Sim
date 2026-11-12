@@ -38,6 +38,9 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   muro al que la cruz esté más pegada, y la ventana va en ese mismo muro. En el Inspector de la pieza, «Planta m» es el
   ancho × fondo que se pisa y choca, y «Puerta ancho m» el hueco. Ojo: esto mueve lo que se pisa, no el dibujo de las
   paredes; si cambias puerta o tamaño, pide a Claude que rehaga el dibujo.
+  **Paredes de dentro:** en la escena del edificio, carpeta **Tabiques**: cada caja roja translúcida es una pared que
+  no se puede atravesar. Muévela, cambia su tamaño en «Tam m» (ancho × fondo), cópiala con Ctrl+D o bórrala. «Tapa
+  vista» desmarcado = se ve a través (rejas). Igual que la puerta: mueve lo que choca, no el dibujo de la pared.
   **Casas de recién llegados:** todas son copias de tres **casas modelo** (`mapa/edificios/modelo_casita`, `modelo_casa`
   y `modelo_casona`). Abre una con doble clic, mueve muebles o las cruces de **Marcas** (`cama_1`, `mesa`, `cofre`…) y
   guarda: cambia en todas las casas de ese tamaño, también las que se construyan jugando. Si añades una cruz `cama_3`,

@@ -8,7 +8,7 @@ toca el código del mundo** (la que hizo este avance; el usuario lo confirmó el
 mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## b) Último avance completado
-- 2026-11-11: paso 1, **295 marcas en 32 escenas**: todos los edificios únicos, los oficios en solares y las tres casas
+- 2026-11-11: paso 1, **279 marcas y 39 tabiques en 32 escenas**: todos los edificios únicos, los oficios en solares y las tres casas
   modelo. El código las lee y sus números están borrados.
 - Marcas: `mapa/marca.gd` (`Marker3D` con `id_marca`, grupo «Marcas» de `mapa/edificios/<id>.tscn`).
   `Marca.sitio(id_edificio, marca)` da el sitio en el mapa ORIGINAL (centro original de la escena + posición local): lo
@@ -26,14 +26,15 @@ mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
   Borradas las herramientas de conversión. La casona ya tiene su tercera cama.
 
 ## c) Siguiente paso técnico inmediato
-Hecho el 2026-11-11: **planta, puerta y ventana desde la escena** (`mapa/planta.gd`; `planta_m`, `puerta_ancho_m` y
-marcas `puerta`/`ventana`; `_construct_solid_building(id, título, centro, texturas, color[, planta])`).
-Lo que queda para cerrar el paso 1 (proponer al usuario, tanda aparte): **tabiques interiores** como marcas (unos 25
-`_add_solid_wall_segment` en `VillageManagerBase`, `VillageWorldBuilder`, `VillageRestaurant`, `VillageTavern`).
-Siguen como números (apuntado): tamaños que aún usa otra lógica (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`,
-`HOUSE_PLOTS.size`, `FishingSpot.ABANDONED_MILL_SIZE`, `ValleyMapUI`), `door_south` de los solares (mejoras de la
-casa del jugador), sitios de trabajo al aire libre, rejas y bancos sueltos de `VillageWorldBuilder`.
-Después: volver a medir con el inventario (`docs/specs/PRUEBAS.md`, con ventana, ~1 min) y pasar al paso 2.
+Hecho el 2026-11-11: **planta, puerta, ventana y tabiques desde la escena** (`mapa/planta.gd`, `mapa/tabique.gd`;
+`_construct_solid_building(id, título, centro, texturas, color[, planta])` lo lee todo; `vm.interior_walls[id]`).
+**El paso 1 queda cerrado en lo que toca a edificios.** Siguiente: volver a medir con el inventario
+(`docs/specs/PRUEBAS.md`, con ventana, ~1 min, pedir permiso) y proponer al usuario el plan del **paso 2**
+(exteriores: calles, farolas, solares, plantas hechas por código; ver `docs/PLAN_MUNDO_DESDE_EDITOR.md`).
+Siguen como números (apuntado, no bloquea): tamaños que aún usa otra lógica (`VillageTavern.SIZE/RECT`,
+`VillageRestaurant.RECT`, `HOUSE_PLOTS.size`, `FishingSpot.ABANDONED_MILL_SIZE`, `ValleyMapUI`), pasos entre salas
+(`OPENINGS`) y puertas de cuarto, `door_south` de los solares (mejoras de la casa del jugador), sitios de trabajo al
+aire libre, puerta de la celda y bancos sueltos de `VillageWorldBuilder`.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).

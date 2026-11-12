@@ -37,9 +37,6 @@ const FLOOR_1_H: float = 34.0
 const TOTAL_WALL_H: float = 68.0
 
 ## Planta 0: 4 salas comunicadas por arcos anchos
-const MID_WALL_Y: float = -232.0
-const EAST_WING_X: float = 482.0
-const GAP: float = 42.0
 const ROOMS_FLOOR_0: Dictionary = {
 	"barra_cocina": Rect2(Vector2(260.0, -316.0), Vector2(222.0, 84.0)),
 	"salon": Rect2(Vector2(260.0, -232.0), Vector2(222.0, 100.0)),
@@ -173,27 +170,11 @@ static func setup_world(vm) -> void:
 	var cas_rug: Polygon2D = vm._add_rect_poly(Vector2(543.0, -182.0), Vector2(52.0, 38.0), Color(0.44, 0.16, 0.14, 0.36), -2)
 	cas_rug.add_to_group("tavern_floor0_2d")
 
-	# Tabiques internos de Planta 0 (idénticos a los pasos de OPENINGS_FLOOR_0 en 2D y 3D, dejando libre el canal de la escalera x = 560..604)
-	var tex_wall_h: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_h.png")
-	var tex_wall_v: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_v.png")
-	var part_segs: Array = [
-		[Vector2(335.0, MID_WALL_Y), Vector2(150.0, 6.0), tex_wall_h],
-		[Vector2(484.0, MID_WALL_Y), Vector2(60.0, 6.0), tex_wall_h],
-		[Vector2(553.0, MID_WALL_Y), Vector2(10.0, 6.0), tex_wall_h],
-		[Vector2(558.0, -223.0), Vector2(5.0, 42.0), tex_wall_v],
-		[Vector2(EAST_WING_X, -304.5), Vector2(6.0, 23.0), tex_wall_v],
-		[Vector2(EAST_WING_X, -231.5), Vector2(6.0, 55.0), tex_wall_v],
-		[Vector2(EAST_WING_X, -146.0), Vector2(6.0, 28.0), tex_wall_v],
-	]
-	for pseg in part_segs:
-		var child_idx_before: int = vm.entities_root.get_child_count()
-		vm._add_solid_wall_segment(pseg[0], pseg[1], pseg[2])
-		if vm.entities_root.get_child_count() > child_idx_before:
-			var sb_w: Node = vm.entities_root.get_child(vm.entities_root.get_child_count() - 1)
-			sb_w.add_to_group("tavern_floor0_2d")
-			sb_w.add_to_group("tavern_floor0_walls")
-			if sb_w is StaticBody2D:
-				(sb_w as StaticBody2D).collision_layer = load("res://scripts/fisica/Suelo.gd").capa(int(vm.player_elevation_level) == 0)
+	# Tabiques de la planta baja (piezas «Tabiques» de la escena): dejan de chocar cuando el protagonista está arriba
+	for sb_w: StaticBody2D in vm.interior_walls[BUILDING_ID]:
+		sb_w.add_to_group("tavern_floor0_2d")
+		sb_w.add_to_group("tavern_floor0_walls")
+		sb_w.collision_layer = load("res://scripts/fisica/Suelo.gd").capa(int(vm.player_elevation_level) == 0)
 
 	# Mostrador largo de Marta y pasa-platos del camarero
 	vm._add_rect_poly(sitio(M_BARRA), BAR_COUNTER_SIZE * 0.5, Color(0.42, 0.25, 0.12, 0.98), -1).add_to_group("tavern_floor0_2d")

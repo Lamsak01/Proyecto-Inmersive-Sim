@@ -113,7 +113,7 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 ## Edificios como escenas (2026-11-11, paso 1 de `docs/PLAN_MUNDO_DESDE_EDITOR.md`)
 - Los 29 edificios fijos son escenas en `mapa/edificios/<id>.tscn` (mallas y texturas compartidas en `comun/`); en
   Mundo3D → «Edificios» cada pieza es una copia de su escena. Grupos fijos (`scripts/visuals/PartesEdificio3D.gd`):
-  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (`Marker3D` con `mapa/marca.gd` e `id_marca`: sitios de la lógica; 295 marcas en 32 escenas a 2026-11-11, lista en `docs/ESTADO_ACTUAL.md`; el código los lee con `Marca.sitio`).
+  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (`Marker3D` con `mapa/marca.gd` e `id_marca`: sitios de la lógica; 279 marcas en 32 escenas a 2026-11-11, lista en `docs/ESTADO_ACTUAL.md`; el código los lee con `Marca.sitio`).
 - Para cambiar un edificio por dentro: abrir su escena (doble clic en `mapa/edificios/…`), mover muebles, guardar.
 - Lo que se mueve jugando (puerta, postigo, luces de noche, reja de la celda, puertas de cuarto, cuerpos de la morgue)
   lleva una etiqueta (metadato `rol`); el juego lo busca por la etiqueta, no por nombre ni posición.
@@ -129,6 +129,9 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   `size`, `door_dir` (muro más cercano a la marca), `door_width`, `door_offset` y `window_offset` en px del mapa
   original; `VillageManagerBase._construct_solid_building` lo lee solo (las casas modelo pasan `CasaModelo.planta`, con
   media vuelta si el solar mira al norte). Al girar un edificio la ventana gira con él. El dibujo no cambia solo.
+- **Tabiques** (`mapa/tabique.gd`, 2026-11-11): grupo «Tabiques» de la escena, una pieza por pared de dentro (`tam_m`
+  ancho × fondo en metros, `tapa_vista`). `Planta` los devuelve en `partitions` y `_construct_solid_building` los crea
+  y los deja en `vm.interior_walls[id]` (la taberna los apaga al subir de planta). 39 tabiques en 13 edificios.
 - Ya no queda dibujo de edificios por código (2026-11-11): un edificio sin escena da un error al arrancar y no se
   dibuja. Las herramientas de conversión (`convertir_edificios.gd`, `guardar_recursos_comunes.gd`) se borraron al
   terminar; un edificio nuevo se hace copiando una escena de `mapa/edificios/` en el editor.
