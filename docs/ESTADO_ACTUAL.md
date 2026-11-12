@@ -8,23 +8,24 @@ toca el código del mundo** (la que hizo este avance; el usuario lo confirmó el
 mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## b) Último avance completado
-- 2026-11-11: paso 1, segunda tanda. Los sitios de las 5 familias fundadoras (9 edificios: 4 tiendas, 4 casas y la
-  botica) son **marcas** en su escena (`mapa/marca.gd`, grupo «Marcas»: `trabajo`, `trabajo_familiar`, `cama_1`,
-  `cama_2`, `mesa`, `puesto`, `cofre`). `VillageWorldBuilder` las lee con `Marca.sitio(id_edificio, marca)` y sus
-  números están borrados. Herramienta que las creó: `tools/marcar_edificios.gd` (no pisa marcas que ya existan).
-- `Marca.sitio` devuelve el sitio en el mapa ORIGINAL (centro original del edificio + posición local): es lo que
-  esperan las funciones `_add_*` y `setup_npc`, que lo traducen con las anclas. Cambiará al quitar las anclas (paso 4).
-- Medido: 173 sitios (vecinos, fichas de oficio, puestos, cofres) idénticos antes y después; sondeo 29/29, viejos 0.
-- Antes (primera tanda): los 29 edificios fijos son escenas; detalle en `docs/specs/REGISTRO_EDITOR_3D.md`.
+- 2026-11-11: paso 1, tercera tanda. **Casa de comidas**: 20 marcas en su escena (fogones, encimera, colgadero,
+  `puesto`, piano, `mesa_reservado`, botellero, `cama_1`, `cama_2`, `cofre`, `mesa_1..5`, `mesa_terraza_1..5`).
+  `VillageRestaurant.sitio(M_…)`, `dining_tables()` y `terrace_tables()` las leen; números borrados.
+- Segunda tanda: las 5 familias fundadoras (9 edificios, 39 marcas) leídas por `VillageWorldBuilder`.
+- Cómo funciona: `mapa/marca.gd` (`Marker3D` con `id_marca`, grupo «Marcas»). `Marca.sitio(id_edificio, marca)` da el
+  sitio en el mapa ORIGINAL (centro original + posición local): lo que esperan `_add_*` y `setup_npc`, que lo
+  traducen con las anclas. Cambiará al quitar las anclas (paso 4). Crear marcas: `guardar()` de
+  `tools/marcar_edificios.gd` (no pisa las que existan; siempre con ventana).
+- Medido: sitios, asientos y 2.702 cosas del mapa idénticos antes y después; sondeo 29/29, viejos 0.
 
 ## c) Siguiente paso técnico inmediato
 Seguir el paso 1, en este orden:
-1. **Más marcas**: oficios en solares (`VillageTrades` + `VillageLots.shop_house_layout`, que comparte la posada de
-   `VillageCivic`; ojo: cantero, granjero, ganadero y leñador trabajan fuera del edificio), luego posada, casa de
-   comidas, hospital, comisaría, iglesia. Ampliar `tools/marcar_edificios.gd`, leer la marca y borrar el número en el
-   mismo cambio. Después, las paredes invisibles de camas, mesas y mostradores (hoy números junto a cada edificio).
+1. **Más marcas en edificios únicos**: taberna (`VillageTavern`, el mayor: ~120 números), hospital y morgue,
+   comisaría, iglesia, ayuntamiento, albergue, escuela, biblioteca. Mismo método: marcar desde los números, leer la
+   marca, borrar el número. Quedan como números: salas, pasos, tabiques, sillas (±14,5 de su mesa) y decorado suelto.
 2. **Capilla**: 14 muebles salen fuera del edificio (fallo visible); están así también en su escena: recolocarlos.
-3. **Casas de recién llegados**: una escena base y fuera el dibujo por código que queda.
+3. **Casas y tiendas de solar con escena base**: incluye los oficios en solares y la posada (`VillageTrades`,
+   `VillageCivic`, `VillageLots.shop_house_layout`), que comparten molde con lo que se construye durante la partida.
 4. **Planta y puerta desde la escena** (tamaño y lado de la puerta como propiedades de la pieza, no números del código).
 Volver a medir con el inventario al cerrar cada grupo (`docs/specs/PRUEBAS.md`).
 

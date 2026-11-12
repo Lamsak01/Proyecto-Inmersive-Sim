@@ -13,6 +13,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 ## Sin `class_name`: se carga con `preload`.
 
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
+const Marca = preload("res://mapa/marca.gd")
 
 const BUILDING_ID: String = "building_restaurant"
 const TITLE: String = "🍲 Casa de Comidas 'El Fogón del Valle'"
@@ -53,34 +54,46 @@ const OPENINGS: Array = [
 ## Terraza exterior y acceso directo desde la Calle Mayor (camino principal hacia la Plaza).
 const TERRACE: Rect2 = Rect2(BASE + Vector2(0, 196), Vector2(275, 40))
 const PATH_RECT: Rect2 = Rect2(BASE + Vector2(82, 232), Vector2(36, 14))
-const TERRACE_TABLES: Array[Vector2] = [
-	BASE + Vector2(22, 216),
-	BASE + Vector2(60, 216),
-	BASE + Vector2(145, 216),
-	BASE + Vector2(185, 216),
-	BASE + Vector2(230, 216)
-]
+## Sitios con uso: son marcas de la escena del edificio (mapa/edificios/building_restaurant.tscn → «Marcas»), no
+## números aquí. Se piden con sitio(M_…), dining_tables() y terrace_tables(); llegan en el mapa original, como
+## esperan las funciones que colocan cosas y vecinos.
+const M_FOGONES: String = "fogones"        ## donde trabaja el cocinero
+const M_ENCIMERA: String = "encimera"
+const M_COLGADERO: String = "colgadero"    ## colgadero de carne en la cámara
+const M_BARRA: String = Marca.PUESTO       ## barra y caja del comedor (gestionar el negocio)
+const M_PIANO: String = "piano"
+const M_RESERVADO: String = "mesa_reservado"
+const M_CAMA_DUENO: String = Marca.CAMA_1
+const M_CAMA_2: String = Marca.CAMA_2
+const M_COFRE: String = Marca.COFRE
+const M_BOTELLERO: String = "botellero"
+const M_MESA: String = "mesa_%d"           ## mesas del comedor, de la 1 a MESAS_COMEDOR
+const M_MESA_TERRAZA: String = "mesa_terraza_%d"
+const MESAS_COMEDOR: int = 5
+const MESAS_TERRAZA: int = 5
+const MESA_FAMILIA: int = 3 ## (contando desde 0) la mesa de la familia del cocinero: no se ofrece a clientes
+const MESA_JEFE: int = 4    ## (contando desde 0) la mesa del rincón, donde almuerza el jefe de la Familia
 
-## Sitios con uso (calculados, sin guardar nada).
-const STOVE_POS: Vector2 = BASE + Vector2(258, 104) ## fogones (donde trabaja el cocinero)
-const KITCHEN_COUNTER: Vector2 = BASE + Vector2(235, 178)
-const COLD_SHELF: Vector2 = BASE + Vector2(242, 22) ## colgadero de carne en la cámara
-const COUNTER_POS: Vector2 = BASE + Vector2(172, 174) ## barra y caja del comedor (gestionar el negocio)
-const PIANO_POS: Vector2 = BASE + Vector2(16, 178)
-const DINING_TABLES: Array[Vector2] = [
-	BASE + Vector2(24, 106),
-	BASE + Vector2(72, 106),
-	BASE + Vector2(130, 106),
-	BASE + Vector2(24, 152),
-	BASE + Vector2(140, 154)
-]
-const BACKROOM_TABLE: Vector2 = BASE + Vector2(42, 34)
-const OWNER_BED: Vector2 = BASE + Vector2(156, 22)
-const OWNER_BED2: Vector2 = BASE + Vector2(180, 48)
-const OWNER_CHEST: Vector2 = BASE + Vector2(184, 14)
-const WINE_RACK: Vector2 = BASE + Vector2(112, 10)
+static var _mesas: Dictionary = {} ## nombre de marca con %d → lista de sitios (se leen una vez)
 
 const PROPS: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
+
+static func sitio(marca: String) -> Vector2:
+	return Marca.sitio(BUILDING_ID, marca)
+
+static func dining_tables() -> Array[Vector2]:
+	return _lista_de_mesas(M_MESA, MESAS_COMEDOR)
+
+static func terrace_tables() -> Array[Vector2]:
+	return _lista_de_mesas(M_MESA_TERRAZA, MESAS_TERRAZA)
+
+static func _lista_de_mesas(marca: String, cuantas: int) -> Array[Vector2]:
+	if not _mesas.has(marca):
+		var lista: Array[Vector2] = []
+		for i in range(1, cuantas + 1):
+			lista.append(sitio(marca % i))
+		_mesas[marca] = lista
+	return _mesas[marca]
 
 # ---------------------------------------------------------------- montaje
 static func setup_world(vm) -> void:
@@ -90,8 +103,8 @@ static func setup_world(vm) -> void:
 		"shop_center": RECT.get_center(), "is_mixed_building": true,
 		"house_title": TITLE, "house_center": RECT.get_center(),
 		"title": "Cocinero", "tex": vm._load_tex("res://assests/world/village/villager_innkeeper.png"),
-		"stock": {"pasta_dish": 3, "braised_meat": 1}, "work_pos": STOVE_POS, "bed1_pos": OWNER_BED,
-		"bed2_pos": OWNER_BED2, "table_pos": DINING_TABLES[3],
+		"stock": {"pasta_dish": 3, "braised_meat": 1}, "work_pos": sitio(M_FOGONES), "bed1_pos": sitio(M_CAMA_DUENO),
+		"bed2_pos": sitio(M_CAMA_2), "table_pos": dining_tables()[MESA_FAMILIA],
 	}
 	if not vm.house_pantry.has(FAMILY_ID):
 		vm.house_pantry[FAMILY_ID] = 2
@@ -105,9 +118,9 @@ static func build(vm) -> void:
 	_build_room_floors(vm)
 	_build_furniture(vm)
 	_build_terrace(vm)
-	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex(PROPS + "storage_countertop_0.png"), COUNTER_POS, Vector2(0.55, 0.55), -1)
-	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, _AN_SITIOS.mover(COUNTER_POS), stall) # el puesto se guarda en el mundo
-	vm._spawn_house_chest(OWNER_CHEST, "Cofre de " + TITLE, FAMILY_ID)
+	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex(PROPS + "storage_countertop_0.png"), sitio(M_BARRA), Vector2(0.55, 0.55), -1)
+	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, _AN_SITIOS.mover(sitio(M_BARRA)), stall) # el puesto se guarda en el mundo
+	vm._spawn_house_chest(sitio(M_COFRE), "Cofre de " + TITLE, FAMILY_ID)
 
 ## Tabiques con sus pasos (huecos de GAP px). Muros de piedra, igual que el exterior.
 static func _build_partitions(vm) -> void:
@@ -144,23 +157,23 @@ static func _build_room_floors(vm) -> void:
 	vm._add_rect_poly(ROOMS["cocina"].get_center(), ROOMS["cocina"].size * 0.5 - Vector2(3, 3), Color(0.78, 0.74, 0.66, 1.0), -2)
 	vm._add_rect_poly(ROOMS["camara"].get_center(), ROOMS["camara"].size * 0.5 - Vector2(3, 3), Color(0.70, 0.82, 0.90, 1.0), -2)
 	vm._add_rect_poly(ROOMS["bodega"].get_center(), ROOMS["bodega"].size * 0.5 - Vector2(3, 3), Color(0.40, 0.30, 0.22, 1.0), -2)
-	vm._add_rect_poly(BACKROOM_TABLE, Vector2(30, 24), Color(0.48, 0.10, 0.10, 1.0), -2)
+	vm._add_rect_poly(sitio(M_RESERVADO), Vector2(30, 24), Color(0.48, 0.10, 0.10, 1.0), -2)
 	# Manteles rústicos de lino y arpillera del valle bajo cada mesa del comedor
-	for t in DINING_TABLES:
+	for t in dining_tables():
 		vm._add_rect_poly(t, Vector2(13, 9), Color(0.48, 0.38, 0.28, 1.0), -2)
 		for q in [Vector2(-6.5, -4.5), Vector2(6.5, 4.5)]:
 			vm._add_rect_poly(t + q, Vector2(6.5, 4.5), Color(0.58, 0.48, 0.36, 1.0), -2)
 
 static func _build_furniture(vm) -> void:
-	for t in DINING_TABLES:
+	for t in dining_tables():
 		vm._spawn_decor_prop(PROPS + "table_chairs_0.png", t, Vector2(0.42, 0.42))
-	vm._spawn_decor_prop(PROPS + "piano.png", PIANO_POS, Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "drinks_shelf_0.png", COUNTER_POS + Vector2(0, 12), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "piano.png", sitio(M_PIANO), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "drinks_shelf_0.png", sitio(M_BARRA) + Vector2(0, 12), Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "plants_3.png", BASE + Vector2(8, 88), Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "plants_5.png", BASE + Vector2(187, 88), Vector2(0.5, 0.5))
 	# Cocina
-	vm._spawn_decor_prop(PROPS + "stove.png", STOVE_POS, Vector2(0.55, 0.55))
-	vm._spawn_decor_prop(PROPS + "storage_countertop2_0.png", KITCHEN_COUNTER, Vector2(0.55, 0.55))
+	vm._spawn_decor_prop(PROPS + "stove.png", sitio(M_FOGONES), Vector2(0.55, 0.55))
+	vm._spawn_decor_prop(PROPS + "storage_countertop2_0.png", sitio(M_ENCIMERA), Vector2(0.55, 0.55))
 	vm._spawn_decor_prop(PROPS + "kitchen_props_3.png", BASE + Vector2(210, 116), Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "pots_pack_0.png", BASE + Vector2(266, 146), Vector2(0.5, 0.5))
 	# Cámara frigorífica: bloques de hielo y piezas de carne colgadas
@@ -170,19 +183,19 @@ static func _build_furniture(vm) -> void:
 		vm._add_rect_poly(mp, Vector2(3.5, 7), Color(0.70, 0.16, 0.14, 1.0), -1)
 	vm._spawn_decor_prop(PROPS + "crates_3.png", BASE + Vector2(264, 56), Vector2(0.5, 0.5))
 	# Bodega
-	vm._spawn_decor_prop(PROPS + "drinks_shelf_1.png", WINE_RACK, Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "drinks_shelf_1.png", sitio(M_BOTELLERO), Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "barrels3_0.png", BASE + Vector2(96, 48), Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "barrels_2.png", BASE + Vector2(130, 48), Vector2(0.5, 0.5))
 	# Reservado y despacho del dueño
-	vm._spawn_decor_prop(PROPS + "big_round_table_chairs_0.png", BACKROOM_TABLE, Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "big_round_table_chairs_0.png", sitio(M_RESERVADO), Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "fireplace_0.png", BASE + Vector2(10, 12), Vector2(0.45, 0.45))
-	vm._spawn_decor_prop(PROPS + "table_chairs_0.png", OWNER_BED, Vector2(0.44, 0.44))
+	vm._spawn_decor_prop(PROPS + "table_chairs_0.png", sitio(M_CAMA_DUENO), Vector2(0.44, 0.44))
 	vm._spawn_decor_prop(PROPS + "storage_countertop_0.png", BASE + Vector2(154, 8), Vector2(0.42, 0.42))
 
 static func _build_terrace(vm) -> void:
 	vm._add_rect_poly(TERRACE.get_center(), TERRACE.size * 0.5, Color(0.62, 0.50, 0.40, 1.0), -2) # Losas de barro
 	vm._add_rect_poly(PATH_RECT.get_center(), PATH_RECT.size * 0.5, Color(0.55, 0.47, 0.36, 1.0), -3) # Sendero
-	for t in TERRACE_TABLES:
+	for t in terrace_tables():
 		for cx in [-9.0, 9.0]:
 			var ch_poly: Polygon2D = vm._add_rect_poly((t as Vector2) + Vector2(cx, 0.0), Vector2(3.0, 3.0), Color(0.42, 0.27, 0.14, 0.95), -1)
 			if ch_poly != null:
@@ -297,18 +310,19 @@ static func has_food(vm) -> bool:
 ## Sitios para sentarse: dos sillas enfrentadas junto a cada mesa del comedor (menos la de la familia del cocinero) y de la terraza (sincronizadas con las sillas 3D de _restaurant_table_3d).
 static func indoor_seats() -> Array[Vector2]:
 	var out: Array[Vector2] = []
-	for i in DINING_TABLES.size():
-		if i == 3:
-			continue # mesa de la familia del cocinero
-		out.append(DINING_TABLES[i] + Vector2(-14.5, 0.0))
-		out.append(DINING_TABLES[i] + Vector2(14.5, 0.0))
+	var mesas: Array[Vector2] = dining_tables()
+	for i in mesas.size():
+		if i == MESA_FAMILIA:
+			continue
+		out.append(mesas[i] + Vector2(-14.5, 0.0))
+		out.append(mesas[i] + Vector2(14.5, 0.0))
 	var act: Array[Vector2] = [] # plan de sitios: en su sitio actual (sigue al restaurante movido)
 	act.assign(_AN_SITIOS.mover_lista("restaurante_comedor", out))
 	return act
 
 static func terrace_seats() -> Array[Vector2]:
 	var out: Array[Vector2] = []
-	for t in TERRACE_TABLES:
+	for t in terrace_tables():
 		out.append(t + Vector2(-12.5, 0.0))
 		out.append(t + Vector2(12.5, 0.0))
 	var act: Array[Vector2] = []
@@ -322,10 +336,10 @@ static func seats() -> Array[Vector2]:
 
 ## Recibe y devuelve sitios actuales.
 static func table_center_for_seat(seat: Vector2) -> Vector2:
-	for t in _AN_SITIOS.mover_lista("restaurante_mesas_terraza", TERRACE_TABLES):
+	for t in _AN_SITIOS.mover_lista("restaurante_mesas_terraza", terrace_tables()):
 		if seat.distance_to(t) <= 18.0:
 			return t
-	for t in _AN_SITIOS.mover_lista("restaurante_mesas", DINING_TABLES):
+	for t in _AN_SITIOS.mover_lista("restaurante_mesas", dining_tables()):
 		if seat.distance_to(t) <= 20.0:
 			return t
 	return _AN_SITIOS.mover(RECT.get_center())
@@ -535,9 +549,9 @@ static func cook_cold_room_trip(npc, rec: Dictionary, delta: float) -> bool:
 		return false
 	if npc.has_meta("cold_room_fetched"):
 		return false
-	if npc.global_position.distance_to(_AN_SITIOS.mover(COLD_SHELF)) > 10.0:
+	if npc.global_position.distance_to(_AN_SITIOS.mover(sitio(M_COLGADERO))) > 10.0:
 		npc._update_craft_bar_visual(0.3, "🥩 A la cámara fría a por carne", Color(0.6, 0.85, 1.0, 0.9))
-		npc._move_towards_point(_AN_SITIOS.mover(COLD_SHELF), 46.0, delta)
+		npc._move_towards_point(_AN_SITIOS.mover(sitio(M_COLGADERO)), 46.0, delta)
 		return true
 	npc.velocity = Vector2.ZERO
 	npc.set_meta("cold_room_fetched", true)

@@ -1503,9 +1503,9 @@ func reconcile_npc_registries_after_load() -> void:
 			elif v.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER and not v.is_dead:
 				family_npcs[int(v.linked_trade)] = v
 				if v.npc_name == VillageFamilia.INITIAL_BOSS_NAME:
-					v.work_position = VillageRestaurant.DINING_TABLES[4]
-					v.bed_position = VillageRestaurant.OWNER_BED2
-					v.home_table_pos = VillageRestaurant.BACKROOM_TABLE
+					v.work_position = VillageRestaurant.dining_tables()[VillageRestaurant.MESA_JEFE]
+					v.bed_position = VillageRestaurant.sitio(VillageRestaurant.M_CAMA_2)
+					v.home_table_pos = VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO)
 				elif trade_configs.has(int(v.linked_trade)):
 					var l_cfg: Dictionary = trade_configs[int(v.linked_trade)]
 					v.work_position = l_cfg.get("kin_work_pos", l_cfg.get("work_pos", v.work_position))

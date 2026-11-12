@@ -42,7 +42,7 @@ func _initialize() -> void:
 	_apuntar_cofres()
 	var guardados: int = 0
 	for id: String in _pendientes:
-		guardados += _guardar(id, _pendientes[id])
+		guardados += guardar(id, _pendientes[id])
 	print("MARCAR: %d marcas nuevas en %d edificios" % [guardados, _pendientes.size()])
 	quit(0)
 
@@ -90,8 +90,9 @@ func _edificio_en(sitio_mundo: Vector2) -> String:
 	return ""
 
 
-## Añade a la escena del edificio las marcas que le falten. Devuelve cuántas añadió.
-func _guardar(id: String, marcas: Dictionary) -> int:
+## Añade a la escena del edificio las marcas que le falten ({id de la marca → sitio en metros del edificio}).
+## Devuelve cuántas añadió.
+static func guardar(id: String, marcas: Dictionary) -> int:
 	var escena: PackedScene = load(EDIFICIO).call("escena", id)
 	var raiz: Node = escena.instantiate()
 	var carpeta: Node = raiz.get_node(Marca.CARPETA)

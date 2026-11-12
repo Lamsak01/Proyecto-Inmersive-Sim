@@ -6,7 +6,7 @@ extends RefCounted
 ##   tiene dinero ahorrado y un motivo (deudas, envidia, rencor) o una oportunidad. Si no hay nadie así, no nace.
 ## - Recluta de 2 a 4 vecinos de uno en uno entre quienes le deben algo, le tienen afecto o miedo, o están
 ##   desesperados (pobres, endeudados). Puede fallar: quien se niega lo recuerda y puede contarlo como chisme.
-## - Se reúnen de noche en el reservado de la Trattoria «Il Corvo» (`VillageRestaurant.BACKROOM_TABLE`, sala
+## - Se reúnen de noche en el reservado de la Trattoria «Il Corvo» (marca `mesa_reservado`, sala
 ##   `"reservado"`) cuando el jefe lo decide según sus planes (sin calendario fijo). Si ven a la guardia o a un
 ##   desconocido cerca, lo dejan para otra noche.
 ## - Perfil bajo: de día siguen con sus oficios normales.
@@ -164,10 +164,10 @@ static func spawn_initial_boss(vm):
 	vm.entities_root.add_child(boss)
 	boss.setup_npc(
 		vm._load_tex("res://assests/world/village/villager_traveler.png"),
-		VillageRestaurant.DINING_TABLES[4],
-		VillageRestaurant.OWNER_BED2,
+		VillageRestaurant.dining_tables()[VillageRestaurant.MESA_JEFE],
+		VillageRestaurant.sitio(VillageRestaurant.M_CAMA_2),
 		{},
-		VillageRestaurant.BACKROOM_TABLE,
+		VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO),
 		VillageRestaurant.FAMILY_ID,
 		VillageRestaurant.FAMILY_NAME
 	)
@@ -522,7 +522,7 @@ static func _update_band(vm) -> void:
 # ------------------------------------------------------------------ 3. Reuniones nocturnas en el reservado
 static func seat_pos(i: int, total: int) -> Vector2:
 	var a: float = TAU * float(i) / float(maxi(1, total)) - PI * 0.5
-	return _AN_SITIOS.mover(VillageRestaurant.BACKROOM_TABLE + Vector2(cos(a) * SEAT_RADIUS_X, sin(a) * SEAT_RADIUS_Y))
+	return _AN_SITIOS.mover(VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO) + Vector2(cos(a) * SEAT_RADIUS_X, sin(a) * SEAT_RADIUS_Y))
 
 static func plan_meeting(vm, night: int = -1) -> void:
 	if not active(vm):
@@ -549,7 +549,7 @@ static func _can_attend(npc) -> bool:
 static func has_unwanted_witness_near(vm):
 	if vm == null:
 		return null
-	var table: Vector2 = VillageRestaurant.BACKROOM_TABLE
+	var table: Vector2 = VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO)
 	var rest_rect: Rect2 = VillageRestaurant.RECT.grow(70.0)
 	var back_rect: Rect2 = (VillageRestaurant.ROOMS["reservado"] as Rect2).grow(40.0)
 	for n in VillageNeeds.living(vm):
@@ -629,7 +629,7 @@ static func finish_meeting(vm) -> void:
 		var m = by_key.get(str(k), null)
 		if m == null or not is_instance_valid(m) or m.is_dead:
 			continue
-		if VillageRestaurant.room_of(_AN_SITIOS.desmover(m.global_position)) == "reservado" or m.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.BACKROOM_TABLE)) <= 32.0:
+		if VillageRestaurant.room_of(_AN_SITIOS.desmover(m.global_position)) == "reservado" or m.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO))) <= 32.0:
 			in_room.append(m)
 		if m.errand_kind == "familia_meet":
 			m.end_errand()
@@ -1071,7 +1071,7 @@ static func tick(vm) -> void:
 			continue
 		if m.errand_kind != "familia_meet" and _can_attend(m):
 			m.start_errand("familia_meet", seat_pos(i, keys.size()))
-		if VillageRestaurant.room_of(_AN_SITIOS.desmover(m.global_position)) == "reservado" or m.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.BACKROOM_TABLE)) <= 28.0:
+		if VillageRestaurant.room_of(_AN_SITIOS.desmover(m.global_position)) == "reservado" or m.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO))) <= 28.0:
 			in_backroom += 1
 	if in_backroom >= 2:
 		st["meeting_status"] = "meeting"
@@ -1104,7 +1104,7 @@ static func try_eavesdrop_meeting(vm, player = null) -> bool:
 		return false
 	if int(vm.player_elevation_level) != 0:
 		return false
-	var dist: float = player.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.BACKROOM_TABLE))
+	var dist: float = player.global_position.distance_to(_AN_SITIOS.mover(VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO)))
 	if dist > EAVESDROP_RADIUS:
 		return false
 	var st: Dictionary = state(vm)

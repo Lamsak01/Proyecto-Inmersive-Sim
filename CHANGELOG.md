@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 1, tercera tanda: los sitios de la casa de comidas son marcas (Claude Code)
+- La casa de comidas tiene 20 marcas en su escena: fogones, encimera, colgadero, barra (`puesto`), piano, mesa del reservado, botellero, las dos camas, el cofre, 5 mesas del comedor y 5 de la terraza. `VillageRestaurant` las lee con `sitio(M_…)`, `dining_tables()` y `terrace_tables()`; sus números están borrados (también en `VillageFamilia`, `VillageManager` y `verify_all.gd`).
+- Comprobado: sitios de vecinos, asientos y las 2.702 cosas colocadas en el mapa idénticos antes y después; sondeo 29/29, viejos 0. No se nota jugando.
+- Decisión: los oficios de los solares y la posada esperan a la «casa modelo» de los solares (comparten molde con las tiendas que se construyen durante la partida).
+
 ## 2026-11-11 — Paso 1, segunda tanda: los sitios de las familias fundadoras son marcas (Claude Code)
 - Las 5 familias de oficio fundadoras (herrero, carnicero, carpintero, pescadero y botica: 9 edificios) tienen en su escena, grupo «Marcas», 39 marcas (`mapa/marca.gd`): `trabajo`, `trabajo_familiar`, `cama_1`, `cama_2`, `mesa`, `puesto` y `cofre`. Las creó `tools/marcar_edificios.gd` copiando dónde estaba cada sitio.
 - `VillageWorldBuilder` lee esas marcas (`Marca.sitio`) y se borraron los números que decían esos sitios. Los 173 sitios de vecinos, puestos y cofres quedan idénticos (comparado antes y después); sondeo de edificios movidos 29/29, sitios bien 54, viejos 0.
