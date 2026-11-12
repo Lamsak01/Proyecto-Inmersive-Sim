@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Fuera el dibujo plano de puertas, ventanas y cofres (Claude Code)
+- Las puertas, postigos y cofres 3D ya leían su estado de los datos (abierta, cerrada con llave, postigo, saqueado);
+  se borran sus 141 dibujos planos y el código que les cambiaba la imagen. Sprites 275 → 134; lista visible igual.
+- Fotos de puerta cerrada/abierta y ventana con postigo; verify_all.
+
 ## 2026-11-12 — Fuera el dibujo plano de árboles, rocas y plantas que se recogen (Claude Code)
 - `HarvestableNode` ya no crea su `Sprite2D` (~1.050 dibujos ocultos): el 3D sale del propio nodo, su tipo y si está
   agotado. `setup_visuals(...)` pasa a `setup_collision(radio)`; fuera texturas, temblor y encogido planos (no se veían).

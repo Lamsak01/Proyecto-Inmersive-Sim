@@ -1329,17 +1329,6 @@ func _sync_2d_flat_visuals() -> void:
 			for sub in child.get_children():
 				if sub is TextureRect:
 					(sub as TextureRect).self_modulate.a = target_a
-	for d_entry in vm.building_doors:
-		var sc: Sprite2D = d_entry.get("spr_closed")
-		var so: Sprite2D = d_entry.get("spr_open")
-		if is_instance_valid(sc):
-			sc.self_modulate.a = target_a
-		if is_instance_valid(so):
-			so.self_modulate.a = target_a
-	for w_entry in vm.building_windows:
-		var sw: Sprite2D = w_entry.get("sprite")
-		if is_instance_valid(sw):
-			sw.self_modulate.a = target_a
 	VillageUnderworldScript.sync_sewer_visibility(vm)
 	load("res://scripts/systems/VillageClub.gd").sync_club_visibility(vm)
 	for rf in get_tree().get_nodes_in_group("ranch_fence_2d"):

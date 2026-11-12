@@ -509,10 +509,9 @@ func _spawn_building_door_and_window(
 	door_dir: String,
 	win_pos: Vector2
 ) -> void:
+	# Sin dibujo plano (2026-11-12): la puerta y la ventana 3D (WorldStageProps3D) leen «is_open», «is_locked» e
+	# «is_shuttered» de estas entradas.
 	var is_horiz_door: bool = (door_dir in ["south", "north"])
-	var tex_door_closed := _load_tex("res://assests/world/village/door_wood_closed.png")
-	var tex_door_open := _load_tex("res://assests/world/village/door_wood_open.png")
-	var tex_win_open := _load_tex("res://assests/world/village/window_glass_open.png")
 
 	# Cuerpo de colisión físico de la puerta (activo cuando está cerrada)
 	var d_body := StaticBody2D.new()
@@ -528,28 +527,22 @@ func _spawn_building_door_and_window(
 	d_body.add_child(d_col)
 	entities_root.add_child(d_body)
 
-	var spr_closed := _add_sprite_prop(tex_door_closed, door_pos, Vector2(door_width / 42.0, 1.0), 3, true)
-	var spr_open := _add_sprite_prop(tex_door_open, door_pos + Vector2(-door_width * 0.5 + 4.0, -15.0 if door_on_south else 15.0), Vector2.ONE, 2, false)
-
 	_add_station_area("DoorArea_" + b_id, door_pos, 20.0, "building_door")
 
 	var occ_rect: Rect2 = Rect2(door_pos - Vector2(door_width * 0.5, 4.0), Vector2(door_width, 8.0)) if is_horiz_door else Rect2(door_pos - Vector2(4.0, door_width * 0.5), Vector2(8.0, door_width))
 	building_doors.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": door_pos,
 		"door_south": door_on_south, "door_dir": door_dir, "width": door_width, "body": d_body, "col": d_col,
-		"spr_closed": spr_closed, "spr_open": spr_open,
 		"occluder_rect": occ_rect,
 		"is_open": false, "is_locked": false, "locked_by_player": false,
 		"manual_override_timer": 0.0, "npc_pass_timer": 0.0, "police_breach_timer": 0.0
 	})
 
-	var spr_win := _add_sprite_prop(tex_win_open, win_pos, Vector2.ONE, 3)
-
 	_add_station_area("WindowArea_" + b_id, win_pos, 11.0, "building_window")
 
 	building_windows.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": win_pos,
-		"door_south": door_on_south, "door_dir": door_dir, "sprite": spr_win,
+		"door_south": door_on_south, "door_dir": door_dir,
 		"is_shuttered": false, "manual_override_timer": 0.0
 	})
 
@@ -1225,11 +1218,11 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 	return cur_target
 
 func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> void:
-	var spr := _add_sprite_prop(_load_tex("res://assests/world/village/house_chest_closed.png"), pos, Vector2(1.05, 1.05), -1)
+	# Sin dibujo plano (2026-11-12): el cofre 3D sale de esta entrada (WorldStageBuildings3D)
 	_add_prop_collider(pos, Vector2(11.0, 8.0))
 	_add_station_area("", pos, 15.0, "house_chest")
 	# El sitio del cofre se guarda en el mundo, como su dibujo (mapa ×E)
-	house_chests.append({"pos": Anclas.mover(pos), "sprite": spr, "title": chest_title, "family_id": fam_id, "looted_day": -1})
+	house_chests.append({"pos": Anclas.mover(pos), "title": chest_title, "family_id": fam_id, "looted_day": -1})
 
 func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 	var prop_rect := Rect2(pos - sz * 0.5, sz)
@@ -1521,20 +1514,10 @@ func _set_door_state(d_entry: Dictionary, open_state: bool, locked_state: bool, 
 
 func _refresh_door_visual_and_collision(d_entry: Dictionary) -> void:
 	var eff_open: bool = bool(d_entry.get("is_open", false)) or float(d_entry.get("npc_pass_timer", 0.0)) > 0.0
-	var is_lck: bool = bool(d_entry.get("is_locked", false))
 	var col: CollisionShape2D = d_entry.get("col")
-	var spr_c: Sprite2D = d_entry.get("spr_closed")
-	var spr_o: Sprite2D = d_entry.get("spr_open")
 	if is_instance_valid(col):
 		col.disabled = eff_open
 		col.set_deferred("disabled", eff_open)
-	if is_instance_valid(spr_c):
-		spr_c.visible = not eff_open
-		if not eff_open:
-			var tex_path := "res://assests/world/village/door_wood_locked.png" if is_lck else "res://assests/world/village/door_wood_closed.png"
-			spr_c.texture = _load_tex(tex_path)
-	if is_instance_valid(spr_o):
-		spr_o.visible = eff_open
 
 ## Llamado activamente por cada NPC al acercarse a una puerta durante su movimiento (`_move_towards_point`).
 ## Solo abre la puerta si el NPC tiene INTENCIÓN REAL de entrar o salir de ese edificio específico (`npc_inside != dest_inside`).

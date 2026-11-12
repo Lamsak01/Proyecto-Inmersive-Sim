@@ -870,13 +870,6 @@ func _on_day_passed(_new_day: int) -> void:
 	# Avanzar jornada de investigación del Inquisidor Real Alistair (garantizando resolución antes del día 19)
 	_advance_royal_investigation_day(_new_day)
 
-	# Cerrar cofres domésticos para el nuevo día
-	var tex_closed := _load_tex("res://assests/world/village/house_chest_closed.png")
-	for ch in house_chests:
-		var spr: Sprite2D = ch.get("sprite")
-		if is_instance_valid(spr) and tex_closed:
-			spr.texture = tex_closed
-
 	# 1. Progresión de la Curva de Eficiencia Laboral de 7 Días (+1 día de experiencia a cada trabajador vivo)
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
@@ -1251,7 +1244,6 @@ func load_economy_save_dict(data: Dictionary) -> void:
 			crime_history.append(str(ch_item))
 	if data.has("house_chests") and typeof(data["house_chests"]) == TYPE_DICTIONARY:
 		var sc: Dictionary = data["house_chests"]
-		var cur_d: int = WorldClock.current_day if WorldClock else 1
 		for ch in house_chests:
 			var ch_title_key: String = str(ch.get("title", ""))
 			var ch_fam_key: String = str(ch.get("family_id", ch.get("id", "")))
@@ -1265,16 +1257,9 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				else:
 					ch["looted_day"] = int(raw_ch)
 					ch["planted_evidence"] = ""
-				var spr: Sprite2D = ch.get("sprite")
-				if is_instance_valid(spr):
-					var is_open: bool = (int(ch["looted_day"]) == cur_d)
-					spr.texture = _load_tex("res://assests/world/village/house_chest_open.png" if is_open else "res://assests/world/village/house_chest_closed.png")
 			else:
 				ch["looted_day"] = -1
 				ch["planted_evidence"] = ""
-				var spr_def: Sprite2D = ch.get("sprite")
-				if is_instance_valid(spr_def):
-					spr_def.texture = _load_tex("res://assests/world/village/house_chest_closed.png")
 	if data.has("building_doors") and typeof(data["building_doors"]) == TYPE_DICTIONARY:
 		var sd: Dictionary = data["building_doors"]
 		for d_entry in building_doors:
@@ -1290,8 +1275,6 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				_refresh_door_visual_and_collision(d_entry)
 	if data.has("building_windows") and typeof(data["building_windows"]) == TYPE_DICTIONARY:
 		var sw: Dictionary = data["building_windows"]
-		var tex_win_open := _load_tex("res://assests/world/village/window_glass_open.png")
-		var tex_win_shut := _load_tex("res://assests/world/village/window_shutter_closed.png")
 		for w_entry in building_windows:
 			var w_id: String = str(w_entry.get("building_id", w_entry.get("id", "")))
 			if sw.has(w_id) and typeof(sw[w_id]) == TYPE_DICTIONARY:
@@ -1301,9 +1284,6 @@ func load_economy_save_dict(data: Dictionary) -> void:
 				w_entry["manual_override_timer"] = float(we.get("manual_override_timer", 0.0))
 				w_entry["picked_until_hour"] = int(we.get("picked_until_hour", -1))
 				w_entry["picked_day"] = int(we.get("picked_day", -1))
-				var w_spr: Sprite2D = w_entry.get("sprite")
-				if is_instance_valid(w_spr):
-					w_spr.texture = tex_win_shut if shut else tex_win_open
 	for trap_entry in _deployed_bear_traps:
 		var trap_node: Node2D = trap_entry.get("node") as Node2D
 		if is_instance_valid(trap_node):

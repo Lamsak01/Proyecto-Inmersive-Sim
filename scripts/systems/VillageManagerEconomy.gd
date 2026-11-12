@@ -37,8 +37,6 @@ func _get_building_family_affinity(b_id: String) -> int:
 
 func _apply_hourly_door_security_schedule(hour: int) -> void:
 	var sec_lvl: int = get_village_security_level()
-	var tex_win_open := _load_tex("res://assests/world/village/window_glass_open.png")
-	var tex_win_shut := _load_tex("res://assests/world/village/window_shutter_closed.png")
 
 	for d_entry in building_doors:
 		if bool(d_entry.get("locked_by_player", false)) or float(d_entry.get("manual_override_timer", 0.0)) > 0.0:
@@ -100,9 +98,6 @@ func _apply_hourly_door_security_schedule(hour: int) -> void:
 		var w_aff: int = _get_building_family_affinity(wb_id)
 		var should_shutter: bool = ((hour >= 21 or hour < 6) and sec_lvl >= 1) or (sec_lvl >= 2) or (w_aff < 0)
 		w_entry["is_shuttered"] = should_shutter
-		var w_spr: Sprite2D = w_entry.get("sprite")
-		if is_instance_valid(w_spr):
-			w_spr.texture = tex_win_shut if should_shutter else tex_win_open
 
 func _interact_building_door(player: Node2D, d_entry: Dictionary) -> void:
 	var is_open_now: bool = bool(d_entry.get("is_open", true))
@@ -181,9 +176,6 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 			w_entry["is_shuttered"] = false
 			w_entry["manual_override_timer"] = 120.0
 			recent_breakins_count += 1
-			var w_spr: Sprite2D = w_entry.get("sprite")
-			if is_instance_valid(w_spr):
-				w_spr.texture = _load_tex("res://assests/world/village/window_glass_open.png")
 			var in_stealth2: bool = player.has_method("is_stealthing") and bool(player.call("is_stealthing"))
 			var cloak_mult2: float = float(player.call("get_stealth_detection_multiplier")) if player.has_method("get_stealth_detection_multiplier") else 1.0
 			var lockpick_mult2: float = 0.35 if (player.has_method("has_master_lockpick") and bool(player.call("has_master_lockpick"))) else 1.0
@@ -276,10 +268,7 @@ func _interact_house_chest(player: Node2D, ch: Dictionary) -> void:
 			player._spawn_floating_text("📦🏡 Es tu cofre: aquí no hay nada que no hayas puesto tú. (Para esconder oro, pide al carpintero un escondite)", Color.LIGHT_GRAY, -46.0)
 		return
 
-	ch["looted_day"] = cur_day
-	var spr: Sprite2D = ch.get("sprite")
-	if is_instance_valid(spr):
-		spr.texture = _load_tex("res://assests/world/village/house_chest_open.png")
+	ch["looted_day"] = cur_day # la tapa 3D se esconde sola ese día (WorldStageProps3D)
 
 	var gold_loot: int = randi_range(18, 32)
 	if str(ch.get("family_id", "")) == "town_hall":
