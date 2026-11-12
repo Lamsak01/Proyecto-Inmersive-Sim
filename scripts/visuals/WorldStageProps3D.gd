@@ -449,13 +449,11 @@ func _sync_home_props_3d() -> void:
 		var st_fl: int = 1 if (lid == prim_lot and bool(hs.get("has_stash", false))) else 0
 		var up_fl: int = 1 if bool(up.get("upper_floor", false)) else 0
 		var cel_fl: int = 1 if bool(up.get("hidden_cellar", false)) else 0
-		var gd_fl: int = 1 if bool(st.get("has_garden", false)) else 0
-		var gd_rdy: int = 1 if (gd_fl == 1 and VillageHousingScript.can_harvest_home_garden(vm, lid)) else 0
 		var sh_fl: int = 1 if (has_shop and lid == shop_lot) else 0
 		var sh_stk: int = clampi(int(ps.get("stock", 0)), 0, 4) if sh_fl == 1 else 0
 		var sh_till: int = (1 if int(ps.get("till_gold", 0)) > 0 else 0) if sh_fl == 1 else 0
 		var tb_rat: int = clampi(int(hs.get("table_rations", 0)), 0, 12) if lid == prim_lot else 0
-		parts.append("%s:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d" % [lid, wb, st_fl, up_fl, cel_fl, gd_fl, gd_rdy, sh_fl, sh_stk, sh_till, tb_rat])
+		parts.append("%s:%d:%d:%d:%d:%d:%d:%d:%d" % [lid, wb, st_fl, up_fl, cel_fl, sh_fl, sh_stk, sh_till, tb_rat])
 	var sig: String = "|".join(parts)
 	if sig == _last_home_props_sig and (sig.is_empty() or is_instance_valid(_home_props_3d)):
 		return
@@ -477,7 +475,6 @@ func _sync_home_props_3d() -> void:
 	var m_gold: StandardMaterial3D = _mat("hp_gold", Color(0.95, 0.78, 0.24), 0.25, 0.85, Color(0.92, 0.74, 0.20), 0.55)
 	var m_herb: StandardMaterial3D = _mat("hp_herb", Color(0.30, 0.82, 0.38), 0.45, 0.10, Color(0.20, 0.65, 0.28), 0.35)
 	var m_dust: StandardMaterial3D = _mat("hp_dust", Color(0.74, 0.44, 0.96), 0.30, 0.15, Color(0.66, 0.36, 0.90), 0.55)
-	var m_soil: StandardMaterial3D = _mat("hp_soil", Color(0.30, 0.20, 0.12), 0.95, 0.0)
 
 	for lid in p_lots:
 		var st: Dictionary = VillageLots.lot(vm, lid)
@@ -524,14 +521,6 @@ func _sync_home_props_3d() -> void:
 					var sy: float = -4.5 + float(step_i) * 3.0
 					var sh: float = 4.0 + float(step_i) * 4.2
 					_add_box_2d(root, sr_pos + Vector2(0, sy), Vector2(10.0, 2.2), sh, 1.6, m_oak)
-		if bool(st.get("has_garden", false)):
-			var gd_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_garden")
-			_add_box_2d(root, gd_pos, Vector2(22.0, 15.0), 0.2, 2.2, m_oak) # Cerco de madera
-			_add_box_2d(root, gd_pos, Vector2(19.6, 12.6), 0.4, 2.4, m_soil) # Tierra labrada
-			var crop_mat: StandardMaterial3D = m_herb if VillageHousingScript.can_harvest_home_garden(vm, lid) else m_oak
-			for gy in [-3.2, 3.2]:
-				for gx in [-6.5, -2.2, 2.2, 6.5]:
-					_add_cyl_2d(root, gd_pos + Vector2(gx, gy), 2.0, 2.6, 2.6, crop_mat, 1.4, 7)
 		if has_shop and lid == shop_lot:
 			var sc_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "player_shop_counter")
 			_add_box_2d(root, sc_pos, Vector2(18.0, 9.2), 2.0, 6.8, m_oak) # Cuerpo del mostrador

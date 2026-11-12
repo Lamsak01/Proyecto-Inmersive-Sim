@@ -23,6 +23,9 @@ const VillageForensics = preload("res://scripts/systems/VillageForensics.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const VillageCollections = preload("res://scripts/systems/VillageCollections.gd")
 const VillageNightJobs = preload("res://scripts/systems/VillageNightJobs.gd")
+# Probabilidad fija de ganar carreras y peleas de animales: los animales propios del jugador (que daban ventaja) se
+# borraron el 2026-11-12 y se rehacen en 3D tras el Caso I.
+const PROB_GANAR_APUESTA_ANIMAL: float = 0.45
 const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 
 ## Bloque P3 Parte B: Campamento físico nocturno de la caravana de contrabando (claro noreste al norte de mansión f1).
@@ -618,8 +621,7 @@ static func run_animal_race(vm, npc, inv, force_outcome: int = 0) -> int:
 	if today() == int(st.get("last_animal_race_day", -99)):
 		return 0
 	st["last_animal_race_day"] = today()
-	var bonus: float = 0.06 * float(VillageHousing.best_adult_animal_power(vm))
-	var win_chance: float = clampf(0.45 + bonus, 0.25, 0.78)
+	var win_chance: float = PROB_GANAR_APUESTA_ANIMAL
 	var won: bool = (randf() < win_chance) if force_outcome == 0 else (force_outcome > 0)
 	if won:
 		return VillageClans.pay_from_pocket(npc, 12, inv)
@@ -634,8 +636,7 @@ static func run_cockfight(vm, npc, inv, force_outcome: int = 0) -> int:
 	if today() == int(st.get("last_cockfight_day", -99)):
 		return 0
 	st["last_cockfight_day"] = today()
-	var bonus: float = 0.06 * float(VillageHousing.best_adult_animal_power(vm, "rooster"))
-	var win_chance: float = clampf(0.45 + bonus, 0.25, 0.78)
+	var win_chance: float = PROB_GANAR_APUESTA_ANIMAL
 	var won: bool = (randf() < win_chance) if force_outcome == 0 else (force_outcome > 0)
 	if not is_guard_bribed_tonight(vm) and force_outcome == 0 and randf() < 0.15:
 		vm.wanted_level = int(vm.wanted_level) + 1

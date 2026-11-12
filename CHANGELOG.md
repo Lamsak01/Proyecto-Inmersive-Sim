@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Borrados también los animales de corral del jugador y el huerto de casa (Claude Code, usuario)
+- Fuera comprar crías, darles de comer, esquilar, recoger huevos, trasladar el corral al solar y el huerto de tu casa.
+  Las carreras y peleas de animales siguen, con la misma suerte para todos (antes tus animales daban ventaja).
+- El ganado del Rancho del Sur sigue igual. La cataplasma de casa necesita hierbas compradas o recogidas.
+
 ## 2026-11-12 — Borrados pesca, huerto, gallinero y campamento (Claude Code, decisión del usuario)
 - Estaban pensados para el mapa plano (letreros flotantes, barra de pesca dibujada en el mapa) y en primera persona no se
   veían. Se rehacen de cero en 3D después del Caso I. Fuera también la caña, la regadera, las semillas iniciales y la

@@ -3921,25 +3921,9 @@ func _initialize() -> void:
 	p70_c.affinity = ph_c_aff_bak
 	print("Block PH (Obsession & Player Companions) OK")
 
-	# 86. Bloque PI: Animales con etapas de crecimiento y crianza y Carreras / peleas de animales con apuestas
+	# 86. Bloque PI: Carreras / peleas de animales con apuestas (las crías propias del jugador se borraron el 2026-11-12)
 	var pi_ag_bak: int = p70_a.personal_gold
 	var pi_bg_bak: int = p70_b.personal_gold
-	(vho.state(vm)["player_animals"] as Array).clear()
-	p70_inv.gold = 100
-	p70_a.personal_gold = 10
-	vho.on_player_action(vm, p70_a, "housing_buy_chick:rooster", p70_inv)
-	assert((vho.state(vm)["player_animals"] as Array).size() == 1 and p70_inv.gold == 85 and p70_a.personal_gold == 25 and str(vho.state(vm)["player_animals"][0]["stage"]) == "chick", "PI.1a: Buying young animal transfers 15 gold to seller and starts at chick stage")
-	p70_inv.remove_item("bread", p70_inv.get_count("bread"))
-	p70_inv.add_item("bread", 2)
-	vho.on_player_action(vm, p70_a, "housing_feed_animals", p70_inv)
-	vho.daily(vm)
-	assert(p70_inv.get_count("bread") == 1 and str(vho.state(vm)["player_animals"][0]["stage"]) == "juvenile", "PI.1b: Feeding and daily growth advances animal from chick to juvenile stage")
-	vho.on_player_action(vm, p70_a, "housing_feed_animals", p70_inv)
-	vho.daily(vm)
-	assert(str(vho.state(vm)["player_animals"][0]["stage"]) == "adult" and vho.best_adult_animal_power(vm, "rooster") >= 3, "PI.1c: Animal reaches adult stage with increased vigor")
-	vho.state(vm)["player_animals"][0]["fed_day"] = vho.today() - vho.ANIMAL_STARVE_DAYS
-	vho.daily(vm)
-	assert((vho.state(vm)["player_animals"] as Array).is_empty(), "PI.1d: An animal left unfed for 5 days dies (no free meat without feeding)")
 	# PI.2: Carreras de animales y peleas de gallos/perros con apuestas contra el bolsillo del vecino
 	p70_b.personal_gold = 40
 	p70_inv.gold = 100
@@ -3952,10 +3936,9 @@ func _initialize() -> void:
 	vun.state(vm)["last_cockfight_day"] = -99
 	assert(vun.run_cockfight(vm, p70_b, p70_inv, -1) == -15 and p70_b.personal_gold == 40 and p70_inv.gold == 100, "PI.2d: Losing cockfight transfers 15 gold to opponent's pocket")
 	assert(vun.run_cockfight(vm, p70_b, p70_inv, 1) == 0, "PI.2e: Daily cooldown prevents repeating cockfight on the same day")
-	(vho.state(vm)["player_animals"] as Array).clear()
 	p70_a.personal_gold = pi_ag_bak
 	p70_b.personal_gold = pi_bg_bak
-	print("Block PI (Animal Growth & Animal Bets) OK")
+	print("Block PI (Animal Bets) OK")
 
 	# 87. Bloque PJ: Amputaciones e implantes / prótesis médicas y Sabotaje lógico de la red eléctrica
 	var vil_pj = load("res://scripts/systems/VillageIllness.gd")
@@ -4781,12 +4764,10 @@ func _initialize() -> void:
 	print("Block FIS3 (Walkable Sewers, Street Grates, Ladders & Contraband Chests) OK")
 
 	# ---------------------------------------------------------
-	# Block 98: Live Ranch Herd & Player Livestock (FIS4)
+	# Block 98: Live Ranch Herd (FIS4)
 	# ---------------------------------------------------------
 	var fis4_ranch_bak: Array = (vho.state(vm)["ranch_herd"] as Array).duplicate(true)
-	var fis4_panim_bak: Array = (vho.state(vm)["player_animals"] as Array).duplicate(true)
 	var fis4_gold_bak: int = p70_inv.gold
-	var fis4_day_bak: int = int(t5_wc.current_day)
 
 	# FIS4.1: El número de animales vivos en el rancho ("ranch_livestock") coincide con ranch_herd y cambia cuando cambia la lista
 	vho.state(vm)["ranch_herd"] = [
@@ -4803,61 +4784,6 @@ func _initialize() -> void:
 	vho.sync_livestock(vm)
 	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == 3, "FIS4.1c: Adding to ranch_herd spawns a 3rd live ranch_livestock node")
 
-	# FIS4.2: Comprar una cría la hace aparecer en tu corral ("player_livestock") y pulsar [E] con trigo/pan le da de comer y la hace crecer
-	(vho.state(vm)["player_animals"] as Array).clear()
-	vho.sync_livestock(vm)
-	assert(root.get_tree().get_nodes_in_group("player_livestock").size() == 0, "FIS4.2a: Empty player_animals has 0 player_livestock nodes")
-	p70_inv.gold = 100
-	assert(vho.buy_young_animal(vm, "sheep", p70_inv, p70_a), "FIS4.2b: Bought young sheep")
-	assert(vho.buy_young_animal(vm, "rooster", p70_inv, p70_a), "FIS4.2c: Bought young rooster")
-	var fis4_p_nodes: Array = root.get_tree().get_nodes_in_group("player_livestock")
-	assert(fis4_p_nodes.size() == 2, "FIS4.2d: Buying 2 young animals spawns 2 live player_livestock nodes in the coop")
-	var fis4_sheep_node: Node2D = fis4_p_nodes[0] as Node2D
-	var fis4_rooster_node: Node2D = fis4_p_nodes[1] as Node2D
-	var fis4_p_rect: Rect2 = vho._player_pen_rect(vm).grow(2.0)
-	assert(fis4_p_rect.has_point(fis4_sheep_node.global_position) and fis4_p_rect.has_point(fis4_rooster_node.global_position), "FIS4.2e: Both player_livestock nodes are inside the player's coop fence")
-	assert(str(fis4_sheep_node.call("get_interact_label", p70_pl)) == "Dar de comer a la oveja", "FIS4.2f: Young sheep interact label is 'Dar de comer a la oveja'")
-	assert(str(fis4_rooster_node.call("get_interact_label", p70_pl)) == "Dar de comer a la gallina", "FIS4.2g: Young rooster interact label is 'Dar de comer a la gallina'")
-	p70_inv.remove_item("wheat", p70_inv.get_count("wheat"))
-	p70_inv.add_item("wheat", 6)
-	# Alimentar 3 veces a la oveja con [E] (0 -> 2 -> 4 -> 6 días -> adult)
-	for _f_i in range(3):
-		fis4_sheep_node.call("interact", p70_pl)
-	assert(p70_inv.get_count("wheat") == 3 and str(vho.state(vm)["player_animals"][0]["stage"]) == "adult", "FIS4.2h: Feeding sheep 3 times via [E] spends 3 wheat and advances it to adult")
-	# Alimentar 3 veces a la gallina con [E] (0 -> 2 -> 4 -> 6 días -> adult)
-	for _f_j in range(3):
-		fis4_rooster_node.call("interact", p70_pl)
-	assert(p70_inv.get_count("wheat") == 0 and str(vho.state(vm)["player_animals"][1]["stage"]) == "adult", "FIS4.2i: Feeding rooster 3 times via [E] spends 3 wheat and advances it to adult")
-
-	# FIS4.3: Siendo adultos, pulsar [E] da "wool" o "egg" en mano como máximo una vez cada 2 días por animal, y ya no entra "cooked_meat" sola en daily()
-	p70_inv.remove_item("wool", p70_inv.get_count("wool"))
-	p70_inv.remove_item("egg", p70_inv.get_count("egg"))
-	p70_inv.remove_item("cooked_meat", p70_inv.get_count("cooked_meat"))
-	assert(str(fis4_sheep_node.call("get_interact_label", p70_pl)) == "Esquilar la oveja", "FIS4.3a: Adult sheep ready for shearing shows 'Esquilar la oveja'")
-	assert(str(fis4_rooster_node.call("get_interact_label", p70_pl)) == "Recoger huevos", "FIS4.3b: Adult rooster ready for egg collection shows 'Recoger huevos'")
-	fis4_sheep_node.call("interact", p70_pl)
-	fis4_rooster_node.call("interact", p70_pl)
-	assert(p70_inv.get_count("wool") == 1 and p70_inv.get_count("egg") == 1, "FIS4.3c: Interacting with adult sheep and rooster grants +1 wool and +1 egg")
-	# Intentar esquilar / recoger de nuevo el mismo día no da más lana ni huevos
-	fis4_sheep_node.call("interact", p70_pl)
-	fis4_rooster_node.call("interact", p70_pl)
-	assert(p70_inv.get_count("wool") == 1 and p70_inv.get_count("egg") == 1, "FIS4.3d: Cooldown prevents collecting wool or eggs a second time within 2 days")
-	# En día par, daily(vm) ya NO regala cooked_meat sola
-	t5_wc.current_day = 10
-	vho.state(vm)["player_animals"][0]["fed_day"] = 10
-	vho.state(vm)["player_animals"][1]["fed_day"] = 10
-	vho.state(vm)["player_animals"][0]["last_product_day"] = 10
-	vho.state(vm)["player_animals"][1]["last_product_day"] = 10
-	vho.daily(vm)
-	assert(p70_inv.get_count("cooked_meat") == 0, "FIS4.3e: VillageHousing.daily(vm) no longer adds automatic cooked_meat to inventory")
-	# Dos días después (día 12), vuelve a permitir esquilar y recoger huevos
-	t5_wc.current_day = 12
-	vho.state(vm)["player_animals"][0]["fed_day"] = 12
-	vho.state(vm)["player_animals"][1]["fed_day"] = 12
-	fis4_sheep_node.call("interact", p70_pl)
-	fis4_rooster_node.call("interact", p70_pl)
-	assert(p70_inv.get_count("wool") == 2 and p70_inv.get_count("egg") == 2, "FIS4.3f: After 2 days, adult sheep and rooster can be harvested again (+1 wool, +1 egg)")
-
 	# FIS4.4: El diálogo con el ganadero / carpintero ya no ofrece "housing_feed_animals"
 	var fis4_carp = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.CARPENTER))
 	var fis4_rancher = vm.trade_npcs.get(int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.RANCHER))
@@ -4870,26 +4796,17 @@ func _initialize() -> void:
 		for ch_f4 in h_choices:
 			assert(str((ch_f4 as Dictionary).get("action", "")) != "housing_feed_animals", "FIS4.4: Dialogue no longer offers housing_feed_animals")
 
-	# FIS4.5: Guardar y cargar conserva los animales vivos del rancho y del corral; y si uno muere de hambre, desaparece del mapa
+	# FIS4.5: Guardar y cargar conserva los animales vivos del rancho
 	var fis4_save: Dictionary = vm.get_economy_save_dict()
 	(vho.state(vm)["ranch_herd"] as Array).clear()
-	(vho.state(vm)["player_animals"] as Array).clear()
 	vho.sync_livestock(vm)
-	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == 0 and root.get_tree().get_nodes_in_group("player_livestock").size() == 0, "FIS4.5a: Cleared livestock before load")
+	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == 0, "FIS4.5a: Cleared livestock before load")
 	vm.load_economy_save_dict(fis4_save)
-	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == (vho.state(vm)["ranch_herd"] as Array).size() and root.get_tree().get_nodes_in_group("player_livestock").size() == 2, "FIS4.5b: Loading save restores live ranch_livestock and player_livestock nodes")
-	# Si el primer animal lleva 5 días sin comer, muere en daily() y su nodo desaparece del mapa
-	vho.state(vm)["player_animals"][0]["fed_day"] = vho.today() - vho.ANIMAL_STARVE_DAYS
-	vho.state(vm)["player_animals"][1]["fed_day"] = vho.today()
-	vho.daily(vm)
-	assert((vho.state(vm)["player_animals"] as Array).size() == 1 and root.get_tree().get_nodes_in_group("player_livestock").size() == 1, "FIS4.5c: Starved player animal is removed from player_animals and its physical node disappears from the map")
-
-	t5_wc.current_day = fis4_day_bak
+	assert(root.get_tree().get_nodes_in_group("ranch_livestock").size() == (vho.state(vm)["ranch_herd"] as Array).size(), "FIS4.5b: Loading save restores live ranch_livestock nodes")
 	vho.state(vm)["ranch_herd"] = fis4_ranch_bak
-	vho.state(vm)["player_animals"] = fis4_panim_bak
 	vho.sync_livestock(vm)
 	p70_inv.gold = fis4_gold_bak
-	print("Block FIS4 (Live Ranch Herd & Player Livestock) OK")
+	print("Block FIS4 (Live Ranch Herd) OK")
 
 	# ==========================================================================
 	# AUDITORÍA DE REALISMO — PRIORIDAD 1 (FIS-P1): Interior físico de tu propia casa
@@ -4899,7 +4816,6 @@ func _initialize() -> void:
 	var fisp1_payer_bak: String = str(fisp1_st.get("payer", ""))
 	var fisp1_status_bak: String = str(fisp1_st.get("status", ""))
 	var fisp1_upg_bak: Dictionary = (fisp1_st.get("upgrades", {}) as Dictionary).duplicate(true) if fisp1_st.get("upgrades", null) is Dictionary else {}
-	var fisp1_gard_bak: bool = bool(fisp1_st.get("has_garden", false))
 	var fisp1_stash_bak: bool = bool(vho.state(vm).get("has_stash", false))
 	var fisp1_stashg_bak: int = int(vho.state(vm).get("stash_gold", 0))
 	var fisp1_day_bak: int = t5_wc.current_day
@@ -4908,18 +4824,15 @@ func _initialize() -> void:
 	fisp1_st["payer"] = "player"
 	fisp1_st["status"] = "built"
 	fisp1_st["kind"] = "house"
-	fisp1_st["has_garden"] = true
-	fisp1_st["last_garden_day"] = -99
 	fisp1_st["upgrades"] = {"workbench": true, "upper_floor": true, "hidden_cellar": false}
 	vho.state(vm)["has_stash"] = true
 	vho.state(vm)["stash_gold"] = 0
 	vho.sync_home_props(vm)
 
-	# 1. Los 4 objetos físicos existen en la escena (home_workbench, home_stash, home_stairs, home_garden)
+	# 1. Los 3 objetos físicos existen en la escena (home_workbench, home_stash, home_stairs)
 	assert(root.get_tree().get_nodes_in_group("home_workbench").size() >= 1, "FIS-P1.1a: Physical home_workbench prop spawned in player house")
 	assert(root.get_tree().get_nodes_in_group("home_stash").size() >= 1, "FIS-P1.1b: Physical home_stash prop spawned in player house")
 	assert(root.get_tree().get_nodes_in_group("home_stairs").size() >= 1, "FIS-P1.1c: Physical home_stairs prop spawned in player house")
-	assert(root.get_tree().get_nodes_in_group("home_garden").size() >= 1, "FIS-P1.1d: Physical home_garden prop spawned in player house")
 
 	# 2. A medianoche (`VillageHousing.daily`) ya NO aparecen solos panes ni cataplasmas en la mochila
 	t5_wc.current_day = 20
@@ -4928,14 +4841,11 @@ func _initialize() -> void:
 	vho.daily(vm)
 	assert(p70_inv.get_count("bread") == fisp1_bread0 and p70_inv.get_count("herbal_poultice") == fisp1_poult0, "FIS-P1.2: VillageHousing.daily no longer injects free bread or herbal_poultice into backpack at midnight")
 
-	# 3. Cosechar físicamente el huerto con [E] en `home_garden` da +1 pan ("bread") y +1 hierba medicinal ("herbs", con espera de 2 días)
-	var fisp1_garden_node: Node2D = root.get_tree().get_first_node_in_group("home_garden") as Node2D
+	# 3. Con 1 hierba medicinal en la mochila (antes la daba el huerto de casa, borrado el 2026-11-12)
 	var fisp1_herb0: int = p70_inv.get_count("herbs")
 	if fisp1_herb0 > 0:
 		p70_inv.remove_item("herbs", fisp1_herb0)
-	fisp1_garden_node.call("interact", p70_pl)
-	assert(p70_inv.get_count("bread") == fisp1_bread0 + 1 and p70_inv.get_count("herbs") == 1, "FIS-P1.3a: Interacting with home_garden harvests +1 bread and +1 herbs")
-	assert(not vho.interact_home_garden(vm, fisp1_lot, p70_pl), "FIS-P1.3b: Cannot harvest home_garden again on the same day")
+	p70_inv.add_item("herbs", 1)
 
 	# 4. Preparar cataplasma gasta 1 "herbs" -> +1 "herbal_poultice", y sin "herbs" en la mochila no da nada; destilar polvo de ocaso cuesta 25 oro
 	var fisp1_wb_node: Node2D = root.get_tree().get_first_node_in_group("home_workbench") as Node2D
@@ -4986,11 +4896,10 @@ func _initialize() -> void:
 	fisp1_st["payer"] = fisp1_payer_bak
 	fisp1_st["status"] = fisp1_status_bak
 	fisp1_st["upgrades"] = fisp1_upg_bak
-	fisp1_st["has_garden"] = fisp1_gard_bak
 	vho.state(vm)["has_stash"] = fisp1_stash_bak
 	vho.state(vm)["stash_gold"] = fisp1_stashg_bak
 	vho.sync_home_props(vm)
-	print("Block FIS-P1 (Physical Home Interior: Garden, Workbench, Stash & Stairs) OK")
+	print("Block FIS-P1 (Physical Home Interior: Workbench, Stash & Stairs) OK")
 
 
 	# ==========================================================================
@@ -6791,7 +6700,7 @@ func _initialize() -> void:
 	print("Block B2 (Real Jail Cell: Arrest on Caught Night Job, Walk/Lock in Cell, Bail to Treasury, Lockpick Escape, Hourly Release) OK")
 
 	# ---------------------------------------------------------
-	# Block B3: Del campamento del lago al pueblo (trasladar a Toby con su comedero y el gallinero/animales a tu solar)
+	# Block B3: Del campamento del lago al pueblo (trasladar a Toby con su comedero a tu solar)
 	# ---------------------------------------------------------
 	var b3_vh = vm.VillageHousing
 	var b3_vl = vm.VillageLots
@@ -6799,8 +6708,6 @@ func _initialize() -> void:
 	var b3_lot_bak: Dictionary = b3_vl.lot(vm, b3_lot).duplicate(true)
 	var b3_hs: Dictionary = b3_vh.state(vm)
 	var b3_prev_toby_lot: String = str(b3_hs.get("toby_lot", ""))
-	var b3_prev_coop_lot: String = str(b3_hs.get("coop_lot", ""))
-	var b3_prev_animals: Array = (b3_hs.get("player_animals", []) as Array).duplicate(true)
 	# 2026-11-10: desde el inicio en las afueras (2026-11-09) Toby no aparece en el modo demo con el que arranca la prueba;
 	# se crea aquí igual que en VillageManagerSocial._spawn_domestic_pets para poder probar el traslado.
 	if b3_vh.find_toby(vm) == null:
@@ -6824,25 +6731,15 @@ func _initialize() -> void:
 	# 1. Sin casa construida no se puede trasladar a Toby ni el gallinero
 	b3_vl.lot(vm, b3_lot)["status"] = "empty"
 	b3_vl.lot(vm, b3_lot)["payer"] = ""
-	assert(not b3_vh.move_toby_to_lot(vm, b3_lot) and not b3_vh.move_coop_to_lot(vm, b3_lot), "B3.1: Cannot relocate Toby or coop to a lot without a built player house")
+	assert(not b3_vh.move_toby_to_lot(vm, b3_lot), "B3.1: Cannot relocate Toby to a lot without a built player house")
 	# 2. Con casa construida en el solar, trasladar a Toby mueve su cama/comedero y su posición de hogar al solar
 	b3_vl.lot(vm, b3_lot)["status"] = "built"
 	b3_vl.lot(vm, b3_lot)["kind"] = "house"
 	b3_vl.lot(vm, b3_lot)["payer"] = "player"
-	b3_hs["player_animals"] = [{"species": "sheep", "stage": "adult", "age_days": 8, "power": 2, "fed_day": b3_vh.today()}]
-	b3_vh.sync_livestock(vm)
 	assert(b3_vh.move_toby_to_lot(vm, b3_lot), "B3.2: Player with a built house can relocate Toby and his feeder to their lot")
 	var b3_expected_toby_pos: Vector2 = M(b3_vh.toby_pos_for_lot(vm, b3_lot))
 	assert(b3_toby != null and b3_toby.home_position.distance_to(b3_expected_toby_pos) < 1.0 and b3_bed != null and b3_bed.global_position.distance_to(b3_expected_toby_pos) < 1.0, "B3.3: Toby's home_position and PetBed_Toby move to the player's lot")
-	# 3. Trasladar los animales de corral los lleva al corral del solar (el gallinero se borró el 2026-11-12)
-	assert(b3_vh.move_coop_to_lot(vm, b3_lot), "B3.4: Player with a built house can relocate livestock to their lot")
-	var b3_pen: Rect2 = b3_vh._player_pen_rect(vm)
-	var b3_pl_livestock: Array = get_nodes_in_group("player_livestock")
-	assert(not b3_pl_livestock.is_empty() and b3_pen.grow(2.0).has_point((b3_pl_livestock[0] as Node2D).global_position), "B3.6: Player livestock nodes are relocated inside the lot's pen")
-	# Restaurar estado tras B3
 	b3_hs["toby_lot"] = b3_prev_toby_lot
-	b3_hs["coop_lot"] = b3_prev_coop_lot
-	b3_hs["player_animals"] = b3_prev_animals
 	vm.lots_state[b3_lot] = b3_lot_bak
 	if b3_toby != null:
 		b3_toby.home_position = b3_toby_home0
@@ -6853,7 +6750,7 @@ func _initialize() -> void:
 		b3_bed.global_position = b3_toby_home0
 	b3_vh.sync_livestock(vm)
 	b3_vh.sync_home_props(vm)
-	print("Block B3 (Relocate Toby & Feeder and Livestock to Village Lot) OK")
+	print("Block B3 (Relocate Toby & Feeder to Village Lot) OK")
 
 	# ---------------------------------------------------------
 	# Block B4: Coherencia del ambiente (niebla nocturna y farolas/faroles, humo/chispas en talleres saboteados y lluvia, tendencias sin «dormida» y paseos nocturnos)

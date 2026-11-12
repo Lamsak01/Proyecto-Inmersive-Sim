@@ -31,9 +31,9 @@ constructor, taberna, restaurante, solares. Siguen: `VillagePlaces`, `VillageMan
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.
-**Pesca, huerto, gallinero y campamento propio borrados (usuario, 2026-11-12)**: se rehacen en 3D tras el Caso I
-(`docs/VISION_Y_FUTURO.md`, «Jugador»). Forma del río y del lago: `scripts/fisica/RioLago.gd`. Pendiente de preguntar:
-animales de corral del jugador (siguen, sin gallinero) y la red eléctrica (sin generador, sin corriente).
+**Pesca, huerto, gallinero, campamento, animales de corral del jugador y huerto de casa borrados (usuario, 2026-11-12)**:
+se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd`.
+Pendiente de preguntar: la red eléctrica (sin generador, sin corriente).
 Corte final (anclas y ×5) solo con el usuario.
 Pendiente apuntado: tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.

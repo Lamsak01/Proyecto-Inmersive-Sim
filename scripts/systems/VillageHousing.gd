@@ -25,7 +25,6 @@ const LivestockAnimalScript = preload("res://scripts/obstacles/LivestockAnimal.g
 const HOUSE_CASH_COST: int = 100 # Precio de una casa mediana; cada solar cobra lo suyo con VillageLots.house_cost
 const FORECLOSED_COST: int = 80
 const UPGRADE_COSTS: Dictionary = {"bookshelf": 35, "workbench": 40, "oak_bed": 30, "strong_lock": 25, "hidden_cellar": 45, "hearth": 25, "upper_floor": 50}
-const GARDEN_COST: int = 35
 const STASH_BUILD_COST: int = 30
 const DINNER_COST: int = 10
 const COMMERCIAL_DEED_COST: int = 120
@@ -38,17 +37,13 @@ const SHOP_STOCK_PER_PRESS: int = 6
 const SHOP_ITEM_PRICES: Dictionary = {"bread": 6, "cooked_meat": 7, "herbal_poultice": 9, "repair_kit": 12, "clothes": 14, "wood": 3, "iron_ore": 6, "fish": 5, "masterwork_piece": 40}
 const SHOP_THEFT_CHANCE: float = 0.18 # Sin dependiente, de noche pueden vaciarte parte de la caja
 const SHOP_THEFT_CHANCE_CLERK: float = 0.07
-const ANIMAL_FED_DAYS: int = 2 # Crecen y dan carne solo si comieron hace 2 días o menos
-const ANIMAL_STARVE_DAYS: int = 5 # Sin comer 5 días, el animal muere
 const CLERK_WAGE: int = 4
 const SHOP_OPEN_HOUR: int = 8
 const SHOP_CLOSE_HOUR: int = 18
 const SHOP_CLERK_RADIUS: float = 42.0
 const STOCKABLE_ITEMS: Array[String] = ["bread", "cooked_meat", "herbal_poultice", "repair_kit", "clothes", "wood", "iron_ore", "fish", "masterwork_piece"]
-const BUY_CHICK_COST: int = 15
 const JUVENILE_DAYS: int = 3
 const ADULT_ANIMAL_DAYS: int = 6
-const PRODUCT_COOLDOWN_DAYS: int = 2
 const RANCH_PEN_RECT: Rect2 = Rect2(Vector2(310.0, 404.0), Vector2(100.0, 134.0))
 
 ## El corral del rancho en el mundo: el rectángulo de arriba está en el mapa original y sigue al rancho (anclas).
@@ -110,12 +105,8 @@ static func state(vm) -> Dictionary:
 			{"species": "rooster", "stage": "adult", "age_days": 6},
 			{"species": "rooster", "stage": "chick", "age_days": 1},
 		]
-	if not hs.has("player_animals") or not (hs["player_animals"] is Array):
-		hs["player_animals"] = []
 	if not hs.has("toby_lot"):
 		hs["toby_lot"] = ""
-	if not hs.has("coop_lot"):
-		hs["coop_lot"] = ""
 	return hs
 
 static func today() -> int:
@@ -202,8 +193,6 @@ static func house_sale_price(vm, lot_id: String) -> int:
 	for uk in up.keys():
 		if bool(up[uk]):
 			price += 15
-	if bool(st.get("has_garden", false)):
-		price += 20
 	return clampi(price, 80, 200)
 
 ## Tanda 5 (24): Descansar junto al hogar de leña calienta a quienes viven en tu casa (+10 de humor) y restaura fuerzas.
@@ -494,45 +483,6 @@ static func animal_stage_for_days(days: int) -> String:
 		return "juvenile"
 	return "chick"
 
-static func buy_young_animal(vm, species: String, inv, seller = null) -> bool:
-	if inv == null or int(inv.gold) < BUY_CHICK_COST:
-		return false
-	var arr: Array = state(vm)["player_animals"]
-	if arr.size() >= 4:
-		return false
-	inv.add_gold(-BUY_CHICK_COST)
-	if seller != null and "personal_gold" in seller:
-		seller.personal_gold += BUY_CHICK_COST
-	else:
-		vm.town_state["treasury"] = int(vm.town_state.get("treasury", 0)) + BUY_CHICK_COST
-	arr.append({"species": species, "stage": "chick", "age_days": 0, "power": 1, "fed_day": today()})
-	VillageChronicle.add(vm, "animal_bought", "Compraste una cría (%s) para criarla en tu corral" % species, true)
-	sync_livestock(vm)
-	sync_home_props(vm)
-	return true
-
-static func feed_player_animals(vm, inv) -> int:
-	var arr: Array = state(vm)["player_animals"]
-	if arr.is_empty() or inv == null:
-		return 0
-	var used: String = ""
-	for food_id in ["wheat", "bread", "carrot"]:
-		if inv.has_item(food_id, 1):
-			inv.remove_item(food_id, 1)
-			used = food_id
-			break
-	if used == "":
-		return 0
-	for a in arr:
-		if a is Dictionary:
-			a["fed_day"] = today()
-			a["age_days"] = int(a.get("age_days", 0)) + 2
-			a["stage"] = animal_stage_for_days(int(a["age_days"]))
-			a["power"] = clampi(int(a.get("power", 1)) + 1, 1, 5)
-	sync_livestock(vm)
-	sync_home_props(vm)
-	return arr.size()
-
 static func find_toby(vm):
 	if vm == null:
 		return null
@@ -554,15 +504,6 @@ static func toby_pos_for_lot(_vm, lot_id: String) -> Vector2:
 	var half_sz: Vector2 = (VillageLots.HOUSE_PLOTS[VillageLots.plot_of(lot_id)]["size"] as Vector2) * 0.5
 	var m: float = 1.0 if d.get("door_south") == true else -1.0
 	return c + Vector2(half_sz.x * 0.55, (half_sz.y + 10.0) * m)
-
-static func coop_pos_for_lot(_vm, lot_id: String) -> Vector2:
-	var d: Dictionary = VillageLots.lot_def(lot_id)
-	if d.is_empty():
-		return Vector2(-198.0, -21.0)
-	var c: Vector2 = d.get("center", Vector2.ZERO)
-	var half_sz: Vector2 = (VillageLots.HOUSE_PLOTS[VillageLots.plot_of(lot_id)]["size"] as Vector2) * 0.5
-	var m: float = 1.0 if d.get("door_south") == true else -1.0
-	return c + Vector2(-34.0, -(half_sz.y + 24.0) * m)
 
 static func sync_relocated_camp_assets(vm, teleport_toby: bool = false) -> void:
 	if vm == null:
@@ -597,46 +538,15 @@ static func move_toby_to_lot(vm, lot_id: String = "") -> bool:
 	VillageChronicle.add(vm, "toby_moved_home", "Trasladaste a Toby y su comedero al patio de tu casa en el solar %s" % lid, true)
 	return true
 
-static func move_coop_to_lot(vm, lot_id: String = "") -> bool:
-	if vm == null:
-		return false
-	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
-	if lid.is_empty():
-		return false
-	var st: Dictionary = VillageLots.lot(vm, lid)
-	if str(st.get("payer", "")) != "player" or str(st.get("status", "")) != "built":
-		return false
-	state(vm)["coop_lot"] = lid
-	sync_relocated_camp_assets(vm, false)
-	sync_livestock(vm)
-	if vm.has_method("refresh_world_stage_3d"):
-		vm.refresh_world_stage_3d()
-	VillageChronicle.add(vm, "coop_moved_home", "Trasladaste tu gallinero y tus animales de corral al solar %s" % lid, true)
-	return true
-
-static func _player_pen_rect(vm) -> Rect2:
-	var coop_pos: Vector2 = Vector2(-198.0, -21.0)
-	if vm != null:
-		coop_pos = vm.sitio(coop_pos)
-		var c_lot: String = str(state(vm).get("coop_lot", ""))
-		if c_lot != "" and str(VillageLots.lot(vm, c_lot).get("payer", "")) == "player" and str(VillageLots.lot(vm, c_lot).get("status", "")) == "built":
-			coop_pos = vm.sitio(coop_pos_for_lot(vm, c_lot))
-	return Rect2(coop_pos + Vector2(-33.0, -6.0), Vector2(66.0, 31.0))
-
 static func sync_livestock(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
 		return
 	var hs: Dictionary = state(vm)
 	var r_herd: Array = hs["ranch_herd"]
-	var p_animals: Array = hs["player_animals"]
 	var ranch_nodes: Array[Node2D] = []
-	var player_nodes: Array[Node2D] = []
 	for c in vm.entities_root.get_children():
-		if c is Node2D and is_instance_valid(c):
-			if c.is_in_group("ranch_livestock"):
-				ranch_nodes.append(c as Node2D)
-			elif c.is_in_group("player_livestock"):
-				player_nodes.append(c as Node2D)
+		if c is Node2D and is_instance_valid(c) and c.is_in_group("ranch_livestock"):
+			ranch_nodes.append(c as Node2D)
 	for i in range(r_herd.size()):
 		if not (r_herd[i] is Dictionary):
 			continue
@@ -644,7 +554,7 @@ static func sync_livestock(vm) -> void:
 			var node_r: Node2D = LivestockAnimalScript.new()
 			vm.entities_root.add_child(node_r)
 			ranch_nodes.append(node_r)
-		ranch_nodes[i].call("configure_from_entry", vm, "ranch", i, r_herd[i], ranch_pen_rect_mundo())
+		ranch_nodes[i].call("configure_from_entry", vm, i, r_herd[i], ranch_pen_rect_mundo())
 	while ranch_nodes.size() > r_herd.size():
 		var ex_r: Node2D = ranch_nodes.pop_back()
 		if ex_r != null and is_instance_valid(ex_r):
@@ -653,130 +563,7 @@ static func sync_livestock(vm) -> void:
 			if ex_r.get_parent() != null:
 				ex_r.get_parent().remove_child(ex_r)
 			ex_r.queue_free()
-	var p_rect: Rect2 = _player_pen_rect(vm)
-	for j in range(p_animals.size()):
-		if not (p_animals[j] is Dictionary):
-			continue
-		if j >= player_nodes.size():
-			var node_p: Node2D = LivestockAnimalScript.new()
-			vm.entities_root.add_child(node_p)
-			player_nodes.append(node_p)
-		player_nodes[j].call("configure_from_entry", vm, "player", j, p_animals[j], p_rect)
-	while player_nodes.size() > p_animals.size():
-		var ex_p: Node2D = player_nodes.pop_back()
-		if ex_p != null and is_instance_valid(ex_p):
-			ex_p.remove_from_group("player_livestock")
-			ex_p.remove_from_group("livestock_animals")
-			if ex_p.get_parent() != null:
-				ex_p.get_parent().remove_child(ex_p)
-			ex_p.queue_free()
 
-static func can_harvest_animal_product(vm, idx: int) -> bool:
-	var arr: Array = state(vm)["player_animals"]
-	if idx < 0 or idx >= arr.size() or not (arr[idx] is Dictionary):
-		return false
-	var a: Dictionary = arr[idx]
-	if str(a.get("stage", "chick")) != "adult":
-		return false
-	return today() - int(a.get("last_product_day", -99)) >= PRODUCT_COOLDOWN_DAYS
-
-static func get_player_animal_interact_label(vm, idx: int) -> String:
-	var arr: Array = state(vm)["player_animals"]
-	if idx < 0 or idx >= arr.size() or not (arr[idx] is Dictionary):
-		return "Dar de comer al animal"
-	var a: Dictionary = arr[idx]
-	var sp: String = str(a.get("species", "sheep"))
-	var st: String = str(a.get("stage", "chick"))
-	var feed_lbl: String = "Dar de comer a la oveja" if sp == "sheep" else "Dar de comer a la gallina"
-	var harv_lbl: String = "Esquilar la oveja" if sp == "sheep" else "Recoger huevos"
-	if st != "adult":
-		return feed_lbl
-	var unfed: int = today() - int(a.get("fed_day", today()))
-	if unfed > ANIMAL_FED_DAYS:
-		return feed_lbl
-	if can_harvest_animal_product(vm, idx):
-		return harv_lbl
-	if unfed >= 1:
-		return feed_lbl
-	return harv_lbl + " (en espera)"
-
-static func feed_single_player_animal(vm, idx: int, inv, player: Node2D = null) -> bool:
-	var arr: Array = state(vm)["player_animals"]
-	if idx < 0 or idx >= arr.size() or not (arr[idx] is Dictionary) or inv == null:
-		return false
-	var used: String = ""
-	for food_id in ["wheat", "bread", "carrot"]:
-		if inv.has_item(food_id, 1):
-			inv.remove_item(food_id, 1)
-			used = food_id
-			break
-	if used == "":
-		if player != null and player.has_method("show_hint"):
-			player.show_hint("🌾 Necesitas llevar trigo, pan o zanahoria para darle de comer.")
-		return false
-	var a: Dictionary = arr[idx]
-	a["fed_day"] = today()
-	a["age_days"] = int(a.get("age_days", 0)) + 2
-	a["stage"] = animal_stage_for_days(int(a["age_days"]))
-	a["power"] = clampi(int(a.get("power", 1)) + 1, 1, 5)
-	sync_livestock(vm)
-	sync_home_props(vm)
-	if player != null and player.has_method("show_hint"):
-		var sp_txt: String = "la oveja" if str(a.get("species", "sheep")) == "sheep" else "la gallina"
-		player.show_hint("🌾🐾 Diste de comer a %s (+2 días de crecimiento, etapa: %s)." % [sp_txt, str(a["stage"])])
-	return true
-
-static func harvest_player_animal(vm, idx: int, inv, player: Node2D = null) -> bool:
-	if inv == null or not can_harvest_animal_product(vm, idx):
-		return false
-	var arr: Array = state(vm)["player_animals"]
-	var a: Dictionary = arr[idx]
-	var sp: String = str(a.get("species", "sheep"))
-	var prod_id: String = "wool" if sp == "sheep" else "egg"
-	a["last_product_day"] = today()
-	inv.add_item(prod_id, 1)
-	if sp == "sheep":
-		VillageChronicle.add(vm, "sheep_sheared", "Esquilaste tu oveja adulta en el corral (+1 lana)", true)
-		if player != null and player.has_method("show_hint"):
-			player.show_hint("🐑✂️ Esquilaste la oveja (+1 Lana).")
-	else:
-		VillageChronicle.add(vm, "eggs_collected", "Recogiste huevos frescos de tu gallina en el corral (+1 huevo)", true)
-		if player != null and player.has_method("show_hint"):
-			player.show_hint("🐓🥚 Recogiste huevos frescos (+1 Huevo).")
-	sync_livestock(vm)
-	sync_home_props(vm)
-	return true
-
-static func interact_player_animal(vm, idx: int, player: Node2D) -> bool:
-	var arr: Array = state(vm)["player_animals"]
-	if idx < 0 or idx >= arr.size() or not (arr[idx] is Dictionary):
-		return false
-	var inv = player.get("inventory") if player != null else null
-	var a: Dictionary = arr[idx]
-	var st: String = str(a.get("stage", "chick"))
-	var unfed: int = today() - int(a.get("fed_day", today()))
-	if st != "adult" or unfed > ANIMAL_FED_DAYS:
-		return feed_single_player_animal(vm, idx, inv, player)
-	if can_harvest_animal_product(vm, idx):
-		return harvest_player_animal(vm, idx, inv, player)
-	if unfed >= 1:
-		return feed_single_player_animal(vm, idx, inv, player)
-	if player != null and player.has_method("show_hint"):
-		var wait_txt: String = "Esta oveja ya fue esquilada hace poco." if str(a.get("species", "sheep")) == "sheep" else "Esta gallina ya puso huevo hace poco."
-		player.show_hint("⏳🐾 %s Espera un par de días." % wait_txt)
-	return false
-
-static func best_adult_animal_power(vm, species_filter: String = "") -> int:
-	var best: int = 0
-	for a in (state(vm)["player_animals"] as Array):
-		if not (a is Dictionary) or str(a.get("stage", "")) != "adult":
-			continue
-		if species_filter != "" and str(a.get("species", "")) != species_filter:
-			continue
-		best = maxi(best, int(a.get("power", 1)))
-	return best
-
-## Bloque PG (revisión): de noche, un ladrón puede llevarse la mitad de la caja; el oro acaba en el bolsillo de un vecino pobre.
 static func shop_night_theft(vm, ps: Dictionary, chance: float) -> int:
 	var till: int = int(ps.get("till_gold", 0))
 	if till <= 1 or randf() >= chance:
@@ -971,8 +758,7 @@ static func daily(vm) -> void:
 			if partner != null and not partner.is_dead and int(partner.personal_gold) >= 12:
 				partner.personal_gold -= 5
 				inv.add_gold(5)
-		# P6.3 y P6.7 (FIS-P1): El huerto y el banco de trabajo ya no meten objetos solos a medianoche en la mochila;
-		# se cosechan y preparan físicamente con [E] en los objetos del solar de tu casa (`home_garden` y `home_workbench`).
+		# P6.7 (FIS-P1): el banco de trabajo no mete objetos solos a medianoche en la mochila; se usa con [E] en casa.
 		# Tanda 5 (21): Intrusos nocturnos o enemigos intentando forzar tu puerta si no tienes cerradura reforzada
 		# Un intruso sin escarmentar en 2 días se lleva algo del escondite y deja sitio a otro
 		var ia_old: Dictionary = hs["intruder_attempt"]
@@ -1046,27 +832,6 @@ static func daily(vm) -> void:
 	for nc in new_r_chicks:
 		if r_herd.size() < 10:
 			r_herd.append(nc)
-	var p_animals: Array = hs["player_animals"]
-	var adult_p_cnt: int = 0
-	for pa in p_animals.duplicate():
-		if not (pa is Dictionary):
-			continue
-		if not pa.has("fed_day"):
-			pa["fed_day"] = today()
-		var unfed: int = today() - int(pa["fed_day"])
-		if unfed >= ANIMAL_STARVE_DAYS:
-			p_animals.erase(pa)
-			VillageChronicle.add(vm, "animal_starved", "Una de tus crías (%s) murió por no darle de comer" % str(pa.get("species", "")), true)
-			continue
-		if unfed > ANIMAL_FED_DAYS:
-			continue # Sin comer no crece ni da carne
-		pa["age_days"] = int(pa.get("age_days", 0)) + 1
-		pa["stage"] = animal_stage_for_days(int(pa["age_days"]))
-		if str(pa["stage"]) == "adult":
-			adult_p_cnt += 1
-	if adult_p_cnt >= 2 and p_animals.size() < 4 and today() % 4 == 0:
-		p_animals.append({"species": "rooster", "stage": "chick", "age_days": 0, "power": 1, "fed_day": today()})
-		VillageChronicle.add(vm, "animal_bred", "Ha nacido una nueva cría en tu corral", true)
 	sync_livestock(vm)
 	sync_home_props(vm)
 
@@ -1094,16 +859,12 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 			for u in [["bookshelf", "📚 Estantería de estudio (+XP diaria)"], ["workbench", "⚗️ Banco de trabajo y alquimia"], ["oak_bed", "🛏️ Cama de roble macizo"], ["strong_lock", "🔒 Cerradura reforzada antirrobo"], ["hidden_cellar", "🕳️🕯️ Sótano secreto para esconderte o destilar"], ["hearth", "🔥🪵 Hogar de leña caldeado (+salud y humor)"], ["upper_floor", "🪜🏠 Altillo / Primer Piso con escalera (nivel +1)"]]:
 				if not bool(up.get(u[0], false)):
 					opts.append({"label": "%s (-%d Oro)" % [u[1], int(UPGRADE_COSTS[u[0]])], "next": "END", "action": "housing_upgrade:" + u[0]})
-			if not bool(st.get("has_garden", false)):
-				opts.append({"label": "🌱🐔 Montar huerto y gallinero en tu solar (-%d Oro)" % GARDEN_COST, "next": "END", "action": "housing_garden:" + p_lot})
 			if not bool(hs.get("has_stash", false)):
 				opts.append({"label": "🪵🗝️ Construir escondite secreto bajo las tablas (-%d Oro)" % STASH_BUILD_COST, "next": "END", "action": "housing_build_stash"})
 			if not has_player_shop(vm):
 				opts.append({"label": "🏪🔨 Acondicionar mostrador y fundar tu propio negocio en el solar %s (-%d Oro)" % [p_lot, FOUND_SHOP_COST], "next": "END", "action": "housing_found_shop:" + p_lot})
 			if str(hs.get("toby_lot", "")) != p_lot:
 				opts.append({"label": "🐕🥣 Trasladar a Toby y su comedero al patio de tu casa en el solar %s" % p_lot, "next": "END", "action": "housing_move_toby:" + p_lot})
-			if str(hs.get("coop_lot", "")) != p_lot:
-				opts.append({"label": "🐔🐑 Trasladar tu gallinero y animales al solar de tu casa (%s)" % p_lot, "next": "END", "action": "housing_move_coop:" + p_lot})
 		# P6.5: Comprar una casa embargada al pueblo o al noble para alquilarla
 		for l in VillageLots.lots():
 			var id2: String = str(l["id"])
@@ -1164,12 +925,6 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 		if str(ps.get("clerk_key", "")) == "" and int(npc.trade_role) == int(VillageNPC.TradeRole.UNEMPLOYED) and not VillageNeeds.is_outsider(npc):
 			opts.append({"label": "🤝🏪 Contratarle como dependiente de tu negocio (%d Oro/día de la caja)" % CLERK_WAGE, "next": "END", "action": "housing_hire_clerk"})
 
-	# Bloque PI.1 / FIS4: Comprar crías (con el Ganadero o el Carpintero); la alimentación y esquila/recogida se hacen en persona con [E] en el corral
-	var is_rancher: bool = int(npc.trade_role) == int(VillageNPC.TradeRole.RANCHER)
-	if (is_rancher or is_carp) and (hs["player_animals"] as Array).size() < 4:
-		opts.append({"label": "🐣🐓 Comprar cría de gallo/sabueso para criarla (-%d Oro -> crece en 6 días)" % BUY_CHICK_COST, "next": "END", "action": "housing_buy_chick:rooster"})
-		opts.append({"label": "🐣🐑 Comprar cordero joven para criar en tu corral (-%d Oro -> crece en 6 días)" % BUY_CHICK_COST, "next": "END", "action": "housing_buy_chick:sheep"})
-
 	if not opts.is_empty():
 		opts.append({"label": "⬅️ Volver", "next": "start"})
 		diag["housing_menu"] = {"text": "🏡 Tu hogar, propiedades, inquilinos y alquileres:", "choices": opts}
@@ -1216,29 +971,9 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		VillageChronicle.add(vm, "home_upgraded", "Mejoraste tu casa con: %s" % arg, true)
 		_notify_player(vm, npc, "🔨🏡 «¡Mejora instalada en tu casa!»", Color.SPRING_GREEN)
 
-	elif action_id.begins_with("housing_garden:"):
-		if inv == null or int(inv.gold) < GARDEN_COST:
-			_notify_player(vm, npc, "Necesitas %d de oro" % GARDEN_COST, Color.ORANGE_RED)
-			return
-		inv.add_gold(-GARDEN_COST)
-		if npc != null and "personal_gold" in npc:
-			npc.personal_gold += GARDEN_COST
-		var st: Dictionary = VillageLots.lot(vm, arg)
-		st["has_garden"] = true
-		move_coop_to_lot(vm, arg)
-		sync_home_props(vm)
-		VillageChronicle.add(vm, "home_garden", "Montaste un huerto y gallinero doméstico junto a tu casa", true)
-		_notify_player(vm, npc, "🌱🐔 «¡Ya tienes tu huerto y gallinero en casa! Coséchalo con [E].»", Color.SPRING_GREEN)
-
 	elif action_id.begins_with("housing_move_toby:"):
 		if move_toby_to_lot(vm, arg):
 			_notify_player(vm, npc, "🐕🥣 Toby y su comedero ahora están junto a tu casa en el solar %s." % (arg if not arg.is_empty() else primary_player_lot(vm)), Color.SPRING_GREEN)
-		else:
-			_notify_player(vm, npc, "Necesitas tener tu casa ya construida en el pueblo", Color.ORANGE_RED)
-
-	elif action_id.begins_with("housing_move_coop:"):
-		if move_coop_to_lot(vm, arg):
-			_notify_player(vm, npc, "🐔🐑 Tu gallinero y animales del campamento se han trasladado a tu solar %s." % (arg if not arg.is_empty() else primary_player_lot(vm)), Color.SPRING_GREEN)
 		else:
 			_notify_player(vm, npc, "Necesitas tener tu casa ya construida en el pueblo", Color.ORANGE_RED)
 
@@ -1538,18 +1273,6 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		VillageChronicle.add(vm, "player_shop_clerk", "Contrataste a %s como dependiente de tu negocio" % npc.npc_name, true)
 		npc._spawn_floating_text("🤝🏪 «¡Gracias por el empleo! Atenderé tu mostrador cada día.»", Color.SPRING_GREEN, -46.0)
 
-	elif action_id.begins_with("housing_buy_chick:"):
-		if buy_young_animal(vm, arg, inv, npc):
-			npc._spawn_floating_text("🐣🐑 «Cuida bien de esta cría; en 6 días será un ejemplar adulto.» (-%d Oro)" % BUY_CHICK_COST, Color.SPRING_GREEN, -46.0)
-		else:
-			npc._spawn_floating_text("Necesitas %d de oro y espacio en tu corral (máx. 4 animales)" % BUY_CHICK_COST, Color.ORANGE_RED, -44.0)
-
-	elif action_id == "housing_feed_animals":
-		var fed: int = feed_player_animals(vm, inv)
-		if fed > 0:
-			_notify_player(vm, npc, "🌾🐣 Alimentaste a tus %d animales (+2 días de crecimiento y +1 vigor)" % fed, Color.SPRING_GREEN)
-		else:
-			_notify_player(vm, npc, "Necesitas llevar trigo, pan o zanahorias en la mochila para darles de comer", Color.ORANGE_RED)
 
 
 static func _notify_player(vm, npc, text: String, col: Color = Color.SPRING_GREEN) -> void:
@@ -1577,8 +1300,6 @@ static func home_prop_pos(_vm, lot_id: String, kind: String) -> Vector2:
 			return c + Vector2(26.0, -14.0 * m)
 		"home_stairs":
 			return c + Vector2(32.0, 2.0 * m)
-		"home_garden":
-			return c + Vector2(-48.0, 18.0)
 		"player_shop_counter":
 			return c + Vector2(-16.0, -4.0 * m)
 		"home_table":
@@ -1635,12 +1356,6 @@ static func sync_home_props(vm) -> void:
 			stairs.global_position = home_prop_pos(vm, lid, "home_stairs")
 			vm.entities_root.add_child(stairs)
 			stairs.call("setup_prop", vm, "home_stairs", lid, h_title)
-		if bool(st.get("has_garden", false)):
-			var g_prop: Node2D = PropScript.new() as Node2D
-			g_prop.name = "HomeGarden_" + lid
-			g_prop.global_position = home_prop_pos(vm, lid, "home_garden")
-			vm.entities_root.add_child(g_prop)
-			g_prop.call("setup_prop", vm, "home_garden", lid, h_title)
 		if has_player_shop(vm) and lid == shop_lot:
 			var sc_prop: Node2D = PropScript.new() as Node2D
 			sc_prop.name = "PlayerShopCounter_" + lid
@@ -1693,41 +1408,6 @@ static func open_player_shop_counter_menu(vm, speaker: Node, _player: Node2D = n
 		}
 	}
 	dm.start_dialogue(graph, "start", speaker)
-
-
-static func can_harvest_home_garden(vm, lot_id: String) -> bool:
-	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
-	if lid.is_empty():
-		return false
-	var st: Dictionary = VillageLots.lot(vm, lid)
-	if str(st.get("payer", "")) != "player" or str(st.get("status", "")) != "built" or not bool(st.get("has_garden", false)):
-		return false
-	return today() - int(st.get("last_garden_day", -99)) >= PRODUCT_COOLDOWN_DAYS
-
-
-static func get_home_garden_label(vm, lot_id: String) -> String:
-	if can_harvest_home_garden(vm, lot_id):
-		return "Cosechar el huerto de casa (+1 Pan, +1 Hierbas Medicinales)"
-	return "Huerto doméstico (en crecimiento)"
-
-
-static func interact_home_garden(vm, lot_id: String, player: Node2D = null) -> bool:
-	var lid: String = lot_id if not lot_id.is_empty() else primary_player_lot(vm)
-	if not can_harvest_home_garden(vm, lid):
-		_notify_player(vm, null, "🌱⏳ El huerto doméstico aún está creciendo. Vuelve en un par de días.", Color.ORANGE)
-		return false
-	var pl: Node2D = player if player != null else (VillageNeeds.player_of(vm) as Node2D)
-	var inv = pl.get("inventory") if pl != null else null
-	if inv == null:
-		return false
-	var st: Dictionary = VillageLots.lot(vm, lid)
-	st["last_garden_day"] = today()
-	inv.add_item("bread", 1)
-	inv.add_item("herbs", 1)
-	sync_home_props(vm)
-	VillageChronicle.add(vm, "home_garden_harvested", "Cosechaste verduras y hierbas medicinales en el huerto de tu casa", true)
-	_notify_player(vm, null, "🌱🥬 Cosechaste tu huerto doméstico (+1 Pan, +1 Hierbas Medicinales).", Color.SPRING_GREEN)
-	return true
 
 
 static func craft_home_poultice(vm, lot_id: String, inv, player: Node2D = null, npc = null) -> bool:
@@ -1981,12 +1661,6 @@ static func open_home_table_menu(vm, speaker: Node, _player: Node2D = null) -> v
 				"label": "🐕🥣 Traer a Toby y su comedero al patio de tu casa (%s)" % p_lot_tb,
 				"next": "END",
 				"action": "housing_move_toby:" + p_lot_tb
-			})
-		if str(hs.get("coop_lot", "")) != p_lot_tb:
-			choices.append({
-				"label": "🐔🐑 Traer tu gallinero y animales del campamento al solar %s" % p_lot_tb,
-				"next": "END",
-				"action": "housing_move_coop:" + p_lot_tb
 			})
 	choices.append({"label": "Apartarse de la mesa [Salir]", "next": "END"})
 	var status_txt: String = "Sin reunión prevista hoy."

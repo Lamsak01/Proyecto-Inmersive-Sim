@@ -1,22 +1,18 @@
 extends Node2D
 
 ## Animal vivo de corral (Bloque FIS4): representa en el mapa cada ejemplar de `ranch_herd` (en el corral del Rancho
-## del Sur) y cada ejemplar de `player_animals` (en el corral del gallinero del jugador).
-## Pasea despacio dentro de los límites de su valla (`pen_rect`), cambia de tamaño según su etapa (`chick`, `juvenile`,
-## `adult`), usa `animals/animated/Alpaca.glb` para la oveja y una gallina 3D hecha con piezas para el gallo/gallina,
-## y permite a los animales del jugador comer (`[E] Dar de comer a …`) o dar su producto de adultos (`[E] Esquilar la
-## oveja` / `[E] Recoger huevos`, máx. 1 vez cada 2 días).
+## del Sur). Pasea despacio dentro de su valla (`pen_rect`), cambia de tamaño según su etapa (`chick`, `juvenile`,
+## `adult`), usa `animals/animated/Alpaca.glb` para la oveja y una gallina 3D hecha con piezas para el gallo/gallina.
+## Los animales propios del jugador se borraron el 2026-11-12 (se rehacen en 3D con el gallinero, tras el Caso I).
 
 const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 
 var vm: Node2D = null
-var is_player_animal: bool = false
 var animal_index: int = 0
 var species: String = "sheep"
 var stage: String = "chick"
 var pen_rect: Rect2 = Rect2()
 var sprite: Sprite2D = null
-var interact_area: Area2D = null
 var model_3d: Node = null
 
 var _target_pos: Vector2 = Vector2.ZERO
@@ -24,13 +20,11 @@ var _move_timer: float = 1.0
 var _hop_phase: float = 0.0
 
 
-func configure_from_entry(p_vm: Node2D, p_owner_kind: String, p_index: int, d: Dictionary, p_pen_rect: Rect2) -> void:
-	var want_player: bool = (p_owner_kind == "player")
+func configure_from_entry(p_vm: Node2D, p_index: int, d: Dictionary, p_pen_rect: Rect2) -> void:
 	if sprite == null or not is_instance_valid(sprite):
-		setup_animal(p_vm, want_player, p_index, d, p_pen_rect)
+		setup_animal(p_vm, p_index, d, p_pen_rect)
 	else:
 		vm = p_vm
-		is_player_animal = want_player
 		pen_rect = p_pen_rect
 		global_position.x = clampf(global_position.x, pen_rect.position.x, pen_rect.end.x)
 		global_position.y = clampf(global_position.y, pen_rect.position.y, pen_rect.end.y)
@@ -39,17 +33,13 @@ func configure_from_entry(p_vm: Node2D, p_owner_kind: String, p_index: int, d: D
 		update_from_dict(p_index, d)
 
 
-func setup_animal(p_vm: Node2D, p_is_player: bool, p_index: int, d: Dictionary, p_pen_rect: Rect2) -> void:
+func setup_animal(p_vm: Node2D, p_index: int, d: Dictionary, p_pen_rect: Rect2) -> void:
 	vm = p_vm
-	is_player_animal = p_is_player
 	animal_index = p_index
 	pen_rect = p_pen_rect
 	add_to_group("livestock_animal")
 	add_to_group("livestock_animals")
-	if is_player_animal:
-		add_to_group("player_livestock")
-	else:
-		add_to_group("ranch_livestock")
+	add_to_group("ranch_livestock")
 
 	var fx: float = fposmod(0.22 + float(p_index) * 0.27, 0.84) + 0.08
 	var fy: float = fposmod(0.25 + float(p_index) * 0.37, 0.80) + 0.10
@@ -65,20 +55,6 @@ func setup_animal(p_vm: Node2D, p_is_player: bool, p_index: int, d: Dictionary, 
 	sprite.name = "Sprite2D"
 	sprite.position = Vector2(0.0, -3.0)
 	add_child(sprite)
-
-	if is_player_animal:
-		interact_area = Area2D.new()
-		interact_area.name = "InteractArea"
-		interact_area.collision_layer = 1
-		interact_area.collision_mask = 2
-		interact_area.add_to_group("interactable")
-		var col := CollisionShape2D.new()
-		var cshape := CircleShape2D.new()
-		cshape.radius = 18.0
-		col.shape = cshape
-		interact_area.add_child(col)
-		add_child(interact_area)
-
 	update_from_dict(p_index, d)
 
 
@@ -180,14 +156,3 @@ func _compute_separation_step(delta: float) -> Vector2:
 			push += dir * ((14.0 - d) / 14.0) * 26.0 * delta
 	return push
 
-
-func get_interact_label(_player: Node2D = null) -> String:
-	if not is_player_animal or vm == null or not ("VillageHousing" in vm):
-		return ""
-	return vm.VillageHousing.get_player_animal_interact_label(vm, animal_index)
-
-
-func interact(player: Node2D) -> void:
-	if not is_player_animal or vm == null or not ("VillageHousing" in vm):
-		return
-	vm.VillageHousing.interact_player_animal(vm, animal_index, player)

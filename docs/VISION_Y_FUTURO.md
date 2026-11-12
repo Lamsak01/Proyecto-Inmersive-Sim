@@ -103,7 +103,7 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
 
 ### Ciclo de vida
 - ✅ **HECHO** — Nacimientos de niños con etapas de crecimiento (embarazo de 9 días, nacen en casa, crecen 1 año cada 4 días, van a la escuela desde los 6 años, juegan por las tardes y a los 16 pasan a jóvenes adultos que buscan trabajo o heredan el taller familiar). *(Hecho en V9 y bloque B; pendiente solo dibujo propio de bebé/anciano.)*
-- ✅ **HECHO** — Animales con etapas de crecimiento y crianza (`VillageHousing.gd`, test #86): tanto el ganado del Rancho del Sur (`ranch_herd`) como las crías que el jugador compra y alimenta en su corral (`player_animals`) pasan por etapas (`cría` → `joven` → `adulto`), producen lana, carne o comida al madurar, crían nuevas camadas y ganan vigor para competir. *(Hecho en bloque PI + mascotas, gallinero, corral del rancho en V5d y fauna salvaje.)*
+- ✅ **HECHO** — Animales con etapas de crecimiento y crianza (`VillageHousing.gd`, test #86): el ganado del Rancho del Sur (`ranch_herd`) pasa por etapas (`cría` → `joven` → `adulto`), producen lana, carne o comida al madurar, crían nuevas camadas. Las crías propias del jugador se borraron el 2026-11-12 (ver «Jugador»). *(Hecho en bloque PI + mascotas, gallinero, corral del rancho en V5d y fauna salvaje.)*
 - ✅ **HECHO** — Escuelas y maestros: escuela en pie, maestro contratado cuando hay ≥ 2 niños en edad escolar, clases de 9 a 14 h entre semana, cartel con alumnos y graduación con bonificación de dominio de oficio según el número de clases asistidas al cumplir la mayoría de edad (`VillageFamily.gd`, `VillageNPC.gd`, test #84). *(Hecho en V5e, V9, bloque B y bloque PG.)*
 
 ### Salud y cuerpo (P5)
@@ -207,7 +207,9 @@ Estado: **✅ HECHO** = ya construido y funcionando en el juego. **🟡 EN PARTE
   cero en 3D, después del Caso I.** Palabras del usuario: «esos sistemas se hicieron pensando en 2D además de que ninguno
   tenía profundidad». Los viejos se quitaron enteros (también la caña y la regadera); queda en el historial de git
   (último commit con ellos: el anterior a «Borrados pesca, huerto, gallinero y campamento»). Se mantienen: lago, río y
-  muelle; peces, verduras, huevos y semillas como mercancía de los vecinos; los animales de corral del jugador. Al
+  muelle; peces, verduras, huevos y semillas como mercancía de los vecinos; el ganado del Rancho del Sur. Después
+  (mismo día, «sí, borra también los animales del corral») se borraron también las crías propias del jugador y el huerto
+  de casa; las carreras y peleas de animales siguen con suerte fija. Al
   rehacerlos: pensados para primera persona, sin letreros flotantes, con más profundidad. Ojo: la red eléctrica dependía
   del generador del campamento y ahora no tiene corriente.
 - ✅ **HECHO** — Acompañantes del jugador (`VillageFame.gd`, `VillageNPC.gd`, test #85): un vecino con alta afinidad (≥ 55, gratis por amistad) o contratado como escolta (15 de oro al día pagados de tu bolsa a su bolsillo) te acompaña a pie por el valle, te respalda ante otros vecinos (una vez al día con tirada de riesgo) y vuelve a sus tareas cuando lo despides o si dejas de pagarle su jornal. *(Hecho en bloque PH.)*

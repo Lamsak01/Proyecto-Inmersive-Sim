@@ -92,11 +92,6 @@ func setup_prop(village_manager: Node2D, kind: String, h_id: String = "", h_labe
 			npc_role = heist_label if not heist_label.is_empty() else "Cambio de Planta"
 			add_to_group("home_stairs")
 			add_to_group("home_prop")
-		"home_garden":
-			npc_name = "Huerto Doméstico"
-			npc_role = heist_label if not heist_label.is_empty() else "Solar de tu Casa"
-			add_to_group("home_garden")
-			add_to_group("home_prop")
 		"player_shop_counter":
 			npc_name = heist_label if not heist_label.is_empty() else "Bazar del Forastero"
 			npc_role = "Mostrador y Caja de tu Tienda"
@@ -152,7 +147,7 @@ func _build_interact_area() -> void:
 
 func get_interact_label(_player: Node2D = null) -> String:
 	if vm != null and vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode")):
-		if prop_kind in ["heist_target", "sewer_grate", "sewer_ladder", "sewer_chest", "home_workbench", "home_table", "home_stash", "home_stairs", "home_garden", "player_shop_counter", "collect_point", "town_coffers", "town_ledger", "masterwork_counter", "club_trapdoor", "club_ladder", "club_ring", "club_bet"]:
+		if prop_kind in ["heist_target", "sewer_grate", "sewer_ladder", "sewer_chest", "home_workbench", "home_table", "home_stash", "home_stairs", "player_shop_counter", "collect_point", "town_coffers", "town_ledger", "masterwork_counter", "club_trapdoor", "club_ladder", "club_ring", "club_bet"]:
 			return ""
 	match prop_kind:
 		"terminal":
@@ -194,8 +189,6 @@ func get_interact_label(_player: Node2D = null) -> String:
 			return "Escondite bajo las tablas (%d Oro oculto)" % hidden_g
 		"home_stairs":
 			return VillageHousing.get_home_stairs_label(vm, heist_id) if vm != null else "Usar escalera / trampilla"
-		"home_garden":
-			return VillageHousing.get_home_garden_label(vm, heist_id) if vm != null else "Cosechar el huerto de casa"
 		"player_shop_counter":
 			return VillageHousing.get_player_shop_counter_label(vm) if vm != null else "Mostrador y caja de tu tienda"
 		"collect_point":
@@ -224,7 +217,7 @@ func interact(player: Node2D) -> void:
 	if vm == null or player == null:
 		return
 	if vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode")):
-		if prop_kind in ["heist_target", "sewer_grate", "sewer_ladder", "sewer_chest", "home_workbench", "home_table", "home_stash", "home_stairs", "home_garden", "player_shop_counter", "collect_point", "town_coffers", "town_ledger", "masterwork_counter", "club_trapdoor", "club_ladder", "club_ring", "club_bet"]:
+		if prop_kind in ["heist_target", "sewer_grate", "sewer_ladder", "sewer_chest", "home_workbench", "home_table", "home_stash", "home_stairs", "player_shop_counter", "collect_point", "town_coffers", "town_ledger", "masterwork_counter", "club_trapdoor", "club_ladder", "club_ring", "club_bet"]:
 			return
 	match prop_kind:
 		"terminal":
@@ -250,8 +243,6 @@ func interact(player: Node2D) -> void:
 			VillageHousing.open_home_stash_menu(vm, self, player)
 		"home_stairs":
 			VillageHousing.interact_home_stairs(vm, heist_id, self, player)
-		"home_garden":
-			VillageHousing.interact_home_garden(vm, heist_id, player)
 		"player_shop_counter":
 			VillageHousing.open_player_shop_counter_menu(vm, self, player)
 		"collect_point":
