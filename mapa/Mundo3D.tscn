@@ -14678,6 +14678,288 @@ gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "cuerpo_caso1"
 
+[node name="farola_calle_1" type="Marker3D" parent="Sitios" unique_id=689725549]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 99.12, 0, 16.912)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_1"
+
+[node name="farola_calle_2" type="Marker3D" parent="Sitios" unique_id=180134659]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 138.32, 0, 16.912)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_2"
+
+[node name="farola_calle_3" type="Marker3D" parent="Sitios" unique_id=1598958191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 177.52, 0, 11.088)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_3"
+
+[node name="farola_calle_4" type="Marker3D" parent="Sitios" unique_id=2023566635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 216.72, 0, 16.912)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_4"
+
+[node name="farola_calle_5" type="Marker3D" parent="Sitios" unique_id=723243102]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0, 11.088)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_5"
+
+[node name="farola_calle_6" type="Marker3D" parent="Sitios" unique_id=59991630]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 295.12, 0, 16.912)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_6"
+
+[node name="farola_calle_7" type="Marker3D" parent="Sitios" unique_id=449605819]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 334.32, 0, 11.088)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_7"
+
+[node name="farola_calle_8" type="Marker3D" parent="Sitios" unique_id=2072916054]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 373.52, 0, 16.912)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_8"
+
+[node name="farola_calle_9" type="Marker3D" parent="Sitios" unique_id=1082897232]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 133, 0, -8.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_9"
+
+[node name="farola_calle_10" type="Marker3D" parent="Sitios" unique_id=1715673060]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 133, 0, -36.96)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_10"
+
+[node name="farola_calle_11" type="Marker3D" parent="Sitios" unique_id=1313369049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 127.4, 0, 76.16)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_11"
+
+[node name="farola_calle_12" type="Marker3D" parent="Sitios" unique_id=1875464671]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.248, 0, 86.24)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_12"
+
+[node name="farola_calle_13" type="Marker3D" parent="Sitios" unique_id=333708012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39.872, 0, 47.04)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_13"
+
+[node name="farola_calle_14" type="Marker3D" parent="Sitios" unique_id=1894993838]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 98, 0, 100.184)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_14"
+
+[node name="farola_calle_15" type="Marker3D" parent="Sitios" unique_id=107750638]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 126.56, 0, 100.184)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_15"
+
+[node name="farola_calle_16" type="Marker3D" parent="Sitios" unique_id=871287536]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 230.832, 0, 46.48)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_16"
+
+[node name="farola_calle_17" type="Marker3D" parent="Sitios" unique_id=1633058285]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 236.208, 0, -31.92)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_17"
+
+[node name="farola_calle_18" type="Marker3D" parent="Sitios" unique_id=19551586]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 230.832, 0, -64.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_18"
+
+[node name="farola_calle_19" type="Marker3D" parent="Sitios" unique_id=789856273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.464, 0, 37.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_19"
+
+[node name="farola_calle_20" type="Marker3D" parent="Sitios" unique_id=715433860]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.464, 0, -40.6)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_20"
+
+[node name="farola_calle_21" type="Marker3D" parent="Sitios" unique_id=426665954]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.536, 0, -79.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_21"
+
+[node name="farola_calle_22" type="Marker3D" parent="Sitios" unique_id=1522745721]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 307.104, 0, 50.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_22"
+
+[node name="farola_calle_23" type="Marker3D" parent="Sitios" unique_id=2027278046]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 307.104, 0, -28)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_23"
+
+[node name="farola_calle_24" type="Marker3D" parent="Sitios" unique_id=69835293]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 302.176, 0, -64.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_24"
+
+[node name="farola_calle_25" type="Marker3D" parent="Sitios" unique_id=1229131900]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 374.304, 0, 50.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_25"
+
+[node name="farola_calle_26" type="Marker3D" parent="Sitios" unique_id=1301042042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 374.304, 0, -28)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_26"
+
+[node name="farola_calle_27" type="Marker3D" parent="Sitios" unique_id=1633721157]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 374.304, 0, -64.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_27"
+
+[node name="farola_calle_28" type="Marker3D" parent="Sitios" unique_id=1034758622]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 185.36, 0, 65.296)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_28"
+
+[node name="farola_calle_29" type="Marker3D" parent="Sitios" unique_id=407909966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 224.56, 0, 70.224)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_29"
+
+[node name="farola_calle_30" type="Marker3D" parent="Sitios" unique_id=1603888279]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 263.76, 0, 65.296)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_30"
+
+[node name="farola_calle_31" type="Marker3D" parent="Sitios" unique_id=1010406833]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 342.16, 0, 65.296)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_31"
+
+[node name="farola_calle_32" type="Marker3D" parent="Sitios" unique_id=854924598]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 95.2, 0, -100.856)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_32"
+
+[node name="farola_calle_33" type="Marker3D" parent="Sitios" unique_id=1055773914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 134.4, 0, -95.704)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_33"
+
+[node name="farola_calle_34" type="Marker3D" parent="Sitios" unique_id=169970376]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 173.6, 0, -100.856)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_34"
+
+[node name="farola_calle_35" type="Marker3D" parent="Sitios" unique_id=524124781]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0, -95.704)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_35"
+
+[node name="farola_calle_36" type="Marker3D" parent="Sitios" unique_id=1437667546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 252, 0, -100.856)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_36"
+
+[node name="farola_calle_37" type="Marker3D" parent="Sitios" unique_id=974640389]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 291.2, 0, -95.704)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_37"
+
+[node name="farola_calle_38" type="Marker3D" parent="Sitios" unique_id=1754394569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 319.2, 0, -100.856)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_38"
+
+[node name="farola_calle_39" type="Marker3D" parent="Sitios" unique_id=1199361375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 274.736, 0, -114.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_39"
+
+[node name="farola_calle_40" type="Marker3D" parent="Sitios" unique_id=869904715]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 190.848, 0, -56.56)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_40"
+
+[node name="farola_calle_41" type="Marker3D" parent="Sitios" unique_id=825719217]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 370.664, 0, -87.92)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_41"
+
+[node name="farola_calle_42" type="Marker3D" parent="Sitios" unique_id=673319813]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.04, 0, 3.92)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_42"
+
+[node name="farola_calle_43" type="Marker3D" parent="Sitios" unique_id=1243183555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 157.36, 0, 3.92)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_43"
+
+[node name="farola_calle_44" type="Marker3D" parent="Sitios" unique_id=1531914112]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.04, 0, 23.52)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_44"
+
+[node name="farola_calle_45" type="Marker3D" parent="Sitios" unique_id=194388992]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 157.36, 0, 23.52)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_45"
+
+[node name="farola_calle_46" type="Marker3D" parent="Sitios" unique_id=1168454690]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 115.92, 0, 23.52)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_46"
+
+[node name="farola_calle_47" type="Marker3D" parent="Sitios" unique_id=898773748]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 144.48, 0, 3.92)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "farola_calle_47"
+
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 
 [node name="Zona_3_0" type="Node3D" parent="Decorado" unique_id=1449909008]

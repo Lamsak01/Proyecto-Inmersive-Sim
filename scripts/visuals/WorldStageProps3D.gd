@@ -8,7 +8,20 @@ const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo 
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
 ## Farolas y focos: luz eléctrica azulada del generador del Arreglador (antes había otra amarilla «sin corriente»).
 const COLOR_LUZ_ELECTRICA: Color = Color(0.58, 0.96, 1.0)
-const FAROLA_ENERGIA: float = 2.35
+## Farola (modelo «lightpost-single», medido 2026-11-12): el farol cuelga al sur del poste, entre las placas de 21–23 px
+## y 25–27 px de alto (9 × 4 px de planta). El cristal brilla con una caja de luz un poco dentro de las placas y dos luces: un foco hacia abajo que deja un charco de luz en el suelo y un resplandor suave para las paredes.
+const FAROL_DESPLAZ: Vector2 = Vector2(0.0, 2.5)
+const FAROL_TAM: Vector2 = Vector2(8.4, 3.6)
+const FAROL_BASE_PX: float = 22.9
+const FAROL_ALTO_PX: float = 2.2
+const FAROLA_CHARCO_ENERGIA: float = 10.0
+const FAROLA_CHARCO_ALCANCE_PX: float = 4.5   ## × Mapa3D.K, como el resto de luces de la escala vieja
+const FAROLA_CHARCO_ANGULO: float = 55.0
+const FAROLA_ENERGIA: float = 2.0
+const FAROLA_ALCANCE_PX: float = 2.4
+## Con ~47 farolas, las luces lejanas se apagan solas (el farol sigue brillando): el portátil no aguanta ~90 luces a la vez.
+const FAROLA_LUZ_VISIBLE_M: float = 70.0
+const FAROLA_LUZ_FUNDIDO_M: float = 15.0
 const FOCO_ENERGIA: float = 3.2
 const FOCO_SUELO_ENERGIA: float = 2.1
 
@@ -334,6 +347,13 @@ func _build_epoch_props_3d(m_bulb: Material) -> void:
 	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1538.0, 18.0), Vector2(1506.0, 50.0), m_bulb)
 	mover_posiciones = false
 
+## Apaga poco a poco la luz de una farola cuando el jugador está lejos.
+func _fundir_de_lejos(luz: Light3D) -> void:
+	luz.distance_fade_enabled = true
+	luz.distance_fade_begin = FAROLA_LUZ_VISIBLE_M
+	luz.distance_fade_length = FAROLA_LUZ_FUNDIDO_M
+
+
 func _build_streetlights_3d() -> void:
 	_clear_children(streetlights_root_3d)
 	_streetlight_nodes_3d.clear()
@@ -345,18 +365,31 @@ func _build_streetlights_3d() -> void:
 	for sl in vm.streetlights:
 		var pos: Vector2 = sl.get("pos", Vector2.ZERO)
 		_add_model_2d(streetlights_root_3d, "graveyard/lightpost-single.glb", pos, 0.0, Vector2(9.0, 9.0), 29.0)
-		var bulb := _add_cyl_2d(streetlights_root_3d, pos + Vector2(3.5, 0), 2.2, 23.0, 3.6, m_bulb, 1.6, 8)
+		var farol: Vector2 = pos + FAROL_DESPLAZ
+		var bulb := _add_box_2d(streetlights_root_3d, farol, FAROL_TAM, FAROL_BASE_PX, FAROL_ALTO_PX, m_bulb)
 		var omni: OmniLight3D = null
+		var charco: SpotLight3D = null
 		if not _is_headless:
 			omni = OmniLight3D.new()
-			omni.position = to_3d(pos + Vector2(3.5, 0), 24.0)
-			omni.omni_range = 4.8 * Mapa3D.K
+			omni.position = to_3d(farol, FAROL_BASE_PX + FAROL_ALTO_PX * 0.5)
+			omni.omni_range = FAROLA_ALCANCE_PX * Mapa3D.K
 			omni.light_energy = FAROLA_ENERGIA
 			omni.light_color = COLOR_LUZ_ELECTRICA
+			_fundir_de_lejos(omni)
 			streetlights_root_3d.add_child(omni)
+			charco = SpotLight3D.new()
+			charco.position = to_3d(farol, FAROL_BASE_PX)
+			charco.rotation_degrees.x = -90.0 # mira hacia abajo
+			charco.spot_range = FAROLA_CHARCO_ALCANCE_PX * Mapa3D.K
+			charco.spot_angle = FAROLA_CHARCO_ANGULO
+			charco.light_energy = FAROLA_CHARCO_ENERGIA
+			charco.light_color = COLOR_LUZ_ELECTRICA
+			_fundir_de_lejos(charco)
+			streetlights_root_3d.add_child(charco)
 		_streetlight_nodes_3d.append({
 			"bulb": bulb,
 			"light": omni,
+			"charco": charco,
 		})
 	_build_epoch_props_3d(m_bulb)
 

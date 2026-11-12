@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Farolas que alumbran de verdad (Claude Code, pedido del usuario)
+- 47 farolas nuevas por las calles del pueblo y alrededor de la plaza (antes 6 para todo el mapa ×5). Son cruces del
+  editor (`farola_calle_N` en «Sitios»): se mueven con el ratón y la farola va con ellas.
+- El farol brilla y un foco hacia abajo deja un charco de luz en el suelo; las luces lejanas se apagan solas por el
+  rendimiento (unas 30 imágenes por segundo con farolas, 32 sin ellas).
+
 ## 2026-11-12 — La red eléctrica la mueve el generador del Arreglador (Claude Code, decisión del usuario)
 - Antes la corriente del pueblo salía del generador de tu campamento (borrado) y el pueblo se quedó sin ella. Ahora la
   da el generador diésel del Taller del Arreglador: hay corriente desde el principio y sabotearlo deja el pueblo a oscuras.

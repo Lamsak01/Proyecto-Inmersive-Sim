@@ -1272,10 +1272,13 @@ func _update_roof_cutaways_and_lighting() -> void:
 	for sl_node in _streetlight_nodes_3d:
 		var bulb: MeshInstance3D = sl_node["bulb"]
 		var lt: OmniLight3D = sl_node["light"]
+		var charco: SpotLight3D = sl_node.get("charco")
 		if is_instance_valid(bulb):
 			bulb.visible = lamps_lit
 		if is_instance_valid(lt):
 			lt.visible = lamps_lit
+		if is_instance_valid(charco):
+			charco.visible = lamps_lit
 	for fl_node in _floodlight_nodes_3d:
 		var f_bulb: MeshInstance3D = fl_node.get("bulb")
 		var f_spot: SpotLight3D = fl_node.get("spot")

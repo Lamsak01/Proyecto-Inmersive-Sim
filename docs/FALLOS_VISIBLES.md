@@ -5,6 +5,11 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- ✅ (2026-11-12, visto por Claude en fotos de noche) **El pueblo de noche casi negro**: solo 6 farolas para todo el mapa ×5,
+  ninguna en la plaza, el farol no brillaba y su luz no llegaba al suelo · 22:00, 1.ª persona. *(Ahora 53 farolas por las
+  calles y la plaza, movibles en el editor; el farol brilla y deja un charco de luz azulada en el suelo. Las luces lejanas
+  se apagan solas: el juego pierde unas 2 imágenes por segundo de 32. Sin comprobar: los dos focos en poste de la
+  comisaría y del puesto del paso.)*
 - [ ] **Segunda partida del usuario con el mapa ×5 (1.ª persona, lunes 09:00–15:17; capturas `docs/capturas_usuario/2026-11-12/1p_*.png`)**.
   Sospecha común de 2–6 y 10 (sin comprobar): piezas que se estiraron ×5 una a una o se quedaron en el sitio antiguo en vez de ir con su grupo o edificio.
   1. **Línea blanca transparente que sale del molino** y sube en diagonal hacia el cielo · bosque del molino, 12:53 (`1p_09_molino_linea_blanca.png`). Sospecha: arroyo o agua del molino con la altura del mapa antiguo. En esa foto el minimapa sale vacío.

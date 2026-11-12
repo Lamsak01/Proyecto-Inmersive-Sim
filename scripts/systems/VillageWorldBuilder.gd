@@ -2,6 +2,10 @@
 extends RefCounted
 const Marca = preload("res://mapa/marca.gd")
 const Cartel = preload("res://mapa/cartel.gd")
+const Sitio = preload("res://mapa/sitio.gd")
+const Anclas = preload("res://mapa/anclas.gd")
+## Farolas de las calles (2026-11-12): cruces «farola_calle_N» del mapa (Sitios), ya en el mundo y movibles en el editor.
+const SERIE_FAROLAS_CALLE := "farola_calle"
 
 ## Construcción inicial del pueblo (caminos, edificios y mobiliario). Extraído de VillageManager.gd:
 ## cada función recibe al VillageManager como primer parámetro (`vm`) y solo se ejecuta al montar el mundo.
@@ -437,6 +441,9 @@ static func _spawn_electric_streetlights(vm: VillageManager) -> void:
 		var l_pos: Vector2 = load("res://mapa/objeto.gd").pos("farola_%d" % li, lamp_positions[li])
 		vm._add_prop_collider(l_pos, vm.COLISOR_TABLON)
 		vm.streetlights.append({"pos": vm.sitio(l_pos)}) # sitio en el mundo; la farola 3D sale de aquí
+	for f_pos in Sitio.serie(SERIE_FAROLAS_CALLE):
+		vm._add_prop_collider(Anclas.desmover(f_pos), vm.COLISOR_TABLON) # el choque aún se pide en el mapa original
+		vm.streetlights.append({"pos": f_pos})
 
 static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
 	vm._well_positions = [vm.sitio(vm._well_pos), vm.sitio(vm._tavern_well_pos), vm.sitio(vm._plaza_well_pos)] # del mundo: se compara con posiciones reales
