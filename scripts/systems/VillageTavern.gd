@@ -198,15 +198,11 @@ static func setup_world(vm) -> void:
 	vm.register_no_stand_furniture(sitio(M_POKER), Vector2(14.0, 10.0))
 
 	vm._add_station_area("TavernGamesTableArea", sitio(M_POKER), 24.0, "tavern_games")
-	vm._tavern_games_label = vm._make_station_label(sitio(M_POKER) + Vector2(-120.0, -30.0), "🃏 Mesa de Póker y Casino [E: Jugar con Aldeanos]")
-	vm.entities_root.add_child(vm._tavern_games_label)
 
 	# 2. Mesa de Billar de la Posada
 	vm._add_prop_collider(sitio(M_BILLAR), Vector2(26.0, 16.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_BILLAR), Vector2(26.0, 16.0))
 	vm._add_station_area("TavernPoolTableArea", sitio(M_BILLAR), 24.0, "tavern_pool")
-	vm._tavern_pool_label = vm._make_station_label(sitio(M_BILLAR) + Vector2(-115.0, -30.0), "🎱 Mesa de Billar [E: Jugar Billar de Posada]")
-	vm.entities_root.add_child(vm._tavern_pool_label)
 
 	# 3b. Barandillas sólidas y tabiques de los 3 cuartos en Planta +1 ("tavern_upper_walls")
 	# Paso a 3D, paso 2c: las barandillas son bajas (grupo «barandilla»): se pueden saltar… y caer al salón.
@@ -229,8 +225,6 @@ static func setup_world(vm) -> void:
 			vm._add_prop_collider(Vector2(float(part_ux), -265.0), Vector2(5.0, 98.0), "tavern_upper_walls")
 
 	vm._add_station_area("TavernPlayerBedArea", sitio(M_CAMA_JUGADOR), 20.0, "tavern_bed")
-	vm._tavern_bed_label = vm._make_station_label(sitio(M_CAMA_JUGADOR) + Vector2(-115.0, -28.0), "🛌 Cama de Posada (Piso +1) [E: Dormir hasta 06:00 (-8 Oro)]")
-	vm.entities_root.add_child(vm._tavern_bed_label)
 
 	vm._spawn_house_chest(Vector2(365.0, -300.0), "Cofre de la Posada El Jabalí", FAMILY_ID) # rincón del cuarto de los dueños (2026-11-11: chocaba con la cama de Marta)
 

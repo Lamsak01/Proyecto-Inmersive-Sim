@@ -13,7 +13,7 @@ func setup_village(target_entities_root: Node) -> void:
 	if is_inside_tree() and GameManager and GameManager.has_method("is_demo_mode"):
 		demo_mode = bool(GameManager.is_demo_mode())
 
-	for arr in [building_footprints, _wall_occluder_rects, house_chests, building_doors, building_windows, streetlights, _authority_slots, morgue_active_corpses, buried_graves, _cemetery_grave_positions, _cemetery_grave_nodes, blood_puddles, social_event_log]:
+	for arr in [building_footprints, _wall_occluder_rects, house_chests, building_doors, building_windows, streetlights, _authority_slots, morgue_active_corpses, buried_graves, _cemetery_grave_positions, blood_puddles, social_event_log]:
 		arr.clear()
 	active_sheriff_investigation.clear()
 	shop_businesses.clear()
@@ -174,33 +174,7 @@ func _process(delta: float) -> void:
 
 	var mouse_pos := get_global_mouse_position()
 
-	for st_lbl in [_tavern_bed_label, _tavern_games_label, _tavern_pool_label, _well_label, _tavern_well_label, _plaza_well_label, _compost_label, _hospital_bed_label, _morgue_label, _church_altar_label, _cemetery_label, _notice_board_label]:
-		if is_instance_valid(st_lbl):
-			st_lbl.visible = false
-	for esl in _extra_station_labels:
-		if is_instance_valid(esl[0]):
-			(esl[0] as Label).visible = false
-	for g_node in _cemetery_grave_nodes:
-		if is_instance_valid(g_node):
-			var g_lbl: Label = g_node.get_node_or_null("GraveHoverLabel") as Label
-			if g_lbl:
-				g_lbl.visible = _is_near(player, mouse_pos, g_node.global_position, 18.0, 14.0)
-	if _jail_label:
-		_jail_label.visible = player_in_jail or player_being_escorted_to_jail
-		if _jail_label.visible:
-			if player_being_escorted_to_jail:
-				_jail_label.text = "🚔 Siendo escoltado a la celda..."
-			elif player_in_jail and jail_mandatory_stay_timer > 0.0:
-				_jail_label.text = "🔒 Celda — Espera %ds" % int(ceil(jail_mandatory_stay_timer))
-			else:
-				_jail_label.text = "🔒 Celda lista"
-	for ch in house_chests:
-		var c_lbl: Label = ch.get("label")
-		if is_instance_valid(c_lbl):
-			c_lbl.visible = false
-
 	_update_shop_business_stalls(player, mouse_pos)
-	_update_doors_and_windows(delta, player, mouse_pos)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if business_panel and business_panel.visible:

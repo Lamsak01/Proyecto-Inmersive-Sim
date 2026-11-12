@@ -2,7 +2,6 @@
 extends "res://scripts/systems/VillageManagerPolice.gd"
 
 
-const SHOP_LABEL_OFFSET: Vector2 = Vector2(-130.0, 14.0) ## del mostrador a la esquina del letrero de «gestionar negocio»
 
 
 func get_village_security_level() -> int:
@@ -416,10 +415,6 @@ func _use_compost_bin(player: Node2D) -> void:
 func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_original: Vector2, stall_spr: Sprite2D) -> void:
 	_add_station_area("ShopBusinessStall_%d" % role_id, stall_original, 18.0, "shop_business_stall")
 	var stall_pos: Vector2 = Anclas.mover(stall_original)
-	var lbl := _make_station_label(stall_original, "📜 %s [E: Gestionar Negocio | F: Sabotear]" % shop_title)
-	lbl.position = stall_pos + SHOP_LABEL_OFFSET # el letrero es más ancho que el edificio: se coloca respecto al mostrador
-	lbl.custom_minimum_size = Vector2(260, 26)
-	entities_root.add_child(lbl)
 
 	var sup_items: Array[String] = []
 	match role_id:
@@ -438,7 +433,7 @@ func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: Str
 	var init_stock: Dictionary = (cfg.get("stock", {}) as Dictionary).duplicate()
 	shop_businesses[role_id] = {
 		"role": role_id, "family_id": fam_id, "title": shop_title, "stall_pos": stall_pos, "stall_sprite": stall_spr,
-		"stall_label": lbl, "owner_mode": "NPC", "vault_gold": 0, "sabotaged_days": 0, "sabotaged_today_day": -1,
+		"owner_mode": "NPC", "vault_gold": 0, "sabotaged_days": 0, "sabotaged_today_day": -1,
 		"supply_items": sup_items, "stock_override": init_stock
 	}
 
@@ -458,10 +453,6 @@ func _update_shop_business_stalls(_player: Node2D, _mouse_pos: Vector2) -> void:
 	for r_id in shop_businesses.keys():
 		var role_int: int = int(r_id)
 		_sync_shop_sabotage_fx_2d(role_int)
-		var biz: Dictionary = shop_businesses[role_int]
-		var lbl: Label = biz.get("stall_label")
-		if is_instance_valid(lbl):
-			lbl.visible = false
 
 func _refresh_shop_stall_visual(role_id: int) -> void:
 	if not shop_businesses.has(role_id):

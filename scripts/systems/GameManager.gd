@@ -437,7 +437,6 @@ func load_game(filepath: String = SAVE_FILE_PATH) -> bool:
 					if arr_k == "crime_history": dst.append(str(item))
 					elif typeof(item) == TYPE_DICTIONARY: dst.append(item)
 		if vm.has_method("_refresh_morgue_table_sprites"): vm.call("_refresh_morgue_table_sprites")
-		if vm.has_method("_rebuild_cemetery_graves_from_save"): vm.call("_rebuild_cemetery_graves_from_save")
 		if c_state.has("completed_contracts_today") and typeof(c_state["completed_contracts_today"]) == TYPE_DICTIONARY:
 			vm.completed_contracts_today.clear()
 			var saved_c: Dictionary = c_state["completed_contracts_today"]

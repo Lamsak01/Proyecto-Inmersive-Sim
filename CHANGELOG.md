@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Capa 2, tanda 1: fuera los letreros planos (Claude Code)
+- Borrados ~1.190 letreros planos que nunca se veían en primera persona: el de cada árbol, roca y planta
+  (`HarvestableNode.prompt_label`), los de puertas, ventanas, cofres, mostradores, pozos, posada, hospital, morgue,
+  celda, altar, cementerio, tablón y compostador (`_make_station_label` y sus 13 variables), y las lápidas planas
+  (`_spawn_physical_grave_marker`; las tumbas 3D salen de `buried_graves`). El aviso de [E] lo da la interfaz 3D.
+- Inventario de dibujos planos (herramienta temporal): 2.818 → 1.629; quedan 21 letreros (huertos, campamento,
+  gallinero, pesca), 268 polígonos, 10 líneas y 1.330 dibujos (casi todos, plano del 3D). Lista visible: 0. verify_all.
+
 ## 2026-11-12 — Capa 1 del adiós al 2D: nada plano a la vista desde arriba (Claude Code)
 - Decisión del usuario: quitar todo lo plano que se ve o se edita (capas 1 y 2); el «cerebro» plano de los vecinos se queda.
 - Los muebles y adornos de código (`_spawn_decor_prop`, 43 llamadas) ya no se dibujan: solo dejan su choque; su 3D está

@@ -172,8 +172,6 @@ var _morgue_corpse_sprites: Array[Sprite2D] = []
 var morgue_active_corpses: Array[Dictionary] = [] # Máximo 3 cuerpos simultáneos en las camillas de la Morgue
 var buried_graves: Array[Dictionary] = []         # Cuerpos sepultados físicamente en el Cementerio de la Iglesia
 var corpse_records: Array[Dictionary] = []        # Archivo histórico forense completo
-var _hospital_bed_label: Label = null
-var _morgue_label: Label = null
 
 # Capilla del Alba y Cementerio Parroquial (Sur del Hospital y la Comisaría)
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._church_center)
@@ -182,9 +180,7 @@ var _church_altar_pos: Vector2 = Marca.sitio(ID_CAPILLA, Marca.ALTAR)
 var _cemetery_gate_pos := Vector2(888, 262)
 var _cemetery_burial_pos := Vector2(888, 305)
 var _cemetery_grave_positions: Array[Vector2] = []
-var _cemetery_grave_nodes: Array[Node2D] = []
-var _church_altar_label: Label = null
-var _cemetery_label: Label = null
+
 var church_panel: PanelContainer = null
 var church_info_lbl: Label = null
 
@@ -209,7 +205,6 @@ var crime_history: Array[String] = []
 var _last_player_building_id: String = ""
 var _sighting_check_timer: float = 0.0
 var _police_confront_cooldown: float = 0.0
-var _jail_label: Label = null
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._jail_cell_gate_body)
 var _jail_cell_gate_body: StaticBody2D = null
 var _jail_cell_gate_col: CollisionShape2D = null
@@ -222,22 +217,13 @@ var recent_breakins_count: int = 0
 
 # Paso 5: Tablón de Encargos en la Plaza Central
 var _notice_board_pos := Vector2(476, 14)
-var _notice_board_label: Label = null
 var completed_contracts_today: Dictionary = {}
 
 # Paso 10: Farolas Eléctricas del Pueblo
 var streetlights: Array[Dictionary] = []
 
-var _well_label: Label = null
-var _tavern_well_label: Label = null
-var _extra_station_labels: Array = [] # Bloque AB: [[Label, Vector2]] carteles de puestos añadidos luego (Pozo de la Ronda)
-var _plaza_well_label: Label = null
-var _compost_label: Label = null
 var _compost_sprite: Sprite2D = null
 var _compost_area: Area2D = null
-var _tavern_bed_label: Label = null
-var _tavern_games_label: Label = null
-var _tavern_pool_label: Label = null
 
 var _tavern_bed_pos := VillageTavern.sitio(VillageTavern.M_CAMA_JUGADOR)
 var _tavern_social_pos := VillageTavern.sitio(VillageTavern.M_MESA_CENTRAL)
@@ -323,8 +309,6 @@ func set_camp_farm_enabled(en: bool) -> void:
 	if is_instance_valid(_compost_area):
 		_compost_area.monitoring = en
 		_compost_area.monitorable = en
-	if not en and is_instance_valid(_compost_label):
-		_compost_label.visible = false
 
 func _is_near(player: Node2D, mouse_pos: Vector2, target_pos: Vector2, p_rad: float, m_rad: float) -> bool:
 	return (player != null and player.global_position.distance_squared_to(target_pos) <= p_rad * p_rad) or (target_pos.distance_squared_to(mouse_pos) <= m_rad * m_rad)
@@ -550,14 +534,12 @@ func _spawn_building_door_and_window(
 	var spr_open := _add_sprite_prop(tex_door_open, door_pos + Vector2(-door_width * 0.5 + 4.0, -15.0 if door_on_south else 15.0), Vector2.ONE, 2, false)
 
 	_add_station_area("DoorArea_" + b_id, door_pos, 20.0, "building_door")
-	var d_lbl := _make_station_label(door_pos + Vector2(-125, -26), "🚪 Puerta de %s" % b_title)
-	entities_root.add_child(d_lbl)
 
 	var occ_rect: Rect2 = Rect2(door_pos - Vector2(door_width * 0.5, 4.0), Vector2(door_width, 8.0)) if is_horiz_door else Rect2(door_pos - Vector2(4.0, door_width * 0.5), Vector2(8.0, door_width))
 	building_doors.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": door_pos,
 		"door_south": door_on_south, "door_dir": door_dir, "width": door_width, "body": d_body, "col": d_col,
-		"spr_closed": spr_closed, "spr_open": spr_open, "label": d_lbl,
+		"spr_closed": spr_closed, "spr_open": spr_open,
 		"occluder_rect": occ_rect,
 		"is_open": false, "is_locked": false, "locked_by_player": false,
 		"manual_override_timer": 0.0, "npc_pass_timer": 0.0, "police_breach_timer": 0.0
@@ -566,12 +548,10 @@ func _spawn_building_door_and_window(
 	var spr_win := _add_sprite_prop(tex_win_open, win_pos, Vector2.ONE, 3)
 
 	_add_station_area("WindowArea_" + b_id, win_pos, 11.0, "building_window")
-	var w_lbl := _make_station_label(win_pos + Vector2(-125, -24), "🪟 Ventana de %s" % b_title)
-	entities_root.add_child(w_lbl)
 
 	building_windows.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": win_pos,
-		"door_south": door_on_south, "door_dir": door_dir, "sprite": spr_win, "label": w_lbl,
+		"door_south": door_on_south, "door_dir": door_dir, "sprite": spr_win,
 		"is_shuttered": false, "manual_override_timer": 0.0
 	})
 
@@ -1250,10 +1230,8 @@ func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> vo
 	var spr := _add_sprite_prop(_load_tex("res://assests/world/village/house_chest_closed.png"), pos, Vector2(1.05, 1.05), -1)
 	_add_prop_collider(pos, Vector2(11.0, 8.0))
 	_add_station_area("", pos, 15.0, "house_chest")
-	var lbl := _make_station_label(pos + Vector2(-115, -24), "🔓 %s [E: Forzar Cerradura (Usa Sigilo [C])]" % chest_title)
-	entities_root.add_child(lbl)
 	# El sitio del cofre se guarda en el mundo, como su dibujo (mapa ×E)
-	house_chests.append({"pos": Anclas.mover(pos), "sprite": spr, "label": lbl, "title": chest_title, "family_id": fam_id, "looted_day": -1})
+	house_chests.append({"pos": Anclas.mover(pos), "sprite": spr, "title": chest_title, "family_id": fam_id, "looted_day": -1})
 
 func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 	var prop_rect := Rect2(pos - sz * 0.5, sz)
@@ -1634,16 +1612,6 @@ func is_building_door_blocked(building_id_or_keyword: String) -> bool:
 				return true
 	return false
 
-func _update_doors_and_windows(_delta: float, _player: Node2D, _mouse_pos: Vector2) -> void:
-	for d_entry in building_doors:
-		var d_lbl: Label = d_entry.get("label")
-		if is_instance_valid(d_lbl):
-			d_lbl.visible = false
-	for w_entry in building_windows:
-		var w_lbl: Label = w_entry.get("label")
-		if is_instance_valid(w_lbl):
-			w_lbl.visible = false
-
 func _find_nearest_door(pos: Vector2, max_rad: float) -> Dictionary:
 	var best: Dictionary = {}
 	var best_d2: float = max_rad * max_rad
@@ -1883,21 +1851,6 @@ func _hint_player(txt: String, player: Node = null) -> void:
 	var p: Node = player if is_instance_valid(player) else get_tree().get_first_node_in_group("player")
 	if is_instance_valid(p) and p.has_method("show_hint"):
 		p.call("show_hint", txt)
-
-func _make_station_label(pos: Vector2, txt: String) -> Label:
-	pos = Anclas.mover(pos)
-	var lbl := Label.new()
-	lbl.visible = false
-	lbl.text = txt
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.position = pos
-	lbl.custom_minimum_size = Vector2(250, 20)
-	lbl.add_theme_font_size_override("font_size", 9)
-	lbl.add_theme_color_override("font_color", Color(0.95, 0.92, 0.68))
-	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
-	lbl.add_theme_constant_override("outline_size", 3)
-	lbl.z_index = 20
-	return lbl
 
 func _load_tex(res_path: String) -> Texture2D:
 	if _tex_cache.has(res_path) and _tex_cache[res_path] is Texture2D:

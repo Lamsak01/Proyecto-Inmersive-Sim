@@ -189,9 +189,6 @@ static func _build_gap_pockets(vm) -> void:
 				vm._add_station_area("RondaWaterWellArea", p, 24.0, "well")
 				if not vm.sitio(p) in vm._well_positions:
 					vm._well_positions.append(vm.sitio(p))
-				var wl: Label = vm._make_station_label(p + Vector2(-135, -28), str(g["title"]))
-				vm.entities_root.add_child(wl)
-				vm._extra_station_labels.append([wl, p])
 
 ## Dibuja lo que toque según el estado: cartel de solar libre, obra o edificio terminado. Lo creado se apunta para
 ## poder quitarlo al cargar otra partida.
@@ -223,7 +220,7 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 	if not old_biz.is_empty() and vm.shop_businesses.has(int(st["role"])):
 		var nb: Dictionary = vm.shop_businesses[int(st["role"])]
 		for k in old_biz.keys():
-			if not k in ["stall_pos", "stall_sprite", "stall_label"]:
+			if not k in ["stall_pos", "stall_sprite"]:
 				nb[k] = old_biz[k] # Conserva dueño, caja, sabotaje y existencias al redibujar
 	if vm.has_method("refresh_world_stage_3d"):
 		vm.refresh_world_stage_3d()

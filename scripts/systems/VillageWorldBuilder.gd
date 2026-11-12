@@ -195,8 +195,6 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 		vm._add_prop_collider(b_pos, Vector2(13.5, 19.5))
 
 	vm._add_station_area("HospitalEmergencyBedArea", vm._hospital_bed_pos, 16.0, "hospital_bed")
-	vm._hospital_bed_label = vm._make_station_label(vm._hospital_bed_pos + Vector2(-120, -28), "🏥 Cama de Urgencias [E: Ingresar para Cura Progresiva (-10 Oro)]")
-	vm.entities_root.add_child(vm._hospital_bed_label)
 
 	var tex_mtable := vm._load_tex("res://assests/world/village/morgue_table.png")
 	var tex_corpse := vm._load_tex("res://assests/world/village/morgue_corpse_sheet.png")
@@ -210,8 +208,6 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm.register_no_stand_furniture(Vector2(766.5, 189.0), Vector2(7.0, 7.0))
 
 	vm._add_station_area("MorgueAutopsyArea", vm._morgue_table_positions[1], 24.0, "morgue_table")
-	vm._morgue_label = vm._make_station_label(vm._morgue_table_positions[1] + Vector2(-125, -26), "⚰️ Morgue Forense [E: Examinar Autopsias]")
-	vm.entities_root.add_child(vm._morgue_label)
 
 	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_HOSPITAL, Marca.MESA))
@@ -256,8 +252,6 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm.register_no_stand_furniture(pol_rep_pos, Vector2(16.0, 9.5))
 	vm._add_station_area("PoliceArchivedReportArea", pol_rep_pos, 22.0, "police_archived_report")
 	vm._add_station_area("PoliceJailCellArea", vm._jail_cell_pos, 22.0, "police_jail")
-	vm._jail_label = vm._make_station_label(vm._jail_cell_pos + Vector2(-120, -28), "🚓 Celda Policial [E: Gestionar Fianza / Condena]")
-	vm.entities_root.add_child(vm._jail_label)
 
 	# Comisario Vane y Guardia Rodric (con mesa de comedor propia en la Comisaría)
 	vm._register_authority_npc(
@@ -293,8 +287,6 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm.register_no_stand_furniture(vm._church_altar_pos + Vector2(24.0, -2.0), Vector2(9.5, 7.0))
 
 	vm._add_station_area("ChurchAltarArea", vm._church_altar_pos, 22.0, "church_altar")
-	vm._church_altar_label = vm._make_station_label(vm._church_altar_pos + Vector2(-125, -28), "⛪ Altar y Libro de Difuntos [E: Consultar Sepulturas / Orar]")
-	vm.entities_root.add_child(vm._church_altar_label)
 
 	# G3: el sacerdote vive en la capilla (cama en la esquina noreste y mesa propia en la noroeste)
 	vm._add_prop_collider(Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Vector2(13.0, 18.0))
@@ -317,8 +309,6 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm._add_prop_collider(Vector2(1090.0, 344.0), Vector2(4.0, 168.0))
 
 	vm._add_station_area("CemeteryGateArea", vm._cemetery_gate_pos, 24.0, "cemetery_gate")
-	vm._cemetery_label = vm._make_station_label(vm._cemetery_gate_pos + Vector2(-125, -26), "🪦 Cementerio Parroquial [E: Inspeccionar Sepulturas]")
-	vm.entities_root.add_child(vm._cemetery_label)
 
 	# 4 filas × 6 columnas = 24 tumbas: sitio de cada una (entierros) y su choque
 	vm._cemetery_grave_positions.clear()
@@ -455,8 +445,6 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 static func _spawn_notice_board_in_plaza(vm: VillageManager) -> void:
 	vm._add_sprite_prop(vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/questboard_1.png"), vm._notice_board_pos, Vector2(0.65, 0.65), -1)
 	vm._add_station_area("PlazaNoticeBoardArea", vm._notice_board_pos, 14.0, "notice_board")
-	vm._notice_board_label = vm._make_station_label(vm._notice_board_pos + Vector2(-120, -28), "📋 Tablón de Encargos y Recompensas [E: Ver Misiones]")
-	vm.entities_root.add_child(vm._notice_board_label)
 
 # ==============================================================================
 # PASO 10: ⚡ FAROLAS ELÉCTRICAS EN LAS CALLES DEL PUEBLO (`lamp-post1.png`)
@@ -477,23 +465,15 @@ static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
 
 	vm._add_sprite_prop(well_tex, vm._well_pos, Vector2(1.25, 1.25), 0)
 	vm._add_station_area("WaterWellArea", vm._well_pos, 24.0, "well")
-	vm._well_label = vm._make_station_label(vm._well_pos + Vector2(-130, -28), "🪣 Pozo de la Granja [E: Llenar Recipiente / Lavar Heridas y Sangre]")
-	vm.entities_root.add_child(vm._well_label)
 
 	# Pozo en el Patio Lateral de la Gran Posada ('El Jabalí Dorado')
 	vm._add_sprite_prop(well_tex, vm._tavern_well_pos, Vector2(1.25, 1.25), 0)
 	vm._add_station_area("TavernWaterWellArea", vm._tavern_well_pos, 24.0, "well")
-	vm._tavern_well_label = vm._make_station_label(vm._tavern_well_pos + Vector2(-135, -28), "🪣 Pozo de la Posada [E: Llenar Recipiente / Lavar Heridas y Sangre]")
-	vm.entities_root.add_child(vm._tavern_well_label)
 
 	# Pozo en la Plaza Central del Pueblo
 	vm._add_sprite_prop(well_tex, vm._plaza_well_pos, Vector2(1.25, 1.25), 0)
 	vm._add_station_area("PlazaWaterWellArea", vm._plaza_well_pos, 24.0, "well")
-	vm._plaza_well_label = vm._make_station_label(vm._plaza_well_pos + Vector2(-135, -28), "🪣 Pozo de la Plaza Central [E: Llenar Recipiente / Lavar Heridas y Sangre]")
-	vm.entities_root.add_child(vm._plaza_well_label)
 
 	vm._compost_sprite = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/compost_bin.png"), vm._compost_pos, Vector2(1.25, 1.25), 0)
 	vm._compost_area = vm._add_station_area("CompostBinArea", vm._compost_pos, 16.0, "compost")
-	vm._compost_label = vm._make_station_label(vm._compost_pos + Vector2(-115, -28), "♻️ Compostador [E: Crear Abono con Hierba/Hongo]")
-	vm.entities_root.add_child(vm._compost_label)
 	vm.set_camp_farm_enabled(false)

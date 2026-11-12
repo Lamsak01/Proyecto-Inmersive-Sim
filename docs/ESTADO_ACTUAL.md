@@ -31,7 +31,7 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 Paso 4, trozos seguros (decorado del código → piezas), comparando árbol 3D y lógica antes y después. Hechos: terreno,
 constructor, taberna, restaurante, solares. Siguen: `VillagePlaces`, `VillageManagerSocial`…, `EcosystemManager`.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
-plano). Capa 1 hecha: desde arriba ya no se ve nada plano (lista 0). Capa 2 en curso: los dibujos planos ocultos que hacen
+plano). Capa 1 hecha (lista visible 0). Capa 2 en curso (tanda 1: letreros, 2.818 → 1.629 dibujos planos): los dibujos planos ocultos que hacen
 de plano del 3D (`_add_rect_poly`/`_add_poly`, sprites fuente de `WorldStageProps3D`, etiquetas de estación) → piezas o
 borrar. Comprobar cada tanda con la lista de lo visible y fotos. Pesca: instrucciones del minijuego planas (sin revisar).
 Corte final (anclas y ×5) solo con el usuario.

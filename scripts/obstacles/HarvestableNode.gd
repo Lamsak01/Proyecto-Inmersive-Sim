@@ -30,7 +30,6 @@ var respawn_on_day: int = -1
 var sprite: Sprite2D = null
 var body_collision: CollisionShape2D = null
 var interact_area: Area2D = null
-var prompt_label: Label = null
 
 var _active_texture: Texture2D = null
 var _depleted_texture: Texture2D = null
@@ -91,43 +90,11 @@ func setup_visuals(tex_active: Texture2D, tex_depleted: Texture2D = null, tint: 
 	area_circle.radius = col_radius + 14.0
 	area_col.shape = area_circle
 	interact_area.add_child(area_col)
-	interact_area.body_entered.connect(_on_body_entered)
-	interact_area.body_exited.connect(_on_body_exited)
 	add_child(interact_area)
-
-	prompt_label = Label.new()
-	prompt_label.visible = false
-	prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	prompt_label.position = Vector2(-70, -42)
-	prompt_label.custom_minimum_size = Vector2(140, 20)
-	prompt_label.add_theme_font_size_override("font_size", 10)
-	prompt_label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.65))
-	prompt_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	prompt_label.add_theme_constant_override("outline_size", 3)
-	_update_prompt_text()
-	add_child(prompt_label)
 
 	if not Engine.is_editor_hint():
 		_check_saved_state()
 
-func _update_prompt_text() -> void:
-	if not prompt_label:
-		return
-	match harvest_type:
-		HarvestType.FORAGE:
-			prompt_label.text = "%s · Planta" % node_title
-		HarvestType.LOGGING:
-			prompt_label.text = "%s · Talar" % node_title
-		HarvestType.MINING:
-			prompt_label.text = "%s · Picar" % node_title
-
-func _on_body_entered(body: Node) -> void:
-	if not is_depleted and body.is_in_group("player") and prompt_label and harvest_type != HarvestType.FORAGE:
-		prompt_label.visible = true
-
-func _on_body_exited(body: Node) -> void:
-	if body.is_in_group("player") and prompt_label:
-		prompt_label.visible = false
 
 ## Interacción con [E] para nodos de Forrajeo (Hierbas y Hongos)
 func interact(player: Node) -> void:
@@ -250,7 +217,6 @@ func _set_harvest_cols_disabled(dis: bool) -> void:
 		if icol: icol.set_deferred("disabled", dis)
 
 func _apply_depleted_visuals() -> void:
-	if prompt_label: prompt_label.visible = false
 	_set_harvest_cols_disabled(true)
 	if sprite:
 		if _depleted_texture:

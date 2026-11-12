@@ -332,49 +332,6 @@ func _bury_corpse_in_cemetery(rec: Dictionary, burial_reason: String = "Sepultur
 		if c_node.sprite:
 			c_node.sprite.visible = false
 		c_node._set_area_col_disabled(c_node.interact_area, true)
-	_spawn_physical_grave_marker(grave_idx, rec)
-
-func _spawn_physical_grave_marker(grave_idx: int, rec: Dictionary) -> void:
-	if not is_instance_valid(entities_root):
-		return
-	var g_pos: Vector2 = _cemetery_burial_pos
-	if grave_idx >= 0 and grave_idx < _cemetery_grave_positions.size():
-		g_pos = _cemetery_grave_positions[grave_idx]
-	else:
-		g_pos = Vector2(844.0 + float(grave_idx % 6) * 26.0, 282.0 + float(int(float(grave_idx) / 6.0) % 3) * 28.0)
-	g_pos = sitio(g_pos) # plan de sitios: la tumba sigue al cementerio movido
-
-	var grave_node := Node2D.new()
-	grave_node.name = "GraveMarker_%d" % (grave_idx + 1)
-	grave_node.global_position = g_pos
-	entities_root.add_child(grave_node)
-	_cemetery_grave_nodes.append(grave_node)
-
-	_add_poly(PackedVector2Array([Vector2(-7, -2), Vector2(7, -2), Vector2(8, 10), Vector2(-8, 10)]), Color(0.36, 0.25, 0.16, 0.95), -1, Vector2.ZERO, grave_node)
-	_add_poly(PackedVector2Array([Vector2(-6, -11), Vector2(-4, -14), Vector2(4, -14), Vector2(6, -11), Vector2(6, -2), Vector2(-6, -2)]), Color(0.68, 0.72, 0.78, 1.0), 0, Vector2.ZERO, grave_node)
-	_add_poly(PackedVector2Array([Vector2(-1, -12), Vector2(1, -12), Vector2(1, -4), Vector2(-1, -4)]), Color(0.32, 0.35, 0.40, 1.0), 1, Vector2.ZERO, grave_node)
-	_add_poly(PackedVector2Array([Vector2(-3, -10), Vector2(3, -10), Vector2(3, -8), Vector2(-3, -8)]), Color(0.32, 0.35, 0.40, 1.0), 1, Vector2.ZERO, grave_node)
-
-	var v_name: String = str(rec.get("victim_name", "Aldeano"))
-	var v_role: String = str(rec.get("victim_role", "Habitante"))
-	var v_cause: String = str(rec.get("cause_of_death", "Causa desconocida"))
-	var b_day: int = int(rec.get("burial_day", 1))
-	var g_lbl := _make_station_label(Vector2(-125, -34), "🪦 Tumba #%d: R.I.P. %s (%s)\n[Sepultado Día %d | %s | E: Libro de Difuntos]" % [grave_idx + 1, v_name, v_role, b_day, v_cause])
-	g_lbl.name = "GraveHoverLabel"
-	g_lbl.add_theme_color_override("font_color", Color(0.86, 0.90, 1.0))
-	grave_node.add_child(g_lbl)
-
-func _rebuild_cemetery_graves_from_save() -> void:
-	for g_n in _cemetery_grave_nodes:
-		if is_instance_valid(g_n):
-			g_n.name = "_freed_grave_" + str(g_n.get_instance_id())
-			if g_n.get_parent():
-				g_n.get_parent().remove_child(g_n)
-			g_n.queue_free()
-	_cemetery_grave_nodes.clear()
-	for i in range(buried_graves.size()):
-		if typeof(buried_graves[i]) == TYPE_DICTIONARY:
-			_spawn_physical_grave_marker(i, buried_graves[i])
 
 # ==============================================================================
 # PASO 3: 🔓 COFRES DOMÉSTICOS Y ROBO EN SIGILO
