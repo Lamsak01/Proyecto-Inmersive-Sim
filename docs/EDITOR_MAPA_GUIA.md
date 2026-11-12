@@ -41,6 +41,9 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   **Paredes de dentro:** en la escena del edificio, carpeta **Tabiques**: cada caja roja translúcida es una pared que
   no se puede atravesar. Muévela, cambia su tamaño en «Tam m» (ancho × fondo), cópiala con Ctrl+D o bórrala. «Tapa
   vista» desmarcado = se ve a través (rejas). Igual que la puerta: mueve lo que choca, no el dibujo de la pared.
+  **Cartel con el nombre (2026-11-12):** en la escena de cada edificio, la pieza **Cartel** es la tabla de madera
+  junto a la puerta. Muévela o gírala con el ratón; en el Inspector, «Ancho m» la hace más ancha o estrecha. El nombre
+  lo escribe el juego (en las casas de solar, el de la familia); en el editor sale el nombre del edificio.
   **Casas de recién llegados:** todas son copias de tres **casas modelo** (`mapa/edificios/modelo_casita`, `modelo_casa`
   y `modelo_casona`). Abre una con doble clic, mueve muebles o las cruces de **Marcas** (`cama_1`, `mesa`, `cofre`…) y
   guarda: cambia en todas las casas de ese tamaño, también las que se construyan jugando. Si añades una cruz `cama_3`,

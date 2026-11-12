@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Carteles de madera con el nombre junto a la puerta de cada edificio (Claude Code)
+- Pedido del usuario: el nombre del edificio en un cartel de madera al lado de la puerta, no flotando. Pieza nueva
+  `mapa/cartel.gd` («Cartel» en las 32 escenas de `mapa/edificios/`, incluidas las tres casas modelo): tabla clara con
+  el título del edificio que pone el juego (`WorldStageBuildings3D`). Se mueve en el editor; «Ancho m» editable.
+- Colocados una vez con `tools/poner_carteles.gd`: lado sin ventana, apartado de los postes del porche; en paredes
+  cortas más estrecho (11 de 1,2 m); en la casita, encima de la puerta. `edificio.gd` usa `Cartel.sin_emojis`.
+- Comprobado: fotos en 1.ª persona de 9 edificios y una casa de solar; `verify_all`.
+
 ## 2026-11-12 — Los letreros de los sitios vuelven a salir en la vista desde arriba (Claude Code)
 - La distancia a la que se enseña el letrero de un sitio (`TITLE_SHOW_RADIUS`) se quedó en la medida de antes del mapa
   ×5: solo salían con el protagonista pegado (~1,5 m). Ahora es ×E (~8 m). Medido: a 5 m salen 57 de 63 (antes 0).

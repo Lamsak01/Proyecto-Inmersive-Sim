@@ -7,6 +7,7 @@ extends "res://scripts/visuals/WorldStageProps3D.gd"
 const Partes = preload("res://scripts/visuals/PartesEdificio3D.gd")
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const CasaModelo = preload("res://mapa/casa_modelo.gd")
+const Cartel = preload("res://mapa/cartel.gd")
 
 func rebuild_buildings_3d() -> void:
 	_clear_children(buildings_root_3d)
@@ -83,6 +84,9 @@ func _poner_edificio_de_escena(b: Dictionary, propia: PackedScene) -> void:
 		puerta_sur = true
 	raiz.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(giro)), to_3d(rect.get_center()))
 	_edificios_de_escena[b_id] = true
+	var cartel: Node = raiz.get_node_or_null(Cartel.NOMBRE_NODO) # cartel de madera junto a la puerta (mapa/cartel.gd)
+	if cartel != null:
+		cartel.call("poner_texto", str(b.get("title", "")))
 	_poner_muebles_de_escena(raiz, b_id)
 	_registrar_edificio_3d(raiz, b_id, rect, puerta_sur)
 

@@ -8,6 +8,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_af479af9.res" id="6_hwf62"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="7_w8y7c"]
 [ext_resource type="Script" path="res://mapa/marca.gd" id="8_bre46"]
+[ext_resource type="Script" path="res://mapa/cartel.gd" id="9_f5w3n"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -229,3 +230,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.072, 0, 2.184)
 gizmo_extents = 0.5
 script = ExtResource("8_bre46")
 id_marca = "ventana"
+
+[node name="Cartel" type="Node3D" parent="." unique_id=700862634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.264, 2.4, 2.384)
+script = ExtResource("9_f5w3n")
+ancho_m = 1.2

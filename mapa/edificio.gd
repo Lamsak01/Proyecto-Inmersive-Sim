@@ -14,7 +14,6 @@ const VISTA_DIR := "res://mapa/edificios_vista/"
 const ESCENA := "res://mapa/Mundo3D.tscn"
 const REFERENCIA := "res://mapa/referencia_mapa.json"
 const GRUPO_MUROS := "Muros" ## lo tienen los edificios con escena propia (scripts/visuals/PartesEdificio3D.gd)
-const PRIMER_EMOJI: int = 0x2000 ## de aquí en adelante, símbolos y emojis que el letrero 3D no sabe dibujar
 const LETRERO_ALTURA_M: float = 14.0 ## por encima del tejado de casi todos los edificios
 const LETRERO_TAM_PIXEL: float = 0.03 ## metros por píxel de letra: letras de ~2 m, como el ancho de una casa
 const LETRERO_TAM_LETRA: int = 64
@@ -97,11 +96,7 @@ static func nombre_legible(id: String) -> String:
 					_nombres[String(e.get("id", ""))] = String(e.get("nombre", ""))
 	if id == "bajo_alcantarillas":
 		return "Alcantarillas"
-	var limpio := ""
-	for ch: String in String(_nombres.get(id, id)):
-		if ch.unicode_at(0) < PRIMER_EMOJI:
-			limpio += ch
-	return limpio.strip_edges()
+	return load("res://mapa/cartel.gd").call("sin_emojis", String(_nombres.get(id, id)))
 
 
 ## Cuánto se ha movido cada edificio en el mapa 2D (id → Vector2). Lo usa VillageManagerBase al construirlos.

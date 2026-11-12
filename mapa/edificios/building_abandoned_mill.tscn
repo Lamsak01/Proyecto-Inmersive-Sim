@@ -8,6 +8,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_c5b68800.res" id="6_v2fue"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_856a55cb.res" id="7_vf4rm"]
 [ext_resource type="Script" path="res://mapa/marca.gd" id="8_37uc6"]
+[ext_resource type="Script" path="res://mapa/cartel.gd" id="9_2alax"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7bom6"]
 albedo_color = Color(0.658, 0.6265, 0.604, 1)
@@ -263,3 +264,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.672, 0, -1.344)
 gizmo_extents = 0.5
 script = ExtResource("8_37uc6")
 id_marca = "secuestrador_driver"
+
+[node name="Cartel" type="Node3D" parent="." unique_id=995090114]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.376, 2.4, 2.776)
+script = ExtResource("9_2alax")
+ancho_m = 1.2

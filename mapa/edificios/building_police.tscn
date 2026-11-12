@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="7_iq1q7"]
 [ext_resource type="Script" path="res://mapa/marca.gd" id="8_cp56h"]
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="9_bpgh2"]
+[ext_resource type="Script" path="res://mapa/cartel.gd" id="10_57rxb"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ey1wr"]
 albedo_color = Color(0.649, 0.6535, 0.6625, 1)
@@ -548,3 +549,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.456)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(0.336, 2.352)
 tapa_vista = false
+
+[node name="Cartel" type="Node3D" parent="." unique_id=1970806782]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.582, 2.4, -2.888)
+script = ExtResource("10_57rxb")
