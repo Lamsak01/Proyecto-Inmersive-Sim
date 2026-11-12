@@ -4,8 +4,7 @@
 
 ## a) Tarea activa
 **Migración «el mundo sale solo del editor»** (`docs/PLAN_MUNDO_DESDE_EDITOR.md`, aprobado). **Una sola sesión de Claude
-toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0, 1 y **2 (exteriores) hechos**.
-**Paso 3 (sitios de vecinos fuera de edificios) en curso**, aprobado por el usuario el 2026-11-12: por grupos: Caso I ✅, sitios huérfanos ✅ (carpeta «Sitios»), ocio y resto al aire libre ✅, interiores (calabozo, robos, ocio de dentro) ✅, mascotas y claro ✅.
+toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0 a 3 hechos; **paso 4 en curso** por trozos.
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;
@@ -33,8 +32,8 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 Paso 4, trozos seguros (decorado del código → piezas), cada uno comparando la escena entera antes y después
 (volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozos 1
 (`WorldStageTerrain3D`) y 2 (dibujo plano de `VillageWorldBuilder`) hechos. Siguientes: choques y zonas de
-`VillageWorldBuilder` → piezas, `EcosystemManager` (174; ojo: alimenta
-`tools/hornear_vegetacion.gd`), `VillageTavern` (puerta, pozo, escalera). El corte final (anclas y ×5), solo con el usuario.
+`VillageWorldBuilder` → piezas, `EcosystemManager` (174; alimenta `tools/hornear_vegetacion.gd`), `VillageTavern`.
+El mapa plano antiguo no se ve (lo tapa la imagen 3D): su dibujo puro sobra. Corte final (anclas y ×5) solo con el usuario.
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`;
 tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
