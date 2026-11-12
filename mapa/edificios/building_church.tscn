@@ -7,6 +7,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_6f8e823b.res" id="5_tyiq3"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_7a80a231.res" id="6_m2w7g"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="7_vopik"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="8_3tone"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bg624"]
 albedo_color = Color(0.649, 0.61750007, 0.595, 1)
@@ -337,3 +338,21 @@ modelo = "props/Bookcase_2.gltf"
 tam3 = Vector3(0.672, 1.6379853, 0.336)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=1638659237]
+
+[node name="altar" type="Marker3D" parent="Marcas" unique_id=1230812862]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.344)
+gizmo_extents = 0.5
+script = ExtResource("8_3tone")
+id_marca = "altar"
+
+[node name="cama_1" type="Marker3D" parent="Marcas" unique_id=760526561]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.856, 0, -1.792)
+gizmo_extents = 0.5
+script = ExtResource("8_3tone")
+id_marca = "cama_1"
+
+[node name="mesa" type="Marker3D" parent="Marcas" unique_id=2122449646]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.744, 0, -1.792)
+gizmo_extents = 0.5
+script = ExtResource("8_3tone")
+id_marca = "mesa"

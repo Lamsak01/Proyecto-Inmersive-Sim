@@ -350,7 +350,7 @@ func _initialize() -> void:
 		Vector2(930.0, 146.0),
 		Vector2(930.0, 164.0),
 	])
-	var e_pol: Dictionary = await _aim_and_press_e(pl, stage, Vector2(934.0, 180.0), -0.22, "carpeta")
+	var e_pol: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_police", "archivo"), -0.22, "carpeta")
 	var note_pol: bool = _has_note_with_source(det_ui, "clue_police_archived_report")
 	_record("C1_comisaria_denuncia_archivada", walked_pol_door and walked_pol_in and bool(e_pol["ok"]) and note_pol,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_pol_in), str(e_pol["label"]), str(note_pol)])

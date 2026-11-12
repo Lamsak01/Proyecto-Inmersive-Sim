@@ -1,6 +1,7 @@
 @tool
 extends RefCounted
 const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
+const Marca = preload("res://mapa/marca.gd")
 
 ## Justicia: investigaciones del Comisario y del Inquisidor Real, interrogatorios, veredictos y juicio público.
 ## Extraído de VillageManager.gd: cada función recibe al VillageManager como primer parámetro (`vm`).
@@ -449,9 +450,9 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 
 		inv_npc.is_sleeping = false
 
-		# 2. Amanecer (06:00 a 07:00): Revisa brevemente el expediente con el Comisario Vane en la Comisaría (`Vector2(886, 126)`)
+		# 2. Amanecer (06:00 a 07:00): Revisa brevemente el expediente con el Comisario Vane en la Comisaría (marca «escritorio»)
 		if h >= 6 and h < 7 and not vm.player_in_jail:
-			var desk_pt := Vector2(886, 126)
+			var desk_pt: Vector2 = vm.sitio(Marca.sitio(vm.ID_COMISARIA, Marca.ESCRITORIO))
 			if inv_npc.global_position.distance_to(desk_pt) > 18.0:
 				inv_npc._move_towards_point(desk_pt, 82.0, delta)
 			else:
@@ -752,7 +753,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 
 static func _process_inquisitor_field_recon(vm: VillageManager, inv_npc: VillageNPC, delta: float, done_cnt: int, max_cnt: int, days_inv: int) -> void:
 	var c_pos: Vector2 = _get_investigation_crime_pos(vm)
-	var recon_pts: Array[Vector2] = [c_pos, vm.sitio(vm._morgue_table_positions[1]), vm.sitio(Vector2(886, 126)), vm.sitio(Vector2(465, 36))]
+	var recon_pts: Array[Vector2] = [c_pos, vm.sitio(vm._morgue_table_positions[1]), vm.sitio(Marca.sitio(vm.ID_COMISARIA, Marca.ESCRITORIO)), vm.sitio(Vector2(465, 36))]
 	var r_idx: int = int(vm.active_royal_investigation.get("recon_spot_idx", 0)) % recon_pts.size()
 	var target_pt: Vector2 = recon_pts[r_idx]
 	if inv_npc.global_position.distance_to(target_pt) > 22.0:
@@ -1645,14 +1646,17 @@ static func get_royal_investigation_detailed_suspects_text(vm: VillageManager) -
 # ==============================================================================
 # BLOQUE B2: CALABOZO DE VERDAD (Vecinos detenidos en la celda de la comisaría)
 # ==============================================================================
-const CELL_POS: Vector2 = Vector2(886.0, 172.0)
 const CELL_RECT: Rect2 = Rect2(864.0, 156.0, 44.0, 32.0)
 const CELL_GATE_POS: Vector2 = Vector2(902.0, 152.0)
 const CELL_OUTSIDE_POS: Vector2 = Vector2(910.0, 148.0)
 
+## Centro del calabozo en el mapa original: es la marca «celda» de la comisaría (mapa/marca.gd).
+static func _celda_original() -> Vector2:
+	return Marca.sitio("building_police", Marca.CELDA)
+
 ## Celda y su puerta en el mundo (los números fijos de arriba están en el mapa original).
 static func cell_pos() -> Vector2:
-	return _AN_SITIOS.mover(CELL_POS)
+	return _AN_SITIOS.mover(_celda_original())
 
 static func cell_outside_pos() -> Vector2:
 	return _AN_SITIOS.mover(CELL_OUTSIDE_POS)
@@ -1786,7 +1790,7 @@ static func release_npc(vm: VillageManager, key: String, mode: String = "served"
 		vm.set_jail_cell_gate_locked(false)
 	var npc: VillageNPC = vm._get_npcs_by_person_key().get(key, null)
 	if npc != null and is_instance_valid(npc) and not npc.is_dead:
-		if CELL_RECT.has_point(_AN_SITIOS.desmover(npc.global_position)) or _AN_SITIOS.desmover(npc.global_position).distance_to(CELL_POS) <= 32.0:
+		if CELL_RECT.has_point(_AN_SITIOS.desmover(npc.global_position)) or _AN_SITIOS.desmover(npc.global_position).distance_to(_celda_original()) <= 32.0:
 			npc.global_position = cell_outside_pos()
 		npc.velocity = Vector2.ZERO
 		match mode:

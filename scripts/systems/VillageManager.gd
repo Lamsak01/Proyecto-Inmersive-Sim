@@ -634,7 +634,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 5. Celda de la Comisaría y Archivo de Pruebas (Caso I)
-	if o.distance_squared_to(Vector2(934.0, 180.0)) <= 26.0 * 26.0 or o.distance_squared_to(Vector2(856.0, 107.0)) <= 24.0 * 24.0:
+	if o.distance_squared_to(Marca.sitio(ID_COMISARIA, Marca.ARCHIVO)) <= 26.0 * 26.0 or o.distance_squared_to(Vector2(856.0, 107.0)) <= 24.0 * 24.0:
 		_record_case_clue(
 			player,
 			"📋 Carpeta de archivo",

@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 1, cuarta tanda: hospital, comisaría y capilla con marcas (Claude Code)
+- 17 marcas nuevas: hospital (`camilla`, `cama_1`, `mesa`, `trabajo`, `mesa_morgue_1..3`), comisaría (`celda`, `cama_1`, `cama_celda`, `mesa`, `trabajo`, `archivo`, `escritorio`) y capilla (`altar`, `cama_1`, `mesa`). El pueblo las lee al arrancar y sus números están borrados (también los repetidos en `VillageJustice`, `VillageUnderworld`, `VillageNPCDuties`, `VillageNPC` y `partida_caso1.gd`).
+- Dos fallos arreglados de paso: al caer inconsciente, el jugador aparecía en el sitio del hospital de antes de agrandar el mapa (ahora en la camilla de verdad); y el inspector, al amanecer, iba a repasar el expediente a un punto del mapa viejo (ahora al escritorio de la comisaría). Sin probar jugando.
+- Comprobado: sitios de vecinos y autoridades y las 9.143 cosas del mapa idénticos antes y después; sondeo 29/29, viejos 0.
+
 ## 2026-11-11 — Paso 1, tercera tanda: los sitios de la casa de comidas son marcas (Claude Code)
 - La casa de comidas tiene 20 marcas en su escena: fogones, encimera, colgadero, barra (`puesto`), piano, mesa del reservado, botellero, las dos camas, el cofre, 5 mesas del comedor y 5 de la terraza. `VillageRestaurant` las lee con `sitio(M_…)`, `dining_tables()` y `terrace_tables()`; sus números están borrados (también en `VillageFamilia`, `VillageManager` y `verify_all.gd`).
 - Comprobado: sitios de vecinos, asientos y las 2.702 cosas colocadas en el mapa idénticos antes y después; sondeo 29/29, viejos 0. No se nota jugando.

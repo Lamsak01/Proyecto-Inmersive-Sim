@@ -101,11 +101,11 @@ class SmugglerCampCart extends Node2D:
 
 ## Bloque FIS2: cada objetivo de robo está físicamente dentro de su edificio:
 ## - `sello_noble`: Mansión señorial (`solar f1`, estudio en `Vector2(1275, -444)`).
-## - `caliz_capilla`: Capilla (`building_church`, altar en `Vector2(745, 336)`).
+## - `caliz_capilla`: Capilla (`building_church`, marca «altar» de su escena).
 ## - `libro_gremial`: Ayuntamiento (`solar n4`, mesa municipal en `Vector2(764, -449)`).
 const HEIST_TARGETS: Array[Dictionary] = [
 	{"id": "sello_noble", "label": "el Sello de Lacre Noble", "pos": Vector2(1275.0, -444.0), "reward": 55},
-	{"id": "caliz_capilla", "label": "el Cáliz de Plata de la Capilla", "pos": Vector2(745.0, 336.0), "reward": 55},
+	{"id": "caliz_capilla", "label": "el Cáliz de Plata de la Capilla", "edificio": "building_church", "marca": "altar", "reward": 55},
 	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "pos": Vector2(764.0, -449.0), "reward": 55},
 ]
 
@@ -1440,7 +1440,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "underworld_take_heist":
 		var idx: int = int(st.get("heists_done", 0)) % HEIST_TARGETS.size()
 		var t: Dictionary = HEIST_TARGETS[idx]
-		var p: Vector2 = _AN_SITIOS.mover(t["pos"]) # se guarda ya en el mundo (mapa ×E, edificio movido)
+		var original: Vector2 = load("res://mapa/marca.gd").call("sitio", t["edificio"], t["marca"]) if t.has("marca") else t["pos"]
+		var p: Vector2 = _AN_SITIOS.mover(original) # se guarda ya en el mundo (mapa ×E, edificio movido)
 		st["active_heist"] = {"id": str(t["id"]), "label": str(t["label"]), "pos_x": p.x, "pos_y": p.y, "reward": int(t["reward"]), "stolen": false}
 		sync_heist_visuals(vm)
 		npc._spawn_floating_text("🕶️💎 «Un coleccionista paga 55 de oro por %s. Tráemelo tú: ve allí de noche y que nadie te vea.»" % str(t["label"]), Color.GOLD, -46.0)

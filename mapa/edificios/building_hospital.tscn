@@ -8,6 +8,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_d2de18cc.res" id="6_60mb6"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_b26217ed.res" id="7_g8kvn"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="8_5vg8p"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="9_psfjp"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l3l0e"]
 albedo_color = Color(0.6535, 0.6265, 0.6085, 1)
@@ -458,3 +459,45 @@ modelo = "props/Shelf_Small_Bottles.gltf"
 tam3 = Vector3(0.336, 1.4794706, 0.784)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=1221512465]
+
+[node name="camilla" type="Marker3D" parent="Marcas" unique_id=1332492913]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.96, 0, -0.896)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "camilla"
+
+[node name="cama_1" type="Marker3D" parent="Marcas" unique_id=1650135909]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.856, 0, -0.784)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "cama_1"
+
+[node name="mesa" type="Marker3D" parent="Marcas" unique_id=1672469939]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.288, 0, -1.344)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "mesa"
+
+[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=542065322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.056, 0, -1.232)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "trabajo"
+
+[node name="mesa_morgue_1" type="Marker3D" parent="Marcas" unique_id=1328619310]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.848, 0, 1.456)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "mesa_morgue_1"
+
+[node name="mesa_morgue_2" type="Marker3D" parent="Marcas" unique_id=896391121]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.456)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "mesa_morgue_2"
+
+[node name="mesa_morgue_3" type="Marker3D" parent="Marcas" unique_id=1500072374]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.848, 0, 1.456)
+gizmo_extents = 0.5
+script = ExtResource("9_psfjp")
+id_marca = "mesa_morgue_3"

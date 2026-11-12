@@ -296,7 +296,7 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm._add_solid_wall_segment(vm._hospital_center + Vector2(46, 4), Vector2(44, 6), tex_wall_h)
 
 	var tex_hbed := vm._load_tex("res://assests/world/village/hospital_bed.png")
-	for b_pos in [vm._hospital_bed_pos, Vector2(796, 134)]:
+	for b_pos in [vm._hospital_bed_pos, Marca.sitio(vm.ID_HOSPITAL, Marca.CAMA_1)]:
 		vm._add_sprite_prop(tex_hbed, b_pos, Vector2(1.15, 1.15), -1)
 		vm._add_prop_collider(b_pos, Vector2(13.5, 19.5))
 
@@ -319,12 +319,12 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm._morgue_label = vm._make_station_label(vm._morgue_table_positions[1] + Vector2(-125, -26), "⚰️ Morgue Forense [E: Examinar Autopsias]")
 	vm.entities_root.add_child(vm._morgue_label)
 
-	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital (`Vector2(768, 124)`)
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(768, 124), Vector2(0.45, 0.45))
+	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_HOSPITAL, Marca.MESA), Vector2(0.45, 0.45))
 	vm._register_authority_npc(
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",
-		Vector2(746, 126), Vector2(796, 134), Vector2(768, 124),
+		Marca.sitio(vm.ID_HOSPITAL, Marca.TRABAJO), Marca.sitio(vm.ID_HOSPITAL, Marca.CAMA_1), Marca.sitio(vm.ID_HOSPITAL, Marca.MESA),
 		{"bandage": 4, "surgical_kit": 4, "herbal_poultice": 6},
 		"family_hospital", "Cuerpo Médico del Valle",
 		["Dr. Silvano", "Dra. Valeria", "Dr. Aurelio", "Dra. Caelia", "Dr. Mirko"]
@@ -364,18 +364,18 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._jail_cell_gate_spr_closed = vm._add_sprite_prop(tex_bars_h, Vector2(902, 152), Vector2(0.85, 1.0), 2, false)
 	vm._jail_cell_gate_spr_open = vm._add_sprite_prop(tex_bars_v, Vector2(890, 141), Vector2(1.0, 0.75), 2, true)
 
-	for c_bed_pos in [Vector2(870, 182), Vector2(968, 178)]:
+	for c_bed_pos in [Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_CELDA), Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_1)]:
 		vm._add_sprite_prop(tex_bed, c_bed_pos, Vector2.ONE, -1, true, Color(0.75, 0.78, 0.85, 1.0))
 
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(870, 126), Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_COMISARIA, Marca.MESA), Vector2(0.45, 0.45))
 	vm._add_prop_collider(Vector2(960, 128), Vector2(20.0, 11.5))
 	vm.register_no_stand_furniture(Vector2(960, 128), Vector2(20.0, 11.5))
 	vm.register_no_stand_furniture(Vector2(952, 185), Vector2(7.0, 6.0))
 	vm.register_no_stand_furniture(Vector2(936, 189), Vector2(18.0, 7.0))
-	vm._add_prop_collider(Vector2(870, 182), Vector2(19.0, 11.0))
-	vm._add_prop_collider(Vector2(968, 178), Vector2(14.0, 20.0))
-	# Punto 4 (Caso I): Mesa / Archivador de Pruebas con la denuncia de desaparición archivada (`Vector2(934, 180)`)
-	var pol_rep_pos := Vector2(934.0, 180.0)
+	vm._add_prop_collider(Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_CELDA), Vector2(19.0, 11.0))
+	vm._add_prop_collider(Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_1), Vector2(14.0, 20.0))
+	# Punto 4 (Caso I): Mesa / Archivador de Pruebas con la denuncia de desaparición archivada
+	var pol_rep_pos: Vector2 = Marca.sitio(vm.ID_COMISARIA, Marca.ARCHIVO)
 	var pol_rep_2d := vm._add_rect_poly(pol_rep_pos, Vector2(16.0, 9.5), Color(0.42, 0.29, 0.18, 0.96), -1)
 	var pol_doc_2d := vm._add_rect_poly(pol_rep_pos + Vector2(1.0, -0.5), Vector2(7.5, 5.2), Color(0.92, 0.88, 0.76, 0.98), -1)
 	for prp in [pol_rep_2d, pol_doc_2d]:
@@ -388,18 +388,18 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._jail_label = vm._make_station_label(vm._jail_cell_pos + Vector2(-120, -28), "🚓 Celda Policial [E: Gestionar Fianza / Condena]")
 	vm.entities_root.add_child(vm._jail_label)
 
-	# Comisario Vane y Guardia Rodric (Con mesa de comedor propia en la Comisaría `Vector2(870, 126)`)
+	# Comisario Vane y Guardia Rodric (con mesa de comedor propia en la Comisaría)
 	vm._register_authority_npc(
 		"NPC_Sheriff_Vane", "Comisario Vane", "Alguacil mayor", VillageNPC.TradeRole.SHERIFF,
 		"res://assests/world/village/villager_sheriff.png",
-		Vector2(936, 126), Vector2(968, 178), Vector2(870, 126), {},
+		Marca.sitio(vm.ID_COMISARIA, Marca.TRABAJO), Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_1), Marca.sitio(vm.ID_COMISARIA, Marca.MESA), {},
 		"family_police", "Guardia del Valle",
 		["Alguacil Thorne", "Alguacil Vance", "Alguacil Haldor", "Alguacil Lyra", "Alguacil Rourke"]
 	)
 	vm._register_authority_npc(
 		"NPC_Guard_Rodric", "Guardia Rodric", "Oficial de Patrulla", VillageNPC.TradeRole.GUARD,
 		"res://assests/world/village/villager_guard.png",
-		Vector2(510, 48), Vector2(968, 178), Vector2(870, 126), {},
+		Vector2(510, 48), Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_1), Marca.sitio(vm.ID_COMISARIA, Marca.MESA), {},
 		"family_police", "Guardia del Valle",
 		["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
 	)
@@ -437,13 +437,13 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm.entities_root.add_child(vm._church_altar_label)
 
 	# G3: el sacerdote vive en la capilla (cama en la esquina noreste y mesa propia en la noroeste)
-	vm._add_sprite_prop(vm._load_tex("res://assests/world/village/tavern_bed.png"), Vector2(796, 280), Vector2.ONE, -1, true, Color(0.92, 0.88, 0.80, 1.0))
-	vm._add_prop_collider(Vector2(796, 280), Vector2(13.0, 18.0))
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Vector2(696, 280), Vector2(0.45, 0.45))
+	vm._add_sprite_prop(vm._load_tex("res://assests/world/village/tavern_bed.png"), Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Vector2.ONE, -1, true, Color(0.92, 0.88, 0.80, 1.0))
+	vm._add_prop_collider(Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Vector2(13.0, 18.0))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_CAPILLA, Marca.MESA), Vector2(0.45, 0.45))
 	vm._register_authority_npc(
 		"NPC_Priest_Anselmo", "Hermano Anselmo", "Sacerdote del Alba", VillageNPC.TradeRole.PRIEST,
 		"res://assests/world/village/villager_traveler.png",
-		vm._church_altar_pos + Vector2(0, -18), Vector2(796, 280), Vector2(696, 280), {},
+		vm._church_altar_pos + Vector2(0, -18), Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Marca.sitio(vm.ID_CAPILLA, Marca.MESA), {},
 		"family_chapel", "Capilla del Alba",
 		["Hermano Teodoro", "Hermana Clara", "Hermano Bastián", "Hermana Inés", "Hermano Lucio"]
 	)

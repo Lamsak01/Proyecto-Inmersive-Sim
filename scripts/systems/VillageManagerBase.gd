@@ -3,6 +3,7 @@ extends Node2D
 const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const Anclas = preload("res://mapa/anclas.gd")
+const Marca = preload("res://mapa/marca.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const Vista = preload("res://scripts/fisica/Vista.gd")
 
@@ -157,12 +158,13 @@ var _fp_skip_mill: Array[bool] = []
 # Paso 1: Hospital de Urgencias, Morgue Forense (Máx. 3 Camillas), Iglesia y Cementerio Parroquial
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._hospital_center)
 var _hospital_center := Vector2(745, 148)
-var _hospital_bed_pos := Vector2(710, 132)
-var _morgue_table_positions: Array[Vector2] = [
-	Vector2(712, 174),
-	Vector2(745, 174),
-	Vector2(778, 174)
-]
+const ID_HOSPITAL: String = "building_hospital"
+const ID_COMISARIA: String = "building_police"
+const ID_CAPILLA: String = "building_church"
+const MESAS_MORGUE: int = 3
+## Los sitios de estos edificios son marcas de su escena (mapa/marca.gd), en el mapa original como todo lo de aquí
+var _hospital_bed_pos: Vector2 = Marca.sitio(ID_HOSPITAL, Marca.CAMILLA)
+var _morgue_table_positions: Array[Vector2] = _leer_mesas_morgue()
 var _morgue_corpse_sprites: Array[Sprite2D] = []
 var morgue_active_corpses: Array[Dictionary] = [] # Máximo 3 cuerpos simultáneos en las camillas de la Morgue
 var buried_graves: Array[Dictionary] = []         # Cuerpos sepultados físicamente en el Cementerio de la Iglesia
@@ -173,7 +175,7 @@ var _morgue_label: Label = null
 # Capilla del Alba y Cementerio Parroquial (Sur del Hospital y la Comisaría)
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._church_center)
 var _church_center := Vector2(745, 312)
-var _church_altar_pos := Vector2(745, 336)
+var _church_altar_pos: Vector2 = Marca.sitio(ID_CAPILLA, Marca.ALTAR)
 var _cemetery_gate_pos := Vector2(888, 262)
 var _cemetery_burial_pos := Vector2(888, 305)
 var _cemetery_grave_positions: Array[Vector2] = []
@@ -186,7 +188,7 @@ var church_info_lbl: Label = null
 # Paso 2: Comisaría, Cárcel y Sistema Realista de Testigos ("Me vieron entrar a la casa")
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._police_center)
 var _police_center := Vector2(915, 148)
-var _jail_cell_pos := Vector2(886, 172)
+var _jail_cell_pos: Vector2 = Marca.sitio(ID_COMISARIA, Marca.CELDA)
 var wanted_level: int = 0
 var bounty_gold: int = 0
 var player_arrests_count: int = 0
@@ -795,6 +797,12 @@ func _route_internal_original(b_id: String, from_pos: Vector2, target_pos: Vecto
 					return Vector2(c.x, (y_wall + 11.0) if absf(from_pos.x - c.x) > 9.0 else (y_wall - 12.0))
 				break
 	return target_pos
+
+static func _leer_mesas_morgue() -> Array[Vector2]:
+	var mesas: Array[Vector2] = []
+	for i in range(1, MESAS_MORGUE + 1):
+		mesas.append(Marca.sitio(ID_HOSPITAL, Marca.MESA_MORGUE % i))
+	return mesas
 
 func register_no_stand_furniture(pos: Vector2, sz: Vector2) -> void:
 	if sz.x <= 0.0 or sz.y <= 0.0:

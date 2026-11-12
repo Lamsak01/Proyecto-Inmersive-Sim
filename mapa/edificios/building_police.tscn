@@ -7,6 +7,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_71bc1346.res" id="5_bicas"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_349111c4.res" id="6_1afjj"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="7_iq1q7"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="8_cp56h"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ey1wr"]
 albedo_color = Color(0.649, 0.6535, 0.6625, 1)
@@ -446,3 +447,45 @@ modelo = "props/Crate_Wooden.gltf"
 tam3 = Vector3(0.476, 0.7925736, 0.476)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=1677087738]
+
+[node name="celda" type="Marker3D" parent="Marcas" unique_id=934091486]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.624, 0, 1.344)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "celda"
+
+[node name="cama_1" type="Marker3D" parent="Marcas" unique_id=334204430]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.968, 0, 1.68)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "cama_1"
+
+[node name="cama_celda" type="Marker3D" parent="Marcas" unique_id=1180458638]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.52, 0, 1.904)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "cama_celda"
+
+[node name="mesa" type="Marker3D" parent="Marcas" unique_id=1198235307]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.52, 0, -1.232)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "mesa"
+
+[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=1885529819]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.176, 0, -1.232)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "trabajo"
+
+[node name="archivo" type="Marker3D" parent="Marcas" unique_id=676828162]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.064, 0, 1.792)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "archivo"
+
+[node name="escritorio" type="Marker3D" parent="Marcas" unique_id=570713879]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.624, 0, -1.232)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "escritorio"

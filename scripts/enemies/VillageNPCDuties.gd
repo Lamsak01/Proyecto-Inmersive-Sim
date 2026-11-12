@@ -400,7 +400,7 @@ func _process_witness_corpse_reporting(delta: float) -> bool:
 
 	# Buscar al policía consciente más cercano (o despertarlo en la Comisaría si es de noche)
 	var nearest_authority = _find_nearest_available_authority(true)
-	var report_dest: Vector2 = nearest_authority.global_position if nearest_authority != null else _AN_SITIOS.mover(Vector2(886, 172))
+	var report_dest: Vector2 = nearest_authority.global_position if nearest_authority != null else (load("res://scripts/systems/VillageJustice.gd").call("cell_pos") as Vector2)
 
 	# FASE 2: Caminar personalmente hasta donde está la policía
 	if _corpse_report_phase == 2:
