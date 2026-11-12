@@ -298,7 +298,7 @@ static func setup_world(vm) -> void:
 		"table_pos": sitio(M_MESA_CENTRAL),
 	}
 	var waiter_stall: Sprite2D = vm._add_sprite_prop(tex_stall, sitio(M_PASAPLATOS), Vector2(0.85, 0.85), -1)
-	vm._register_shop_business_stall(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, _AN_SITIOS.mover(sitio(M_PASAPLATOS)), waiter_stall) # el puesto se guarda en el mundo
+	vm._register_shop_business_stall(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, sitio(M_PASAPLATOS), waiter_stall)
 
 # ------------------------------------------------------------------ asientos de comedor y póker
 ## Plan de sitios: los asientos se devuelven en su sitio ACTUAL (siguen a la taberna movida en el editor 3D).

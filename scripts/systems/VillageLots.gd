@@ -401,7 +401,7 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
 		Color(0.96, 0.86, 0.62))
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/work_stall.png"), lay["stall_pos"], Vector2(1.3, 1.3), -1)
-	vm._register_shop_business_stall(role, str(st["title"]), fam, stall.global_position, stall)
+	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"], stall)
 	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
 	for b in [lay["bed1_pos"], lay["bed2_pos"]]:
 		vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)

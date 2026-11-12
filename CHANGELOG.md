@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 2, tanda 3: los mostradores de las tiendas (Claude Code)
+- **Fallo arreglado:** la zona de uso y el letrero «gestionar negocio» de los 15 mostradores se traducían dos veces y acababan a kilómetros del mostrador. `_register_shop_business_stall` recibe ahora el sitio en el mapa original (la marca `puesto`) y guarda en la ficha el sitio real; sus cinco llamadas pasan la marca.
+- Sin hacer: el muro débil y la espada sueltos no son del código del mundo, están puestos a mano en `scenes/World.tscn`; se tratarán con el resto de esa escena.
+- Comprobado: sitios de vecinos idénticos; inventario sigue 4.068 → 4.087, otro sitio 111 → 92 (los 15 mostradores siguen al editor); `verify_all`.
+
 ## 2026-11-11 — Paso 2, tanda 2: el Puesto del Paso es una pieza y los letreros van con su solar (Claude Code)
 - Lo que el inventario llamaba «farolas y cables quietos» era el **Puesto del Paso** (dos barreras de sacos, un foco y el propio puesto): no tenía pieza. Pieza nueva `solar_puesto_del_paso` en «Solares» (41 piezas); camino, estacas, empalizada, sacos, foco, sitios de trabajo y letrero van con ella. `rebuild_outpost_3d` se escribe en el mapa original y sigue a la pieza.
 - **Fallo visible arreglado:** el dibujo 3D del puesto salía en medio del pueblo (en coordenadas sin estirar) y su lógica en la frontera, cinco veces más grande. Ahora dibujo y lógica coinciden en la frontera este, a su tamaño.

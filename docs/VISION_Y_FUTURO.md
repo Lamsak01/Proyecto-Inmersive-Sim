@@ -326,3 +326,9 @@ las escaleras y trampillas te cambian de nivel.
 - Consecuencias: cada vecino tendrá un nivel además de su posición; los caminos de los vecinos, los testigos, el
   sonido y el sigilo deberán comprobar «mismo nivel». **Regla desde ya**: los sistemas nuevos que miren distancias
   (testigos, oír, ver) deben pasar por una función común, para que añadir niveles sea cambiar un solo sitio.
+
+## Ideas del usuario (2026-11-11): pueblo más vivo y casas accesibles
+- **Le gusta el mapa grande (×5).** Lo que siente plano y vacío es el **terreno** (relieve) y la falta de cosas alrededor.
+- Quiere **granjas alrededor** del pueblo y el **centro más centralizado**; lo recolocará él mismo en el editor.
+- Quiere que **todas las casas sean accesibles** (con interior). Duda de que llenar el pueblo de interiores sea viable.
+  Opinión de Claude: sí por plantillas (pocas casas modelo con variantes), no casa a casa. Sin decidir.

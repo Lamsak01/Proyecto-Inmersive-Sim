@@ -113,7 +113,7 @@ static func build(vm) -> void:
 	_build_furniture(vm)
 	_build_terrace(vm)
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex(PROPS + "storage_countertop_0.png"), sitio(M_BARRA), Vector2(0.55, 0.55), -1)
-	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, _AN_SITIOS.mover(sitio(M_BARRA)), stall) # el puesto se guarda en el mundo
+	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, sitio(M_BARRA), stall)
 	vm._spawn_house_chest(sitio(M_COFRE), "Cofre de " + TITLE, FAMILY_ID)
 
 ## Suelos por sala (cocina de baldosa, cámara de piedra fría, reservado con alfombra roja).

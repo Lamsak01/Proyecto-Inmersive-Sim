@@ -226,7 +226,7 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 	var stall_pos: Vector2 = Marca.sitio("shop_" + fam_id, Marca.PUESTO)
 	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.32, 1.32), -1)
 	if role_id >= 0:
-		vm._register_shop_business_stall(role_id, shop_title, fam_id, stall.global_position, stall)
+		vm._register_shop_business_stall(role_id, shop_title, fam_id, stall_pos, stall)
 	vm.register_no_stand_furniture(stall_pos, Vector2(18.0, 8.5))
 
 	vm._spawn_house_chest(Marca.sitio("shop_" + fam_id, Marca.COFRE), "Cofre de " + shop_title, fam_id)
@@ -253,7 +253,7 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 	var stall_pos: Vector2 = Marca.sitio("mixed_" + fam_id, Marca.PUESTO)
 	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.3, 1.3), -1)
 	if role_id >= 0:
-		vm._register_shop_business_stall(role_id, title, fam_id, stall.global_position, stall)
+		vm._register_shop_business_stall(role_id, title, fam_id, stall_pos, stall)
 	vm._add_prop_collider(stall_pos, Vector2(21.0, 9.5))
 	vm.register_no_stand_furniture(stall_pos, Vector2(21.0, 9.5))
 	vm._add_prop_collider(center + Vector2(35, -14), Vector2(12.0, 12.0))

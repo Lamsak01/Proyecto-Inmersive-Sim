@@ -2,6 +2,9 @@
 extends "res://scripts/systems/VillageManagerPolice.gd"
 
 
+const SHOP_LABEL_OFFSET: Vector2 = Vector2(-130.0, 14.0) ## del mostrador a la esquina del letrero de «gestionar negocio»
+
+
 func get_village_security_level() -> int:
 	var sec: int = wanted_level + corpse_records.size() * 2 + int(ceil(float(recent_breakins_count) * 0.5))
 	return clampi(sec, 0, 5)
@@ -408,9 +411,13 @@ func _use_compost_bin(player: Node2D) -> void:
 # ==============================================================================
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._hangout_plan_timer)
 
-func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_pos: Vector2, stall_spr: Sprite2D) -> void:
-	_add_station_area("ShopBusinessStall_%d" % role_id, stall_pos, 18.0, "shop_business_stall")
-	var lbl := _make_station_label(stall_pos + Vector2(-130, 14), "📜 %s [E: Gestionar Negocio | F: Sabotear]" % shop_title)
+## `stall_original`: sitio del mostrador en el mapa ORIGINAL (su marca). La zona de uso y el letrero lo siguen a donde
+## esté de verdad; en la ficha del negocio se guarda ya en el mundo actual.
+func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_original: Vector2, stall_spr: Sprite2D) -> void:
+	_add_station_area("ShopBusinessStall_%d" % role_id, stall_original, 18.0, "shop_business_stall")
+	var stall_pos: Vector2 = Anclas.mover(stall_original)
+	var lbl := _make_station_label(stall_original, "📜 %s [E: Gestionar Negocio | F: Sabotear]" % shop_title)
+	lbl.position = stall_pos + SHOP_LABEL_OFFSET # el letrero es más ancho que el edificio: se coloca respecto al mostrador
 	lbl.custom_minimum_size = Vector2(260, 26)
 	entities_root.add_child(lbl)
 
