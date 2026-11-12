@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 4, trozo 4: fuera el dibujo plano de la casa de comidas (Claude Code)
+- `VillageRestaurant` ya no dibuja en plano suelos de sala, manteles, hielo y carne de la cámara, losas, sendero y
+  sillas de la terraza (37 polígonos ocultos). Borradas `_build_room_floors` y `PATH_RECT`. Muebles que pasan a 3D, igual.
+- Comprobado: escena 3D idéntica; lo visible desde arriba, igual; fotos desde arriba de comedor, cocina y terraza
+  (solo cambian los vecinos que pasan); `verify_all`.
+
 ## 2026-11-12 — Paso 4, trozo 3: fuera los muebles planos de la posada (Claude Code)
 - `VillageTavern` ya no dibuja en plano la barra, chimenea, fogones, toneles, mesas, sillas, póker, billar, alfombra
   y escalera (44 polígonos que el juego ocultaba siempre). Se quedan choques, zonas, sprites y letreros.

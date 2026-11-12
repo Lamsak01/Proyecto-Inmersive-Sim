@@ -30,8 +30,8 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 ## c) Siguiente paso técnico inmediato
 Paso 4, trozos seguros (decorado del código → piezas), cada uno comparando la escena entera antes y después
 (volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozos 1
-(`WorldStageTerrain3D`), 2 (`VillageWorldBuilder`) y 3 (`VillageTavern`) hechos. Siguientes: dibujo plano de
-`VillageRestaurant`, `VillageLots`, `VillagePlaces`…; choques y zonas → piezas; `EcosystemManager` (174).
+(`WorldStageTerrain3D`), 2 (`VillageWorldBuilder`), 3 (`VillageTavern`) y 4 (`VillageRestaurant`) hechos. Siguientes: dibujo plano
+de `VillageLots`, `VillagePlaces`…; choques y zonas → piezas; `EcosystemManager` (174).
 **El mapa plano se ve desde arriba (P)** si está visible, opaco y con z > -2: hoy 38 cosas (letreros de pesca y bosque,
 postes, estacas del puesto). Antes de borrar, sacar esa lista antes y después (herramienta temporal) y fotos desde arriba.
 Corte final (anclas y ×5) solo con el usuario.

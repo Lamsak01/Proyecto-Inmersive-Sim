@@ -48,7 +48,6 @@ const OPENINGS: Array = [
 
 ## Terraza exterior y acceso directo desde la Calle Mayor (camino principal hacia la Plaza).
 const TERRACE: Rect2 = Rect2(BASE + Vector2(0, 196), Vector2(275, 40))
-const PATH_RECT: Rect2 = Rect2(BASE + Vector2(82, 232), Vector2(36, 14))
 ## Sitios con uso: son marcas de la escena del edificio (mapa/edificios/building_restaurant.tscn → «Marcas»), no
 ## números aquí. Se piden con sitio(M_…), dining_tables() y terrace_tables(); llegan en el mapa original, como
 ## esperan las funciones que colocan cosas y vecinos.
@@ -109,24 +108,11 @@ static func build(vm) -> void:
 	vm._construct_solid_building(BUILDING_ID, TITLE, c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png",
 		Color(1.0, 0.82, 0.55))
-	_build_room_floors(vm)
 	_build_furniture(vm)
 	_build_terrace(vm)
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex(PROPS + "storage_countertop_0.png"), sitio(M_BARRA), Vector2(0.55, 0.55), -1)
 	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, sitio(M_BARRA), stall)
 	vm._spawn_house_chest(sitio(M_COFRE), "Cofre de " + TITLE, FAMILY_ID)
-
-## Suelos por sala (cocina de baldosa, cámara de piedra fría, reservado con alfombra roja).
-static func _build_room_floors(vm) -> void:
-	vm._add_rect_poly(ROOMS["cocina"].get_center(), ROOMS["cocina"].size * 0.5 - Vector2(3, 3), Color(0.78, 0.74, 0.66, 1.0), -2)
-	vm._add_rect_poly(ROOMS["camara"].get_center(), ROOMS["camara"].size * 0.5 - Vector2(3, 3), Color(0.70, 0.82, 0.90, 1.0), -2)
-	vm._add_rect_poly(ROOMS["bodega"].get_center(), ROOMS["bodega"].size * 0.5 - Vector2(3, 3), Color(0.40, 0.30, 0.22, 1.0), -2)
-	vm._add_rect_poly(sitio(M_RESERVADO), Vector2(30, 24), Color(0.48, 0.10, 0.10, 1.0), -2)
-	# Manteles rústicos de lino y arpillera del valle bajo cada mesa del comedor
-	for t in dining_tables():
-		vm._add_rect_poly(t, Vector2(13, 9), Color(0.48, 0.38, 0.28, 1.0), -2)
-		for q in [Vector2(-6.5, -4.5), Vector2(6.5, 4.5)]:
-			vm._add_rect_poly(t + q, Vector2(6.5, 4.5), Color(0.58, 0.48, 0.36, 1.0), -2)
 
 static func _build_furniture(vm) -> void:
 	for t in dining_tables():
@@ -140,11 +126,7 @@ static func _build_furniture(vm) -> void:
 	vm._spawn_decor_prop(PROPS + "storage_countertop2_0.png", sitio(M_ENCIMERA), Vector2(0.55, 0.55))
 	vm._spawn_decor_prop(PROPS + "kitchen_props_3.png", BASE + Vector2(210, 116), Vector2(0.5, 0.5))
 	vm._spawn_decor_prop(PROPS + "pots_pack_0.png", BASE + Vector2(266, 146), Vector2(0.5, 0.5))
-	# Cámara frigorífica: bloques de hielo y piezas de carne colgadas
-	for ip in [BASE + Vector2(206, 8), BASE + Vector2(206, 26), BASE + Vector2(268, 8)]:
-		vm._add_rect_poly(ip, Vector2(6, 6), Color(0.82, 0.94, 1.0, 1.0), -1)
-	for mp in [BASE + Vector2(228, 16), BASE + Vector2(242, 16), BASE + Vector2(256, 16)]:
-		vm._add_rect_poly(mp, Vector2(3.5, 7), Color(0.70, 0.16, 0.14, 1.0), -1)
+	# Cámara frigorífica
 	vm._spawn_decor_prop(PROPS + "crates_3.png", BASE + Vector2(264, 56), Vector2(0.5, 0.5))
 	# Bodega
 	vm._spawn_decor_prop(PROPS + "drinks_shelf_1.png", sitio(M_BOTELLERO), Vector2(0.5, 0.5))
@@ -157,13 +139,8 @@ static func _build_furniture(vm) -> void:
 	vm._spawn_decor_prop(PROPS + "storage_countertop_0.png", BASE + Vector2(154, 8), Vector2(0.42, 0.42))
 
 static func _build_terrace(vm) -> void:
-	vm._add_rect_poly(TERRACE.get_center(), TERRACE.size * 0.5, Color(0.62, 0.50, 0.40, 1.0), -2) # Losas de barro
-	vm._add_rect_poly(PATH_RECT.get_center(), PATH_RECT.size * 0.5, Color(0.55, 0.47, 0.36, 1.0), -3) # Sendero
+	# Terraza: mesas y macetas (pasan a 3D)
 	for t in terrace_tables():
-		for cx in [-9.0, 9.0]:
-			var ch_poly: Polygon2D = vm._add_rect_poly((t as Vector2) + Vector2(cx, 0.0), Vector2(3.0, 3.0), Color(0.42, 0.27, 0.14, 0.95), -1)
-			if ch_poly != null:
-				ch_poly.add_to_group("ranch_fence_2d")
 		vm._spawn_decor_prop(PROPS + "round_table_0.png", t, Vector2(0.4, 0.4))
 	for pp in [BASE + Vector2(4, 232), BASE + Vector2(80, 232), BASE + Vector2(120, 232), BASE + Vector2(270, 232)]:
 		vm._spawn_decor_prop(PROPS + "plants_8.png", pp, Vector2(0.5, 0.5))
