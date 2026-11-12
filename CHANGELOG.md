@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Madrigueras, guaridas y lago de pesca sin dibujo plano (Claude Code)
+- Madrigueras de conejo y guaridas de zorro son marcas invisibles con `tipo_3d`; el lago, la arena, el muelle y las
+  ondas planos de la pesca, borrados (el 3D del lago sale del terreno). Quedan la boya, el sedal y el aviso del minijuego.
+- Sprites 30 → 16; dibujos planos 64 → 44. Fotos: madriguera, guarida, lago con muelle; verify_all.
+
 ## 2026-11-12 — Huerto, gallinero y campamento sin dibujo plano (Claude Code)
 - Parcelas, comedero, nido y piezas del campamento son marcas invisibles con `tipo_3d` y, si cambian de aspecto,
   `variante_3d` (tierra seca/mojada, brote/crece/madura, comedero vacío/medio/lleno, nido con huevos). El 3D ya no

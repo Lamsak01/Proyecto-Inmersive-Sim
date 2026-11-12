@@ -792,7 +792,6 @@ const PROP_KIND_BY_TEXTURE := {
 	"hay_0.png": "hide",
 	"hay_2.png": "hide",
 	"logs_0.png": "hide",
-	"fish_spot_ripples.png": "hide",
 	"iron_sword.png": "weapon_sword",
 	"steel_hammer.png": "weapon_hammer",
 	"crate.png": "crate",
@@ -800,8 +799,6 @@ const PROP_KIND_BY_TEXTURE := {
 	"weak_wall.png": "weak_wall",
 	"wild_herb.png": "wild_herb",
 	"wild_mushroom.png": "wild_mushroom",
-	"rabbit_burrow.png": "rabbit_burrow",
-	"fox_den.png": "fox_den",
 }
 
 static func _tex_file(t: Texture2D) -> String:

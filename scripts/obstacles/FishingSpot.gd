@@ -340,8 +340,6 @@ var interact_area: Area2D = null
 var status_label: Label = null
 var bobber_poly: Polygon2D = null
 var fishing_line: Line2D = null
-var ripple_sprites: Array[Sprite2D] = []
-var ripple_base_positions: Array[Vector2] = []
 
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
 
@@ -374,54 +372,15 @@ func _make_lbl(txt: String, pos: Vector2, min_sz: Vector2, col: Color, z: int = 
 	add_child(l)
 	return l
 
+## Lago, arena, muelle y ondas se ven en 3D (terreno y agua del terreno); sin dibujo plano desde 2026-11-12. Aquí solo
+## queda el sitio del muelle (en el lago, en su orilla este) y el sedal y la boya del minijuego.
 func _build_lake_visuals() -> void:
-	if is_river_spot:
-		var p_dock_r := _add_poly([Vector2(0, -6), Vector2(18, -6), Vector2(18, 6), Vector2(0, 6)], Color(0.46, 0.30, 0.16, 1.0), -1)
-		if p_dock_r != null:
-			p_dock_r.add_to_group("ranch_fence_2d")
-	else:
-		# El nodo está en LAKE_NODE_POS × E (mapa ×E): el lago se dibuja en coordenadas locales estiradas y el muelle, en la orilla este
+	if not is_river_spot:
+		# El nodo está en LAKE_NODE_POS × E (mapa ×E): el muelle, en la orilla este estirada
 		var sx: float = (lake_east_shore_x(LAKE_NODE_POS.y) - LAKE_NODE_POS.x) * Mapa3D.E
 		dock_pos = Vector2(sx - 14.0, 0.0)
-		var to_local_pts := func(pts: PackedVector2Array) -> Array[Vector2]:
-			var arr: Array[Vector2] = []
-			for v in pts:
-				arr.append((v - LAKE_NODE_POS) * Mapa3D.E)
-			return arr
-		var p_sand := _add_poly(to_local_pts.call(lake_scaled(1.0, 9.0)), Color(0.56, 0.48, 0.34, 0.88), -3)
-		var p_water := _add_poly(to_local_pts.call(lake_scaled(1.0, 0.0)), Color(0.14, 0.42, 0.68, 0.94), -2)
-		var p_deep := _add_poly(to_local_pts.call(lake_scaled(0.62, 0.0)), Color(0.09, 0.30, 0.54, 0.92), -2)
-		var p_dock := _add_poly([Vector2(sx - 36.0, -9), Vector2(sx, -9), Vector2(sx, 9), Vector2(sx - 36.0, 9)], Color(0.46, 0.30, 0.16, 1.0), -1)
 
-		var dock_border := Line2D.new()
-		dock_border.width = 2.0
-		dock_border.default_color = Color(0.28, 0.18, 0.09, 1.0)
-		dock_border.points = PackedVector2Array([Vector2(sx - 36.0, -9), Vector2(sx, -9), Vector2(sx, 9), Vector2(sx - 36.0, 9), Vector2(sx - 36.0, -9)])
-		dock_border.z_index = -1
-		add_child(dock_border)
-		for ci_2d in [p_sand, p_water, p_deep, p_dock, dock_border]:
-			if ci_2d != null:
-				ci_2d.add_to_group("ranch_fence_2d")
-
-
-	# 6. Ondas y sombras de peces animadas
-	var tex_ripples := _load_tex("res://assests/world/fishing/fish_spot_ripples.png")
-	ripple_base_positions.clear()
-	if is_river_spot:
-		ripple_base_positions.append_array([Vector2(-8, -6), Vector2(-12, 6)])
-	else:
-		ripple_base_positions.append_array([Vector2(-12, -10), Vector2(-26, 10), Vector2(2, 14)])
-	for pos in ripple_base_positions:
-		var spr := Sprite2D.new()
-		spr.texture = tex_ripples
-		spr.position = pos
-		spr.scale = Vector2(0.85, 0.85) if is_river_spot else Vector2(1.15, 1.15)
-		spr.z_index = -1
-		spr.add_to_group("ranch_fence_2d")
-		add_child(spr)
-		ripple_sprites.append(spr)
-
-	# 7. Sedal y Boya (visibles al lanzar la caña)
+	# Sedal y Boya (visibles al lanzar la caña)
 	fishing_line = Line2D.new()
 	fishing_line.width = 1.2
 	fishing_line.default_color = Color(0.92, 0.95, 1.0, 0.85)
@@ -474,12 +433,6 @@ func _build_interaction_zone() -> void:
 
 func _process(delta: float) -> void:
 	_wave_time += delta * 2.6
-	for i in range(ripple_sprites.size()):
-		var spr: Sprite2D = ripple_sprites[i]
-		var base_p: Vector2 = ripple_base_positions[i]
-		spr.position = base_p + Vector2(sin(_wave_time + float(i) * 1.7) * 3.0, cos(_wave_time * 0.8 + float(i)) * 2.0)
-		var s_pulse: float = 1.10 + sin(_wave_time * 1.5 + float(i)) * 0.12
-		spr.scale = Vector2(s_pulse, s_pulse)
 
 	var player = get_tree().get_first_node_in_group("player") as Node2D
 	var dock_world: Vector2 = global_position + dock_pos
@@ -740,15 +693,3 @@ func _spawn_floating_text(text: String, color: Color, offset_y: float = -28.0) -
 		ft.text_color = color
 		ft.global_position = global_position + Vector2(0, offset_y)
 		get_tree().current_scene.add_child(ft)
-
-func _load_tex(res_path: String) -> Texture2D:
-	if ResourceLoader.exists(res_path):
-		var t = load(res_path)
-		if t is Texture2D:
-			return t
-	var abs_path := ProjectSettings.globalize_path(res_path)
-	if FileAccess.file_exists(abs_path):
-		var img := Image.load_from_file(abs_path)
-		if img and not img.is_empty():
-			return ImageTexture.create_from_image(img)
-	return null

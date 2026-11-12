@@ -24,6 +24,8 @@ const MIN_SAFE_TREES: int = 16
 const Cartel = preload("res://mapa/cartel.gd")
 const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D
 const TIPO_POSTE := "sign"
+const TIPO_MADRIGUERA := "rabbit_burrow"
+const TIPO_GUARIDA := "fox_den"
 const MIN_SAFE_ORE_VEINS: int = 5
 const MIN_SAFE_WILD_FLORA: int = 16
 const MIN_SAFE_RABBITS: int = 10
@@ -120,8 +122,6 @@ func _spawn_distant_forest() -> void:
 	var tex_rabbit: Texture2D = _load_tex("res://assests/world/harvest/wild_rabbit.png")
 	var tex_fox: Texture2D = _load_tex("res://assests/world/harvest/wild_fox.png")
 	var tex_boar: Texture2D = _load_tex("res://assests/world/harvest/wild_boar.png")
-	var tex_burrow: Texture2D = _load_tex("res://assests/world/harvest/rabbit_burrow.png")
-	var tex_den: Texture2D = _load_tex("res://assests/world/harvest/fox_den.png")
 
 	# Carteles de Entrada al Bosque y de los 4 Hábitats Separados
 	_spawn_forest_sign(Vector2(465, 745), "Bosque Profundo · Oeste: conejos y jabalíes · Sur: venados · Este: cantera y zorros")
@@ -130,24 +130,11 @@ func _spawn_distant_forest() -> void:
 	_spawn_forest_sign(Vector2(160, 990), "Claros del Bosque (venados)")
 	_spawn_forest_sign(Vector2(780, 815), "Riscos de Hierro (zorros)")
 
-	# 1. Madrigueras de Conejos y Guaridas de Zorro (Props visuales en el suelo del bosque)
+	# 1. Madrigueras de Conejos y Guaridas de Zorro: marcas invisibles que el 3D convierte en agujero o guarida
 	for i in range(burrow_positions.size()):
-		var b_spr := Sprite2D.new()
-		b_spr.name = "RabbitBurrow_%d" % i
-		b_spr.texture = tex_burrow
-		b_spr.global_position = burrow_positions[i]
-		b_spr.scale = Vector2(1.25, 1.25)
-		b_spr.z_index = -1
-		entities_root.add_child(b_spr)
-
+		_marca_3d(TIPO_MADRIGUERA, "RabbitBurrow_%d" % i, burrow_positions[i])
 	for i in range(fox_den_positions.size()):
-		var d_spr := Sprite2D.new()
-		d_spr.name = "FoxDen_%d" % i
-		d_spr.texture = tex_den
-		d_spr.global_position = fox_den_positions[i]
-		d_spr.scale = Vector2(1.35, 1.35)
-		d_spr.z_index = -1
-		entities_root.add_child(d_spr)
+		_marca_3d(TIPO_GUARIDA, "FoxDen_%d" % i, fox_den_positions[i])
 
 	# 2. Árboles del Bosque Profundo (60 árboles repartidos de forma irregular con claros naturales)
 	var tree_positions: Array[Vector2] = [
@@ -537,12 +524,16 @@ func _notify_ecological_shift() -> void:
 ## Poste de madera con el texto en su tabla: una marca invisible que el 3D convierte en poste como los de los caminos
 ## (WorldStageProps3D, «sign»; texto con mapa/cartel.gd). Sin dibujo plano desde 2026-11-12.
 func _spawn_forest_sign(pos: Vector2, txt: String) -> void:
-	var poste := Node2D.new()
-	poste.name = "Marca3D_" + TIPO_POSTE
-	poste.global_position = load("res://mapa/anclas.gd").mover(pos, "letrero", txt)
-	poste.set_meta(META_TIPO_3D, TIPO_POSTE)
-	poste.set_meta(Cartel.META_TEXTO, txt)
-	entities_root.add_child(poste)
+	_marca_3d(TIPO_POSTE, "Marca3D_" + TIPO_POSTE, load("res://mapa/anclas.gd").mover(pos, "letrero", txt)).set_meta(Cartel.META_TEXTO, txt)
+
+## Marca invisible (sin dibujo plano, 2026-11-12): WorldStageProps3D pone el objeto 3D según su «tipo_3d».
+func _marca_3d(tipo: String, nombre: String, pos: Vector2) -> Node2D:
+	var m := Node2D.new()
+	m.name = nombre
+	m.global_position = pos
+	m.set_meta(META_TIPO_3D, tipo)
+	entities_root.add_child(m)
+	return m
 
 func _save_pool(pool: Array[WildAnimal]) -> Array[Dictionary]:
 	var arr: Array[Dictionary] = []
