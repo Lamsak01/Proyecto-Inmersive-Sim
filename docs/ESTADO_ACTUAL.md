@@ -38,5 +38,8 @@ aire libre, puerta de la celda y bancos sueltos de `VillageWorldBuilder`.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).
-- Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración; el inventario aún da 609 cosas en
-  el sitio viejo (plantas hechas por código, farolas, solares, suelo) y 137 en otro sitio (pasos 2 y 3).
+- Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración. Inventario medido el 2026-11-11
+  tras cerrar los edificios (`docs/INVENTARIO_MUNDO.md`): sigue 3.955, quieto 609 (434 lotes de plantas por código,
+  58 farolas/cables, 56 solares, 42 suelo y agua, 7 puesto del paso), doble 0, otro sitio 101 (15 puestos del mercado,
+  11 sitios de trabajo al aire libre y las casas levantadas en solares sin pieza). Plan del paso 2 propuesto al usuario:
+  solares → farolas → mercado y puesto del paso → plantas por código; suelo y agua aparte.
