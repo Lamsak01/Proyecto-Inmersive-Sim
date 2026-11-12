@@ -17,6 +17,9 @@ const Marca = preload("res://mapa/marca.gd")
 const SITIO_OCIO := "ocio_%s"        ## cruz de «Sitios» de cada lugar al aire libre de PLACES (ocio_park_lawn…)
 const LIBRARY_ID := "building_library"
 const MARCA_LECTURA := "lectura"     ## cruz de la biblioteca donde se sientan a leer
+const LIBRARY_CHAIRS: int = 6        ## sillas de lectura (marcas silla_lectura_1…6 de la biblioteca)
+const TAVERN_ID := "building_tavern"
+const RESTAURANT_ID := "building_restaurant"
 
 const PARK_RECT: Rect2 = Rect2(Vector2(168, 208), Vector2(272, 146))
 const PLACES: Array = [
@@ -24,7 +27,7 @@ const PLACES: Array = [
 	{"id": "park_bench", "kind": "bench", "label": "un banco del parque", "text": "🪑 Sentado en el parque"},
 	{"id": "plaza_benches", "kind": "bench", "label": "los bancos de la plaza", "text": "🪑 Sentado en la plaza"},
 	{"id": "lake_view", "kind": "overlook", "label": "el Mirador del Lago", "text": "🌅 Mirando el lago"},
-	{"id": "library", "kind": "library", "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
+	{"id": "library", "edificio": LIBRARY_ID, "marca": MARCA_LECTURA, "kind": "library", "label": "la Biblioteca", "text": "📖 Leyendo en la biblioteca", "indoor": true}, # V5e
 ]
 const LEISURE_FREE_HOURS: Vector2i = Vector2i(17, 21) # Entre semana, al salir del trabajo
 const LEISURE_WEEKEND_HOURS: Vector2i = Vector2i(10, 21)
@@ -34,16 +37,14 @@ const CHAT_REL: int = 2
 const FRICTION_REL: int = -40 # Por debajo de esto, coincidir es incómodo
 const GOSSIP_CHANCE: float = 0.5
 
-## Un lugar con su posición ya en el mundo. Los de la taberna y el comedor traen número (mapa original); los demás salen
-## de su cruz: «Sitios» del editor si están al aire libre, la marca de lectura si es la biblioteca.
+## Un lugar con su posición ya en el mundo: los de dentro de un edificio salen de una marca de su escena (en el mapa
+## original, se lleva a donde esté el edificio); los de fuera, de su cruz de «Sitios» (ya en el mundo).
 static func _actual(p: Dictionary) -> Dictionary:
 	if p.is_empty():
 		return p
 	var q: Dictionary = p.duplicate()
-	if p.has("pos"):
-		q["pos"] = preload("res://mapa/anclas.gd").mover(p["pos"])
-	elif bool(p.get("indoor", false)):
-		q["pos"] = preload("res://mapa/anclas.gd").mover(Marca.sitio(LIBRARY_ID, MARCA_LECTURA))
+	if p.has("edificio"):
+		q["pos"] = preload("res://mapa/anclas.gd").mover(Marca.sitio(p["edificio"], p["marca"]))
 	else:
 		q["pos"] = Sitio.mundo(SITIO_OCIO % str(p["id"]))
 	return q
@@ -53,13 +54,13 @@ static func place(id: String) -> Dictionary:
 
 static func _place_original(id: String) -> Dictionary:
 	if id == "tavern_poker":
-		return {"id": "tavern_poker", "kind": "tavern", "pos": Vector2(518.0, -178.0), "label": "la mesa de póker de El Jabalí Dorado", "text": "🃏 Jugando al póker en la taberna", "indoor": true}
+		return {"id": "tavern_poker", "kind": "tavern", "edificio": TAVERN_ID, "marca": "poker", "label": "la mesa de póker de El Jabalí Dorado", "text": "🃏 Jugando al póker en la taberna", "indoor": true}
 	if id == "tavern_hall":
-		return {"id": "tavern_hall", "kind": "tavern", "pos": Vector2(420.0, -198.0), "label": "el salón de El Jabalí Dorado", "text": "🍺 Sentado comiendo y bebiendo en la taberna", "indoor": true}
+		return {"id": "tavern_hall", "kind": "tavern", "edificio": TAVERN_ID, "marca": "mesa_central", "label": "el salón de El Jabalí Dorado", "text": "🍺 Sentado comiendo y bebiendo en la taberna", "indoor": true}
 	if id == "restaurant_terrace":
-		return {"id": "restaurant_terrace", "kind": "terrace", "pos": Vector2(-118.0, 10.0), "label": "la terraza de la Casa de Comidas", "text": "🍷 Tomando algo en la terraza de la trattoria", "indoor": false}
+		return {"id": "restaurant_terrace", "kind": "terrace", "edificio": RESTAURANT_ID, "marca": Marca.TERRAZA, "label": "la terraza de la Casa de Comidas", "text": "🍷 Tomando algo en la terraza de la trattoria", "indoor": false}
 	if id == "restaurant_hall":
-		return {"id": "restaurant_hall", "kind": "restaurant", "pos": Vector2(-150.0, -76.0), "label": "el comedor de la Casa de Comidas", "text": "🍝 Cenando en la Casa de Comidas", "indoor": true}
+		return {"id": "restaurant_hall", "kind": "restaurant", "edificio": RESTAURANT_ID, "marca": Marca.COMEDOR, "label": "el comedor de la Casa de Comidas", "text": "🍝 Cenando en la Casa de Comidas", "indoor": true}
 	for p in PLACES:
 		if str(p["id"]) == id:
 			return p
@@ -212,13 +213,8 @@ static func on_hour(vm, hour: int) -> void:
 			n.remove_meta("leisure_since")
 		var dest_l: Vector2 = (_actual(p)["pos"] as Vector2) + Vector2(randf_range(-18, 18), randf_range(-6, 10))
 		if str(p["id"]) == "library":
-			var lib_chairs: Array[Vector2] = [
-				Vector2(887.0, -436.0), Vector2(917.0, -436.0),
-				Vector2(896.0, -424.0), Vector2(908.0, -424.0),
-				Vector2(946.0, -391.0), Vector2(874.0, -391.0),
-			]
-			# Las sillas aún van con número del mapa original: se llevan a donde esté la biblioteca
-			dest_l = preload("res://mapa/anclas.gd").mover(lib_chairs[absi(n.npc_name.hash() + now) % lib_chairs.size()])
+			var silla: int = absi(n.npc_name.hash() + now) % LIBRARY_CHAIRS + 1
+			dest_l = preload("res://mapa/anclas.gd").mover(Marca.sitio(LIBRARY_ID, Marca.SILLA_LECTURA % silla))
 		n.start_errand("leisure", dest_l)
 
 static func _leave(n) -> void:

@@ -5,7 +5,7 @@
 ## a) Tarea activa
 **Migración «el mundo sale solo del editor»** (`docs/PLAN_MUNDO_DESDE_EDITOR.md`, aprobado). **Una sola sesión de Claude
 toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0, 1 y **2 (exteriores) hechos**.
-**Paso 3 (sitios de vecinos fuera de edificios) en curso**, aprobado por el usuario el 2026-11-12: por grupos: Caso I ✅, sitios huérfanos ✅ (carpeta «Sitios»), ocio y resto al aire libre ✅.
+**Paso 3 (sitios de vecinos fuera de edificios) en curso**, aprobado por el usuario el 2026-11-12: por grupos: Caso I ✅, sitios huérfanos ✅ (carpeta «Sitios»), ocio y resto al aire libre ✅, interiores (calabozo, robos, ocio de dentro) ✅.
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;
@@ -27,10 +27,10 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
   Antes de planear una tanda, comprobar que lo «quieto» no es un defecto de la medición (pasó dos veces).
 
 ## c) Siguiente paso técnico inmediato
-Paso 3, último grupo: sitios **dentro de edificios** que aún van con número (taberna y comedor de
-`VillagePlaces._place_original`, sillas de la biblioteca, `VillageJustice.CELL_*`, `HEIST_TARGETS`, mascotas,
-`VillageNPCSocial` 214/269/1039) → marcas de su edificio; y `OUTPOST_*`. Luego cabos sueltos y paso 4 (el corte
-final del paso 4 solo con el usuario delante).
+Paso 3, cola: mascotas (`VillageManagerSocial._spawn_domestic_pets`, camas en porches → «Sitios»), reservas con número
+(`VillageNPCSocial` policía (886,132) y tumba (888,262)), claro del Caso I (`CASE1_CLEARING_POS`, cuerpo en 138,-870),
+`OUTPOST_*`, `TINKER_*`, `VillageTavern` (`DOOR_POS`, `WELL_POS`, `STAIRS_*`), `EAST_MILL_POS`. Luego cabos sueltos y
+paso 4 (el corte final del paso 4 solo con el usuario delante).
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; datos de `VillageLots.LOTS` a las piezas de solar;
 tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.

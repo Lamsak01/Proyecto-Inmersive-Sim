@@ -1017,6 +1017,18 @@ gizmo_extents = 0.5
 script = ExtResource("9_7eih5")
 id_marca = "ventana"
 
+[node name="terraza" type="Marker3D" parent="Marcas" unique_id=16127503]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.028, 0, 6.776)
+gizmo_extents = 0.5
+script = ExtResource("9_7eih5")
+id_marca = "terraza"
+
+[node name="comedor" type="Marker3D" parent="Marcas" unique_id=397991691]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.82, 0, 1.96)
+gizmo_extents = 0.5
+script = ExtResource("9_7eih5")
+id_marca = "comedor"
+
 [node name="Tabiques" type="Node3D" parent="." unique_id=1319856094]
 
 [node name="Tabique" type="Node3D" parent="Tabiques" unique_id=848522180]

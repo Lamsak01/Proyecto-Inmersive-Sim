@@ -108,20 +108,16 @@ class SmugglerCampCart extends Node2D:
 		AnimalModel3DScript.attach(lantern_holder, "fantasy_town/lantern.glb", 10.0, 2.0, Color.WHITE, true)
 
 ## Bloque FIS2: cada objetivo de robo está físicamente dentro de su edificio:
-## - `sello_noble`: Mansión señorial (`solar f1`, estudio en `Vector2(1275, -444)`).
-## - `caliz_capilla`: Capilla (`building_church`, marca «altar» de su escena).
-## - `libro_gremial`: Ayuntamiento (`solar n4`, mesa municipal en `Vector2(764, -449)`).
+## sale de una marca de la escena de su edificio (mansión: despacho; capilla: altar; ayuntamiento: libro gremial).
 const HEIST_TARGETS: Array[Dictionary] = [
-	{"id": "sello_noble", "label": "el Sello de Lacre Noble", "pos": Vector2(1275.0, -444.0), "reward": 55},
+	{"id": "sello_noble", "label": "el Sello de Lacre Noble", "edificio": "building_mansion", "marca": "despacho", "reward": 55},
 	{"id": "caliz_capilla", "label": "el Cáliz de Plata de la Capilla", "edificio": "building_church", "marca": "altar", "reward": 55},
-	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "pos": Vector2(764.0, -449.0), "reward": 55},
+	{"id": "libro_gremial", "label": "el Libro Mayor de los Gremios", "edificio": "building_town_hall", "marca": "libro_gremial", "reward": 55},
 ]
 
-## Dónde está el objeto de un encargo, en el mapa original: su marca en la escena del edificio si la tiene, o su número.
+## Dónde está el objeto de un encargo, en el mapa original: su marca en la escena del edificio.
 static func heist_target_pos(objetivo: Dictionary) -> Vector2:
-	if objetivo.has("marca"):
-		return load("res://mapa/marca.gd").call("sitio", objetivo["edificio"], objetivo["marca"])
-	return objetivo["pos"]
+	return load("res://mapa/marca.gd").call("sitio", objetivo["edificio"], objetivo["marca"])
 
 ## Lo que el perista acepta como «mercancía caliente» y cuánto paga (de su bolsillo). Antes daba 25 sin pedir nada.
 const FENCE_PRICES: Dictionary = {"royal_safe_conduct": 25, "master_lockpick": 20, "surgical_kit": 18, "golden_egg": 15, "bandit_scrap": 12, "fox_pelt": 10, "steel_ingot": 10, "copper_coil": 9}

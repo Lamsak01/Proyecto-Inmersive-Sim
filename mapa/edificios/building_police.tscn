@@ -517,6 +517,18 @@ gizmo_extents = 0.5
 script = ExtResource("8_cp56h")
 id_marca = "informe"
 
+[node name="celda_puerta" type="Marker3D" parent="Marcas" unique_id=211065974]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.728, 0, 0.224)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "celda_puerta"
+
+[node name="celda_salida" type="Marker3D" parent="Marcas" unique_id=976900477]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.28, 0, 0)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "celda_salida"
+
 [node name="Tabiques" type="Node3D" parent="." unique_id=1805963324]
 
 [node name="Tabique" type="Node3D" parent="Tabiques" unique_id=601014842]

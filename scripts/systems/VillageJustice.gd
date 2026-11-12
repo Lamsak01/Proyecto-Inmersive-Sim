@@ -1646,20 +1646,27 @@ static func get_royal_investigation_detailed_suspects_text(vm: VillageManager) -
 # ==============================================================================
 # BLOQUE B2: CALABOZO DE VERDAD (Vecinos detenidos en la celda de la comisaría)
 # ==============================================================================
-const CELL_RECT: Rect2 = Rect2(864.0, 156.0, 44.0, 32.0)
-const CELL_GATE_POS: Vector2 = Vector2(902.0, 152.0)
-const CELL_OUTSIDE_POS: Vector2 = Vector2(910.0, 148.0)
+const POLICE_ID := "building_police"
+const CELL_SIZE: Vector2 = Vector2(44.0, 32.0) ## tamaño del calabozo en el mapa original, centrado en su marca «celda»
 
 ## Centro del calabozo en el mapa original: es la marca «celda» de la comisaría (mapa/marca.gd).
 static func _celda_original() -> Vector2:
-	return Marca.sitio("building_police", Marca.CELDA)
+	return Marca.sitio(POLICE_ID, Marca.CELDA)
+
+## El calabozo en el mapa original: un rectángulo alrededor de la marca «celda».
+static func _celda_rect() -> Rect2:
+	return Rect2(_celda_original() - CELL_SIZE / 2.0, CELL_SIZE)
+
+## Reja del calabozo en el mundo (marca «celda_puerta»): ahí miran los testigos y ahí suena si se fuerza.
+static func cell_gate_pos() -> Vector2:
+	return _AN_SITIOS.mover(Marca.sitio(POLICE_ID, Marca.CELDA_PUERTA))
 
 ## Celda y su puerta en el mundo (los números fijos de arriba están en el mapa original).
 static func cell_pos() -> Vector2:
 	return _AN_SITIOS.mover(_celda_original())
 
 static func cell_outside_pos() -> Vector2:
-	return _AN_SITIOS.mover(CELL_OUTSIDE_POS)
+	return _AN_SITIOS.mover(Marca.sitio(POLICE_ID, Marca.CELDA_SALIDA))
 
 static func _now_total_hours() -> int:
 	if WorldClock == null:
@@ -1755,7 +1762,7 @@ static func process_npc_jail_step(vm: VillageManager, npc: VillageNPC, delta: fl
 				vm.set_jail_cell_gate_locked(true)
 				npc._spawn_floating_text("🔒⛓️ Encerrado en el calabozo (%dh)" % int(rec.get("hours_left", 24)), Color(0.75, 0.85, 1.0), -40.0)
 		else:
-			if not CELL_RECT.has_point(_AN_SITIOS.desmover(npc.global_position)):
+			if not _celda_rect().has_point(_AN_SITIOS.desmover(npc.global_position)):
 				npc.global_position = my_cell_pos
 			npc.velocity = Vector2.ZERO
 			vm.set_jail_cell_gate_locked(true)
@@ -1790,7 +1797,7 @@ static func release_npc(vm: VillageManager, key: String, mode: String = "served"
 		vm.set_jail_cell_gate_locked(false)
 	var npc: VillageNPC = vm._get_npcs_by_person_key().get(key, null)
 	if npc != null and is_instance_valid(npc) and not npc.is_dead:
-		if CELL_RECT.has_point(_AN_SITIOS.desmover(npc.global_position)) or _AN_SITIOS.desmover(npc.global_position).distance_to(_celda_original()) <= 32.0:
+		if _celda_rect().has_point(_AN_SITIOS.desmover(npc.global_position)) or _AN_SITIOS.desmover(npc.global_position).distance_to(_celda_original()) <= 32.0:
 			npc.global_position = cell_outside_pos()
 		npc.velocity = Vector2.ZERO
 		match mode:
@@ -1883,6 +1890,7 @@ static func help_npc_escape(vm: VillageManager, npc: VillageNPC, inv = null, for
 	# Comprobar riesgo de testigos en la misma planta con línea de visión
 	var in_stealth: bool = pl != null and pl.has_method("is_stealthing") and bool(pl.call("is_stealthing"))
 	var detect_rad: float = 60.0 if in_stealth else 125.0
+	var reja: Vector2 = cell_gate_pos()
 	var witness: VillageNPC = null
 	if vm.is_inside_tree():
 		for n_w in vm.get_tree().get_nodes_in_group("village_npcs"):
@@ -1892,7 +1900,7 @@ static func help_npc_escape(vm: VillageManager, npc: VillageNPC, inv = null, for
 					continue
 				if is_npc_jailed(vm, vw):
 					continue
-				if vw.global_position.distance_to(CELL_GATE_POS) <= detect_rad and (not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", vw.global_position, CELL_GATE_POS))):
+				if vw.global_position.distance_to(reja) <= detect_rad and (not vm.has_method("has_line_of_sight") or bool(vm.call("has_line_of_sight", vw.global_position, reja))):
 					witness = vw
 					break
 	if witness != null:
@@ -1903,7 +1911,7 @@ static func help_npc_escape(vm: VillageManager, npc: VillageNPC, inv = null, for
 	if roll > 0.78:
 		rec["last_escape_fail_hour"] = cur_h
 		if AudioManager:
-			AudioManager.emit_noise(CELL_GATE_POS, 145.0, 0, "heavy_hit")
+			AudioManager.emit_noise(reja, 145.0, 0, "heavy_hit")
 		npc._spawn_floating_text("🔒❌ «¡Chist, se ha atascado el pestillo! Espera un poco.»", Color.ORANGE, -40.0)
 		return "failed"
 	release_npc(vm, npc.get_person_key(), "escaped")

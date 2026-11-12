@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 3, grupo 4: sitios dentro de edificios a marcas (Claude Code)
+- Marcas nuevas: comisaría `celda_puerta` y `celda_salida`; ayuntamiento `libro_gremial`; casa de comidas `terraza` y `comedor`; biblioteca `silla_lectura_1…6`. La taberna usa sus marcas `poker` y `mesa_central`, la mansión su `despacho`.
+- Borrados `CELL_RECT`, `CELL_GATE_POS`, `CELL_OUTSIDE_POS` (el calabozo es un rectángulo alrededor de la marca «celda»), los `pos` de `HEIST_TARGETS`, los de taberna y comedor en `VillagePlaces` y las sillas de la biblioteca.
+- **Fallo arreglado:** los testigos que vigilan si fuerzas el calabozo miraban a la reja en el mapa viejo, y el ruido sonaba allí.
+- Comprobado: volcado de sitios idéntico, sondeos de edificios y zonas, `verify_all`.
+
 ## 2026-11-12 — Paso 3, grupo 3: 22 cruces más en «Sitios» (ocio, mercado, lavadero, caravana…) (Claude Code)
 - Cruces nuevas: `ocio_park_lawn`, `ocio_park_bench`, `ocio_plaza_benches`, `ocio_lake_view`, `ronda_noche_1…6`, `mercado_1…4`, `lavadero`, `caravana_plaza`, `puerta_este`, `caballo`, `botin_plaza`, `callejon_perista`, `entrada_oeste`, `entrada_este`. La biblioteca usa su marca `lectura`.
 - Borrados `pos` de `VillagePlaces.PLACES` (salvo taberna y comedor, que van con su edificio), `NIGHT_STROLL_SPOTS`, `LAVADERO_POS`, `CARAVAN_PLAZA_POS`, `RAID_GATE_POS`, `HORSE_DEFAULT_POS`, `MARKET_SPOTS`, `Raider.LOOT_POS`, `FENCE_ALLEY_POS` y los números de las entradas y de los forasteros de la taberna.

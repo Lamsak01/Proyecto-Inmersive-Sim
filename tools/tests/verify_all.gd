@@ -6817,7 +6817,7 @@ func _initialize() -> void:
 	b2_culprit.global_position = M(b2_vj._celda_original())
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
 	var b2_pl_pos_bak: Vector2 = p70_pl.global_position
-	p70_pl.global_position = M(b2_vj.CELL_OUTSIDE_POS)
+	p70_pl.global_position = b2_vj.cell_outside_pos()
 	p70_inv.add_item("lockpick", 2)
 	b2_guard.global_position = M(Vector2(200, 900))
 	b2_sheriff.global_position = M(Vector2(200, 900))
