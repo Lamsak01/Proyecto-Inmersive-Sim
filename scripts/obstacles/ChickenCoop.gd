@@ -10,6 +10,18 @@ class_name ChickenCoop
 ##   borde del gallinero, muerde la cerca hasta abrir un agujero (`is_breached = true`) y caza una gallina.
 ##   Puedes reparar el agujero pulsando [E] en la cerca rota.
 
+const META_TIPO_3D := "tipo_3d"         ## igual que WorldStageProps3D
+const META_VARIANTE_3D := "variante_3d"
+const TIPO_COMEDERO := "feeder"
+const TIPO_NIDO := "nest"
+const FEEDER_OFFSET := Vector2(-18, -16)
+const NEST_OFFSET := Vector2(18, -16)
+const COMEDERO_VACIO := "vacio"
+const COMEDERO_MEDIO := "medio"
+const COMEDERO_LLENO := "lleno"
+const NIDO_VACIO := "vacio"
+const NIDO_CON_HUEVOS := "huevos"
+
 var feeder_level: int = 1 # 0 = Vacío, 1 = Mitad (1/2), 2 = Lleno (2/2)
 var eggs_in_nest: int = 2
 var golden_eggs_in_nest: int = 0
@@ -18,19 +30,15 @@ var coop_built: bool = false
 var fence_hp: float = 3.0
 const MAX_FENCE_HP: float = 3.0
 
-var feeder_sprite: Sprite2D = null
-var nest_sprite: Sprite2D = null
+## Marcas invisibles (2026-11-12, sin dibujo plano): el 3D (WorldStageProps3D) lee su «tipo_3d» y su «variante_3d».
+var feeder_marca: Node2D = null
+var nest_marca: Node2D = null
 var south_fence_left: Line2D = null
 var south_fence_gap: Line2D = null
 var south_fence_right: Line2D = null
 var breach_marker: Label = null
 var status_label: Label = null
 
-var _tex_feeder_empty: Texture2D = null
-var _tex_feeder_half: Texture2D = null
-var _tex_feeder_full: Texture2D = null
-var _tex_nest_empty: Texture2D = null
-var _tex_nest_eggs: Texture2D = null
 var _tex_chicken: Texture2D = null
 
 var chickens: Array[Dictionary] = []
@@ -44,11 +52,6 @@ var _selected_chicken: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("chicken_coop")
-	_tex_feeder_empty = _load_tex("res://assests/world/camp/coop_feeder_empty.png")
-	_tex_feeder_half = _load_tex("res://assests/world/camp/coop_feeder_half.png")
-	_tex_feeder_full = _load_tex("res://assests/world/camp/coop_feeder_full.png")
-	_tex_nest_empty = _load_tex("res://assests/world/camp/coop_nest_empty.png")
-	_tex_nest_eggs = _load_tex("res://assests/world/camp/coop_nest_eggs.png")
 	_tex_chicken = _load_tex("res://assests/world/camp/chicken.png")
 
 	_build_fence_enclosure()
@@ -103,17 +106,8 @@ func _build_fence_enclosure() -> void:
 	breach_marker = _make_world_lbl("🕳️ [Agujero]", Vector2(-45, 22), Vector2(90, 16), 8, Color.ORANGE_RED)
 
 func _build_feeder_and_nest() -> void:
-	feeder_sprite = Sprite2D.new()
-	feeder_sprite.name = "FeederSprite"
-	feeder_sprite.position = Vector2(-18, -16)
-	feeder_sprite.scale = Vector2(1.2, 1.2)
-	add_child(feeder_sprite)
-
-	nest_sprite = Sprite2D.new()
-	nest_sprite.name = "NestSprite"
-	nest_sprite.position = Vector2(18, -16)
-	nest_sprite.scale = Vector2(1.2, 1.2)
-	add_child(nest_sprite)
+	feeder_marca = _marca_3d(TIPO_COMEDERO, FEEDER_OFFSET)
+	nest_marca = _marca_3d(TIPO_NIDO, NEST_OFFSET)
 
 	var area := Area2D.new()
 	area.name = "CoopInteractArea"
@@ -562,10 +556,11 @@ func _on_day_passed(_new_day: int) -> void:
 	_refresh_coop_visuals()
 
 func _refresh_coop_visuals() -> void:
-	if feeder_sprite:
-		feeder_sprite.texture = _tex_feeder_empty if feeder_level <= 0 else (_tex_feeder_half if feeder_level == 1 else _tex_feeder_full)
-	if nest_sprite:
-		nest_sprite.texture = _tex_nest_eggs if (eggs_in_nest > 0 or golden_eggs_in_nest > 0) else _tex_nest_empty
+	if feeder_marca:
+		var nivel: String = COMEDERO_VACIO if feeder_level <= 0 else (COMEDERO_MEDIO if feeder_level == 1 else COMEDERO_LLENO)
+		feeder_marca.set_meta(META_VARIANTE_3D, nivel)
+	if nest_marca:
+		nest_marca.set_meta(META_VARIANTE_3D, NIDO_CON_HUEVOS if (eggs_in_nest > 0 or golden_eggs_in_nest > 0) else NIDO_VACIO)
 	if south_fence_gap:
 		south_fence_gap.visible = not is_breached
 	if breach_marker:
@@ -626,6 +621,14 @@ func _get_coop_prompt() -> String:
 		parts.append("E: Recoger %d🥚+%d🥚✨" % [eggs_in_nest, golden_eggs_in_nest] if golden_eggs_in_nest > 0 else "E: Recoger %d Huevos" % eggs_in_nest)
 	parts.append("E en 🐔: Coger/Acariciar")
 	return "🐔 Gallinero (%d | 🧬Nv.%d) [%s]" % [chickens.size(), _get_max_genetics(), " | ".join(parts)]
+
+func _marca_3d(tipo: String, pos: Vector2) -> Node2D:
+	var m := Node2D.new()
+	m.name = "Marca3D_" + tipo
+	m.position = pos
+	m.set_meta(META_TIPO_3D, tipo)
+	add_child(m)
+	return m
 
 func _load_tex(res_path: String) -> Texture2D:
 	if ResourceLoader.exists(res_path):

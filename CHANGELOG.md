@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Huerto, gallinero y campamento sin dibujo plano (Claude Code)
+- Parcelas, comedero, nido y piezas del campamento son marcas invisibles con `tipo_3d` y, si cambian de aspecto,
+  `variante_3d` (tierra seca/mojada, brote/crece/madura, comedero vacío/medio/lleno, nido con huevos). El 3D ya no
+  lee nombres de dibujos. Fuera suelo, muros, cama y cofre planos de la casa del jugador (su 3D sale del nivel).
+- Sprites 57 → 30. Fotos: zanahoria madura en tierra mojada, gallinero con huevos, campamento completo; verify_all.
+
 ## 2026-11-12 — Objetos quietos sin dibujo plano: marcas invisibles (Claude Code)
 - Nuevo `_add_marca_3d(tipo, pos)` en `VillageManagerBase` (sustituye a `_add_sprite_prop`): un `Node2D` con
   `tipo_3d` (+ choque por tipo) que el 3D convierte en pozo, poste con texto, compostera, pino de adorno o roca.

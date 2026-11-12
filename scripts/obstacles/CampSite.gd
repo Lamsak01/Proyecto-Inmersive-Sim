@@ -11,6 +11,7 @@ class_name CampSite
 ## 4. ⚡ Generador Antiguo y Aspersor Automático (Paso 10):
 ##    - Alimenta la red eléctrica del campamento y del pueblo, y activa el Aspersor Automático en el huerto 3x3 (`Vector2(-101, -21)`).
 
+const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D: qué pieza 3D va en cada marca
 const TENT_OFFSET := Vector2(-46, -18)
 const CLOTHESLINE_OFFSET := Vector2(-36, 14)
 const POT_OFFSET := Vector2(4, 6)
@@ -29,14 +30,11 @@ var sprinkler_installed: bool = false
 var chest_gold_stored: int = 0
 
 var tent_body: StaticBody2D = null
-var tent_sprite: Sprite2D = null
+## Marcas invisibles (2026-11-12, sin dibujo plano): el 3D (WorldStageProps3D) pone cada pieza según su «tipo_3d».
+var tent_marca: Node2D = null
 var house_root: Node2D = null
-var chest_sprite: Sprite2D = null
-var pot_sprite: Sprite2D = null
-var seat_sprite: Sprite2D = null
-var sign_sprite: Sprite2D = null
-var generator_sprite: Sprite2D = null
-var sprinkler_sprite: Sprite2D = null
+var generator_marca: Node2D = null
+var sprinkler_marca: Node2D = null
 
 var tent_label: Label = null
 var pot_label: Label = null
@@ -51,7 +49,6 @@ var _near_seat: bool = false
 var _near_sign: bool = false
 var _near_generator: bool = false
 var _near_chest: bool = false
-var _flame_phase: float = 0.0
 
 var is_player_sitting: bool = false
 var _sitting_player: Node2D = null
@@ -89,19 +86,6 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-	_flame_phase += delta * 7.5
-	if pot_sprite:
-		var pulse := 1.0 + sin(_flame_phase) * 0.03
-		pot_sprite.scale = Vector2(1.25 * pulse, 1.25 * pulse)
-
-	if generator_sprite and generator_active:
-		var g_pulse := 1.0 + sin(_flame_phase * 1.8) * 0.035
-		generator_sprite.scale = Vector2(1.15 * g_pulse, 1.15 * g_pulse)
-		generator_sprite.modulate = Color(0.88, 1.05, 1.18, 1.0)
-	elif generator_sprite:
-		generator_sprite.scale = Vector2(1.1, 1.1)
-		generator_sprite.modulate = Color(0.75, 0.75, 0.78, 1.0)
-
 	if is_player_sitting and is_instance_valid(_sitting_player):
 		if _sit_grace_timer > 0.0:
 			_sit_grace_timer -= delta
@@ -219,16 +203,13 @@ func _add_interact_area(parent: Node, area_name: String, pos: Vector2, r: float)
 	parent.add_child(area)
 	return area
 
-func _add_prop_sprite(parent: Node, spr_name: String, tex_path: String, pos: Vector2, sc: float, z: int = 0) -> Sprite2D:
-	var s := Sprite2D.new()
-	if spr_name != "":
-		s.name = spr_name
-	s.texture = _load_tex(tex_path)
-	s.position = pos
-	s.scale = Vector2(sc, sc)
-	s.z_index = z
-	parent.add_child(s)
-	return s
+func _add_marca_3d(parent: Node, tipo: String, pos: Vector2) -> Node2D:
+	var m := Node2D.new()
+	m.name = "Marca3D_" + tipo
+	m.position = pos
+	m.set_meta(META_TIPO_3D, tipo)
+	parent.add_child(m)
+	return m
 
 # --- 1. TIENDA DE CAMPAÑA Y CASA EXPANDIBLE DEL JUGADOR (Paso 6) ---
 func _setup_tent_and_house() -> void:
@@ -236,7 +217,7 @@ func _setup_tent_and_house() -> void:
 	tent_body.name = "TentBody"
 	tent_body.position = TENT_OFFSET
 	add_child(tent_body)
-	tent_sprite = _add_prop_sprite(tent_body, "", "res://assests/world/camp/camp_tent.png", Vector2.ZERO, 1.3)
+	tent_marca = _add_marca_3d(tent_body, "tent", Vector2.ZERO)
 
 	var col := CollisionShape2D.new()
 	col.name = "TentCol"
@@ -260,13 +241,12 @@ func _setup_tent_and_house() -> void:
 func _rebuild_house_visuals() -> void:
 	if not house_root:
 		return
-	chest_sprite = null
 	for c in house_root.get_children():
 		c.queue_free()
 
 	var is_tent: bool = (house_tier <= 1)
-	if tent_sprite:
-		tent_sprite.visible = is_tent
+	if tent_marca:
+		tent_marca.visible = is_tent
 	if tent_body:
 		var tcol: CollisionShape2D = tent_body.get_node_or_null("TentCol")
 		if tcol:
@@ -279,47 +259,27 @@ func _rebuild_house_visuals() -> void:
 	var center := TENT_OFFSET + Vector2(-8, -8)
 	var size := Vector2(68, 52) if house_tier == 2 else Vector2(82, 60)
 	var half := size * 0.5
-	var floor_tex_path: String = "res://assests/world/village/floor_wood_planks.png" if house_tier == 2 else "res://assests/world/village/floor_stone_forge.png"
-	var wall_h_path: String = "res://assests/world/village/wall_timber_h.png" if house_tier == 2 else "res://assests/world/village/wall_stone_h.png"
-	var wall_v_path: String = "res://assests/world/village/wall_timber_v.png" if house_tier == 2 else "res://assests/world/village/wall_stone_v.png"
-
-	# Suelo texturizado en mosaico
-	var floor_rect := TextureRect.new()
-	floor_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	floor_rect.texture = _load_tex(floor_tex_path)
-	floor_rect.stretch_mode = TextureRect.STRETCH_TILE
-	floor_rect.position = center - half
-	floor_rect.size = size
-	floor_rect.z_index = -3
-	house_root.add_child(floor_rect)
-
-	# Paredes sólidas con puerta Sur de 28 px
+	# Solo los choques de las paredes (puerta al sur de 28 px): suelo, muros y tejado se ven en 3D
+	# (WorldStageProps3D._sync_player_house_3d); sin dibujo plano desde 2026-11-12.
 	var door_w: float = 28.0
 	var wall_t: float = 6.0
 	var left_w: float = (size.x - door_w) * 0.5
-	var tex_h := _load_tex(wall_h_path)
-	var tex_v := _load_tex(wall_v_path)
 
 	# Norte
-	_add_house_wall_segment(center + Vector2(0, -half.y), Vector2(size.x, wall_t), tex_h)
+	_add_house_wall_segment(center + Vector2(0, -half.y), Vector2(size.x, wall_t))
 	# Oeste
-	_add_house_wall_segment(center + Vector2(-half.x, 0), Vector2(wall_t, size.y), tex_v)
+	_add_house_wall_segment(center + Vector2(-half.x, 0), Vector2(wall_t, size.y))
 	# Este
-	_add_house_wall_segment(center + Vector2(half.x, 0), Vector2(wall_t, size.y), tex_v)
+	_add_house_wall_segment(center + Vector2(half.x, 0), Vector2(wall_t, size.y))
 	# Sur Izquierda y Derecha (dejando puerta abierta)
-	_add_house_wall_segment(center + Vector2(-half.x + left_w * 0.5, half.y), Vector2(left_w, wall_t), tex_h)
-	_add_house_wall_segment(center + Vector2(half.x - left_w * 0.5, half.y), Vector2(left_w, wall_t), tex_h)
-
-	# Cama Cómoda en el interior
-	var bed_spr := _add_prop_sprite(house_root, "", "res://assests/world/village/hospital_bed.png", TENT_OFFSET + Vector2(0, -4), 1.0, -1)
-	bed_spr.modulate = Color(1.0, 0.90, 0.78, 1.0)
+	_add_house_wall_segment(center + Vector2(-half.x + left_w * 0.5, half.y), Vector2(left_w, wall_t))
+	_add_house_wall_segment(center + Vector2(half.x - left_w * 0.5, half.y), Vector2(left_w, wall_t))
 
 	# Cofre Personal en Nivel 3
 	if house_tier >= 3:
-		chest_sprite = _add_prop_sprite(house_root, "", "res://assests/world/village/house_chest_closed.png", CHEST_OFFSET, 1.15, -1)
 		_add_interact_area(house_root, "", CHEST_OFFSET, 8.0)
 
-func _add_house_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D) -> void:
+func _add_house_wall_segment(pos: Vector2, sz: Vector2) -> void:
 	var sb := StaticBody2D.new()
 	sb.position = pos
 	sb.collision_layer = 1
@@ -329,16 +289,6 @@ func _add_house_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D) -> void:
 	rect.size = sz
 	col.shape = rect
 	sb.add_child(col)
-
-	if tex:
-		var tex_rect := TextureRect.new()
-		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tex_rect.texture = tex
-		tex_rect.stretch_mode = TextureRect.STRETCH_TILE
-		tex_rect.position = -sz * 0.5
-		tex_rect.size = sz
-		tex_rect.z_index = 2
-		sb.add_child(tex_rect)
 	house_root.add_child(sb)
 
 # --- 2. HOGUERA CON CACEROLA ---
@@ -347,7 +297,7 @@ func _setup_campfire_pot() -> void:
 	pot_node.name = "CampfirePotBody"
 	pot_node.position = POT_OFFSET
 	add_child(pot_node)
-	pot_sprite = _add_prop_sprite(pot_node, "", "res://assests/world/camp/campfire_pot.png", Vector2.ZERO, 1.25)
+	_add_marca_3d(pot_node, "campfire", Vector2.ZERO)
 
 	var col := CollisionShape2D.new()
 	var c := CircleShape2D.new()
@@ -360,14 +310,14 @@ func _setup_campfire_pot() -> void:
 
 # --- 3. TRONCO PARA SENTARSE ---
 func _setup_log_seat() -> void:
-	seat_sprite = _add_prop_sprite(self, "LogSeatSprite", "res://assests/world/camp/camp_log_seat.png", SEAT_OFFSET, 1.15)
+	_add_marca_3d(self, "log_seat", SEAT_OFFSET)
 	_add_interact_area(self, "SeatInteractArea", SEAT_OFFSET, 4.0)
 	seat_label = _create_label(SEAT_OFFSET + Vector2(-115, -26), Color(0.72, 0.92, 1.0))
 	add_child(seat_label)
 
 # --- 4. CARTEL DE MEJORA DE CASA Y TALLER ELÉCTRICO (Pasos 6 y 10) ---
 func _setup_upgrade_sign() -> void:
-	sign_sprite = _add_prop_sprite(self, "UpgradeSignSprite", "res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png", UPGRADE_SIGN_OFFSET, 0.75)
+	_add_marca_3d(self, "sign", UPGRADE_SIGN_OFFSET)
 	_add_interact_area(self, "SignInteractArea", UPGRADE_SIGN_OFFSET, 6.0)
 	sign_label = _create_label(UPGRADE_SIGN_OFFSET + Vector2(-115, -28), Color(0.95, 0.85, 0.52))
 	add_child(sign_label)
@@ -377,7 +327,7 @@ func _setup_clothesline() -> void:
 	cl_body.name = "CampClotheslineBody"
 	cl_body.position = CLOTHESLINE_OFFSET
 	add_child(cl_body)
-	_add_prop_sprite(cl_body, "ClotheslineSprite", "res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/clothes-line_0.png", Vector2.ZERO, 0.62)
+	_add_marca_3d(cl_body, "clothesline", Vector2.ZERO)
 	var col := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(28.0, 5.0)
@@ -387,25 +337,25 @@ func _setup_clothesline() -> void:
 
 # --- 5. GENERADOR ANTIGUO Y ASPERSOR AUTOMÁTICO (Paso 10) ---
 func _setup_generator_and_sprinkler() -> void:
-	generator_sprite = _add_prop_sprite(self, "AncientGeneratorSprite", "res://assests/world/village/ancient_generator.png", GENERATOR_OFFSET, 1.1)
-	generator_sprite.visible = generator_installed
+	generator_marca = _add_marca_3d(self, "generator", GENERATOR_OFFSET)
+	generator_marca.visible = generator_installed
 	var gen_area := _add_interact_area(self, "GeneratorInteractArea", GENERATOR_OFFSET, 7.0)
 	gen_area.monitoring = generator_installed
 	gen_area.monitorable = generator_installed
 	generator_label = _create_label(GENERATOR_OFFSET + Vector2(-115, -28), Color(0.55, 0.92, 1.0))
 	add_child(generator_label)
-	sprinkler_sprite = _add_prop_sprite(self, "AutoSprinklerSprite", "res://assests/world/village/auto_sprinkler.png", SPRINKLER_OFFSET, 1.1, 4)
-	sprinkler_sprite.visible = sprinkler_installed and camp_farm_built
+	sprinkler_marca = _add_marca_3d(self, "sprinkler", SPRINKLER_OFFSET)
+	sprinkler_marca.visible = sprinkler_installed and camp_farm_built
 
 func _sync_camp_facilities() -> void:
-	if generator_sprite:
-		generator_sprite.visible = generator_installed
+	if generator_marca:
+		generator_marca.visible = generator_installed
 	var gen_area: Area2D = get_node_or_null("GeneratorInteractArea") as Area2D
 	if gen_area:
 		gen_area.monitoring = generator_installed
 		gen_area.monitorable = generator_installed
-	if sprinkler_sprite:
-		sprinkler_sprite.visible = sprinkler_installed and camp_farm_built
+	if sprinkler_marca:
+		sprinkler_marca.visible = sprinkler_installed and camp_farm_built
 	if not is_inside_tree() or get_tree() == null:
 		return
 	for plot in get_tree().get_nodes_in_group("farm_plots"):
@@ -802,15 +752,9 @@ func _on_build_sprinkler_pressed() -> void:
 func _run_auto_sprinkler() -> void:
 	if not sprinkler_installed or not generator_active:
 		return
-	var watered_cnt: int = 0
 	for plot in get_tree().get_nodes_in_group("farm_plots"):
 		if plot and plot.has_method("water_from_rain_or_sprinkler"):
 			plot.water_from_rain_or_sprinkler()
-			watered_cnt += 1
-	if watered_cnt > 0 and sprinkler_sprite:
-		var tw := create_tween()
-		tw.tween_property(sprinkler_sprite, "scale", Vector2(1.35, 1.35), 0.12)
-		tw.tween_property(sprinkler_sprite, "scale", Vector2(1.1, 1.1), 0.14)
 
 func _on_day_passed(_new_day: int) -> void:
 	if sprinkler_installed and generator_active:
@@ -1003,15 +947,3 @@ func _create_label(pos: Vector2, col: Color) -> Label:
 	lbl.add_theme_constant_override("outline_size", 3)
 	lbl.z_index = 20
 	return lbl
-
-func _load_tex(res_path: String) -> Texture2D:
-	if ResourceLoader.exists(res_path):
-		var t = load(res_path)
-		if t is Texture2D:
-			return t
-	var abs_path := ProjectSettings.globalize_path(res_path)
-	if FileAccess.file_exists(abs_path):
-		var img := Image.load_from_file(abs_path)
-		if img and not img.is_empty():
-			return ImageTexture.create_from_image(img)
-	return null

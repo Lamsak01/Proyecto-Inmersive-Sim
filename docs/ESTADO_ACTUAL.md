@@ -31,7 +31,7 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 Paso 4, trozos seguros (decorado del código → piezas), comparando árbol 3D y lógica antes y después. Hechos: terreno,
 constructor, taberna, restaurante, solares. Siguen: `VillagePlaces`, `VillageManagerSocial`…, `EcosystemManager`.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
-plano). Capa 1 hecha (lista visible 0). Capa 2 en curso (tandas 1–5: letreros, polígonos, árboles/rocas/plantas, puertas/ventanas/cofres, objetos quietos → marcas invisibles `_add_marca_3d`, 2.818 → 91; sangre, huellas y vagabundos en 3D con `Rastros3D`; quedan 57 sprites: huerto, gallinero, campamento, animales, objetos de `World.tscn`): los dibujos planos ocultos que hacen
+plano). Capa 1 hecha (lista visible 0). Capa 2 en curso (tandas 1–5: letreros, polígonos, árboles/rocas/plantas, puertas/ventanas/cofres, objetos quietos, huerto, gallinero y campamento → marcas invisibles con `tipo_3d`/`variante_3d`, 2.818 → 64; sangre, huellas y vagabundos en 3D con `Rastros3D`; quedan 30 sprites: animales, gallinas, madrigueras, ondas de pesca, objetos de `World.tscn`): los dibujos planos ocultos que hacen
 de plano del 3D (`_add_rect_poly`/`_add_poly`, sprites fuente de `WorldStageProps3D`, etiquetas de estación) → piezas o
 borrar. Comprobar cada tanda con la lista de lo visible y fotos. Pesca: instrucciones del minijuego planas (sin revisar).
 Corte final (anclas y ×5) solo con el usuario.

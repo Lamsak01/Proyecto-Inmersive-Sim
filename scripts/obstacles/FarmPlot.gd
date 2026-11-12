@@ -10,10 +10,19 @@ class_name FarmPlot
 
 enum CropType { NONE, CARROT, CABBAGE, WHEAT }
 
+const META_TIPO_3D := "tipo_3d"         ## igual que WorldStageProps3D
+const META_VARIANTE_3D := "variante_3d"
+const TIPO_TIERRA := "soil"
+const TIPO_CULTIVO := "crop"
+const TIERRA_SECA := "seca"
+const TIERRA_MOJADA := "mojada"
+const ETAPA_BROTE := "brote"             ## el cultivo: «brote» o «<aspecto_3d>_crece» / «<aspecto_3d>_madura»
+const ETAPA_CRECE := "crece"
+const ETAPA_MADURA := "madura"
 const CROP_DATA: Dictionary = {
-	CropType.CARROT: {"name": "Zanahoria", "seed_id": "carrot_seeds", "product_id": "carrot", "days": 2, "base_yield": 2, "seed_return": 2, "stage2_tex": "res://assests/world/farming/carrot_stage2.png", "mature_tex": "res://assests/world/farming/carrot_mature.png"},
-	CropType.CABBAGE: {"name": "Col", "seed_id": "cabbage_seeds", "product_id": "cabbage", "days": 3, "base_yield": 2, "seed_return": 2, "stage2_tex": "res://assests/world/farming/cabbage_stage2.png", "mature_tex": "res://assests/world/farming/cabbage_mature.png"},
-	CropType.WHEAT: {"name": "Trigo", "seed_id": "wheat_seeds", "product_id": "wheat", "days": 4, "base_yield": 3, "seed_return": 2, "stage2_tex": "res://assests/world/farming/wheat_stage2.png", "mature_tex": "res://assests/world/farming/wheat_mature.png"}
+	CropType.CARROT: {"name": "Zanahoria", "seed_id": "carrot_seeds", "product_id": "carrot", "days": 2, "base_yield": 2, "seed_return": 2, "aspecto_3d": "carrot"},
+	CropType.CABBAGE: {"name": "Col", "seed_id": "cabbage_seeds", "product_id": "cabbage", "days": 3, "base_yield": 2, "seed_return": 2, "aspecto_3d": "cabbage"},
+	CropType.WHEAT: {"name": "Trigo", "seed_id": "wheat_seeds", "product_id": "wheat", "days": 4, "base_yield": 3, "seed_return": 2, "aspecto_3d": "wheat"}
 }
 
 @export var persistence_id: String = ""
@@ -25,37 +34,22 @@ var days_grown: int = 0
 var is_watered: bool = false
 var is_fertilized: bool = false
 
-var soil_sprite: Sprite2D = null
-var crop_sprite: Sprite2D = null
+## Marcas invisibles (2026-11-12, sin dibujo plano): el 3D (WorldStageProps3D) lee su «tipo_3d» y su «variante_3d».
+var soil_marca: Node2D = null
+var crop_marca: Node2D = null
 var interact_area: Area2D = null
 var status_label: Label = null
 var _player_inside: bool = false
 
-var _tex_soil_dry: Texture2D = null
-var _tex_soil_wet: Texture2D = null
-var _tex_sprout: Texture2D = null
 
 func _ready() -> void:
 	add_to_group("farm_plots")
 	if persistence_id == "":
 		persistence_id = "farmplot_" + name + "_" + str(int(global_position.x)) + "_" + str(int(global_position.y))
 
-	_tex_soil_dry = _load_tex("res://assests/world/farming/soil_dry.png")
-	_tex_soil_wet = _load_tex("res://assests/world/farming/soil_wet.png")
-	_tex_sprout = _load_tex("res://assests/world/farming/sprout_stage1.png")
-
-	soil_sprite = Sprite2D.new()
-	soil_sprite.name = "SoilSprite"
-	soil_sprite.texture = _tex_soil_dry
-	soil_sprite.scale = Vector2(1.35, 1.35)
-	soil_sprite.z_index = -1
-	add_child(soil_sprite)
-
-	crop_sprite = Sprite2D.new()
-	crop_sprite.name = "CropSprite"
-	crop_sprite.scale = Vector2(1.25, 1.25)
-	crop_sprite.visible = false
-	add_child(crop_sprite)
+	soil_marca = _marca_3d(TIPO_TIERRA, TIERRA_SECA)
+	crop_marca = _marca_3d(TIPO_CULTIVO, ETAPA_BROTE)
+	crop_marca.visible = false
 
 	interact_area = Area2D.new()
 	interact_area.name = "InteractArea"
@@ -274,34 +268,29 @@ func _on_day_passed(_new_day: int) -> void:
 	_save_state()
 
 func _refresh_visuals() -> void:
-	if soil_sprite:
-		soil_sprite.texture = _tex_soil_wet if is_watered else _tex_soil_dry
+	if soil_marca:
+		soil_marca.set_meta(META_VARIANTE_3D, TIERRA_MOJADA if is_watered else TIERRA_SECA)
 
 	if crop_type == CropType.NONE:
 		if is_in_group("farm_crops"):
 			remove_from_group("farm_crops")
-		if crop_sprite:
-			crop_sprite.visible = false
+		if crop_marca:
+			crop_marca.visible = false
 		return
 
 	if not is_in_group("farm_crops"):
 		add_to_group("farm_crops")
 
-	if not crop_sprite:
+	if not crop_marca:
 		return
 
 	var info: Dictionary = CROP_DATA[crop_type]
 	var req_days: int = int(info["days"])
-	crop_sprite.visible = true
-
-	if days_grown <= 0:
-		crop_sprite.texture = _tex_sprout
-	elif days_grown < req_days:
-		crop_sprite.texture = _load_tex(str(info["stage2_tex"]))
-	else:
-		crop_sprite.texture = _load_tex(str(info["mature_tex"]))
-
-	crop_sprite.modulate = Color(1.08, 1.08, 0.92) if is_fertilized else Color.WHITE
+	crop_marca.visible = true
+	var etapa: String = ETAPA_BROTE
+	if days_grown > 0:
+		etapa = "%s_%s" % [info["aspecto_3d"], ETAPA_CRECE if days_grown < req_days else ETAPA_MADURA]
+	crop_marca.set_meta(META_VARIANTE_3D, etapa)
 
 func _update_status_text() -> void:
 	if not status_label:
@@ -361,14 +350,10 @@ func _on_game_loaded(_filepath: String) -> void:
 	_load_saved_state()
 	_refresh_visuals()
 
-func _load_tex(res_path: String) -> Texture2D:
-	if ResourceLoader.exists(res_path):
-		var t = load(res_path)
-		if t is Texture2D:
-			return t
-	var abs_path := ProjectSettings.globalize_path(res_path)
-	if FileAccess.file_exists(abs_path):
-		var img := Image.load_from_file(abs_path)
-		if img and not img.is_empty():
-			return ImageTexture.create_from_image(img)
-	return null
+func _marca_3d(tipo: String, variante: String) -> Node2D:
+	var m := Node2D.new()
+	m.name = "Marca3D_" + tipo
+	m.set_meta(META_TIPO_3D, tipo)
+	m.set_meta(META_VARIANTE_3D, variante)
+	add_child(m)
+	return m

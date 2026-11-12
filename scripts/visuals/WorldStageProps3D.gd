@@ -3,6 +3,13 @@ extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
 const TIPO_PINO_ADORNO := "deco_pine" ## marca de pino de adorno: lo pone el 3D de la naturaleza (WorldStageTerrain3D)
+const META_VARIANTE_3D := "variante_3d" ## estado que cambia el aspecto; valores iguales a los de FarmPlot y ChickenCoop
+const VARIANTE_TIERRA_MOJADA := "mojada"
+const VARIANTE_COMEDERO_VACIO := "vacio"
+const VARIANTE_COMEDERO_MEDIO := "medio"
+const VARIANTE_NIDO_CON_HUEVOS := "huevos"
+const VARIANTE_BROTE := "brote"
+const VARIANTE_MADURA := "_madura"
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
 const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
@@ -780,36 +787,17 @@ func _sync_heist_target_3d() -> void:
 # ==============================================================================
 ## Qué versión 3D lleva cada dibujo 2D, según el nombre de su imagen. "hide" = ya tiene 3D propio, solo se esconde.
 const PROP_KIND_BY_TEXTURE := {
-	"water_well.png": "well",
-	"compost_bin.png": "compost",
-	"questboard_1.png": "hide",
-	"lamp-post1.png": "hide",
 	"bench_0.png": "hide",
 	"flowers_plants_0.png": "hide",
-	"pine-tree_0.png": "hide",
 	"hay_0.png": "hide",
 	"hay_2.png": "hide",
 	"logs_0.png": "hide",
 	"fish_spot_ripples.png": "hide",
-	"camp_tent.png": "tent",
-	"campfire_pot.png": "campfire",
-	"camp_log_seat.png": "log_seat",
-	"clothes-line_0.png": "clothesline",
 	"iron_sword.png": "weapon_sword",
 	"steel_hammer.png": "weapon_hammer",
 	"crate.png": "crate",
 	"barrel.png": "barrel",
 	"weak_wall.png": "weak_wall",
-	"sign_1.png": "sign",
-	"ancient_generator.png": "generator",
-	"auto_sprinkler.png": "sprinkler",
-	"soil_dry.png": "soil",
-	"soil_wet.png": "soil",
-	"coop_feeder_empty.png": "feeder",
-	"coop_feeder_half.png": "feeder",
-	"coop_feeder_full.png": "feeder",
-	"coop_nest_empty.png": "nest",
-	"coop_nest_eggs.png": "nest",
 	"wild_herb.png": "wild_herb",
 	"wild_mushroom.png": "wild_mushroom",
 	"rabbit_burrow.png": "rabbit_burrow",
@@ -824,8 +812,6 @@ static func _tex_file(t: Texture2D) -> String:
 
 
 func _prop_kind_for(spr: Node2D) -> String:
-	if spr.name == "CropSprite":
-		return "crop"
 	if spr.has_meta(META_TIPO_3D): # marca sin dibujo (2026-11-12) o dibujo que no basta para saber qué es
 		return String(spr.get_meta(META_TIPO_3D))
 	if not spr is Sprite2D:
@@ -851,8 +837,8 @@ func _scan_props_sources() -> void:
 				continue
 			_coop_node = c
 			for sub in c.get_children():
-				if sub is Sprite2D and (sub.name == "FeederSprite" or sub.name == "NestSprite"):
-					_add_prop_source(sub as Sprite2D)
+				if sub.has_meta(META_TIPO_3D):
+					_add_prop_source(sub as Node2D)
 				elif sub is Line2D or sub is Polygon2D:
 					_extra_hidden_2d.append(sub)
 			continue
@@ -862,16 +848,13 @@ func _scan_props_sources() -> void:
 			if not c.visible:
 				continue
 			for sub in c.get_children():
-				if sub is Sprite2D:
-					_add_prop_source(sub as Sprite2D, true)
+				if sub.has_meta(META_TIPO_3D):
+					_add_prop_source(sub as Node2D)
 		elif c is CampSite:
 			if not c.visible:
 				continue
 			_camp_node = c
 			_collect_camp_sprites(c)
-			var hr: Node = c.get_node_or_null("PlayerHouseRoot")
-			if hr != null:
-				_collect_canvas_items(hr, _extra_hidden_2d)
 		elif c is Node2D and String(c.name).begins_with("PetBed_"):
 			_build_pet_bed_3d_for(c as Node2D)
 	for eco in get_tree().get_nodes_in_group("ecosystem_manager"):
@@ -910,17 +893,9 @@ func _build_pet_bed_3d_for(bed_node: Node2D) -> void:
 	_add_cyl_2d(root, pos + Vector2(13.5, 1.0), 2.1, 1.6, 0.8, m_water, 2.1, 10)
 
 
-func _collect_canvas_items(n: Node, out: Array) -> void:
-	for c in n.get_children():
-		if c is CanvasItem and not (c is Area2D):
-			out.append(c)
-		if c.get_child_count() > 0:
-			_collect_canvas_items(c, out)
-
-
-func _add_prop_source(spr: Node2D, in_plot: bool = false) -> void:
-	var kind := "crop" if in_plot and spr.name == "CropSprite" else _prop_kind_for(spr)
-	if (kind == "crop" and not in_plot) or kind == TIPO_PINO_ADORNO:
+func _add_prop_source(spr: Node2D) -> void:
+	var kind := _prop_kind_for(spr)
+	if kind == TIPO_PINO_ADORNO:
 		return
 	if not kind.is_empty():
 		_prop_sources.append({"sprite": spr, "kind": kind})
@@ -931,8 +906,8 @@ func _collect_camp_sprites(n: Node) -> void:
 	for c in n.get_children():
 		if c.name == "PlayerHouseRoot":
 			continue
-		if c is Sprite2D:
-			_add_prop_source(c as Sprite2D)
+		if c is Sprite2D or c.has_meta(META_TIPO_3D):
+			_add_prop_source(c as Node2D)
 		if c.get_child_count() > 0:
 			_collect_camp_sprites(c)
 
@@ -988,9 +963,10 @@ func _sync_props_3d(only_update: bool) -> void:
 			_prop_nodes.erase(id)
 
 
-## Estado que cambia el aspecto (tierra mojada, comedero lleno, huevos, cultivo): hoy, el nombre de su dibujo.
+## Estado que cambia el aspecto (tierra mojada, comedero lleno, huevos, cultivo): lo pone en la marca quien la crea
+## (FarmPlot, ChickenCoop) con los valores de VARIANTE_*.
 static func _variante(fuente: Node2D) -> String:
-	return _tex_file((fuente as Sprite2D).texture) if fuente is Sprite2D else ""
+	return String(fuente.get_meta(META_VARIANTE_3D, ""))
 
 
 func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
@@ -1132,7 +1108,7 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
 			_add_cyl_2d(root, pos, 1.4, 0.0, 7.0, m_iron, 1.4, 8)
 			_add_cyl_2d(root, pos, 3.0, 7.0, 1.4, m_iron, 1.6, 8)
 		"soil":
-			var wet: bool = _variante(spr) == "soil_wet.png"
+			var wet: bool = _variante(spr) == VARIANTE_TIERRA_MOJADA
 			var m_soil := _mat("plot_soil_wet" if wet else "plot_soil_dry", Color(0.30, 0.21, 0.13) if wet else Color(0.50, 0.37, 0.24), 0.97, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.5)
 			_add_box_2d(root, pos, Vector2(21, 21), 0.0, 1.6, m_soil)
 			for fy in [-6.0, 0.0, 6.0]:
@@ -1143,14 +1119,14 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
 			# Comedero: artesa de tablas con más o menos grano según lo lleno que esté
 			var tf := _variante(spr)
 			_add_box_2d(root, pos, Vector2(18, 8), 0.0, 4.0, m_wood)
-			if tf != "coop_feeder_empty.png":
-				var grain_h: float = 1.0 if tf == "coop_feeder_half.png" else 2.2
+			if tf != VARIANTE_COMEDERO_VACIO:
+				var grain_h: float = 1.0 if tf == VARIANTE_COMEDERO_MEDIO else 2.2
 				_add_box_2d(root, pos, Vector2(15, 5.5), 4.0, grain_h, _mat("coop_grain", Color(0.86, 0.72, 0.36), 0.95, 0.0))
 		"nest":
 			# Nido: caja baja con paja y, si hay, huevos
 			_add_box_2d(root, pos, Vector2(16, 13), 0.0, 4.0, m_dark)
 			_add_box_2d(root, pos, Vector2(13, 10), 4.0, 1.2, _mat("coop_straw", Color(0.84, 0.74, 0.42), 0.97, 0.0))
-			if _variante(spr) == "coop_nest_eggs.png":
+			if _variante(spr) == VARIANTE_NIDO_CON_HUEVOS:
 				var m_egg := _mat("coop_egg", Color(0.96, 0.92, 0.82), 0.7, 0.0)
 				for off in [Vector2(-2.5, -1), Vector2(2.5, 0.5), Vector2(0, 2.5)]:
 					_add_cyl_2d(root, pos + off, 1.6, 5.0, 2.4, m_egg, 1.0, 6)
@@ -1277,11 +1253,11 @@ func _sync_coop_3d() -> void:
 
 func _build_crop_3d(root: Node3D, pos: Vector2, tex_name: String) -> void:
 	var m_leaf := _mat("crop_leaf", Color(0.36, 0.62, 0.24), 0.9, 0.0)
-	if tex_name.begins_with("sprout"):
+	if tex_name == VARIANTE_BROTE:
 		for off in [Vector2(-5, -5), Vector2(5, 0), Vector2(-2, 6)]:
 			_add_cyl_2d(root, pos + off, 2.0, 1.6, 5.5, m_leaf, 0.3, 5)
 		return
-	var mature := tex_name.contains("mature")
+	var mature := tex_name.ends_with(VARIANTE_MADURA)
 	var file := "nature/Plant_2.obj"
 	var h := 7.0
 	if tex_name.begins_with("wheat"):
