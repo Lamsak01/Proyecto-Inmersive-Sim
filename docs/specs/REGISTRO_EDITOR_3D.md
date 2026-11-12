@@ -120,8 +120,8 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - El juego (`WorldStageBuildings3D._poner_edificio_de_escena`) cuelga la escena en el centro de la planta, con su giro.
 - Las casas de recién llegados (`house_family_lot_<solar>`) son copias de tres **casas modelo**
   (`mapa/edificios/modelo_casita|casa|casona.tscn`, según el `plot` del solar; `mapa/casa_modelo.gd`). Están hechas con
-  la puerta al sur; con la puerta al norte el juego las pone con media vuelta (`giro_de_fabrica = 180` en la pieza del
-  valle, que no cuenta como giro del usuario) y la ventana lógica pasa al otro lado. Camas, mesa y cofre salen de sus
+  la puerta al sur; con la puerta al norte el juego las pone con media vuelta (`CasaModelo.giro_de_fabrica`) y su
+  planta se lee girada (`Planta.con_media_vuelta`). No tienen pieza en «Edificios»: van con su solar. Camas, mesa y cofre salen de sus
   marcas (`cama_N`, `cama_alta_N` con altillo, `mesa`, `cofre`) respecto al centro del solar. Las casas que se levantan
   jugando no tienen pieza en el valle: usan la casa modelo directamente. Sus muebles no llevan `clave` (sin anclas).
 - **Planta y puerta desde la escena** (`mapa/planta.gd`, 2026-11-11): la pieza guarda `planta_m` (ancho × fondo en
@@ -132,6 +132,12 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - **Tabiques** (`mapa/tabique.gd`, 2026-11-11): grupo «Tabiques» de la escena, una pieza por pared de dentro (`tam_m`
   ancho × fondo en metros, `tapa_vista`). `Planta` los devuelve en `partitions` y `_construct_solid_building` los crea
   y los deja en `vm.interior_walls[id]` (la taberna los apaga al subir de planta). 39 tabiques en 13 edificios.
+- **Solares** (`mapa/solar.gd`, carpeta «Solares» de Mundo3D, paso 2, 2026-11-11): 40 piezas con `id_solar`,
+  `centro_original` y `terreno_m`. `mapa/anclas.gd` registra un ancla por solar (rectángulo del terreno, giro de 90 en
+  90) con la prioridad más baja (`PASADAS`: primero edificios y objetos, dentro o pegados; al final el solar). Un
+  edificio sin pieza propia (`EdificioEditor.tiene_pieza`) hereda sitio y giro del ancla de su solar en
+  `_construct_solid_building`. Estacas y obra (`rebuild_lots_3d`) se escriben en el mapa original y siguen al solar.
+  Los datos del solar (zona, tamaño de casa, lado de la puerta) siguen en `VillageLots.LOTS`: pendiente de pasar.
 - Ya no queda dibujo de edificios por código (2026-11-11): un edificio sin escena da un error al arrancar y no se
   dibuja. Las herramientas de conversión (`convertir_edificios.gd`, `guardar_recursos_comunes.gd`) se borraron al
   terminar; un edificio nuevo se hace copiando una escena de `mapa/edificios/` en el editor.

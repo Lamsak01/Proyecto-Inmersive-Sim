@@ -5,15 +5,14 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 ## Edificio en el editor del mapa 3D (mapa/Mundo3D.tscn → «Edificios»), 2026-11-10.
 ## Desde 2026-11-11 cada edificio fijo es una escena propia (mapa/edificios/<id>.tscn) con sus grupos «Muros»,
 ## «Interior», «PisoAlto», «Tejado», «Muebles» y «Marcas»: el juego la carga tal cual donde esté esta pieza. Las casas
-## de recién llegados son copias de tres casas modelo (mapa/casa_modelo.gd). Lo de bajo tierra enseña una «foto»
-## (mapa/edificios_vista/).
+## de recién llegados son copias de tres casas modelo (mapa/casa_modelo.gd) y no tienen pieza: salen en su solar
+## (mapa/solar.gd). Lo de bajo tierra enseña una «foto» (mapa/edificios_vista/).
 ## Muévelo con el ratón: el edificio sale ahí. Girarlo (eje vertical) lo gira en el juego de 90 en 90 grados (se
 ## redondea al más cercano: las paredes del mapa son rectángulos rectos).
 
 const VISTA_DIR := "res://mapa/edificios_vista/"
 const ESCENA := "res://mapa/Mundo3D.tscn"
 const REFERENCIA := "res://mapa/referencia_mapa.json"
-const PREFIJO_SOLAR := "house_family_lot_"
 const GRUPO_MUROS := "Muros" ## lo tienen los edificios con escena propia (scripts/visuals/PartesEdificio3D.gd)
 const PRIMER_EMOJI: int = 0x2000 ## de aquí en adelante, símbolos y emojis que el letrero 3D no sabe dibujar
 const LETRERO_ALTURA_M: float = 14.0 ## por encima del tejado de casi todos los edificios
@@ -30,9 +29,6 @@ static var _nombres: Dictionary = {}
 @export var centro_original: Vector2 = Vector2.ZERO
 ## Dónde estaba esta pieza en 3D cuando se hizo la foto (no lo cambies).
 @export var origen_3d: Vector3 = Vector3.ZERO
-## Giro con el que esta pieza ya viene de fábrica (no lo cambies): las casas modelo se hacen con la puerta al sur y
-## las de los solares que miran al norte son la misma casa con media vuelta. El juego solo cuenta lo que gires de más.
-@export var giro_de_fabrica: float = 0.0
 ## Planta que se pisa y choca en el juego: ancho (este-oeste) × fondo (norte-sur), en metros (mapa/planta.gd).
 ## La puerta y la ventana del juego están donde las marcas «puerta» y «ventana»; aquí, el ancho del hueco de la puerta.
 @export var planta_m: Vector2 = Vector2.ZERO
@@ -91,7 +87,7 @@ func _letrero() -> Label3D:
 
 
 ## Nombre del edificio para las personas: el título del juego sin emojis (Godot no los dibuja en 3D);
-## las casas de recién llegados y lo de bajo tierra no tienen título.
+## lo de bajo tierra no tiene título.
 static func nombre_legible(id: String) -> String:
 	if _nombres.is_empty() and FileAccess.file_exists(REFERENCIA):
 		var datos: Variant = JSON.parse_string(FileAccess.get_file_as_string(REFERENCIA))
@@ -99,8 +95,6 @@ static func nombre_legible(id: String) -> String:
 			for e: Variant in (datos as Dictionary).get("edificios", []):
 				if e is Dictionary:
 					_nombres[String(e.get("id", ""))] = String(e.get("nombre", ""))
-	if id.begins_with(PREFIJO_SOLAR):
-		return "Casa del solar " + id.trim_prefix(PREFIJO_SOLAR).to_upper()
 	if id == "bajo_alcantarillas":
 		return "Alcantarillas"
 	var limpio := ""
@@ -127,7 +121,12 @@ static func giro(id: String) -> float:
 	return (_cache.get(id, [Vector2.ZERO, 0.0]) as Array)[1]
 
 
-## La escena propia de un edificio (mapa/edificios/<id>.tscn), o null si aún lo construye el código.
+## ¿Tiene ese edificio pieza propia en el valle? (Las casas levantadas en un solar no: van con su solar.)
+static func tiene_pieza(id: String) -> bool:
+	return escenas().has(id)
+
+
+## La escena propia de un edificio (mapa/edificios/<id>.tscn), o null si no tiene pieza en el valle.
 static var _escenas: Dictionary = {}
 static var _escenas_leidas: bool = false
 
@@ -180,8 +179,7 @@ static func _leer_escena() -> Dictionary:
 		var xf: Transform3D = pieza.get("transform", Transform3D.IDENTITY)
 		var ahora := Mapa3D.a_mapa(xf.origin)
 		var d := ahora - centro * Mapa3D.E # mapa estirado: lo que el usuario movió la pieza, aparte del estirado
-		var de_fabrica: float = pieza.get("giro_de_fabrica", 0.0)
-		var g := fposmod(roundf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) / 90.0) * 90.0 - de_fabrica, 360.0)
+		var g := fposmod(roundf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) / 90.0) * 90.0, 360.0)
 		if d.length() > 0.5 or g > 0.5:
 			out[id] = [d, g]
 	return out

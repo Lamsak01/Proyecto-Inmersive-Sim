@@ -6,10 +6,10 @@
 
 | Resultado | Cosas |
 |---|---:|
-| sigue al editor | 3955 |
-| se queda en el sitio viejo | 609 |
+| sigue al editor | 4006 |
+| se queda en el sitio viejo | 553 |
 | se mueve el doble (traducido dos veces) | 0 |
-| acaba en otro sitio o no aparece | 101 |
+| acaba en otro sitio o no aparece | 106 |
 
 ## Por familia (las 60 con más restos)
 
@@ -17,15 +17,15 @@
 |---|---:|---:|---:|---:|---|
 | 3D · Nature3D / Nature3D / Lote | 0 | 434 | 0 | 0 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
 | 3D · Streetlights3D / Streetlights3D / MeshInstance3D | 85 | 58 | 0 | 4 | a 4 m de Comisaría de Policía y  Cárcel del Valle |
-| 3D · Lots3D / Lots3D / MeshInstance3D | 0 | 56 | 0 | 0 | a 28 m de Biblioteca |
 | 3D · Terrain3D / Terrain3D / MeshInstance3D | 0 | 42 | 0 | 0 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
 | 3D · Nature3D / Nature3D / MeshInstance3D | 914 | 0 | 0 | 18 | a 56 m de Casa Grande de los Rentistas |
 | Lógica 2D ·  /  / ShopBusinessStall | 0 | 0 | 0 | 15 | a 554 m de Mansión del Señor del Valle |
-| Sitio de vecino: work_position | 31 | 0 | 0 | 11 | a 47 m de Panadería 'La Espiga' |
+| Sitio de vecino: work_position | 33 | 0 | 0 | 9 | a 47 m de Panadería 'La Espiga' |
 | 3D · Outpost3D / Outpost3D / MeshInstance3D | 0 | 7 | 0 | 0 | a 15 m de Herrería y Armería 'Yunque Gris' |
+| Sitio de vecino: bed_position | 36 | 0 | 0 | 6 | a 2 m de Gran Posada, Taberna y Casino 'El Jabalí Dorado' |
 | 3D · Buildings3D / Node3D / MeshInstance3D | 108 | 0 | 0 | 6 | a 57 m de Granja del Sur |
-| Sitio de vecino: bed_position | 38 | 0 | 0 | 4 | a 57 m de Granja del Sur |
-| Sitio de vecino: home_table_pos | 38 | 0 | 0 | 4 | a 58 m de Granja del Sur |
+| Sitio de vecino: home_table_pos | 37 | 0 | 0 | 5 | a 1 m de Gran Posada, Taberna y Casino 'El Jabalí Dorado' |
+| 3D · Lots3D / Lots3D / MeshInstance3D | 52 | 0 | 0 | 4 | a 61 m de Biblioteca |
 | 3D · Buildings3D / Bed_Twin12 / Bed_Twin1 | 60 | 0 | 0 | 4 | a 56 m de Granja del Sur |
 | 3D · Buildings3D / Node3D / Face | 68 | 0 | 0 | 4 | a 55 m de Granja del Sur |
 | 3D · Buildings3D / Node3D / FaceBack | 68 | 0 | 0 | 4 | a 56 m de Granja del Sur |
@@ -64,7 +64,7 @@ Total: **0** muebles con modelo 3D fuera de la planta de cualquier edificio (con
 
 ## Números de posición en el código (sin la carpeta de menús)
 
-Total: **1460** puntos (Vector2 con algún valor ≥ 100 px) y **103** rectángulos fijos; **177** llamadas a la traducción.
+Total: **1460** puntos (Vector2 con algún valor ≥ 100 px) y **103** rectángulos fijos; **178** llamadas a la traducción.
 
 | Archivo | Puntos | Rectángulos | Traducciones |
 |---|---:|---:|---:|
@@ -83,7 +83,7 @@ Total: **1460** puntos (Vector2 con algún valor ≥ 100 px) y **103** rectángu
 | `scripts/systems/VillageUnderworld.gd` | 22 | 1 | 1 |
 | `scripts/systems/VillageMigration.gd` | 21 | 0 | 6 |
 | `scripts/visuals/WorldStageBase3D.gd` | 19 | 1 | 2 |
-| `scripts/systems/VillageManagerBase.gd` | 19 | 0 | 22 |
+| `scripts/systems/VillageManagerBase.gd` | 19 | 0 | 24 |
 | `scripts/systems/VillageJustice.gd` | 16 | 1 | 9 |
 | `scripts/systems/VillageManagerSocial.gd` | 16 | 1 | 0 |
 | `scripts/systems/VillageManager.gd` | 13 | 1 | 15 |
@@ -102,7 +102,7 @@ Total: **1460** puntos (Vector2 con algún valor ≥ 100 px) y **103** rectángu
 | `scripts/enemies/VillageNPC.gd` | 2 | 2 | 1 |
 | `scripts/enemies/WildAnimal.gd` | 3 | 0 | 0 |
 | `mapa/referencia.gd` | 2 | 1 | 0 |
-| `scripts/visuals/WorldStageBuildings3D.gd` | 3 | 0 | 1 |
+| `scripts/visuals/WorldStageBuildings3D.gd` | 3 | 0 | 0 |
 | `scripts/systems/VillageCase1.gd` | 3 | 0 | 0 |
 | `scripts/systems/VillageManagerPolice.gd` | 2 | 0 | 0 |
 | `scripts/enemies/DomesticPet.gd` | 2 | 0 | 0 |

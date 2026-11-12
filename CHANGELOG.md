@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 2, tanda 1: los solares son piezas del editor (Claude Code)
+- Carpeta nueva «Solares» en `mapa/Mundo3D.tscn` con 40 piezas (`mapa/solar.gd`). Lo que el juego crea en el terreno de un solar (estacas, obra, letrero, campos, la casa que se construya) va con su pieza; los edificios y objetos con pieza propia mandan sobre el solar.
+- Las 9 piezas de casa de recién llegados de «Edificios» se quitan: una casa de solar no tiene pieza, hereda sitio y giro de su solar (también las que se construyen jugando). Fuera `giro_de_fabrica` de `mapa/edificio.gd`.
+- Cambio visible: las estacas de un solar vacío marcan ahora el terreno a su tamaño real (antes, cinco veces más separadas).
+- Comprobado: sitios idénticos (solo se recolocan dos letreros de solar vacío); en la medición con todo movido las 10 casas de solar y 52 de 56 piezas de solar siguen al editor (lo que no, es una casa que solo se construyó en una de las dos partidas). Inventario: quieto 609 → 553. Sondeo 29/29; `verify_all.gd` en verde.
+
 ## 2026-11-11 — Las paredes de dentro de los edificios salen del editor (Claude Code)
 - Pieza nueva `mapa/tabique.gd` (grupo «Tabiques» de cada escena, caja roja translúcida en el editor, con tamaño y «tapa vista»): 39 tabiques en 13 edificios (taberna 7, casa de comidas 9, comisaría 3 rejas, hospital 2, botica 2 y 2 en cada tienda de solar y la posada). `_construct_solid_building` los crea al levantar el edificio.
 - Borrados sus números: tabiques de taberna, casa de comidas, hospital, botica y rejas de la celda; las marcas `tabique_1|2` del trozo anterior pasan a ser piezas.

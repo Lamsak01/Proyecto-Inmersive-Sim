@@ -2,7 +2,7 @@ extends RefCounted
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Anclas del editor del mapa 3D (Claude Code, 2026-11-10). Cuando el usuario mueve en mapa/Mundo3D.tscn un edificio, un
-## objeto de «Objetos» marcado como ancla o un objeto de «Decorado», todo lo que el juego crea en el mapa 2D dentro de su
+## objeto de «Objetos» marcado como ancla, un objeto de «Decorado» o un solar de «Solares», todo lo que el juego crea en el mapa 2D dentro de su
 ## zona original (dibujos, zonas de uso, paredes invisibles, letreros, polígonos) se crea desplazado lo mismo. Así la
 ## lógica sigue a lo que se ve sin tocar cada sitio del código. Lo usan las funciones _add_* de VillageManagerBase.
 ##
@@ -54,11 +54,13 @@ static func _leer() -> void:
 		var es_obj := ruta.begins_with("./Objetos/")
 		var es_dec := ruta.begins_with("./Decorado/") and ruta.count("/") == 3 # Decorado/Zona/Objeto
 		var es_bajo := ruta.begins_with("./BajoTierra/") and ruta.count("/") == 2
-		if not (es_obj or es_dec or es_bajo):
+		var es_solar := ruta.begins_with("./Solares/") and ruta.count("/") == 2
+		if not (es_obj or es_dec or es_bajo or es_solar):
 			continue
 		var orig := Vector2.INF
 		var radio := 0.0
 		var ancla := false
+		var terreno := Vector2.ZERO
 		var xf := Transform3D.IDENTITY
 		for k in range(st.get_node_property_count(i)):
 			var nombre: String = st.get_node_property_name(i, k)
@@ -68,10 +70,16 @@ static func _leer() -> void:
 				"pos_original", "metadata/pos_original", "centro_original": orig = v
 				"radio_ancla", "metadata/radio": radio = float(v)
 				"es_ancla": ancla = bool(v)
+				"terreno_m": terreno = Mapa3D.a_mapa(Vector3((v as Vector2).x, 0.0, (v as Vector2).y))
 		if orig == Vector2.INF:
 			continue
 		var d := Mapa3D.a_mapa(xf.origin) - orig * E
 		var g := rad_to_deg(xf.basis.orthonormalized().get_euler().y)
+		if es_solar:
+			# Solar (mapa/solar.gd): todo lo que el juego crea en su terreno va con él; lo construido gira de 90 en 90
+			var g_solar: float = fposmod(roundf(g / 90.0) * 90.0, 360.0)
+			_anadir({"rect": Rect2(orig - terreno * 0.5, terreno), "c": orig, "d": d, "g": g_solar, "m": matriz(g_solar), "solar": true})
+			continue
 		if es_bajo:
 			# Las alcantarillas enteras (zona de VillageUnderworld) se estiran como una pieza
 			_anadir({"rect": Rect2(orig - Vector2(360.0, 160.0), Vector2(720.0, 320.0)), "c": orig, "d": d, "g": 0.0, "m": Transform2D.IDENTITY})
@@ -134,8 +142,12 @@ static func _abarca(a: Dictionary, q: Vector2, holgura: bool) -> bool:
 	return q.distance_to(a["centro"]) <= float(a["radio"])
 
 
+## Pasadas de búsqueda, por orden: [¿vale lo pegado al edificio?, ¿se miran los solares?]. Un solar solo manda sobre
+## lo que no pertenece a ningún edificio u objeto (ni dentro ni pegado).
+const PASADAS: Array = [[false, false], [true, false], [false, true]]
+
 ## El ancla que mueve el punto p (o {} si ninguna). Primero la que lo contiene de verdad (la más pequeña si hay
-## varias), luego la que lo tiene pegado.
+## varias), luego la que lo tiene pegado y, al final, el solar en el que cae.
 static func buscar(p: Vector2) -> Dictionary:
 	if not _leidas:
 		_leer()
@@ -147,11 +159,11 @@ static func buscar(p: Vector2) -> Dictionary:
 			f = am
 			break
 	var cand: Array = _rej.get(_celda(p), [])
-	for holgura in [false, true]:
+	for pasada: Array in PASADAS:
 		var mejor: Dictionary = {}
 		var area_mejor: float = INF
 		for a in cand:
-			if not _abarca(a, p, holgura):
+			if a.has("solar") != bool(pasada[1]) or not _abarca(a, p, pasada[0]):
 				continue
 			if E == 1.0: # mapa de siempre: manda la primera registrada (como hasta ahora)
 				return _componer(a, f)
@@ -243,13 +255,13 @@ static func desmover(p: Vector2) -> Vector2:
 	if not _leidas:
 		_leer()
 	var cand: Array = _rej_m.get(_celda(p), [])
-	for holgura in [false, true]:
+	for pasada: Array in PASADAS:
 		var mejor := Vector2.INF
 		var area_mejor: float = INF
 		for a in cand:
 			var c: Vector2 = a["c"]
 			var q: Vector2 = c + (a["m"] as Transform2D).affine_inverse().basis_xform(p - c * E - a["d"])
-			if not _abarca(a, q, holgura):
+			if a.has("solar") != bool(pasada[1]) or not _abarca(a, q, pasada[0]):
 				continue
 			if E == 1.0:
 				return q

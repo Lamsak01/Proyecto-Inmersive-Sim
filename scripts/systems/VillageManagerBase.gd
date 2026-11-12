@@ -414,6 +414,10 @@ func _construct_solid_building(
 	# Editor del mapa 3D (2026-11-10): si el usuario movió el edificio en mapa/Mundo3D.tscn, se construye en el sitio nuevo
 	var d_edif: Vector2 = EdificioEditor.desplazamiento(b_id)
 	var g_edif: float = EdificioEditor.giro(b_id)
+	var solar: Dictionary = {} if EdificioEditor.tiene_pieza(b_id) else Anclas.buscar(center)
+	if not solar.is_empty(): # casa levantada en un solar (sin pieza propia): va, y gira, con su solar
+		d_edif = Anclas.aplicar(solar, center) - center * Anclas.E
+		g_edif = float(solar["g"])
 	Anclas.registrar_edificio(Rect2(center - size * 0.5, size), d_edif, g_edif)
 	var orig_info := {"rect_orig": Rect2(center - size * 0.5, size)}
 	d_edif = Anclas.mover(center) - center # con el mapa estirado incluye el estirado (E·c − c) además de lo movido

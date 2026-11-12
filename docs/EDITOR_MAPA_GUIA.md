@@ -28,7 +28,7 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
 - **Varias a la vez:** clic con **Mayúsculas** para ir sumando piezas; luego W y arrastra.
 
 ## 3. Qué hay en cada carpeta
-- **Edificios (38):** cada casa, tienda y edificio público, con su interior dentro (carpeta **Muebles**). Al mover un
+- **Edificios (29):** cada casa, tienda y edificio público, con su interior dentro (carpeta **Muebles**). Al mover un
   edificio se mueve todo lo suyo: muros, puerta, muebles, cama y mesa de la familia, puesto de trabajo, zonas de uso.
   **Girar: de 90 en 90 grados** (si pones 37°, el juego lo redondea a 0 o 90). Los muebles de dentro se pueden mover
   uno a uno. **No cambies «Id edificio»** ni «Centro original». No copies un edificio con Ctrl+D: saldría un clon con el
@@ -45,6 +45,10 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   y `modelo_casona`). Abre una con doble clic, mueve muebles o las cruces de **Marcas** (`cama_1`, `mesa`, `cofre`…) y
   guarda: cambia en todas las casas de ese tamaño, también las que se construyan jugando. Si añades una cruz `cama_3`,
   la casa gana una plaza. Las casas con la puerta al norte son la misma casa con media vuelta.
+- **Solares (40):** las parcelas del pueblo (losas amarillas translúcidas con su nombre). Mueve un solar y la obra, la
+  casa que se construya en él, su letrero y sus campos saldrán ahí; girarlo gira la casa de 90 en 90 grados. Las casas
+  de recién llegados ya no son piezas sueltas: salen en su solar. Si el solar tiene un edificio propio en «Edificios»
+  (tiendas, ayuntamiento, escuela…), muévelos **juntos** (clic en uno, Mayúsculas+clic en el otro). **No cambies «Id solar»**.
 - **Objetos (191):** pozos, farolas, tablón y las «anclas» (cuadrados o cilindros tenues): marcan dónde el juego pone cosas
   sin dibujo propio (zonas de uso, letreros, casas de animales, setas, pistas del Caso I, huertos, el campamento, el
   carro…). Muévelos y lo suyo va detrás. **No cambies «Clave»**.
