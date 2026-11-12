@@ -62,7 +62,7 @@ static func role_of(key: String) -> int:
 static func setup_world(vm) -> void:
 	for key in CONFIG.keys():
 		var c: Dictionary = CONFIG[key]
-		var lay: Dictionary = VillageLots.shop_house_layout(str(c["lot"]))
+		var lay: Dictionary = VillageLots.shop_house_layout(str(c["lot"]), VillageLots.shop_house_id(str(c["family_id"])))
 		vm.trade_configs[role_of(key)] = {
 			"family_id": c["family_id"], "family_name": c["family_name"], "shop_title": c["shop_title"],
 			"shop_center": VillageLots.lot_def(str(c["lot"]))["center"], "is_mixed_building": true,

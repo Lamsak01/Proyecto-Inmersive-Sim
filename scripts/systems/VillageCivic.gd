@@ -29,7 +29,7 @@ const MAYOR_OFFICE_HOUR: int = 14 # Sábado por la tarde (los talleres cierran a
 
 # ---------------------------------------------------------------- montaje
 static func setup_world(vm) -> void:
-	var lay: Dictionary = VillageLots.shop_house_layout(INN_LOT)
+	var lay: Dictionary = VillageLots.shop_house_layout(INN_LOT, VillageLots.shop_house_id(INN_FAMILY))
 	vm.trade_configs[VillageNPC.TradeRole.LODGEKEEPER] = {
 		"family_id": INN_FAMILY, "family_name": "Casa del Candil", "shop_title": INN_TITLE,
 		"shop_center": VillageLots.lot_def(INN_LOT)["center"], "is_mixed_building": true,
@@ -72,11 +72,16 @@ static func shelter_beds() -> Array:
 		out.append(Marca.sitio(SHELTER_ID, SHELTER_BED_MARK % i))
 	return out
 
+## Camas para huéspedes de la posada: la segunda de la casa y dos más (marcas de su escena), en el mapa original.
+const INN_GUEST_MARK: String = "cama_huesped_%d"
+const INN_EXTRA_BEDS: int = 2
+
 static func inn_guest_beds() -> Array:
-	var lay: Dictionary = VillageLots.shop_house_layout(INN_LOT)
-	var c: Vector2 = VillageLots.lot_def(INN_LOT)["center"]
-	var m: float = -1.0 if bool(VillageLots.lot_def(INN_LOT)["door_south"]) else 1.0
-	return [lay["bed2_pos"], c + Vector2(-50, -28 * m), c + Vector2(-50, -6 * m)]
+	var id: String = VillageLots.shop_house_id(INN_FAMILY)
+	var out: Array = [Marca.sitio(id, Marca.CAMA_2)]
+	for i in range(1, INN_EXTRA_BEDS + 1):
+		out.append(Marca.sitio(id, INN_GUEST_MARK % i))
+	return out
 
 ## Dibujo de cada clase (lo llama VillageLots._build_kind).
 static func build(vm, id: String, st: Dictionary) -> void:

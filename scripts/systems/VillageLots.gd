@@ -10,6 +10,7 @@ extends RefCounted
 ## - Lo que se construye en cada solar se guarda en `vm.lots_state` y se vuelve a levantar al cargar.
 ## - V3 decidirá cuándo hace falta una casa; V5 añadirá más clases de edificio (`KINDS`).
 
+const Marca = preload("res://mapa/marca.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const WORK_STATE: int = 0 # ActivityState.WORKING
@@ -377,8 +378,23 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			load("res://scripts/systems/VillageNobility.gd").build(vm, id, st)
 
 ## V5: tienda y vivienda en un solo edificio (como la Botica), con la puerta hacia la calle del solar.
-## Posiciones relativas a la Botica (puerta al norte); con la puerta al sur se reflejan.
-static func shop_house_layout(id: String) -> Dictionary:
+## Si el edificio (`building_id`) tiene escena propia con marcas, sus sitios salen de ellas (mapa/marca.gd). Si no
+## (tienda levantada en un solar durante la partida), del molde: posiciones relativas a la Botica (puerta al norte),
+## reflejadas con la puerta al sur. Las dos paredes de dentro salen siempre del molde.
+const SHOP_HOUSE_MARKS: Dictionary = {"work_pos": Marca.TRABAJO, "kin_work_pos": Marca.TRABAJO_FAMILIAR, "bed1_pos": Marca.CAMA_1,
+	"bed2_pos": Marca.CAMA_2, "table_pos": Marca.MESA, "stall_pos": Marca.PUESTO, "chest_pos": Marca.COFRE}
+
+static func shop_house_id(family_id: String) -> String:
+	return "mixed_" + family_id
+
+static func shop_house_layout(id: String, building_id: String = "") -> Dictionary:
+	var lay: Dictionary = _shop_house_mold(id)
+	if Marca.hay(building_id, Marca.TRABAJO):
+		for campo: String in SHOP_HOUSE_MARKS:
+			lay[campo] = Marca.sitio(building_id, SHOP_HOUSE_MARKS[campo])
+	return lay
+
+static func _shop_house_mold(id: String) -> Dictionary:
 	var d: Dictionary = lot_def(id)
 	var c: Vector2 = building_center(id)
 	var m: float = -1.0 if bool(d["door_south"]) else 1.0
@@ -390,10 +406,10 @@ static func shop_house_layout(id: String) -> Dictionary:
 static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = lot_def(id)
 	var c: Vector2 = building_center(id)
-	var lay: Dictionary = shop_house_layout(id)
 	var role: int = int(st["role"])
 	var fam: String = str(st.get("family_id", "family_lot_" + id))
-	vm._construct_solid_building("mixed_" + fam, str(st["title"]), c, Vector2(128, 96), bool(d["door_south"]),
+	var lay: Dictionary = shop_house_layout(id, shop_house_id(fam))
+	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c, Vector2(128, 96), bool(d["door_south"]),
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png",
 		"res://assests/world/village/wall_timber_v.png", 42.0, 0.0, Color(0.96, 0.86, 0.62))
 	var tex_wall_h: Texture2D = vm._load_tex("res://assests/world/village/wall_timber_h.png")

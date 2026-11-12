@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Casas modelo, trozo 1: oficios en solares y posada con marcas (Claude Code)
+- 58 marcas nuevas en 8 edificios: panadería, sastrería, granja, rancho, cantera, cabaña del leñador, taller y posada (`trabajo`, `trabajo_familiar`, `cama_1`, `cama_2`, `mesa`, `puesto`, `cofre`; la posada además `cama_huesped_1..2`). `VillageLots.shop_house_layout(solar, edificio)` lee las marcas si el edificio tiene escena; el molde de números (`_shop_house_mold`) queda solo para las tiendas que se levantan durante la partida, hasta el trozo 3.
+- Siguen como números: el sitio de trabajo al aire libre del cantero, granjero, ganadero y leñador (campo, corral, roca, troncos) y las dos paredes interiores.
+- Comprobado: 188 sitios y 9.143 cosas idénticos; sondeo 29/29; `verify_all.gd` en verde (118 bloques). Total: 196 marcas en 30 edificios.
+
 ## 2026-11-11 — Capilla: los muebles vuelven dentro (Claude Code)
 - El altar, el atril, la mesilla, la mesa, la silla y la cama del sacerdote estaban guardados en la escena a unos 170 m de la capilla (se apuntaron con coordenadas del mapa sin agrandar). Recolocados dentro, en el mismo sitio que sus marcas. Visto en dos fotos nuevas de `capturas_fijas.gd` (`capilla_altar`, `capilla_fondo`).
 - Inventario vuelto a medir tras las marcas: sigue 4.161, quieto 609, doble 0, otro sitio 138 (igual que antes: las marcas no cambian qué sale del editor).

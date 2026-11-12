@@ -8,6 +8,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_dcfa1415.res" id="6_6aj4d"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_59d28da6.res" id="7_ux4op"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="8_m0cdc"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="9_8aado"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -193,3 +194,45 @@ modelo = "props/Table_Large.gltf"
 tam3 = Vector3(1.008, 0.7397353, 0.672)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=915673876]
+
+[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=1087392585]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.008)
+gizmo_extents = 0.5
+script = ExtResource("9_8aado")
+id_marca = "trabajo"
+
+[node name="trabajo_familiar" type="Marker3D" parent="Marcas" unique_id=1186934887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.344, 0, 0.784)
+gizmo_extents = 0.5
+script = ExtResource("9_8aado")
+id_marca = "trabajo_familiar"
+
+[node name="cama_1" type="Marker3D" parent="Marcas" unique_id=165667654]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.016, 0, -1.456)
+gizmo_extents = 0.5
+script = ExtResource("9_8aado")
+id_marca = "cama_1"
+
+[node name="cama_2" type="Marker3D" parent="Marcas" unique_id=1437315166]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.016, 0, -1.456)
+gizmo_extents = 0.5
+script = ExtResource("9_8aado")
+id_marca = "cama_2"
+
+[node name="mesa" type="Marker3D" parent="Marcas" unique_id=1526724953]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.344)
+gizmo_extents = 0.5
+script = ExtResource("9_8aado")
+id_marca = "mesa"
+
+[node name="puesto" type="Marker3D" parent="Marcas" unique_id=881164667]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.56)
+gizmo_extents = 0.5
+script = ExtResource("9_8aado")
+id_marca = "puesto"
+
+[node name="cofre" type="Marker3D" parent="Marcas" unique_id=991450791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.352, 0, 1.456)
+gizmo_extents = 0.5
+script = ExtResource("9_8aado")
+id_marca = "cofre"

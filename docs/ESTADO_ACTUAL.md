@@ -8,7 +8,7 @@ toca el código del mundo** (la que hizo este avance; el usuario lo confirmó el
 mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## b) Último avance completado
-- 2026-11-11: paso 1, tandas 2 a 8. **138 marcas en 22 edificios** (todos los edificios únicos): las 5 familias fundadoras (tiendas, casas y
+- 2026-11-11: paso 1, tandas 2 a 8. **196 marcas en 30 edificios** (todos los únicos y los oficios en solares): las 5 familias fundadoras (tiendas, casas y
   botica), casa de comidas, taberna, hospital y morgue, comisaría, capilla, ayuntamiento, albergue, escuela, biblioteca,
   molino
   abandonado, mansión, casa grande, terminales (comisaría, ayuntamiento, taller) y expositor de la herrería. El código las lee y sus números están borrados.
@@ -23,14 +23,18 @@ mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
   aviso del expositor de armas. Medido: sondeo 29/29, viejos 0; `partida_caso1.gd` completa; `fisica_3d.gd` PASSED.
 
 ## c) Siguiente paso técnico inmediato
-Seguir el paso 1, en este orden:
-1. **Marcas de edificios únicos: hechas**, `verify_all.gd` en verde (118 bloques) e inventario medido (609 / 138). Quedan como números a propósito: rejas y puerta de la celda, bancos de
-   la capilla, salas, pasos, tabiques, sillas (pegadas a su mesa), paredes invisibles de muebles y decorado suelto.
-2. **Capilla: hecha** (6 muebles estaban a 170 m; recolocados en su escena y vistos en foto).
-3. **Casas y tiendas de solar con escena base**: incluye los oficios en solares y la posada (`VillageTrades`,
-   `VillageCivic.inn_guest_beds`, `VillageLots.shop_house_layout`): comparten molde con lo que se construye en partida.
-4. **Planta y puerta desde la escena** (tamaño y lado de la puerta como propiedades de la pieza, no números del código).
-Volver a medir con el inventario al cerrar cada grupo (`docs/specs/PRUEBAS.md`).
+Paso 1, lo que queda: **casas modelo de los solares** (plan aprobado por el usuario el 2026-11-11, en tres trozos, con
+`verify_all.gd` al final de cada uno):
+1. ✅ Oficios en solares y posada: marcas en sus 8 escenas; `shop_house_layout(solar, edificio)` las lee.
+2. **Casas de recién llegados**: tres escenas base (casita 84×62, casa 112×78, casona 124×90) con Muros, Interior,
+   Tejado, Muebles y Marcas (`cama_1..`, `mesa`, `cofre`), hechas con puerta al sur; los solares con puerta al norte
+   usan la misma girada 180° (aviso dado al usuario: cambia izquierda por derecha). `VillageLots._build_kind("house")`
+   y `_house_beds` leen las marcas; ojo al altillo (`upper_floor`: 2 camas más) y al dibujo de `WorldStageProps3D`
+   (líneas ~430–520). Las 9 piezas `house_family_lot_*` de Mundo3D pasan a ser copias de la escena base.
+3. **Tienda con vivienda base** (128×96) para lo que se levanta en partida; fuera `_shop_house_mold` y el dibujo por
+   código que quede en `WorldStageBuildings3D` (`_construir_edificio_por_codigo`, `_populate_building_interior_3d`).
+Después: **planta y puerta desde la escena** (tamaño y lado de la puerta como propiedades de la pieza).
+Volver a medir con el inventario al cerrar (`docs/specs/PRUEBAS.md`).
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).
