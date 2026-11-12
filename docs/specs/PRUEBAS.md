@@ -7,6 +7,9 @@ Pide permiso al usuario antes de cualquier prueba, diciendo cuánto tarda.
 ```bash
 # Arranque sin errores (tras editar código o escenas; ~20 s). Los autoloads no existen en --check-only: no lo uses.
 timeout 120 flatpak run org.godotengine.Godot --headless --path . --quit 2>&1 | grep -c "SCRIPT ERROR"
+# OJO: ese arranque solo carga el menú; un error de un script del pueblo (VillageManager*) NO sale. Si tocas uno, pasa
+# también --check-only sobre él y sus hijos y busca «Parse Error» (los «Identifier not found» de autoloads son normales):
+timeout 120 flatpak run org.godotengine.Godot --headless --path . --check-only -s scripts/systems/VillageManagerSocial.gd 2>&1 | grep "Parse Error"
 
 # Física 3D (cuerpos, pisos, agua, buceo, vista; ~2 min) → «FISICA 3D: PASSED»
 timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/fisica_3d.gd 2>&1 | grep "FISICA 3D"

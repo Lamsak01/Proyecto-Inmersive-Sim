@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Los letreros de los sitios vuelven a salir en la vista desde arriba (Claude Code)
+- La distancia a la que se enseña el letrero de un sitio (`TITLE_SHOW_RADIUS`) se quedó en la medida de antes del mapa
+  ×5: solo salían con el protagonista pegado (~1,5 m). Ahora es ×E (~8 m). Medido: a 5 m salen 57 de 63 (antes 0).
+- Visto en fotos: «Solar libre» se lee. Los de edificios quedan encima del tejado, en el lado contrario a la puerta:
+  con el protagonista en la puerta caen bajo el reloj de arriba (pendiente de decidir con el usuario).
+- `PRUEBAS.md`: el arranque rápido solo carga el menú y no ve errores de los scripts del pueblo (pasó aquí con un
+  `Mapa3D` repetido en `VillageManagerSocial`). Comprobado: `verify_all`.
+
 ## 2026-11-12 — Paso 4, trozo 5: fuera el suelo plano de calles y solares (Claude Code)
 - `VillageLots` ya no dibuja en plano las calles hacia los solares, las callejas curvas ni el suelo de solar libre o en
   obra (84 polígonos por debajo de la imagen 3D). Borrados `_road`, `_rect_pts` y el huerto (ya no estaba en la lista).

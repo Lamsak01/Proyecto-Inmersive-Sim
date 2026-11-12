@@ -7,6 +7,7 @@ const Marca = preload("res://mapa/marca.gd")
 const Planta = preload("res://mapa/planta.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const Vista = preload("res://scripts/fisica/Vista.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
 
 ## Plan de sitios (docs/PLAN_SITIOS.md): traduce un punto escrito en coordenadas del mapa ORIGINAL a su sitio actual
 ## (edificio, mueble u objeto movido en el editor del mapa 3D). Úsalo una sola vez, donde se escribe el número fijo.
@@ -312,7 +313,9 @@ var _fight_scan_timer: float = 3.0
 
 const ROMANCE_STAGE_NAMES: Dictionary = {"interest": "sienten interés mutuo", "flirt": "han empezado a coquetear", "dating": "han empezado a salir"}
 
-const TITLE_SHOW_RADIUS: float = 28.0
+## Distancia (mundo) a la que se enseña el letrero de un sitio en la vista desde arriba: unos 8 m. Antes del mapa ×E
+## se quedó en 28 y solo salían con el protagonista pegado (2026-11-12).
+const TITLE_SHOW_RADIUS: float = 28.0 * Mapa3D.E
 var _titles_declutter_t: float = 0.0
 
 ## El trozo del letrero que ocupa el texto de verdad (los letreros son más anchos que su texto y van centrados).

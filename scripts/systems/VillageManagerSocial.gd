@@ -1,7 +1,5 @@
 @tool
 extends "res://scripts/systems/VillageManagerBase.gd"
-const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
-
 
 func _register_authority_npc(node_name: String, npc_name_str: String, title: String, role: VillageNPC.TradeRole, tex_path: String, work_pos: Vector2, bed_pos: Vector2, table_pos: Vector2, stock: Dictionary, fam_id: String, fam_name: String, name_pool: Array) -> VillageNPC:
 	var npc := VillageNPC.new()
