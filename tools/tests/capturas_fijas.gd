@@ -21,6 +21,7 @@ const SITIOS: Array = [
 	["casa_norte_fuera", Vector2(-600, 730), PI / 2.0],
 	["casa_norte_dentro", Vector2(-600, 776), PI / 2.0],
 	["puesto_paso", Vector2(1490, 50), 0.0],
+	["lago", Vector2(-640, 105), PI],
 ]
 
 func _initialize() -> void:

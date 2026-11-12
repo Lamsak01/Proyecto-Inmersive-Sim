@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 2 cerrado: plaza, lago y ciénaga son piezas del editor (Claude Code)
+- Carpeta nueva «Zonas» en `mapa/Mundo3D.tscn` con tres piezas (`mapa/zona.gd`): `zona_plaza`, `zona_lago`, `zona_cienaga`. Al mover una, van con ella su suelo o agua, la hondonada del terreno, el muelle, dónde se nada y se pesca, las ranas de la ciénaga y su dibujo en el mapa del valle. No giran ni cambian de forma.
+- `mapa/anclas.gd`: zonas de terreno (`estirar`, `estirar_puntos`, `desestirar`), con la prioridad más baja; el terreno hecho por código y el relieve (`terrain_height_px`) pasan por ellas en vez de multiplicar por 5 a mano. En el sitio viejo de una zona movida el relieve queda llano.
+- Prueba nueva `tools/tests/sondeo_zonas.gd` (sin ventana, segundos): mueve las tres zonas y comprueba agua, hondonada y muelle. Foto fija nueva `lago`.
+- Comprobado: sin mover nada todo queda idéntico (volcado y fotos); con todo movido, las 6 mallas de plaza, lago y ciénaga siguen al editor. Inventario: sigue 5.181, quieto 30 (río y luces, que la medición no mueve), doble 0.
+
 ## 2026-11-11 — Paso 2: suelo y agua medidos de verdad (Claude Code)
 - `tools/tests/inventario_mundo.gd` mide las mallas de suelo por el centro de lo que dibujan (su nodo está en el origen). De 42 piezas de `Terrain3D`, 29 siguen al editor (calles de «Caminos»); 4 son el río (sale del editor, la medición no lo mueve); quedan **6 zonas hechas con números del código**: plaza, lago (2), ciénaga y dos junto al claro del norte.
 - Inventario: sigue 5.181, quieto 34, doble 0, otro sitio 118. Sin cambios en el juego.

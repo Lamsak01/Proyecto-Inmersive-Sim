@@ -7,9 +7,9 @@
 | Resultado | Cosas |
 |---|---:|
 | sigue al editor | 5181 |
-| se queda en el sitio viejo | 34 |
+| se queda en el sitio viejo | 30 |
 | se mueve el doble (traducido dos veces) | 0 |
-| acaba en otro sitio o no aparece | 118 |
+| acaba en otro sitio o no aparece | 122 |
 
 ## Por familia (las 60 con más restos)
 
@@ -17,13 +17,13 @@
 |---|---:|---:|---:|---:|---|
 | 3D · Nature3D / Lote / Copia | 1063 | 14 | 0 | 25 | a 45 m de Casa de Comidas 'El Fogón del Valle' |
 | 3D · Nature3D / Nature3D / MeshInstance3D | 914 | 0 | 0 | 18 | a 56 m de Casa Grande de los Rentistas |
-| 3D · Terrain3D / Terrain3D / MeshInstance3D | 29 | 10 | 0 | 3 | a 53 m de Botica y Casa-Jardín 'Raíz Verde' |
+| Sitio de vecino: work_position | 33 | 0 | 0 | 9 | a 80 m de Cabaña del Leñador |
+| 3D · Terrain3D / Terrain3D / MeshInstance3D | 33 | 6 | 0 | 3 | a 53 m de Botica y Casa-Jardín 'Raíz Verde' |
 | 3D · Streetlights3D / Streetlights3D / MeshInstance3D | 139 | 0 | 0 | 8 | a 4 m de Comisaría de Policía y  Cárcel del Valle |
-| Sitio de vecino: work_position | 35 | 0 | 0 | 7 | a 55 m de Panadería 'La Espiga' |
 | 3D · Buildings3D / Node3D / MeshInstance3D | 108 | 0 | 0 | 6 | a 57 m de Granja del Sur |
-| Sitio de vecino: home_table_pos | 38 | 0 | 0 | 4 | a 58 m de Granja del Sur |
+| Sitio de vecino: home_table_pos | 37 | 0 | 0 | 5 | a 58 m de Granja del Sur |
+| Sitio de vecino: bed_position | 37 | 0 | 0 | 5 | a 59 m de Granja del Sur |
 | 3D · Buildings3D / Node3D / Face | 68 | 0 | 0 | 4 | a 55 m de Granja del Sur |
-| Sitio de vecino: bed_position | 38 | 0 | 0 | 4 | a 57 m de Granja del Sur |
 | 3D · Lots3D / Lots3D / MeshInstance3D | 52 | 0 | 0 | 4 | a 61 m de Biblioteca |
 | 3D · Buildings3D / Node3D / FaceBack | 68 | 0 | 0 | 4 | a 56 m de Granja del Sur |
 | 3D · Buildings3D / Bed_Twin12 / Bed_Twin1 | 60 | 0 | 0 | 4 | a 56 m de Granja del Sur |

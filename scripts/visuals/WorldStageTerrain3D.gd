@@ -115,7 +115,8 @@ func _build_ground_3d() -> void:
 
 func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Material) -> MeshInstance3D:
 	if estirar_terreno:
-		rect = Rect2(rect.position * Mapa3D.E, rect.size * Mapa3D.E)
+		var tam: Vector2 = rect.size * Mapa3D.E
+		rect = Rect2(AnclasScript.estirar(rect.get_center()) - tam * 0.5, tam)
 	var step: float = 20.0
 	var nx: int = maxi(1, int(ceil(rect.size.x / step)))
 	var ny: int = maxi(1, int(ceil(rect.size.y / step)))
@@ -238,7 +239,7 @@ func _build_lake_3d() -> void:
 	var shore_pts: PackedVector2Array = FishingSpotScript.lake_scaled(1.15, 8.0)
 	for si in range(shore_pts.size()):
 		var sp: Vector2 = shore_pts[si]
-		if (sp * Mapa3D.E).distance_to(dock_c) < 40.0: # sp está en el mapa original (estirar_terreno)
+		if AnclasScript.estirar(sp).distance_to(dock_c) < 40.0: # sp está en el mapa original (estirar_terreno)
 			continue
 		if (si % 3) == 0:
 			_add_model_2d(terrain_root_3d, "nature/Rock_1.obj" if (si % 2) == 0 else "nature/Rock_2.obj", sp, -0.6, Vector2.ZERO, 7.5, float(si * 53))
@@ -248,7 +249,7 @@ func _build_lake_3d() -> void:
 ## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (si absolute_h es true, no suma el relieve).
 func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat: Material, absolute_h: bool = false) -> MeshInstance3D:
 	if estirar_terreno:
-		pts = pts * Transform2D(0.0, Vector2.ONE * Mapa3D.E, 0.0, Vector2.ZERO)
+		pts = AnclasScript.estirar_puntos(pts)
 	var idx := Geometry2D.triangulate_polygon(pts)
 	if idx.is_empty():
 		return null

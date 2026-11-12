@@ -50,6 +50,9 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   de recién llegados ya no son piezas sueltas: salen en su solar. Si el solar tiene un edificio propio en «Edificios»
   (tiendas, ayuntamiento, escuela…), muévelos **juntos** (clic en uno, Mayúsculas+clic en el otro). **No cambies «Id solar»**.
   El **Puesto del Paso** (frontera este) es un solar más: muévelo y van con él su camino, estacas, sacos, foco y letrero.
+- **Zonas (3):** la plaza, el lago y la ciénaga (losas azules translúcidas con su nombre). Mueve una y van con ella su
+  suelo o su agua, la hondonada del terreno, el muelle y dónde se nada y se pesca. No se giran ni cambian de forma. Los
+  bancos, árboles y adornos de encima son piezas aparte: selecciónalos a la vez para moverlos juntos.
 - **Objetos (145):** pozos, farolas, tablón y las «anclas» (cuadrados o cilindros tenues): marcan dónde el juego pone cosas
   sin dibujo propio (zonas de uso, letreros, casas de animales, setas, pistas del Caso I, huertos, el campamento, el
   carro…). Muévelos y lo suyo va detrás. **No cambies «Clave»**.

@@ -24,6 +24,7 @@ var _fullmap_redraw_timer: float = 0.0
 
 const WORLD_RECT := Rect2(Vector2(-2150.0, -900.0) * Mapa3D.E, Vector2(3900.0, 3350.0) * Mapa3D.E) # Paso 2: abarca Llanura/Ciénaga separadas al oeste y Bosque Profundo ampliado al sur
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const Anclas = preload("res://mapa/anclas.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
 
@@ -673,9 +674,10 @@ func _e_lista(lista: Array) -> Array:
 	var out: Array = []
 	for r in lista:
 		if r is Rect2:
-			out.append(Rect2((r as Rect2).position * Mapa3D.E, (r as Rect2).size * Mapa3D.E))
+			var tam: Vector2 = (r as Rect2).size * Mapa3D.E
+			out.append(Rect2(Anclas.estirar((r as Rect2).get_center()) - tam * 0.5, tam)) # plaza, lago y ciénaga van con su pieza
 		elif r is Vector2:
-			out.append((r as Vector2) * Mapa3D.E)
+			out.append(Anclas.estirar(r as Vector2))
 		else:
 			out.append(r)
 	return out

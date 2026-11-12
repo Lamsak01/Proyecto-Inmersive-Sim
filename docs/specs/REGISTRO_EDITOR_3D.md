@@ -140,6 +140,11 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   Los datos del solar (zona, tamaño de casa, lado de la puerta) siguen en `VillageLots.LOTS`: pendiente de pasar.
   El ancla cubre además `SOLAR_LETRERO_PX` (16 px) al norte y al sur del terreno: ahí va el letrero de solar libre
   (`VillageLots.site_work_pos`), que ya no tiene ancla propia en «Objetos».
+- **Zonas** (`mapa/zona.gd`, carpeta «Zonas», 2026-11-11): `zona_plaza`, `zona_lago`, `zona_cienaga`, con `id_zona`,
+  `centro_original` y `terreno_m` (tamaño en el mundo). `mapa/anclas.gd` las registra como anclas que **estiran** ×E
+  (no compactas), con la prioridad de un solar. `Anclas.estirar(p)`/`estirar_puntos` (original → mundo, solo miran
+  zonas) sustituyen al «× E» en el terreno por código (`estirar_terreno`); `Anclas.desestirar(p)` (mundo → original) lo
+  usa el relieve y `Agua.en_lago`; el hueco viejo de una zona movida se lee como su borde. No giran.
 - **Puesto del Paso** (tanda 2, 2026-11-11): pieza `solar_puesto_del_paso` (centro original (1593, 47), 242×178 px).
   Camino, estacas, empalizada, sacos, foco y letrero están escritos en el mapa original (`VillageCulture.OUTPOST_*`,
   `rebuild_outpost_3d` con `mover_posiciones`) y van con la pieza.

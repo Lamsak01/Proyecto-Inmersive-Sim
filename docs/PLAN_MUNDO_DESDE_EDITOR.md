@@ -42,7 +42,7 @@ moviendo piezas, no con un factor.
    (`tools/tests/inventario_mundo.gd`, ver «Cómo medir»). Era: Prueba nueva que construye el mundo y lista todo lo que aparece (dibujos 2D, piezas 3D,
    choques, zonas de uso) y todos los destinos de los vecinos, diciendo de dónde sale cada uno: pieza del editor o número
    del código. Da la cifra exacta de lo que falta y será la vara de medir de los pasos siguientes. *Jugable: sin cambios.*
-1. 🔶 (2026-11-11, en curso) Hecho: los 29 edificios fijos son escenas (`mapa/edificios/<id>.tscn`, creadas con
+1. ✅ (2026-11-11, cerrado) Hecho: los 29 edificios fijos son escenas (`mapa/edificios/<id>.tscn`, creadas con
    `tools/convertir_edificios.gd`) y el juego las carga; su código de dibujo está borrado; «dobles» del inventario 885 → 0.
    Hecho también: marcas de las 5 familias fundadoras (`mapa/marca.gd`, `tools/marcar_edificios.gd`).
    Falta: el resto de marcas para la lógica (camas, mesas, puestos, salas: `VillageTavern`, `VillageRestaurant`, `VillageWorldBuilder`…),
@@ -52,7 +52,8 @@ moviendo piezas, no con un factor.
    **Edificios completos en el editor**, por grupos (casas → oficios → públicos: iglesia, ayuntamiento, escuela…): muros,
    puerta, muebles, camas, mesas y puestos de trabajo como marcas dentro de cada edificio; el código las lee en vez de sus
    constantes. *Jugable tras cada grupo.* Prueba: inventario del grupo a 0 + sondeo de edificios movidos.
-2. **Exteriores**: cementerio, lavadero, campamento, corrales, huertos, pozos, decorado suelto y grupos hechos por código
+2. ✅ (2026-11-11, cerrado: solares y Puesto del Paso, mostradores, y plaza, lago y ciénaga como «Zonas»; detalle en
+   `CHANGELOG.md`) **Exteriores**: cementerio, lavadero, campamento, corrales, huertos, pozos, decorado suelto y grupos hechos por código
    pasan a piezas. *Jugable.* Prueba: inventario de exteriores a 0 + fotos de cada zona.
 3. **Sitios de los vecinos fuera de edificios**: oficios al aire libre, ocio, paseos, puntos de ruta, pistas del Caso I →
    marcas. *Jugable.* Pruebas: `partida_caso1.gd` y `atascos_vecinos.gd`.

@@ -60,6 +60,7 @@
 [ext_resource type="PackedScene" path="res://mapa/edificios/building_mansion.tscn" id="31_uqy7y"]
 [ext_resource type="PackedScene" path="res://mapa/edificios/building_manor.tscn" id="32_04a1h"]
 [ext_resource type="Script" path="res://mapa/solar.gd" id="33_nou5s"]
+[ext_resource type="Script" path="res://mapa/zona.gd" id="34_fba6n"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1p8rd"]
 albedo_color = Color(0.793, 0.712, 0.64000005, 1)
@@ -14017,6 +14018,29 @@ script = ExtResource("33_nou5s")
 id_solar = "puesto_del_paso"
 centro_original = Vector2(1593, 47)
 terreno_m = Vector2(13.552, 9.968)
+
+[node name="Zonas" type="Node3D" parent="." unique_id=360140007]
+
+[node name="zona_plaza" type="Node3D" parent="Zonas" unique_id=1032764728]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.2, 0, 13.72)
+script = ExtResource("34_fba6n")
+id_zona = "plaza"
+centro_original = Vector2(465, 49)
+terreno_m = Vector2(58.8, 24.08)
+
+[node name="zona_lago" type="Node3D" parent="Zonas" unique_id=1317786544]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -242.9, 0, 46.2)
+script = ExtResource("34_fba6n")
+id_zona = "lago"
+centro_original = Vector2(-867.5, 165)
+terreno_m = Vector2(149.8, 75.6)
+
+[node name="zona_cienaga" type="Node3D" parent="Zonas" unique_id=1472191765]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -447.3, 0, 93.8)
+script = ExtResource("34_fba6n")
+id_zona = "cienaga"
+centro_original = Vector2(-1597.5, 335)
+terreno_m = Vector2(259, 134.4)
 
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 
