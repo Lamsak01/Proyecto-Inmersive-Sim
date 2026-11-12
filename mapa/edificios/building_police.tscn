@@ -489,3 +489,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.624, 0, -1.232)
 gizmo_extents = 0.5
 script = ExtResource("8_cp56h")
 id_marca = "escritorio"
+
+[node name="terminal" type="Marker3D" parent="Marcas" unique_id=802217533]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.52, 0, -1.12)
+gizmo_extents = 0.5
+script = ExtResource("8_cp56h")
+id_marca = "terminal"

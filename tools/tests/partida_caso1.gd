@@ -374,21 +374,21 @@ func _initialize() -> void:
 		Vector2(910.0, -396.0),
 		Vector2(948.0, -406.0),
 	], 4.0)
-	var e_lever: Dictionary = await _aim_and_press_e(pl, stage, Vector2(951.0, -420.0), -0.18, "estantería")
+	var e_lever: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_library", "palanca"), -0.18, "estantería")
 	var note_lever: bool = _has_note_with_source(det_ui, "clue_library_book_lever")
 	_record("C2_biblioteca_libro_palanca", walked_lib_door and walked_lib_lever and bool(e_lever["ok"]) and note_lever,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_lib_lever), str(e_lever["label"]), str(note_lever)])
 
 	# Entrar a pie a la sala oculta de la biblioteca (x=944, y=-435) y examinar el cuaderno de firmas (944, -448)
 	var walked_secret_room: bool = await _walk_to_waypoints(pl, stage, [Vector2(948.0, -434.0), Vector2(944.0, -435.0)], 3.0)
-	var e_ledger: Dictionary = await _aim_and_press_e(pl, stage, Vector2(944.0, -448.0), -0.22, "cuaderno")
+	var e_ledger: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_library", "libro_mayor"), -0.22, "cuaderno")
 	var note_ledger: bool = _has_note_with_source(det_ui, "clue_library_secret_ledger")
 	_record("C3_biblioteca_cuaderno_firmas", walked_secret_room and bool(e_ledger["ok"]) and note_ledger,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_secret_room), str(e_ledger["label"]), str(note_ledger)])
 
 	# Examinar el libro antiguo con la página arrancada (959, -448)
 	var walked_torn: bool = await _walk_to_waypoints(pl, stage, [Vector2(957.0, -434.0)], 4.0)
-	var e_torn: Dictionary = await _aim_and_press_e(pl, stage, Vector2(959.0, -448.0), -0.22, "libro")
+	var e_torn: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_library", "libro_roto"), -0.22, "libro")
 	var note_torn: bool = _has_note_with_source(det_ui, "clue_library_torn_book")
 	_record("C4_biblioteca_libro_pagina_arrancada", walked_torn and bool(e_torn["ok"]) and note_torn,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_torn), str(e_torn["label"]), str(note_torn)])

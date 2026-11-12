@@ -4575,8 +4575,8 @@ func _initialize() -> void:
 	p70_a.is_dead = false
 	p70_a.is_downed = false
 	p70_a.is_sleeping = false
-	p70_a.global_position = M(vcu_pj.TINKER_TERMINAL_POS) + Vector2(24.0, 0.0)
-	p70_pl.global_position = M(vcu_pj.TINKER_TERMINAL_POS) + Vector2(0.0, 12.0)
+	p70_a.global_position = M(vcu_pj.tinker_terminal_pos()) + Vector2(24.0, 0.0)
+	p70_pl.global_position = M(vcu_pj.tinker_terminal_pos()) + Vector2(0.0, 12.0)
 	vm.set_player_elevation_level(0)
 	vcu_pj.terminal_state(vm)["last_hack_day"] = -99
 	var fis2_hack_res: Dictionary = vcu_pj.hack_terminal(vm, "census_ledger", 0)

@@ -15,6 +15,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
+const Marca = preload("res://mapa/marca.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
@@ -497,7 +498,7 @@ static func steal_armory_ammo(vm, inv, for_rifle: bool = false) -> Dictionary:
 				c_ctrl.rifle_mag_loaded = 5
 			elif not for_rifle and int(c_ctrl.get("pistol_mag_loaded")) <= 0:
 				c_ctrl.pistol_mag_loaded = 6
-	var pl_pos: Vector2 = pl.global_position if pl != null else ARMORY_RACK_POS
+	var pl_pos: Vector2 = pl.global_position if pl != null else _AN_SITIOS.mover(armory_rack_pos())
 	var in_stealth: bool = pl != null and pl.has_method("is_stealthing") and bool(pl.call("is_stealthing"))
 	var cloak_mult: float = float(pl.call("get_stealth_detection_multiplier")) if (pl != null and pl.has_method("get_stealth_detection_multiplier")) else 1.0
 	var detect_rad: float = (44.0 if in_stealth else 145.0) * cloak_mult
@@ -524,7 +525,7 @@ static func steal_armory_weapon(vm, inv, for_rifle: bool = false) -> Dictionary:
 		inv.add_item("powder_charge", 2)
 	_auto_equip_and_load_firearm(vm, for_rifle)
 	var pl = VillageNeeds.player_of(vm)
-	var pl_pos: Vector2 = pl.global_position if pl != null else ARMORY_RACK_POS
+	var pl_pos: Vector2 = pl.global_position if pl != null else _AN_SITIOS.mover(armory_rack_pos())
 	var in_stealth: bool = pl != null and pl.has_method("is_stealthing") and bool(pl.call("is_stealthing"))
 	var cloak_mult: float = float(pl.call("get_stealth_detection_multiplier")) if (pl != null and pl.has_method("get_stealth_detection_multiplier")) else 1.0
 	var detect_rad: float = (46.0 if in_stealth else 150.0) * cloak_mult
@@ -567,10 +568,22 @@ static func terminal_state(vm) -> Dictionary:
 	return tm
 
 const TINKER_LOT: String = "e5"
-const ARMORY_RACK_POS: Vector2 = Vector2(369.0, -24.0) # Expositor de armas y cajas de munición dentro de la Herrería y Armería 'Yunque Gris'
-const TINKER_TERMINAL_POS: Vector2 = Vector2(1188.0, 122.0) # Dentro del Taller de Reparaciones (e5), sobre una mesa en el rincón noroeste
-const POLICE_TERMINAL_POS: Vector2 = Vector2(960.0, 128.0) # Dentro de la Comisaría (building_police), sobre el escritorio del alguacil en el ala este
-const TOWN_HALL_TERMINAL_POS: Vector2 = Vector2(718.0, -442.0) # Dentro del Ayuntamiento (building_town_hall), sobre la mesa lateral de consola
+## Máquinas y expositor dentro de edificios: son marcas de sus escenas (mapa/marca.gd), en el mapa original.
+const M_TERMINAL: String = "terminal"
+const M_EXPOSITOR: String = "expositor" ## armas y munición de la herrería
+
+static func armory_rack_pos() -> Vector2:
+	return Marca.sitio("shop_family_smith", M_EXPOSITOR)
+
+static func tinker_terminal_pos() -> Vector2:
+	return Marca.sitio("mixed_family_tinker", M_TERMINAL)
+
+static func police_terminal_pos() -> Vector2:
+	return Marca.sitio("building_police", M_TERMINAL)
+
+static func town_hall_terminal_pos() -> Vector2:
+	return Marca.sitio("building_town_hall", M_TERMINAL)
+
 const TINKER_GRID_PANEL_POS: Vector2 = Vector2(1270.0, 90.0) # En la pared exterior norte del Taller de Reparaciones (e5), a la derecha de la puerta
 const TINKER_GENERATOR_POS: Vector2 = Vector2(1316.0, 126.0) # Generador diésel junto al muro exterior este del Taller de Reparaciones (e5)
 
@@ -589,26 +602,26 @@ static func build_tinker_stations(vm) -> void:
 				old_c.queue_free()
 	var armory_rack: Node2D = PropScript.new()
 	armory_rack.name = "ArmoryWeaponRack"
-	armory_rack.global_position = _AN_SITIOS.mover(ARMORY_RACK_POS)
+	armory_rack.global_position = _AN_SITIOS.mover(armory_rack_pos())
 	vm.entities_root.add_child(armory_rack)
 	armory_rack.setup_prop(vm, "armory_rack", "smith", "Expositor de Armas y Munición")
 
 	var term: Node2D = PropScript.new()
 	term.name = "TinkerLogicTerminal"
-	term.global_position = _AN_SITIOS.mover(TINKER_TERMINAL_POS)
+	term.global_position = _AN_SITIOS.mover(tinker_terminal_pos())
 	vm.entities_root.add_child(term)
 	term.setup_prop(vm, "terminal")
 
 	var p_term: Node2D = PropScript.new()
 	p_term.name = "PoliceLogicTerminal"
-	p_term.global_position = _AN_SITIOS.mover(POLICE_TERMINAL_POS)
+	p_term.global_position = _AN_SITIOS.mover(police_terminal_pos())
 	vm.entities_root.add_child(p_term)
 	p_term.setup_prop(vm, "terminal", "police", "Terminal Policial de Fósforo Verde")
 
 	if VillageLots.lot(vm, "n4").get("kind", "") == "town_hall":
 		var th_term: Node2D = PropScript.new()
 		th_term.name = "TownHallLogicTerminal"
-		th_term.global_position = _AN_SITIOS.mover(TOWN_HALL_TERMINAL_POS)
+		th_term.global_position = _AN_SITIOS.mover(town_hall_terminal_pos())
 		vm.entities_root.add_child(th_term)
 		th_term.setup_prop(vm, "terminal", "town_hall", "Terminal Municipal de Fósforo Verde")
 
@@ -726,7 +739,7 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 	var pl = VillageNeeds.player_of(vm)
 	# Si el arreglador u otro vecino despierto te está viendo en ese momento (misma planta y cerca), cuenta como delito
 	if force_outcome == 0 and vm.has_method("_find_conscious_witness_near"):
-		var check_pos: Vector2 = pl.global_position if pl != null else TINKER_TERMINAL_POS
+		var check_pos: Vector2 = pl.global_position if pl != null else _AN_SITIOS.mover(tinker_terminal_pos())
 		var wit = vm._find_conscious_witness_near(check_pos, 120.0, null)
 		if wit != null:
 			tm["last_hack_day"] = today
@@ -1918,8 +1931,18 @@ static func repair_grid(vm) -> bool:
 static func library_pos() -> Vector2:
 	return VillageLots.building_center(LIBRARY_LOT)
 
+## Sitios de la biblioteca: marcas de su escena (mapa/marca.gd), en el mapa original.
+const LIBRARY_ID: String = "building_library"
+const M_LECTURA: String = "lectura"       ## mesa de lectura
+const M_PALANCA: String = "palanca"       ## libro-palanca de la sala oculta (Caso I)
+const M_LIBRO_MAYOR: String = "libro_mayor" ## cuaderno secreto (Caso I)
+const M_LIBRO_ROTO: String = "libro_roto" ## libro con hojas arrancadas (Caso I)
+
+static func library_site(marca: String) -> Vector2:
+	return Marca.sitio(LIBRARY_ID, marca)
+
 static func reading_spot() -> Vector2:
-	return library_pos() + Vector2(-8, -16 if bool(VillageLots.lot_def(LIBRARY_LOT)["door_south"]) else 16)
+	return library_site(M_LECTURA)
 
 # ---------------------------------------------------------------- mapa
 static func ensure_lots(vm) -> void:
@@ -2008,9 +2031,9 @@ static func build(vm, id: String, st: Dictionary) -> void:
 			vm._add_prop_collider(c + Vector2(46, 40 * m), Vector2(24.0, 4.0)) # Mesa y estantería interior prohibida
 			vm.register_no_stand_furniture(c + Vector2(42, 28 * m), Vector2(25.0, 10.5))
 			vm.register_no_stand_furniture(c + Vector2(43.5, 40.5 * m), Vector2(24.0, 7.0))
-			var lever_pos: Vector2 = c + Vector2(41.0, 0.0) # Vector2(951, -420)
-			var ledger_pos: Vector2 = c + Vector2(34.0, 28.0 * m) # Vector2(944, -448)
-			var torn_book_pos: Vector2 = c + Vector2(49.0, 28.0 * m) # Vector2(959, -448)
+			var lever_pos: Vector2 = library_site(M_PALANCA)
+			var ledger_pos: Vector2 = library_site(M_LIBRO_MAYOR)
+			var torn_book_pos: Vector2 = library_site(M_LIBRO_ROTO)
 			vm._add_station_area("LibraryBookLeverArea", lever_pos, 26.0, "library_book_lever")
 			vm._add_station_area("LibrarySecretLedgerArea", ledger_pos, 26.0, "library_secret_ledger")
 			vm._add_station_area("LibraryTornBookArea", torn_book_pos, 26.0, "library_torn_book")
@@ -2041,7 +2064,7 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 	if _try_outpost_interact(vm, player, pos):
 		return true
 	var o: Vector2 = _AN_SITIOS.desmover(pos) # los sitios fijos de abajo están escritos en el mapa original
-	if o.distance_to(TINKER_TERMINAL_POS) <= 26.0 or o.distance_to(POLICE_TERMINAL_POS) <= 26.0 or (VillageLots.lot(vm, "n4").get("kind", "") == "town_hall" and o.distance_to(TOWN_HALL_TERMINAL_POS) <= 26.0):
+	if o.distance_to(tinker_terminal_pos()) <= 26.0 or o.distance_to(police_terminal_pos()) <= 26.0 or (VillageLots.lot(vm, "n4").get("kind", "") == "town_hall" and o.distance_to(town_hall_terminal_pos()) <= 26.0):
 		var term_node: Node = vm.get_tree().get_first_node_in_group("tinker_terminal") if vm.is_inside_tree() else null
 		open_terminal_menu(vm, term_node, player)
 		return true
@@ -2535,7 +2558,7 @@ static func add_dialogue_choices(vm, npc, diag: Dictionary, ch_arr: Array) -> vo
 	if demo_active:
 		return
 	# Disparar desde la conversación quedó retirado (como el robo desde el diálogo): el arma se usa en las incursiones.
-	# Bloque FIS2: la Terminal Lógica ya no se hackea hablando con el arreglador; es una máquina física dentro del taller (TINKER_TERMINAL_POS).
+	# Bloque FIS2: la Terminal Lógica ya no se hackea hablando con el arreglador; es una máquina física dentro del taller (marca «terminal»).
 	# Bloque PP: Crear tu propio asentamiento fronterizo («Puesto del Paso») e Historia Principal (Panel L)
 	var op: Dictionary = outpost_state(vm)
 	if role_i in [int(VillageNPC.TradeRole.CARPENTER), int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.WOODCUTTER)]:

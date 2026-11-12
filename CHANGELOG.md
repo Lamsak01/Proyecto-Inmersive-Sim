@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 1, quinta y sexta tanda: ayuntamiento, albergue, escuela, biblioteca y máquinas con marcas (Claude Code)
+- 23 marcas nuevas: ayuntamiento (`mesa`, `urna`, `cofre`, `alcalde`, `terminal`), albergue (`cama_1..4`), escuela (`pupitre_1..6`, `maestro`), biblioteca (`lectura`, `palanca`, `libro_mayor`, `libro_roto`), `terminal` de la comisaría y del taller, y `expositor` de la herrería. Sus números están borrados (`VillageCivic`, `VillageFamily`, `VillageCulture`, `VillageManager`, pruebas).
+- Biblioteca (Caso I): la palanca y los dos libros tenían dos números distintos (el del objeto y otro, 11 px más allá, para comprobar el [E]); ahora hay uno solo, la marca. La palanca acepta además lo que el jugador tiene seleccionado, como ya hacían los libros.
+- Arreglo: el aviso de «estás junto al expositor de armas» comparaba con un punto del mapa sin agrandar.
+- Comprobado: sitios y 9.143 cosas del mapa idénticos; sondeo 29/29; partida automática del Caso I completa (25 pasos). Total: 99 marcas en 18 edificios.
+
 ## 2026-11-11 — Paso 1, cuarta tanda: hospital, comisaría y capilla con marcas (Claude Code)
 - 17 marcas nuevas: hospital (`camilla`, `cama_1`, `mesa`, `trabajo`, `mesa_morgue_1..3`), comisaría (`celda`, `cama_1`, `cama_celda`, `mesa`, `trabajo`, `archivo`, `escritorio`) y capilla (`altar`, `cama_1`, `mesa`). El pueblo las lee al arrancar y sus números están borrados (también los repetidos en `VillageJustice`, `VillageUnderworld`, `VillageNPCDuties`, `VillageNPC` y `partida_caso1.gd`).
 - Dos fallos arreglados de paso: al caer inconsciente, el jugador aparecía en el sitio del hospital de antes de agrandar el mapa (ahora en la camilla de verdad); y el inspector, al amanecer, iba a repasar el expediente a un punto del mapa viejo (ahora al escritorio de la comisaría). Sin probar jugando.

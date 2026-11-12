@@ -199,8 +199,8 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 			player.global_position = w_pos + Vector2(0, -15.0 if door_south else 15.0)
 			return true
 
-	# 4. ¿Está junto al expositor de armas de la Herrería (`ARMORY_RACK_POS`)? -> [F] Robar arma o munición
-	if player.global_position.distance_to(VillageCulture.ARMORY_RACK_POS) <= 32.0:
+	# 4. ¿Está junto al expositor de armas de la Herrería (marca «expositor»)? -> [F] Robar arma o munición
+	if player.global_position.distance_to(sitio(VillageCulture.armory_rack_pos())) <= 32.0:
 		var inv_arm = player.get("inventory")
 		if inv_arm != null:
 			var want_rf: bool = inv_arm.has_item("flintlock_pistol", 1) and not inv_arm.has_item("assault_rifle", 1)

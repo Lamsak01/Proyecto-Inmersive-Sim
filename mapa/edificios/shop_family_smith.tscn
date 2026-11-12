@@ -209,3 +209,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1279984, 0, -1.1199999)
 gizmo_extents = 0.5
 script = ExtResource("9_eckyp")
 id_marca = "cofre"
+
+[node name="expositor" type="Marker3D" parent="Marcas" unique_id=1177879998]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.904, 0, 0.672)
+gizmo_extents = 0.5
+script = ExtResource("9_eckyp")
+id_marca = "expositor"

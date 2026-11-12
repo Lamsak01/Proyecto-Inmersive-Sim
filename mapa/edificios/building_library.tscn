@@ -7,6 +7,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_e7c7c0f6.res" id="5_p8o36"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_4aeb310c.res" id="6_6mipb"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="7_5v2gl"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="8_ejucu"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ssbjh"]
 albedo_color = Color(0.6625, 0.6265, 0.604, 1)
@@ -403,3 +404,27 @@ modelo = "props/Nightstand_Shelf.gltf"
 tam3 = Vector3(0.448, 0.89825004, 0.364)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=351522179]
+
+[node name="lectura" type="Marker3D" parent="Marcas" unique_id=139169259]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.448, 0, -0.896)
+gizmo_extents = 0.5
+script = ExtResource("8_ejucu")
+id_marca = "lectura"
+
+[node name="palanca" type="Marker3D" parent="Marcas" unique_id=358178388]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.296, 0, 0)
+gizmo_extents = 0.5
+script = ExtResource("8_ejucu")
+id_marca = "palanca"
+
+[node name="libro_mayor" type="Marker3D" parent="Marcas" unique_id=1200825621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.904, 0, -1.568)
+gizmo_extents = 0.5
+script = ExtResource("8_ejucu")
+id_marca = "libro_mayor"
+
+[node name="libro_roto" type="Marker3D" parent="Marcas" unique_id=1069019512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.744, 0, -1.568)
+gizmo_extents = 0.5
+script = ExtResource("8_ejucu")
+id_marca = "libro_roto"

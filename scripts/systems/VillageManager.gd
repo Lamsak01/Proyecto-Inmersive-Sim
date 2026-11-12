@@ -566,8 +566,8 @@ func interact(player: Node2D) -> void:
 	var sel_node: Node = player.get("interaction_selector") if player != null else null
 	var sel_cand: Dictionary = sel_node.call("selected") if (sel_node != null and sel_node.has_method("selected")) else {}
 	var sel_kind: String = str(sel_cand.get("station", ""))
-	if sel_kind == "library_secret_ledger" or (sel_kind != "library_torn_book" and o.distance_squared_to(Vector2(944.0, -448.0)) <= 22.0 * 22.0 and o.distance_squared_to(Vector2(944.0, -448.0)) <= o.distance_squared_to(Vector2(959.0, -448.0))):
-		if o.distance_squared_to(Vector2(944.0, -448.0)) <= 26.0 * 26.0:
+	if sel_kind == "library_secret_ledger" or (sel_kind != "library_torn_book" and o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= 22.0 * 22.0 and o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO))):
+		if o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= 26.0 * 26.0:
 			_record_case_clue(
 				player,
 				"🖋️ Cuaderno",
@@ -578,8 +578,8 @@ func interact(player: Node2D) -> void:
 				Color(0.95, 0.88, 0.68)
 			)
 			return
-	if sel_kind == "library_torn_book" or o.distance_squared_to(Vector2(959.0, -448.0)) <= 22.0 * 22.0:
-		if o.distance_squared_to(Vector2(959.0, -448.0)) <= 26.0 * 26.0:
+	if sel_kind == "library_torn_book" or o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO)) <= 22.0 * 22.0:
+		if o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO)) <= 26.0 * 26.0:
 			_record_case_clue(
 				player,
 				"📖 Libro antiguo",
@@ -590,7 +590,7 @@ func interact(player: Node2D) -> void:
 				Color(0.88, 0.78, 0.96)
 			)
 			return
-	if o.distance_squared_to(Vector2(951.0, -420.0)) <= 24.0 * 24.0:
+	if sel_kind == "library_book_lever" or o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_PALANCA)) <= 24.0 * 24.0: # como los otros dos: vale lo que el jugador tiene seleccionado
 		_record_case_clue(
 			player,
 			"📕 Estantería",
