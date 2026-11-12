@@ -401,7 +401,7 @@ func _use_compost_bin(player: Node2D) -> void:
 
 ## `stall_original`: sitio del mostrador en el mapa ORIGINAL (su marca). La zona de uso y el letrero lo siguen a donde
 ## esté de verdad; en la ficha del negocio se guarda ya en el mundo actual.
-func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_original: Vector2, stall_spr: Sprite2D) -> void:
+func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_original: Vector2) -> void:
 	_add_station_area("ShopBusinessStall_%d" % role_id, stall_original, 18.0, "shop_business_stall")
 	var stall_pos: Vector2 = Anclas.mover(stall_original)
 
@@ -421,7 +421,7 @@ func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: Str
 	var cfg: Dictionary = trade_configs.get(role_id, {})
 	var init_stock: Dictionary = (cfg.get("stock", {}) as Dictionary).duplicate()
 	shop_businesses[role_id] = {
-		"role": role_id, "family_id": fam_id, "title": shop_title, "stall_pos": stall_pos, "stall_sprite": stall_spr,
+		"role": role_id, "family_id": fam_id, "title": shop_title, "stall_pos": stall_pos,
 		"owner_mode": "NPC", "vault_gold": 0, "sabotaged_days": 0, "sabotaged_today_day": -1,
 		"supply_items": sup_items, "stock_override": init_stock
 	}
@@ -446,17 +446,6 @@ func _update_shop_business_stalls(_player: Node2D, _mouse_pos: Vector2) -> void:
 func _refresh_shop_stall_visual(role_id: int) -> void:
 	if not shop_businesses.has(role_id):
 		return
-	var biz: Dictionary = shop_businesses[role_id]
-	var spr: Sprite2D = biz.get("stall_sprite")
-	var sab_d: int = int(biz.get("sabotaged_days", 0))
-	var owner_m: String = str(biz.get("owner_mode", "NPC"))
-	if is_instance_valid(spr):
-		if sab_d > 0:
-			spr.modulate = Color(0.62, 0.36, 0.34, 0.96)
-		elif owner_m != "NPC":
-			spr.modulate = Color(1.06, 1.04, 0.88, 1.0)
-		else:
-			spr.modulate = Color.WHITE
 	_sync_shop_sabotage_fx_2d(role_id)
 
 ## B4.2: Taller saboteado echa humo y chispas en 2D hasta que se repara; si hay fuego fuera, la lluvia ayuda a apagarlo.

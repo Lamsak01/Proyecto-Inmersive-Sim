@@ -78,9 +78,8 @@ static func build_world(vm) -> void:
 	var dec: String = "res://assests/Comprados/Epic RPG World - The Village V2.1/"
 	var bench: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/bench_0.png"
 	# Parque: sus pinos (el 3D los copia de aquí) y bancos; césped, paseos y bordillo los dibuja el terreno 3D
-	var tree: Texture2D = vm._load_tex(dec + "tilesets and props/props-sprites/pine-tree_0.png")
 	for tp in [Vector2(188, 224), Vector2(420, 224), Vector2(188, 338), Vector2(420, 338), Vector2(304, 228)]:
-		vm._add_sprite_prop(tree, tp, Vector2(0.7, 0.7), 0)
+		vm._add_marca_3d("deco_pine", tp)
 	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "park_bench") + Vector2(0, -8))
 	vm._spawn_decor_prop(bench, Vector2(372, 260))
 	# Bancos de la plaza

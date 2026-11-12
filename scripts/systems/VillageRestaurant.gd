@@ -109,8 +109,8 @@ static func build(vm) -> void:
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 	_build_furniture(vm)
 	_build_terrace(vm)
-	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex(PROPS + "storage_countertop_0.png"), sitio(M_BARRA), Vector2(0.55, 0.55), -1)
-	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, sitio(M_BARRA), stall)
+	vm._add_prop_collider(sitio(M_BARRA), vm.COLISOR_PUESTO)
+	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, sitio(M_BARRA))
 	vm._spawn_house_chest(sitio(M_COFRE), "Cofre de " + TITLE, FAMILY_ID)
 
 static func _build_furniture(vm) -> void:

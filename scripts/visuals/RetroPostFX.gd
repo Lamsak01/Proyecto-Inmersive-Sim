@@ -121,10 +121,7 @@ func _collect_lights(out: Array, to_screen: Transform2D, px_per_world: float, ho
 	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and (hour_f >= 19.0 or hour_f < 6.0 or grid_on)
 	if lamps_lit and "streetlights" in vm:
 		for sl in vm.streetlights:
-			var spr: Sprite2D = sl.get("sprite")
-			if not is_instance_valid(spr):
-				continue
-			var p: Vector2 = to_screen * (spr.global_position + Vector2(3.5, -6.0))
+			var p: Vector2 = to_screen * ((sl.get("pos", Vector2.ZERO) as Vector2) + Vector2(3.5, -6.0))
 			if _on_screen(p, screen_sz, margin):
 				out.append(_light(p, 78.0 * px_per_world, 1.0))
 	# Ventanas encendidas: de 18:00 a 23:30 y antes del alba, salvo si tienen el postigo cerrado.

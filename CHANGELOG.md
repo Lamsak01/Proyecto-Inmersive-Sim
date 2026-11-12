@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Objetos quietos sin dibujo plano: marcas invisibles (Claude Code)
+- Nuevo `_add_marca_3d(tipo, pos)` en `VillageManagerBase` (sustituye a `_add_sprite_prop`): un `Node2D` con
+  `tipo_3d` (+ choque por tipo) que el 3D convierte en pozo, poste con texto, compostera, pino de adorno o roca.
+- Puestos, mostradores, tablón, farolas y camillas: solo su choque (su 3D ya salía de otros datos). Farolas guardan
+  su sitio del mundo en `streetlights[i]["pos"]`. Fuera tintes y texturas planas de puestos y cadáveres.
+- Sprites 134 → 57; lista visible igual. Fotos de poste, pozo, pino del parque, farola y roca; verify_all.
+
 ## 2026-11-12 — Fuera el dibujo plano de puertas, ventanas y cofres (Claude Code)
 - Las puertas, postigos y cofres 3D ya leían su estado de los datos (abierta, cerrada con llave, postigo, saqueado);
   se borran sus 141 dibujos planos y el código que les cambiaba la imagen. Sprites 275 → 134; lista visible igual.

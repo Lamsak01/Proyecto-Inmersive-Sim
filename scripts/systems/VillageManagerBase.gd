@@ -3,6 +3,12 @@ extends Node2D
 const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const Anclas = preload("res://mapa/anclas.gd")
+const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D
+const GIRO_MINIMO_GRADOS: float = 0.5
+## Choque de cada objeto quieto con marca 3D (tamaño en el mapa plano).
+const COLISOR_MARCA: Dictionary = {"well": Vector2(14.0, 14.0), "compost": Vector2(10.0, 9.0), "deco_pine": Vector2(10.0, 10.0), "sign": Vector2(7.0, 6.0)}
+const COLISOR_PUESTO := Vector2(16.0, 9.0)   ## mostrador o puesto de trabajo
+const COLISOR_TABLON := Vector2(7.0, 6.0)    ## tablón de encargos y farolas
 const Marca = preload("res://mapa/marca.gd")
 const Planta = preload("res://mapa/planta.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
@@ -168,7 +174,6 @@ const MESAS_MORGUE: int = 3
 ## Los sitios de estos edificios son marcas de su escena (mapa/marca.gd), en el mapa original como todo lo de aquí
 var _hospital_bed_pos: Vector2 = Marca.sitio(ID_HOSPITAL, Marca.CAMILLA)
 var _morgue_table_positions: Array[Vector2] = _leer_mesas_morgue()
-var _morgue_corpse_sprites: Array[Sprite2D] = []
 var morgue_active_corpses: Array[Dictionary] = [] # Máximo 3 cuerpos simultáneos en las camillas de la Morgue
 var buried_graves: Array[Dictionary] = []         # Cuerpos sepultados físicamente en el Cementerio de la Iglesia
 var corpse_records: Array[Dictionary] = []        # Archivo histórico forense completo
@@ -222,7 +227,7 @@ var completed_contracts_today: Dictionary = {}
 # Paso 10: Farolas Eléctricas del Pueblo
 var streetlights: Array[Dictionary] = []
 
-var _compost_sprite: Sprite2D = null
+var _compost_marca: Node2D = null
 var _compost_area: Area2D = null
 
 var _tavern_bed_pos := VillageTavern.sitio(VillageTavern.M_CAMA_JUGADOR)
@@ -247,7 +252,7 @@ var board_panel: PanelContainer = null
 var board_info_lbl: Label = null
 
 # Fase 8: Economía Dinámica de Oferta/Demanda, Sabotaje Industrial y Propiedad Híbrida de Negocios
-var shop_businesses: Dictionary = {} # int(TradeRole) -> {role, family_id, title, stall_pos, stall_sprite, stall_label, owner_mode, vault_gold, sabotaged_days, sabotaged_today_day, supply_items}
+var shop_businesses: Dictionary = {} # int(TradeRole) -> {role, family_id, title, stall_pos, stall_label, owner_mode, vault_gold, sabotaged_days, sabotaged_today_day, supply_items}
 var village_food_shortage_days: int = 0
 var house_pantry: Dictionary = {} # family_id / npc_name -> int (Raciones de comida guardadas en la despensa de casa)
 var vagrant_camp_nodes: Dictionary = {} # npc_name -> Node2D (Campamento rústico físico en las afueras)
@@ -304,8 +309,8 @@ func get_poker_chair_positions() -> Array[Vector2]:
 	return VillageTavern.poker_chairs()
 
 func set_camp_farm_enabled(en: bool) -> void:
-	if is_instance_valid(_compost_sprite):
-		_compost_sprite.visible = en
+	if is_instance_valid(_compost_marca):
+		_compost_marca.visible = en
 	if is_instance_valid(_compost_area):
 		_compost_area.monitoring = en
 		_compost_area.monitorable = en
@@ -1456,8 +1461,7 @@ func is_position_lit_by_lamp_or_lantern(pos: Vector2, ignore_entity: Node2D = nu
 	var lamps_lit: bool = VillageCulture.is_lamps_powered(self) and (hr >= 19 or hr < 7 or grid_on)
 	if lamps_lit:
 		for sl in streetlights:
-			var spr: Sprite2D = sl.get("sprite")
-			var sl_pos: Vector2 = spr.global_position if is_instance_valid(spr) else (sl.get("pos", Vector2.ZERO) as Vector2)
+			var sl_pos: Vector2 = sl.get("pos", Vector2.ZERO)
 			if pos.distance_squared_to(sl_pos) <= 82.0 * 82.0:
 				return true
 	if hr >= 20 or hr < 7:
@@ -1717,40 +1721,20 @@ func _add_rect_poly(pos: Vector2, half_sz: Vector2, col: Color, z_idx: int = -1,
 	var pts := PackedVector2Array([Vector2(-half_sz.x, -half_sz.y), Vector2(half_sz.x, -half_sz.y), Vector2(half_sz.x, half_sz.y), Vector2(-half_sz.x, half_sz.y)])
 	return _add_poly(pts, col, z_idx, pos, parent_node)
 
-func _add_sprite_prop(tex: Texture2D, pos: Vector2, sc: Vector2 = Vector2.ONE, z_idx: int = -1, vis: bool = true, mod: Color = Color.WHITE) -> Sprite2D:
-	var p0 := pos # las paredes invisibles de abajo siguen al ancla por su cuenta (y giran con ella)
+## Objetos quietos sin dibujo plano (2026-11-12): una marca invisible dice al 3D (WorldStageProps3D/Terrain3D) qué
+## poner y dónde; si el objeto choca, se le pone su choque. Sustituye a los dibujos planos que hacían de plano del 3D.
+func _add_marca_3d(tipo: String, pos: Vector2) -> Node2D:
+	var marca := Node2D.new()
+	marca.name = "Marca3D_" + tipo
+	marca.global_position = Anclas.mover(pos, "dibujo", tipo)
+	marca.set_meta(META_TIPO_3D, tipo)
 	var g_ancla: float = Anclas.giro(pos)
-	pos = Anclas.mover(pos, "dibujo", (tex.resource_path if tex.resource_path != "" else str(tex.get_meta("src_path", ""))).get_file().get_basename() if tex != null else "")
-	var s := Sprite2D.new()
-	s.texture = tex
-	s.global_position = pos
-	s.scale = sc
-	s.z_index = z_idx
-	s.visible = vis
-	if mod != Color.WHITE:
-		s.modulate = mod
-	if absf(g_ancla) > 0.5:
-		s.set_meta("giro_3d", g_ancla) # el dibujo 3D gira con su ancla (WorldStageProps3D)
-	entities_root.add_child(s)
-	if tex != null and tex.has_meta("src_path"):
-		var fname: String = str(tex.get_meta("src_path")).get_file()
-		match fname:
-			"work_stall.png", "storage_countertop_0.png":
-				_add_prop_collider(p0, Vector2(16.0, 9.0))
-			"water_well.png":
-				_add_prop_collider(p0, Vector2(14.0, 14.0))
-			"compost_bin.png":
-				_add_prop_collider(p0, Vector2(10.0, 9.0))
-			"pine-tree_0.png":
-				_add_prop_collider(p0, Vector2(10.0, 10.0))
-			"questboard_1.png", "sign_1.png", "lamp-post1.png":
-				_add_prop_collider(p0, Vector2(7.0, 6.0))
-			"morgue_table.png":
-				_add_prop_collider(p0, Vector2(10.0, 14.0))
-			"tavern_bed.png", "hospital_bed.png":
-				var b_tag: String = "tavern_upper_walls" if VillageTavern.RECT.has_point(_AN_SITIOS.desmover(pos)) else ""
-				_add_prop_collider(p0, Vector2(10.0, 14.0), b_tag)
-	return s
+	if absf(g_ancla) > GIRO_MINIMO_GRADOS:
+		marca.set_meta("giro_3d", g_ancla) # el objeto 3D gira con su ancla
+	entities_root.add_child(marca)
+	if COLISOR_MARCA.has(tipo):
+		_add_prop_collider(pos, COLISOR_MARCA[tipo])
+	return marca
 
 ## Letreros del mapa sin amontonarse (2026-11-05): solo se ven los que están cerca del jugador (o bajo el ratón), y si
 ## dos se pisan, se queda el más cercano. Usa la transparencia (modulate.a), así no toca su `visible`.

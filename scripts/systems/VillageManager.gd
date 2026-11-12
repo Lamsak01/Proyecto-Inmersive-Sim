@@ -708,7 +708,7 @@ func interact(player: Node2D) -> void:
 	var d_games: float = pos.distance_squared_to(sitio(_tavern_games_pos))
 	var d_pool: float = pos.distance_squared_to(sitio(_tavern_pool_pos))
 	var d_well: float = _get_nearest_well_dist_sq(pos)
-	var comp_on: bool = _compost_sprite == null or _compost_sprite.visible
+	var comp_on: bool = _compost_marca == null or _compost_marca.visible
 	var d_comp: float = pos.distance_squared_to(sitio(_compost_pos)) if comp_on else INF
 
 	if d_pool <= d_games and d_pool <= d_bed and d_pool <= 32.0 * 32.0:

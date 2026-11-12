@@ -14,7 +14,6 @@ extends RefCounted
 
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
-const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D: qué objeto 3D le toca a un dibujo
 const TIPO_3D_ROCA := "roca"     ## las rocas de la cantera comparten dibujo con las que se pican: se marcan aparte
 
 const CONFIG: Dictionary = {
@@ -175,9 +174,8 @@ static func _build_extras_en_mundo(vm, id: String, c: Dictionary, lc: Vector2, h
 			vm._spawn_decor_prop(props + "hay_2.png", Vector2(x0 + 12.0, y1 - 12.0))
 			load("res://scripts/systems/VillageHousing.gd").sync_livestock(vm)
 		"quarry":
-			var rock: Texture2D = vm._load_tex("res://assests/world/harvest/rock_iron_vein.png")
 			for rp in [Vector2(x0 + 18, y0 + 22), Vector2(x1 - 20, y0 + 40), Vector2(x0 + 30, y1 - 24), Vector2(x1 - 30, y1 - 18)]:
-				vm._add_sprite_prop(rock, rp, Vector2(0.8, 0.8), 0).set_meta(META_TIPO_3D, TIPO_3D_ROCA)
+				vm._add_marca_3d(TIPO_3D_ROCA, rp)
 		"woods":
 			for lp in [Vector2(-82, 10), Vector2(82, 14)]:
 				vm._spawn_decor_prop(props + "logs_0.png", VillageLots.building_center(id) + dc + lp)

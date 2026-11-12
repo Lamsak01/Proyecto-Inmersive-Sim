@@ -174,9 +174,8 @@ static func night_stroll_spot(vm, npc, step: int = 0) -> Vector2:
 	var h_idx: int = abs((npc.get_person_key() + ":" + str(step)).hash())
 	if vm != null and "streetlights" in vm and not vm.streetlights.is_empty() and (step % 2 == 0):
 		var sl: Dictionary = vm.streetlights[h_idx % vm.streetlights.size()]
-		var spr: Sprite2D = sl.get("sprite")
-		if is_instance_valid(spr):
-			return spr.global_position + Vector2(float((h_idx % 3) - 1) * 14.0, 16.0)
+		if sl.has("pos"):
+			return (sl["pos"] as Vector2) + Vector2(float((h_idx % 3) - 1) * 14.0, 16.0)
 	var rondas: Array[Vector2] = Sitio.serie(SITIOS_RONDA)
 	return rondas[h_idx % rondas.size()] + (Vector2(float((h_idx % 5) - 2) * 8.0, float(((h_idx / 5) % 3) - 1) * 8.0))
 

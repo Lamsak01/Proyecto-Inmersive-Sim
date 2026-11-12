@@ -274,8 +274,8 @@ func _scan_nature_sources() -> void:
 		parents.append(eco)
 	for par in parents:
 		for c in (par as Node).get_children():
-			if c is Sprite2D and _is_pine_texture((c as Sprite2D).texture):
-				var tp: Vector2 = (c as Sprite2D).global_position
+			if c is Node2D and String(c.get_meta(META_TIPO_3D, "")) == TIPO_PINO_ADORNO:
+				var tp: Vector2 = (c as Node2D).global_position
 				# Evitar que árboles decorativos se solapen con muros de edificios, bancos del parque u otros árboles
 				var overlaps := en_cauce_del_rio(tp, 2.0)
 				if not overlaps and "building_footprints" in vm:
@@ -289,10 +289,10 @@ func _scan_nature_sources() -> void:
 							overlaps = true
 							break
 				if overlaps:
-					(c as Sprite2D).visible = false
+					(c as Node2D).visible = false
 					continue
 				tree_positions_seen.append(tp)
-				_nature_sources.append({"node": c, "kind": "deco_pine", "sprite": c})
+				_nature_sources.append({"node": c, "kind": TIPO_PINO_ADORNO})
 	_sync_nature_3d(false)
 	_scan_props_sources()
 
@@ -406,18 +406,11 @@ func _flush_batches() -> void:
 	_batch_dirty.clear()
 
 
-static func _is_pine_texture(t: Texture2D) -> bool:
-	if t == null:
-		return false
-	var src: String = t.resource_path if not t.resource_path.is_empty() else String(t.get_meta("src_path", ""))
-	return src.find("pine-tree") != -1 or src.ends_with("world/tree.png")
-
-
 func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 	var hv: int = absi(int(n.global_position.x * 13.0 + n.global_position.y * 7.0))
 	var pos := n.global_position
 	var rot: float = float(hv % 360)
-	if kind == "pine" or kind == "deco_pine":
+	if kind == "pine" or kind == TIPO_PINO_ADORNO:
 		# Árboles variados por zona: robles/hayas frondosos, abedules de corteza blanca y pinos altos
 		var village_trees := [
 			"nature/CommonTree_1.obj", "nature/CommonTree_2.obj", "nature/BirchTree_1.obj",

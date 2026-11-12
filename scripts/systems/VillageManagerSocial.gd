@@ -295,9 +295,6 @@ func get_grave_pos_for_victim(victim_name_str: String) -> Vector2:
 	return sitio(_cemetery_gate_pos)
 
 func _refresh_morgue_table_sprites() -> void:
-	for i in range(_morgue_corpse_sprites.size()):
-		if is_instance_valid(_morgue_corpse_sprites[i]):
-			_morgue_corpse_sprites[i].visible = (i < morgue_active_corpses.size())
 	for i in range(morgue_active_corpses.size()):
 		if i < _morgue_table_positions.size():
 			var v_name: String = str(morgue_active_corpses[i].get("victim_name", ""))

@@ -22,8 +22,8 @@ var boar_pool: Array[WildAnimal] = []
 ## para no alterar la cadena trófica ni sobrecazar el bosque.
 const MIN_SAFE_TREES: int = 16
 const Cartel = preload("res://mapa/cartel.gd")
-const POSTE_TEX := "res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"
-const POSTE_ESCALA: float = 0.9
+const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D
+const TIPO_POSTE := "sign"
 const MIN_SAFE_ORE_VEINS: int = 5
 const MIN_SAFE_WILD_FLORA: int = 16
 const MIN_SAFE_RABBITS: int = 10
@@ -534,14 +534,13 @@ func _notify_ecological_shift() -> void:
 	elif r_count == 0 and d_count == 0:
 		player.show_hint("⚠️ La sobre-caza ha dejado el bosque sin herbívoros.")
 
-## Poste de madera con el texto en su tabla: el dibujo «sign_1» pasa a 3D como los postes de los caminos
-## (WorldStageProps3D, «sign»; texto con mapa/cartel.gd).
+## Poste de madera con el texto en su tabla: una marca invisible que el 3D convierte en poste como los de los caminos
+## (WorldStageProps3D, «sign»; texto con mapa/cartel.gd). Sin dibujo plano desde 2026-11-12.
 func _spawn_forest_sign(pos: Vector2, txt: String) -> void:
-	var poste := Sprite2D.new()
-	poste.texture = load(POSTE_TEX)
+	var poste := Node2D.new()
+	poste.name = "Marca3D_" + TIPO_POSTE
 	poste.global_position = load("res://mapa/anclas.gd").mover(pos, "letrero", txt)
-	poste.scale = Vector2.ONE * POSTE_ESCALA
-	poste.z_index = -1
+	poste.set_meta(META_TIPO_3D, TIPO_POSTE)
 	poste.set_meta(Cartel.META_TEXTO, txt)
 	entities_root.add_child(poste)
 

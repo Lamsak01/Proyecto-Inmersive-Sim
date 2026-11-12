@@ -2,6 +2,7 @@
 extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
+const TIPO_PINO_ADORNO := "deco_pine" ## marca de pino de adorno: lo pone el 3D de la naturaleza (WorldStageTerrain3D)
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
 const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
@@ -340,8 +341,7 @@ func _build_streetlights_3d() -> void:
 	var m_bulb_voltaic := _mat("bulb_voltaic", Color(0.55, 0.96, 1.0), 0.2, 0.0, Color(0.45, 0.92, 1.0), 3.4)
 
 	for sl in vm.streetlights:
-		var spr: Sprite2D = sl.get("sprite")
-		var pos: Vector2 = spr.global_position if is_instance_valid(spr) else Vector2.ZERO
+		var pos: Vector2 = sl.get("pos", Vector2.ZERO)
 		_add_model_2d(streetlights_root_3d, "graveyard/lightpost-single.glb", pos, 0.0, Vector2(9.0, 9.0), 29.0)
 		var bulb := _add_cyl_2d(streetlights_root_3d, pos + Vector2(3.5, 0), 2.2, 23.0, 3.6, m_bulb_warm, 1.6, 8)
 		var omni: OmniLight3D = null
@@ -823,12 +823,14 @@ static func _tex_file(t: Texture2D) -> String:
 	return src.get_file()
 
 
-func _prop_kind_for(spr: Sprite2D) -> String:
+func _prop_kind_for(spr: Node2D) -> String:
 	if spr.name == "CropSprite":
 		return "crop"
-	if spr.has_meta(META_TIPO_3D): # el que lo crea dice qué es (p. ej. las rocas de la cantera, que comparten dibujo con las que se pican)
+	if spr.has_meta(META_TIPO_3D): # marca sin dibujo (2026-11-12) o dibujo que no basta para saber qué es
 		return String(spr.get_meta(META_TIPO_3D))
-	var mapped: String = String(PROP_KIND_BY_TEXTURE.get(_tex_file(spr.texture), ""))
+	if not spr is Sprite2D:
+		return ""
+	var mapped: String = String(PROP_KIND_BY_TEXTURE.get(_tex_file((spr as Sprite2D).texture), ""))
 	if not mapped.is_empty():
 		return mapped
 	var p: Node = spr.get_parent()
@@ -854,8 +856,8 @@ func _scan_props_sources() -> void:
 				elif sub is Line2D or sub is Polygon2D:
 					_extra_hidden_2d.append(sub)
 			continue
-		if c is Sprite2D:
-			_add_prop_source(c as Sprite2D)
+		if c is Sprite2D or (c is Node2D and c.has_meta(META_TIPO_3D)):
+			_add_prop_source(c as Node2D)
 		elif c is FarmPlot:
 			if not c.visible:
 				continue
@@ -916,9 +918,9 @@ func _collect_canvas_items(n: Node, out: Array) -> void:
 			_collect_canvas_items(c, out)
 
 
-func _add_prop_source(spr: Sprite2D, in_plot: bool = false) -> void:
+func _add_prop_source(spr: Node2D, in_plot: bool = false) -> void:
 	var kind := "crop" if in_plot and spr.name == "CropSprite" else _prop_kind_for(spr)
-	if kind == "crop" and not in_plot:
+	if (kind == "crop" and not in_plot) or kind == TIPO_PINO_ADORNO:
 		return
 	if not kind.is_empty():
 		_prop_sources.append({"sprite": spr, "kind": kind})
@@ -943,11 +945,11 @@ func _sync_props_3d(only_update: bool) -> void:
 		var spr_v = src["sprite"]
 		if not is_instance_valid(spr_v):
 			continue # p. ej. el cartel de un solar que ya se construyó
-		var spr: Sprite2D = spr_v
+		var spr: Node2D = spr_v
 		var id := spr.get_instance_id()
 		alive[id] = true
 		var kind: String = src["kind"]
-		var variant := _tex_file(spr.texture) if kind in ["soil", "crop", "feeder", "nest"] else kind
+		var variant := _variante(spr) if kind in ["soil", "crop", "feeder", "nest"] else kind
 		var rec: Dictionary = _prop_nodes.get(id, {})
 		var stale: bool = not rec.is_empty() and (String(rec.get("variant", "")) != variant or (rec.get("pos", Vector2.ZERO) as Vector2).distance_squared_to(spr.global_position) > 0.25)
 		if stale:
@@ -968,7 +970,7 @@ func _sync_props_3d(only_update: bool) -> void:
 			_prop_nodes[id] = rec
 		var r3 = rec.get("root")
 		if r3 is Node3D and is_instance_valid(r3):
-			(r3 as Node3D).visible = spr.is_visible_in_tree() and spr.texture != null
+			(r3 as Node3D).visible = spr.is_visible_in_tree() and (not spr is Sprite2D or (spr as Sprite2D).texture != null)
 		spr.self_modulate.a = 0.0
 	for ci in _extra_hidden_2d:
 		if is_instance_valid(ci):
@@ -986,7 +988,12 @@ func _sync_props_3d(only_update: bool) -> void:
 			_prop_nodes.erase(id)
 
 
-func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
+## Estado que cambia el aspecto (tierra mojada, comedero lleno, huevos, cultivo): hoy, el nombre de su dibujo.
+static func _variante(fuente: Node2D) -> String:
+	return _tex_file((fuente as Sprite2D).texture) if fuente is Sprite2D else ""
+
+
+func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
 	var pos: Vector2 = spr.global_position
 	# Mismos valores que tenía la madera del terreno, que antes se creaba primero con este nombre y era la que salía
 	var m_wood := _mat("prop_wood", Color(0.54, 0.36, 0.20), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
@@ -1125,16 +1132,16 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 			_add_cyl_2d(root, pos, 1.4, 0.0, 7.0, m_iron, 1.4, 8)
 			_add_cyl_2d(root, pos, 3.0, 7.0, 1.4, m_iron, 1.6, 8)
 		"soil":
-			var wet: bool = _tex_file(spr.texture) == "soil_wet.png"
+			var wet: bool = _variante(spr) == "soil_wet.png"
 			var m_soil := _mat("plot_soil_wet" if wet else "plot_soil_dry", Color(0.30, 0.21, 0.13) if wet else Color(0.50, 0.37, 0.24), 0.97, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.5)
 			_add_box_2d(root, pos, Vector2(21, 21), 0.0, 1.6, m_soil)
 			for fy in [-6.0, 0.0, 6.0]:
 				_add_box_2d(root, pos + Vector2(0, fy), Vector2(19, 2.6), 1.6, 1.0, m_soil)
 		"crop":
-			_build_crop_3d(root, pos, _tex_file(spr.texture))
+			_build_crop_3d(root, pos, _variante(spr))
 		"feeder":
 			# Comedero: artesa de tablas con más o menos grano según lo lleno que esté
-			var tf := _tex_file(spr.texture)
+			var tf := _variante(spr)
 			_add_box_2d(root, pos, Vector2(18, 8), 0.0, 4.0, m_wood)
 			if tf != "coop_feeder_empty.png":
 				var grain_h: float = 1.0 if tf == "coop_feeder_half.png" else 2.2
@@ -1143,7 +1150,7 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 			# Nido: caja baja con paja y, si hay, huevos
 			_add_box_2d(root, pos, Vector2(16, 13), 0.0, 4.0, m_dark)
 			_add_box_2d(root, pos, Vector2(13, 10), 4.0, 1.2, _mat("coop_straw", Color(0.84, 0.74, 0.42), 0.97, 0.0))
-			if _tex_file(spr.texture) == "coop_nest_eggs.png":
+			if _variante(spr) == "coop_nest_eggs.png":
 				var m_egg := _mat("coop_egg", Color(0.96, 0.92, 0.82), 0.7, 0.0)
 				for off in [Vector2(-2.5, -1), Vector2(2.5, 0.5), Vector2(0, 2.5)]:
 					_add_cyl_2d(root, pos + off, 1.6, 5.0, 2.4, m_egg, 1.0, 6)

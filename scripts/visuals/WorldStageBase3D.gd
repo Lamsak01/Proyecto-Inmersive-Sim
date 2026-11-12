@@ -92,7 +92,7 @@ var _cutaway_accum: float = 0.0
 var nature_root_3d: Node3D = null
 var _nature_accum: float = 10.0
 var _nature_scan_accum: float = 10.0
-var _nature_sources: Array = [] # [{"node": Node2D, "kind": "pine"|"rock"|"deco_pine", "sprite": CanvasItem}]
+var _nature_sources: Array = [] # [{"node": Node2D, "kind": "pine"|"rock"|"deco_pine"|…}]
 var _nature_nodes: Dictionary = {} # instance_id -> {"tree": Node3D, "stump": Node3D}
 ## Rendimiento: árboles y rocas iguales se dibujan juntos por zonas (una sola orden a la tarjeta por modelo y zona).
 const BATCH_CHUNK_PX: float = 512.0

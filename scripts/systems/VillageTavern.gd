@@ -158,7 +158,6 @@ static func setup_world(vm) -> void:
 	vm._tavern_bed_pos = sitio(M_CAMA_JUGADOR)
 	vm._tavern_well_pos = preload("res://mapa/objeto.gd").pos("pozo_taberna", WELL_POS) # editor del mapa: el pozo movido manda
 
-	var tex_stall: Texture2D = vm._load_tex("res://assests/world/village/work_stall.png")
 	var tex_innkeeper: Texture2D = vm._load_tex("res://assests/world/village/villager_innkeeper.png")
 
 	vm._construct_solid_building(BUILDING_ID, TITLE, CENTER,
@@ -171,7 +170,6 @@ static func setup_world(vm) -> void:
 		sb_w.collision_layer = load("res://scripts/fisica/Suelo.gd").capa(int(vm.player_elevation_level) == 0)
 
 	# Mostrador largo de Marta y pasa-platos del camarero
-	vm._add_sprite_prop(tex_stall, sitio(M_BARRA) + Vector2(0.0, 4.0), Vector2(1.4, 1.2), -1).add_to_group("tavern_floor0_2d")
 	vm._add_prop_collider(sitio(M_BARRA), Vector2(96.0, 10.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_BARRA), Vector2(96.0, 10.0))
 
@@ -258,8 +256,8 @@ static func setup_world(vm) -> void:
 		"bed2_pos": guest_beds()[2],
 		"table_pos": sitio(M_MESA_CENTRAL),
 	}
-	var waiter_stall: Sprite2D = vm._add_sprite_prop(tex_stall, sitio(M_PASAPLATOS), Vector2(0.85, 0.85), -1)
-	vm._register_shop_business_stall(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, sitio(M_PASAPLATOS), waiter_stall)
+	vm._add_prop_collider(sitio(M_PASAPLATOS), vm.COLISOR_PUESTO)
+	vm._register_shop_business_stall(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, sitio(M_PASAPLATOS))
 
 # ------------------------------------------------------------------ asientos de comedor y póker
 ## Plan de sitios: los asientos se devuelven en su sitio ACTUAL (siguen a la taberna movida en el editor 3D).

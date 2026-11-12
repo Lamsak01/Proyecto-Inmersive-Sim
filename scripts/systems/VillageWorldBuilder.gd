@@ -2,7 +2,6 @@
 extends RefCounted
 const Marca = preload("res://mapa/marca.gd")
 const Cartel = preload("res://mapa/cartel.gd")
-const POSTE_TEX := "res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"
 
 ## Construcción inicial del pueblo (caminos, edificios y mobiliario). Extraído de VillageManager.gd:
 ## cada función recibe al VillageManager como primer parámetro (`vm`) y solo se ejecuta al montar el mundo.
@@ -19,7 +18,7 @@ static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
 
 ## Poste indicador: su dibujo pasa a 3D (WorldStageProps3D, «sign») con el texto escrito en la tabla (mapa/cartel.gd).
 static func _spawn_world_signpost(vm: VillageManager, pos: Vector2, texto: String) -> void:
-	var poste: Sprite2D = vm._add_sprite_prop(vm._load_tex(POSTE_TEX), pos, Vector2(0.9, 0.9), -1)
+	var poste: Node2D = vm._add_marca_3d("sign", pos)
 	poste.set_meta(Cartel.META_TEXTO, texto)
 
 static func _spawn_western_plains_and_frog_marsh(vm: VillageManager) -> void:
@@ -33,7 +32,6 @@ static func _spawn_tavern_and_rooms(vm: VillageManager) -> void:
 
 # 4 LOCALES COMERCIALES + 4 CASAS RESIDENCIALES + BOTICA-VIVIENDA MIXTA
 static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
-	var tex_stall := vm._load_tex("res://assests/world/village/work_stall.png")
 	var tex_family := vm._load_tex("res://assests/world/village/villager_traveler.png")
 
 	vm.trade_configs = {
@@ -106,10 +104,10 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		var table_pos: Vector2 = Marca.sitio(house_id, Marca.MESA)
 
 		if is_mixed:
-			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), tex_stall, bed1_pos, bed2_pos, table_pos, fam_id, int(role_key))
+			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), bed1_pos, bed2_pos, table_pos, fam_id, int(role_key))
 		else:
 			var is_smithy: bool = (role_key == VillageNPC.TradeRole.BLACKSMITH)
-			_build_enclosed_shop_visuals(vm, sc, str(cfg["shop_title"]), tex_stall, is_smithy, fam_id, int(role_key))
+			_build_enclosed_shop_visuals(vm, sc, str(cfg["shop_title"]), is_smithy, fam_id, int(role_key))
 			_build_residential_house_visuals(vm, hc, str(cfg["house_title"]), table_pos, fam_id)
 
 		cfg["work_pos"] = work_pos
@@ -140,7 +138,7 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		kin_npc.setup_npc(tex_family, kin_work_pos, bed2_pos, {}, table_pos, fam_id, str(cfg["family_name"]))
 		vm.family_npcs[role_key] = kin_npc
 
-static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_title: String, tex_stall: Texture2D, is_blacksmith: bool, fam_id: String, role_id: int = -1) -> void:
+static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_title: String, is_blacksmith: bool, fam_id: String, role_id: int = -1) -> void:
 	var floor_p: String = "res://assests/world/village/floor_stone_forge.png" if is_blacksmith else "res://assests/world/village/floor_wood_planks.png"
 	var wall_h_p: String = "res://assests/world/village/wall_stone_h.png" if is_blacksmith else "res://assests/world/village/wall_timber_h.png"
 	var wall_v_p: String = "res://assests/world/village/wall_stone_v.png" if is_blacksmith else "res://assests/world/village/wall_timber_v.png"
@@ -148,9 +146,9 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 	vm._construct_solid_building("shop_" + fam_id, shop_title, sc,
 		floor_p, wall_h_p, wall_v_p)
 	var stall_pos: Vector2 = Marca.sitio("shop_" + fam_id, Marca.PUESTO)
-	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.32, 1.32), -1)
+	vm._add_prop_collider(stall_pos, vm.COLISOR_PUESTO)
 	if role_id >= 0:
-		vm._register_shop_business_stall(role_id, shop_title, fam_id, stall_pos, stall)
+		vm._register_shop_business_stall(role_id, shop_title, fam_id, stall_pos)
 	vm.register_no_stand_furniture(stall_pos, Vector2(18.0, 8.5))
 
 	vm._spawn_house_chest(Marca.sitio("shop_" + fam_id, Marca.COFRE), "Cofre de " + shop_title, fam_id)
@@ -165,14 +163,13 @@ static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, ho
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos)
 	vm._spawn_house_chest(Marca.sitio("house_" + fam_id, Marca.COFRE), "Cofre Familiar (" + house_title + ")", fam_id)
 
-static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, tex_stall: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String, role_id: int = -1) -> void:
+static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String, role_id: int = -1) -> void:
 	vm._construct_solid_building("mixed_" + fam_id, title, center,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 
 	var stall_pos: Vector2 = Marca.sitio("mixed_" + fam_id, Marca.PUESTO)
-	var stall := vm._add_sprite_prop(tex_stall, stall_pos, Vector2(1.3, 1.3), -1)
 	if role_id >= 0:
-		vm._register_shop_business_stall(role_id, title, fam_id, stall_pos, stall)
+		vm._register_shop_business_stall(role_id, title, fam_id, stall_pos)
 	vm._add_prop_collider(stall_pos, Vector2(21.0, 9.5))
 	vm.register_no_stand_furniture(stall_pos, Vector2(21.0, 9.5))
 	vm._add_prop_collider(center + Vector2(35, -14), Vector2(12.0, 12.0))
@@ -196,12 +193,8 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 
 	vm._add_station_area("HospitalEmergencyBedArea", vm._hospital_bed_pos, 16.0, "hospital_bed")
 
-	var tex_mtable := vm._load_tex("res://assests/world/village/morgue_table.png")
-	var tex_corpse := vm._load_tex("res://assests/world/village/morgue_corpse_sheet.png")
-	vm._morgue_corpse_sprites.clear()
+	# Camillas y cuerpos se ven en 3D (escena del hospital y WorldStageProps3D); aquí solo su choque
 	for m_pos in vm._morgue_table_positions:
-		vm._add_sprite_prop(tex_mtable, m_pos, Vector2(1.15, 1.15), -1)
-		vm._morgue_corpse_sprites.append(vm._add_sprite_prop(tex_corpse, m_pos, Vector2(1.15, 1.15), 0, false))
 		vm._add_prop_collider(m_pos, Vector2(13.6, 21.6))
 		vm.register_no_stand_furniture(m_pos, Vector2(13.6, 21.6))
 	vm.register_no_stand_furniture(Vector2(723.5, 189.0), Vector2(11.0, 6.2))
@@ -321,9 +314,8 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 			vm._add_prop_collider(g_pos, Vector2(10.0, 10.0))
 
 	# Árboles (pinos/cipreses) flanqueando el perímetro del cementerio en 2D y 3D
-	var cem_tree_tex := vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/pine-tree_0.png")
 	for c_tp in [Vector2(834.0, 272.0), Vector2(1076.0, 272.0), Vector2(1076.0, 344.0), Vector2(834.0, 416.0), Vector2(968.0, 418.0), Vector2(1076.0, 416.0)]:
-		vm._add_sprite_prop(cem_tree_tex, c_tp, Vector2(0.62, 0.62), 0)
+		vm._add_marca_3d("deco_pine", c_tp)
 
 	# Río de norte a sur, arroyo del bosque norte, Claro del Caso I y Molino Viejo Abandonado
 	_spawn_river_arroyo_and_abandoned_mill(vm)
@@ -443,35 +435,33 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)
 # ==============================================================================
 static func _spawn_notice_board_in_plaza(vm: VillageManager) -> void:
-	vm._add_sprite_prop(vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/questboard_1.png"), vm._notice_board_pos, Vector2(0.65, 0.65), -1)
+	vm._add_prop_collider(vm._notice_board_pos, vm.COLISOR_TABLON) # el tablón se ve en 3D
 	vm._add_station_area("PlazaNoticeBoardArea", vm._notice_board_pos, 14.0, "notice_board")
 
 # ==============================================================================
 # PASO 10: ⚡ FAROLAS ELÉCTRICAS EN LAS CALLES DEL PUEBLO (`lamp-post1.png`)
 # ==============================================================================
 static func _spawn_electric_streetlights(vm: VillageManager) -> void:
-	var lamp_tex := vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/tilesets and props/props-sprites/lamp-post1.png")
 	var lamp_positions: Array[Vector2] = [Vector2(215, 36), Vector2(392, 10), Vector2(534, 10), Vector2(396, -118), Vector2(692, 88), Vector2(862, 88)]
 	for li in range(lamp_positions.size()):
 		var l_pos: Vector2 = load("res://mapa/objeto.gd").pos("farola_%d" % li, lamp_positions[li])
-		var l_spr := vm._add_sprite_prop(lamp_tex, l_pos, Vector2(0.75, 0.75), 1)
-		vm.streetlights.append({"sprite": l_spr, "pos": l_pos})
+		vm._add_prop_collider(l_pos, vm.COLISOR_TABLON)
+		vm.streetlights.append({"pos": vm.sitio(l_pos)}) # sitio en el mundo; la farola 3D sale de aquí
 
 static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
-	var well_tex := vm._load_tex("res://assests/world/village/water_well.png")
 	vm._well_positions = [vm.sitio(vm._well_pos), vm.sitio(vm._tavern_well_pos), vm.sitio(vm._plaza_well_pos)] # del mundo: se compara con posiciones reales
 
-	vm._add_sprite_prop(well_tex, vm._well_pos, Vector2(1.25, 1.25), 0)
+	vm._add_marca_3d("well", vm._well_pos)
 	vm._add_station_area("WaterWellArea", vm._well_pos, 24.0, "well")
 
 	# Pozo en el Patio Lateral de la Gran Posada ('El Jabalí Dorado')
-	vm._add_sprite_prop(well_tex, vm._tavern_well_pos, Vector2(1.25, 1.25), 0)
+	vm._add_marca_3d("well", vm._tavern_well_pos)
 	vm._add_station_area("TavernWaterWellArea", vm._tavern_well_pos, 24.0, "well")
 
 	# Pozo en la Plaza Central del Pueblo
-	vm._add_sprite_prop(well_tex, vm._plaza_well_pos, Vector2(1.25, 1.25), 0)
+	vm._add_marca_3d("well", vm._plaza_well_pos)
 	vm._add_station_area("PlazaWaterWellArea", vm._plaza_well_pos, 24.0, "well")
 
-	vm._compost_sprite = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/compost_bin.png"), vm._compost_pos, Vector2(1.25, 1.25), 0)
+	vm._compost_marca = vm._add_marca_3d("compost", vm._compost_pos)
 	vm._compost_area = vm._add_station_area("CompostBinArea", vm._compost_pos, 16.0, "compost")
 	vm.set_camp_farm_enabled(false)

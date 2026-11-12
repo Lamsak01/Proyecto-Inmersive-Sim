@@ -185,7 +185,7 @@ static func _build_gap_pockets(vm) -> void:
 		var p: Vector2 = g["pos"]
 		match str(g["kind"]):
 			"well":
-				vm._add_sprite_prop(vm._load_tex("res://assests/world/village/water_well.png"), p, Vector2(1.25, 1.25), 0)
+				vm._add_marca_3d("well", p)
 				vm._add_station_area("RondaWaterWellArea", p, 24.0, "well")
 				if not vm.sitio(p) in vm._well_positions:
 					vm._well_positions.append(vm.sitio(p))
@@ -208,7 +208,7 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 	var snap: Dictionary = _capture_begin(vm)
 	match str(st["status"]):
 		"empty":
-			vm._add_sprite_prop(vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"), site_work_pos(id), Vector2(0.8, 0.8), -1)
+			vm._add_marca_3d("sign", site_work_pos(id))
 		"building":
 			for off in [Vector2(-30, -10), Vector2(24, 8), Vector2(-6, 18)]:
 				vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/crates_0.png", c + off)
@@ -220,7 +220,7 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 	if not old_biz.is_empty() and vm.shop_businesses.has(int(st["role"])):
 		var nb: Dictionary = vm.shop_businesses[int(st["role"])]
 		for k in old_biz.keys():
-			if not k in ["stall_pos", "stall_sprite"]:
+			if k != "stall_pos":
 				nb[k] = old_biz[k] # Conserva dueño, caja, sabotaje y existencias al redibujar
 	if vm.has_method("refresh_world_stage_3d"):
 		vm.refresh_world_stage_3d()
@@ -270,8 +270,8 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	var lay: Dictionary = shop_house_layout(shop_house_id(fam))
 	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
-	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/work_stall.png"), lay["stall_pos"], Vector2(1.3, 1.3), -1)
-	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"], stall)
+	vm._add_prop_collider(lay["stall_pos"], vm.COLISOR_PUESTO)
+	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"])
 	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", lay["table_pos"])
 	vm._spawn_house_chest(lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
 	load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id) # V5d: campos, corrales, cantera…

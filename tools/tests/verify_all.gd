@@ -6926,8 +6926,7 @@ func _initialize() -> void:
 	vm.VillageCulture.state(vm)["grid"]["lamps"] = true
 	vm.VillageCulture.state(vm)["grid"]["all"] = true
 	var b4_dark_pos := M(Vector2(-2450, 1820))
-	var b4_lamp_spr: Sprite2D = vm.streetlights[0].get("sprite") if not vm.streetlights.is_empty() else null
-	var b4_lamp_pos: Vector2 = b4_lamp_spr.global_position if is_instance_valid(b4_lamp_spr) else M(Vector2(495, 118))
+	var b4_lamp_pos: Vector2 = vm.streetlights[0]["pos"] if not vm.streetlights.is_empty() else M(Vector2(495, 118))
 	var b4_vis_dark: float = vm.get_ambient_vision_multiplier_at(b4_dark_pos, p70_pl)
 	var b4_vis_lamp: float = vm.get_ambient_vision_multiplier_at(b4_lamp_pos, p70_pl)
 	assert(b4_vis_dark < 0.45 and b4_vis_lamp >= 0.90, "B4.2: Dawn fog cuts neighbor vision range in the dark (%0.2f) except near lit streetlamps (%0.2f)" % [b4_vis_dark, b4_vis_lamp])
