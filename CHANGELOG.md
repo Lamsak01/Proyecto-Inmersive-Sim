@@ -9,6 +9,7 @@ El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `do
   editor (`farola_calle_N` en «Sitios»): se mueven con el ratón y la farola va con ellas.
 - El farol brilla y un foco hacia abajo deja un charco de luz en el suelo; las luces lejanas se apagan solas por el
   rendimiento (unas 30 imágenes por segundo con farolas, 32 sin ellas).
+- Después, a petición del usuario: farolas un 20 % más altas y con un 50 % más de luz (charco más ancho).
 
 ## 2026-11-12 — La red eléctrica la mueve el generador del Arreglador (Claude Code, decisión del usuario)
 - Antes la corriente del pueblo salía del generador de tu campamento (borrado) y el pueblo se quedó sin ella. Ahora la

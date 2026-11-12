@@ -10,15 +10,19 @@ const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la natural
 const COLOR_LUZ_ELECTRICA: Color = Color(0.58, 0.96, 1.0)
 ## Farola (modelo «lightpost-single», medido 2026-11-12): el farol cuelga al sur del poste, entre las placas de 21–23 px
 ## y 25–27 px de alto (9 × 4 px de planta). El cristal brilla con una caja de luz un poco dentro de las placas y dos luces: un foco hacia abajo que deja un charco de luz en el suelo y un resplandor suave para las paredes.
+## Medidas tomadas con la farola de 29 px; el usuario la pidió un 20 % más alta y con un 50 % más de luz (2026-11-12).
+const FAROLA_ALTO_MEDIDO_PX: float = 29.0
+const FAROLA_ALTO_PX: float = FAROLA_ALTO_MEDIDO_PX * 1.2
+const FAROLA_ESTIRA: float = FAROLA_ALTO_PX / FAROLA_ALTO_MEDIDO_PX ## el modelo solo se estira hacia arriba
 const FAROL_DESPLAZ: Vector2 = Vector2(0.0, 2.5)
 const FAROL_TAM: Vector2 = Vector2(8.4, 3.6)
-const FAROL_BASE_PX: float = 22.9
-const FAROL_ALTO_PX: float = 2.2
-const FAROLA_CHARCO_ENERGIA: float = 10.0
-const FAROLA_CHARCO_ALCANCE_PX: float = 4.5   ## × Mapa3D.K, como el resto de luces de la escala vieja
-const FAROLA_CHARCO_ANGULO: float = 55.0
-const FAROLA_ENERGIA: float = 2.0
-const FAROLA_ALCANCE_PX: float = 2.4
+const FAROL_BASE_PX: float = 22.9 * FAROLA_ESTIRA
+const FAROL_ALTO_PX: float = 2.2 * FAROLA_ESTIRA
+const FAROLA_CHARCO_ENERGIA: float = 15.0
+const FAROLA_CHARCO_ALCANCE_PX: float = 6.0   ## × Mapa3D.K, como el resto de luces de la escala vieja
+const FAROLA_CHARCO_ANGULO: float = 60.0
+const FAROLA_ENERGIA: float = 3.0
+const FAROLA_ALCANCE_PX: float = 3.6
 ## Con ~47 farolas, las luces lejanas se apagan solas (el farol sigue brillando): el portátil no aguanta ~90 luces a la vez.
 const FAROLA_LUZ_VISIBLE_M: float = 70.0
 const FAROLA_LUZ_FUNDIDO_M: float = 15.0
@@ -364,7 +368,7 @@ func _build_streetlights_3d() -> void:
 
 	for sl in vm.streetlights:
 		var pos: Vector2 = sl.get("pos", Vector2.ZERO)
-		_add_model_2d(streetlights_root_3d, "graveyard/lightpost-single.glb", pos, 0.0, Vector2(9.0, 9.0), 29.0)
+		_add_model_2d(streetlights_root_3d, "graveyard/lightpost-single.glb", pos, 0.0, Vector2(9.0, 9.0), FAROLA_ALTO_PX)
 		var farol: Vector2 = pos + FAROL_DESPLAZ
 		var bulb := _add_box_2d(streetlights_root_3d, farol, FAROL_TAM, FAROL_BASE_PX, FAROL_ALTO_PX, m_bulb)
 		var omni: OmniLight3D = null
