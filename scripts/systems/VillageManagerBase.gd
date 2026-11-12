@@ -7,6 +7,7 @@ const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D
 const GIRO_MINIMO_GRADOS: float = 0.5
 ## Choque de cada objeto quieto con marca 3D (tamaño en el mapa plano).
 const COLISOR_MARCA: Dictionary = {"well": Vector2(14.0, 14.0), "compost": Vector2(10.0, 9.0), "deco_pine": Vector2(10.0, 10.0), "sign": Vector2(7.0, 6.0)}
+const GRUPO_CHOQUE_MUEBLE := "choque_mueble"
 const COLISOR_PUESTO := Vector2(16.0, 9.0)   ## mostrador o puesto de trabajo
 const COLISOR_TABLON := Vector2(7.0, 6.0)    ## tablón de encargos y farolas
 const Marca = preload("res://mapa/marca.gd")
@@ -157,6 +158,7 @@ var domestic_pets: Array[DomesticPet] = []
 var building_footprints: Array[Dictionary] = []
 var _wall_occluder_rects: Array[Rect2] = []
 var _no_stand_furniture_rects: Array[Rect2] = []
+var _no_pisar_muebles: Array[Rect2] = [] ## lo mismo para los muebles con choque del editor (se rehace con los edificios 3D)
 ## Rendimiento (2026-11-09): copia plana de las huellas de edificios para las comprobaciones de cada vecino en cada
 ## instante (evita leer diccionarios y comparar textos 60 veces por vecino). Se rehace si cambia el número de huellas.
 var _fp_cache_n: int = -1
@@ -786,17 +788,34 @@ static func _leer_mesas_morgue() -> Array[Vector2]:
 		mesas.append(Marca.sitio(ID_HOSPITAL, Marca.MESA_MORGUE % i))
 	return mesas
 
+## `pos` en el mapa ORIGINAL (se traduce a su sitio actual, como el choque que la acompaña).
 func register_no_stand_furniture(pos: Vector2, sz: Vector2) -> void:
 	if sz.x <= 0.0 or sz.y <= 0.0:
 		return
-	_no_stand_furniture_rects.append(Rect2(pos - sz * 0.5, sz))
+	_no_stand_furniture_rects.append(Rect2(sitio(pos) - sz * 0.5, sz))
+
+## Choque de un mueble del editor (mapa/mueble.gd), ya en el mundo: su pared invisible y, en la planta baja, el sitio
+## donde ningún vecino puede quedarse de pie. Lo pone el escenario 3D al colocar cada edificio.
+func choque_de_mueble(pos: Vector2, sz: Vector2, giro: float, piso: int) -> void:
+	var sb: StaticBody2D = add_choque_mundo(pos, sz, giro, "tavern_upper_walls" if piso > 0 else "")
+	if sb == null:
+		return
+	sb.add_to_group(GRUPO_CHOQUE_MUEBLE)
+	if piso == 0:
+		_no_pisar_muebles.append(Transform2D(giro, pos) * Rect2(-sz * 0.5, sz))
+
+## Antes de volver a colocar los edificios 3D: fuera los choques de muebles de la vez anterior.
+func quitar_choques_de_muebles() -> void:
+	for sb: Node in get_tree().get_nodes_in_group(GRUPO_CHOQUE_MUEBLE):
+		sb.queue_free()
+	_no_pisar_muebles.clear()
 
 ## Impide que ningún vecino (ni sus pies 3D con FOOT_OFFSET_PX = 4.0) quede subido encima de altares, mesas, mostradores o muebles.
 func push_out_of_furniture(pos: Vector2, elev: int = 0) -> Vector2:
 	if elev != 0:
 		return pos
 	var res := pos
-	for f_rect in _no_stand_furniture_rects:
+	for f_rect: Rect2 in _no_stand_furniture_rects + _no_pisar_muebles:
 		var guard := Rect2(f_rect.position - Vector2(2.5, 5.2), f_rect.size + Vector2(5.0, 7.6))
 		if guard.has_point(res):
 			var dl: float = absf(res.x - guard.position.x)
@@ -1267,9 +1286,16 @@ func _prune_door_blocking_prop_colliders() -> void:
 			if _is_prop_collider_blocking_passage(sb.global_position, sz):
 				sb.queue_free()
 
+## Pared invisible pedida en el mapa ORIGINAL: se traduce a su sitio actual y gira con su ancla.
 func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> StaticBody2D:
 	var ancla: Dictionary = Anclas.buscar(pos)
-	pos = Anclas.aplicar(ancla, pos)
+	var sb: StaticBody2D = add_choque_mundo(Anclas.aplicar(ancla, pos), sz, 0.0, group_tag)
+	Anclas.girar_choque(ancla, sb, sz)
+	return sb
+
+## Pared invisible con su sitio ya en el mundo (sale de una pieza del editor): `giro` en radianes del mapa plano.
+## La de la taberna solo choca en su planta («tavern_floor0_walls» / «tavern_upper_walls»).
+func add_choque_mundo(pos: Vector2, sz: Vector2, giro: float, group_tag: String = "") -> StaticBody2D:
 	if not is_instance_valid(entities_root) or sz.x <= 0.0 or sz.y <= 0.0:
 		return null
 	if group_tag != "tavern_upper_walls" and _is_prop_collider_blocking_passage(pos, sz):
@@ -1280,6 +1306,7 @@ func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> St
 	var sb := StaticBody2D.new()
 	sb.name = "PropCollider"
 	sb.global_position = pos
+	sb.rotation = giro
 	sb.collision_layer = 1
 	if tag == "tavern_upper_walls" or tag == "tavern_floor0_walls": # de un solo piso (paso a 3D, paso 2)
 		sb.collision_layer = Suelo.capa(int(player_elevation_level) == (1 if tag == "tavern_upper_walls" else 0))
@@ -1292,7 +1319,6 @@ func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> St
 	rect.size = sz
 	col.shape = rect
 	sb.add_child(col)
-	Anclas.girar_choque(ancla, sb, sz)
 	entities_root.add_child(sb)
 	return sb
 

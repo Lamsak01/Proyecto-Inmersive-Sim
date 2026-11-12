@@ -52,7 +52,6 @@ const TERRACE: Rect2 = Rect2(BASE + Vector2(0, 196), Vector2(275, 40))
 ## números aquí. Se piden con sitio(M_…), dining_tables() y terrace_tables(); llegan en el mapa original, como
 ## esperan las funciones que colocan cosas y vecinos.
 const M_FOGONES: String = "fogones"        ## donde trabaja el cocinero
-const M_ENCIMERA: String = "encimera"
 const M_COLGADERO: String = "colgadero"    ## colgadero de carne en la cámara
 const M_BARRA: String = Marca.PUESTO       ## barra y caja del comedor (gestionar el negocio)
 const M_PIANO: String = "piano"
@@ -60,7 +59,6 @@ const M_RESERVADO: String = "mesa_reservado"
 const M_CAMA_DUENO: String = Marca.CAMA_1
 const M_CAMA_2: String = Marca.CAMA_2
 const M_COFRE: String = Marca.COFRE
-const M_BOTELLERO: String = "botellero"
 const M_MESA: String = "mesa_%d"           ## mesas del comedor, de la 1 a MESAS_COMEDOR
 const M_MESA_TERRAZA: String = "mesa_terraza_%d"
 const MESAS_COMEDOR: int = 5
@@ -114,23 +112,15 @@ static func build(vm) -> void:
 	vm._spawn_house_chest(sitio(M_COFRE), "Cofre de " + TITLE, FAMILY_ID)
 
 static func _build_furniture(vm) -> void:
-	for t in dining_tables():
-		vm._spawn_decor_prop(PROPS + "table_chairs_0.png", t)
+	# Mesas, estantes, encimera, cajas y toneles chocan desde sus muebles (escena del restaurante)
 	vm._spawn_decor_prop(PROPS + "piano.png", sitio(M_PIANO))
-	vm._spawn_decor_prop(PROPS + "drinks_shelf_0.png", sitio(M_BARRA) + Vector2(0, 12))
 	vm._spawn_decor_prop(PROPS + "plants_3.png", BASE + Vector2(8, 88))
 	vm._spawn_decor_prop(PROPS + "plants_5.png", BASE + Vector2(187, 88))
 	# Cocina
 	vm._spawn_decor_prop(PROPS + "stove.png", sitio(M_FOGONES))
-	vm._spawn_decor_prop(PROPS + "storage_countertop2_0.png", sitio(M_ENCIMERA))
 	vm._spawn_decor_prop(PROPS + "kitchen_props_3.png", BASE + Vector2(210, 116))
-	vm._spawn_decor_prop(PROPS + "pots_pack_0.png", BASE + Vector2(266, 146))
 	# Cámara frigorífica
-	vm._spawn_decor_prop(PROPS + "crates_3.png", BASE + Vector2(264, 56))
 	# Bodega
-	vm._spawn_decor_prop(PROPS + "drinks_shelf_1.png", sitio(M_BOTELLERO))
-	vm._spawn_decor_prop(PROPS + "barrels3_0.png", BASE + Vector2(96, 48))
-	vm._spawn_decor_prop(PROPS + "barrels_2.png", BASE + Vector2(130, 48))
 	# Reservado y despacho del dueño
 	vm._spawn_decor_prop(PROPS + "big_round_table_chairs_0.png", sitio(M_RESERVADO))
 	vm._spawn_decor_prop(PROPS + "fireplace_0.png", BASE + Vector2(10, 12))

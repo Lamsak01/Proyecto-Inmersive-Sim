@@ -1951,18 +1951,12 @@ static func sync_outpost_visuals(vm) -> void:
 static func build(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = VillageLots.lot_def(id)
 	var c: Vector2 = VillageLots.building_center(id)
-	var props: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 	var m: float = -1.0 if bool(d["door_south"]) else 1.0
 	vm._construct_solid_building("building_" + str(st["kind"]), str(st["title"]), c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 	match str(st["kind"]):
 		"library":
-			for sx in [-44, -18, 8]: # Estanterías del fondo (dejando el cuadrante NE para la Sala Oculta)
-				vm._add_prop_collider(c + Vector2(sx, 36 * m), Vector2(18.0, 6.5))
-				vm.register_no_stand_furniture(c + Vector2(sx, 36 * m), Vector2(20.0, 7.0))
-			for side_x in [-53]:
-				vm._add_prop_collider(c + Vector2(side_x, 14 * m), Vector2(6.5, 16.0))
-				vm.register_no_stand_furniture(c + Vector2(side_x, 14 * m), Vector2(7.0, 18.0))
+			# Estanterías, mesa de lectura y mostrador chocan desde sus muebles (escena de la biblioteca)
 			# Punto 5 (Caso I): Sala oculta tras estantería con libro-palanca en el cuadrante noreste (`c + Vector2(24..62, -46..-4)`)
 			vm._add_prop_collider(c + Vector2(24, 34 * m), Vector2(4.0, 20.0)) # Tabique oeste de la sala oculta
 			vm._add_prop_collider(c + Vector2(46, 40 * m), Vector2(24.0, 4.0)) # Mesa y estantería interior prohibida
@@ -1974,12 +1968,8 @@ static func build(vm, id: String, st: Dictionary) -> void:
 			vm._add_station_area("LibraryBookLeverArea", lever_pos, 26.0, "library_book_lever")
 			vm._add_station_area("LibrarySecretLedgerArea", ledger_pos, 26.0, "library_secret_ledger")
 			vm._add_station_area("LibraryTornBookArea", torn_book_pos, 26.0, "library_torn_book")
-			vm._add_prop_collider(c + Vector2(-36, -18 * m), Vector2(16.0, 9.0))
-			vm.register_no_stand_furniture(c + Vector2(-36, -18 * m), Vector2(18.0, 9.5))
 			vm._add_prop_collider(c + Vector2(42, -38 * m), Vector2(14.0, 6.0))
 			vm.register_no_stand_furniture(c + Vector2(36, -22 * m), Vector2(16.0, 9.0))
-			vm._spawn_decor_prop(props + "table_chairs_1.png", reading_spot())
-			vm.register_no_stand_furniture(reading_spot(), Vector2(22.0, 12.5))
 			vm._add_station_area("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
 
 # ---------------------------------------------------------------- biblioteca

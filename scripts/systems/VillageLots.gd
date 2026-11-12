@@ -270,9 +270,7 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	var lay: Dictionary = shop_house_layout(shop_house_id(fam))
 	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
-	vm._add_prop_collider(lay["stall_pos"], vm.COLISOR_PUESTO)
-	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"])
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", lay["table_pos"])
+	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"]) # mostrador y mesa chocan desde sus muebles
 	vm._spawn_house_chest(lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
 	load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id) # V5d: campos, corrales, cantera…
 

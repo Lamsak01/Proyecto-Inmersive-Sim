@@ -168,6 +168,7 @@ pos_original = Vector2(358.9999, -50.000008)
 local_original = Vector3(1.3439941, 0.21135294, -0.7840004)
 modelo = "props/Whetstone.gltf"
 tam3 = Vector3(0.504, 1.0039265, 0.42)
+choque = Vector2(16, 9)
 
 [node name="WeaponStand" type="Node3D" parent="Muebles" unique_id=1634298326]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9039993, 0.21135294, 0.67199993)
@@ -186,6 +187,7 @@ pos_original = Vector2(337, -52)
 local_original = Vector3(0.11199951, 0.21135294, -0.8959999)
 modelo = "props/Workbench.gltf"
 tam3 = Vector3(1.344, 0.89825004, 0.588)
+choque = Vector2(16, 9)
 
 [node name="Marcas" type="Node3D" parent="." unique_id=526654123]
 

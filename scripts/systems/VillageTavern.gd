@@ -59,7 +59,6 @@ const M_TRABAJO: String = Marca.TRABAJO     ## Marta detrás del mostrador
 const M_PASAPLATOS: String = "pasaplatos"   ## donde el camarero recoge comandas
 const M_TONELES: String = "toneles"         ## hilera de toneles tras la barra
 const M_FOGONES: String = "fogones"
-const M_MESA_CORTE: String = "mesa_corte"
 const M_CHIMENEA: String = "chimenea"
 const M_MESA_CENTRAL: String = "mesa_central" ## referencia del salón: donde se reúne la gente
 const M_POKER: String = "poker"
@@ -178,18 +177,9 @@ static func setup_world(vm) -> void:
 	vm.register_no_stand_furniture(sitio(M_CHIMENEA), Vector2(12.0, 28.0))
 	vm._add_prop_collider(sitio(M_FOGONES), Vector2(24.0, 11.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_FOGONES), Vector2(24.0, 11.0))
-	vm._add_prop_collider(sitio(M_MESA_CORTE), Vector2(24.0, 10.0), "tavern_floor0_walls")
-	vm.register_no_stand_furniture(sitio(M_MESA_CORTE), Vector2(24.0, 10.0))
 	vm._add_prop_collider(sitio(M_TONELES), Vector2(52.0, 10.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_TONELES), Vector2(52.0, 10.0))
-	for b_cell_pos in [Vector2(498.0, -302.0), Vector2(534.0, -302.0), Vector2(498.0, -268.0)]:
-		vm._add_prop_collider(b_cell_pos, Vector2(9.0, 9.0), "tavern_floor0_walls")
-		vm.register_no_stand_furniture(b_cell_pos, Vector2(9.0, 9.0))
-
-	# 6 Mesas de comedor y tertulia en el Gran Salón (Planta 0), en 3D — colisión de tablero ajustada para dejar libres las sillas
-	for tp in dining_tables():
-		vm._add_prop_collider(tp, Vector2(13.0, 8.0), "tavern_floor0_walls")
-		vm.register_no_stand_furniture(tp, Vector2(13.0, 8.0))
+	# Mesa de corte, toneles y cajas de la bodega y las 6 mesas del salón chocan desde sus muebles (escena de la taberna)
 
 	# 1. Mesa Verde de Póker / Blackjack / Ruleta con 4 sillas
 	vm._add_prop_collider(sitio(M_POKER), Vector2(14.0, 10.0), "tavern_floor0_walls")

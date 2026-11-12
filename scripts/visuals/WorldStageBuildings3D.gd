@@ -24,6 +24,7 @@ func rebuild_buildings_3d() -> void:
 	_jail_gate_pivot_3d = null
 	if vm == null:
 		return
+	vm.quitar_choques_de_muebles()
 	for b: Dictionary in vm.building_footprints:
 		var propia: PackedScene = _escena_de(str(b.get("id", "")))
 		if propia == null: # todo edificio sale de una escena del editor; sin ella no hay nada que poner
@@ -90,8 +91,8 @@ func _poner_edificio_de_escena(b: Dictionary, propia: PackedScene) -> void:
 	_registrar_edificio_3d(raiz, b_id, rect, puerta_sur)
 
 
-## Dibuja el modelo de cada pieza del grupo «Muebles» (mapa/mueble.gd) donde la dejó el usuario y los junta en una
-## malla. Los de la planta alta pasan al grupo «PisoAlto», para esconderse con él.
+## Dibuja el modelo de cada pieza del grupo «Muebles» (mapa/mueble.gd) donde la dejó el usuario, le pone su choque y
+## los junta en una malla. Los de la planta alta pasan al grupo «PisoAlto», para esconderse con él.
 func _poner_muebles_de_escena(raiz: Node3D, b_id: String) -> void:
 	var muebles: Node3D = raiz.get_node_or_null(Partes.MUEBLES)
 	if muebles == null:
@@ -106,6 +107,8 @@ func _poner_muebles_de_escena(raiz: Node3D, b_id: String) -> void:
 		if _current_building_floor > 0:
 			mueble.reparent(altos, false)
 		_register_furniture_rect(modelo.get_file().get_basename(), Mapa3D.a_mapa(mueble.global_position), Mapa3D.a_mapa(tam3), mueble.global_rotation_degrees.y)
+		# Su pared invisible sale de la pieza: en el plano el giro va al revés que en 3D
+		vm.choque_de_mueble(Mapa3D.a_mapa(mueble.global_position), mueble.get("choque"), -deg_to_rad(mueble.global_rotation_degrees.y), _current_building_floor)
 		if _is_headless or not AssetLib.has_curated_assets():
 			continue
 		var dibujo: Node3D = AssetLib.instantiate_model(modelo, tam3, float(mueble.get("alto3")), true, true)

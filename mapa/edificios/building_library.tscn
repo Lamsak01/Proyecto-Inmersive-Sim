@@ -260,6 +260,7 @@ pos_original = Vector2(869.99994, -465.99997)
 local_original = Vector3(-2.4640045, 0.21135297, -2.0159988)
 modelo = "props/Bookcase_2.gltf"
 tam3 = Vector3(1.12, 2.2720442, 0.392)
+choque = Vector2(18, 6.5)
 
 [node name="Bookcase_3" type="Node3D" parent="Muebles" unique_id=1039858138]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0079956, 0.21135297, -2.0159988)
@@ -269,6 +270,7 @@ pos_original = Vector2(896.00006, -465.99997)
 local_original = Vector3(-1.0079956, 0.21135297, -2.0159988)
 modelo = "props/Bookcase_2.gltf"
 tam3 = Vector3(1.12, 2.2720442, 0.392)
+choque = Vector2(18, 6.5)
 
 [node name="Bookcase_4" type="Node3D" parent="Muebles" unique_id=881804107]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4480133, 0.21135297, -2.0159988)
@@ -278,6 +280,7 @@ pos_original = Vector2(922.00024, -465.99997)
 local_original = Vector3(0.4480133, 0.21135297, -2.0159988)
 modelo = "props/Bookcase_2.gltf"
 tam3 = Vector3(1.12, 2.2720442, 0.392)
+choque = Vector2(18, 6.5)
 
 [node name="Bookcase_5" type="Node3D" parent="Muebles" unique_id=1953165019]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -2.9680023, 0.21135297, -0.7839966)
@@ -288,6 +291,7 @@ local_original = Vector3(-2.9680023, 0.21135297, -0.7839966)
 giro_original = 90.0
 modelo = "props/Bookcase_2.gltf"
 tam3 = Vector3(1.008, 2.1135294, 0.392)
+choque = Vector2(16, 6.5)
 
 [node name="Table_Large" type="Node3D" parent="Muebles" unique_id=1556185565]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.44799805, 0.21135297, -0.8959961)
@@ -297,6 +301,7 @@ pos_original = Vector2(906.00006, -445.99994)
 local_original = Vector3(-0.44799805, 0.21135297, -0.8959961)
 modelo = "props/Table_Large.gltf"
 tam3 = Vector3(1.232, 0.80314124, 0.7)
+choque = Vector2(18, 10)
 
 [node name="Chair_1" type="Node3D" parent="Muebles" unique_id=950776405]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.2879944, 0.21135297, -0.8959961)
@@ -356,6 +361,7 @@ pos_original = Vector2(878.0002, -411.99994)
 local_original = Vector3(-2.0159912, 0.21135297, 1.0080032)
 modelo = "props/Workbench.gltf"
 tam3 = Vector3(1.008, 0.8665471, 0.532)
+choque = Vector2(16, 9)
 
 [node name="Chair_5" type="Node3D" parent="Muebles" unique_id=1539261145]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2.0159912, 0.21135297, 1.5680008)

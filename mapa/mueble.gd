@@ -22,6 +22,9 @@ const CARPETA := "Muebles" ## grupo que contiene los muebles de un edificio
 @export var alto3: float = -1.0
 ## Planta en la que está (0 = baja, 1 = alta).
 @export var piso: int = 0
+## Lo que ocupa su pared invisible visto desde arriba (ancho, fondo), en las mismas unidades que «tam3». En 0, 0 se
+## atraviesa (sillas, alfombras…). Gira con el mueble. Si choca, los vecinos tampoco se quedan de pie encima.
+@export var choque: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:

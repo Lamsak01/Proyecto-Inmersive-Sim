@@ -109,6 +109,7 @@ pos_original = Vector2(760, -454.00003)
 local_original = Vector3(0, 0.21135297, -1.3440018)
 modelo = "props/Table_Large.gltf"
 tam3 = Vector3(1.456, 0.8665471, 0.728)
+choque = Vector2(18, 10)
 
 [node name="Cabinet" type="Node3D" parent="Muebles" unique_id=4768608]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.352005, 0.21135297, 0.33599854)

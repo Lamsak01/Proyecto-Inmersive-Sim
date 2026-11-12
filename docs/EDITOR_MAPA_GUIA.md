@@ -31,7 +31,8 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
 - **Edificios (29):** cada casa, tienda y edificio público, con su interior dentro (carpeta **Muebles**). Al mover un
   edificio se mueve todo lo suyo: muros, puerta, muebles, cama y mesa de la familia, puesto de trabajo, zonas de uso.
   **Girar: de 90 en 90 grados** (si pones 37°, el juego lo redondea a 0 o 90). Los muebles de dentro se pueden mover
-  uno a uno. **No cambies «Id edificio»** ni «Centro original». No copies un edificio con Ctrl+D: saldría un clon con el
+  uno a uno, y su pared invisible va con ellos (campo **Choque** del mueble: lo que ocupa visto desde arriba; en 0, 0
+  se atraviesa, como una silla). **No cambies «Id edificio»** ni «Centro original». No copies un edificio con Ctrl+D: saldría un clon con el
   mismo nombre interno y el juego no sabe cuál es cuál (una casa nueva la añade Claude).
   **Puerta, ventana y tamaño (2026-11-11):** dentro de cada edificio (doble clic en su escena) las cruces `puerta` y
   `ventana` de **Marcas** dicen por dónde se entra y dónde se abre la ventana en el juego; el lado de la puerta es el

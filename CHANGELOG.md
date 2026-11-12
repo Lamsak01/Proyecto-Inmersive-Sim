@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: los muebles traen su choque (Claude Code, paso 4 del plan del mundo)
+- 69 muebles de 23 edificios (taberna, restaurante, capilla, comisaría, biblioteca, ayuntamiento, tiendas y casas) llevan
+  su pared invisible en la pieza (campo «Choque»): si el usuario mueve o gira el mueble, el choque va con él. Borrados
+  esos números del código. Comprobado: los mismos 406 choques en el pueblo (alguno 2–4 px más centrado en su mueble).
+- Arreglado: los sitios donde un vecino no puede quedarse de pie (encima de mesas, altares, mostradores) se apuntaban en
+  el mapa sin estirar y no servían; ahora se apuntan donde está el mueble.
+
 ## 2026-11-12 — Mudanza al editor: el bosque (Claude Code, paso 4 del plan del mundo)
 - Madrigueras, guaridas, claros, hozaderos, hierbas, setas, carteles y el borde del bosque salen de 90 cruces del mapa
   («Sitios»), ya colocadas en el mundo; borrados sus números del código y las listas viejas de árboles y vetas (ya salían
