@@ -6,6 +6,11 @@ const TIPO_PINO_ADORNO := "deco_pine" ## marca de pino de adorno: lo pone el 3D 
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
 const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
+## Farolas y focos: luz eléctrica azulada del generador del Arreglador (antes había otra amarilla «sin corriente»).
+const COLOR_LUZ_ELECTRICA: Color = Color(0.58, 0.96, 1.0)
+const FAROLA_ENERGIA: float = 2.35
+const FOCO_ENERGIA: float = 3.2
+const FOCO_SUELO_ENERGIA: float = 2.1
 
 ## Puesto del Paso, cementerio, alcantarillas, objetos de la época, farolas y objetos/props dinámicos 3D.
 
@@ -236,7 +241,7 @@ func _add_sandbag_wire_barrier_3d(parent: Node3D, pos_2d: Vector2) -> void:
 	for cx in [-7.0, -3.5, 0.0, 3.5, 7.0]:
 		_add_cyl_2d(parent, pos_2d + Vector2(cx, 2.4), 2.2, 2.2, 3.8, m_wire, 2.2, 8)
 
-func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector2, m_bulb_warm: Material, m_bulb_voltaic: Material) -> void:
+func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector2, m_bulb: Material) -> void:
 	var m_pole := _mat("epoch_pole_wood", Color(0.28, 0.19, 0.11), 0.90, 0.0)
 	var m_hood := _mat("epoch_hood_iron", Color(0.16, 0.18, 0.21), 0.45, 0.82)
 	# Poste alto de madera con cruceta y carcasa de proyector metálico
@@ -245,7 +250,7 @@ func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector
 	var dir_2d: Vector2 = (target_2d - pos_2d).normalized()
 	var head_2d: Vector2 = pos_2d + dir_2d * 2.8
 	_add_box_2d(parent, head_2d, Vector2(5.2, 5.2), 33.0, 4.2, m_hood)
-	var bulb := _add_cyl_2d(parent, head_2d + dir_2d * 1.6, 2.1, 33.4, 2.6, m_bulb_warm, 2.1, 8)
+	var bulb := _add_cyl_2d(parent, head_2d + dir_2d * 1.6, 2.1, 33.4, 2.6, m_bulb, 2.1, 8)
 	var spot: SpotLight3D = null
 	var pool: OmniLight3D = null
 	if not _is_headless:
@@ -254,26 +259,24 @@ func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector
 		var tgt_3d: Vector3 = to_3d(target_2d, 0.5)
 		spot.spot_range = 9.5 * Mapa3D.K
 		spot.spot_angle = 42.0
-		spot.light_energy = 2.8
-		spot.light_color = Color(1.0, 0.90, 0.62)
+		spot.light_energy = FOCO_ENERGIA
+		spot.light_color = COLOR_LUZ_ELECTRICA
 		parent.add_child(spot)
 		if spot.position.distance_to(tgt_3d) > 0.05:
 			spot.look_at_from_position(spot.position, tgt_3d, Vector3.UP)
 		pool = OmniLight3D.new()
 		pool.position = to_3d(pos_2d.lerp(target_2d, 0.55), 10.0)
 		pool.omni_range = 5.4 * Mapa3D.K
-		pool.light_energy = 1.65
-		pool.light_color = Color(1.0, 0.88, 0.56)
+		pool.light_energy = FOCO_SUELO_ENERGIA
+		pool.light_color = COLOR_LUZ_ELECTRICA
 		parent.add_child(pool)
 	_floodlight_nodes_3d.append({
 		"bulb": bulb,
 		"spot": spot,
 		"pool": pool,
-		"mat_warm": m_bulb_warm,
-		"mat_voltaic": m_bulb_voltaic,
 	})
 
-func _build_epoch_props_3d(m_bulb_warm: Material, m_bulb_voltaic: Material) -> void:
+func _build_epoch_props_3d(m_bulb: Material) -> void:
 	mover_posiciones = true # generador, cables y terminales están escritos en el mapa original: siguen a sus edificios
 	var m_cable := _mat("epoch_thick_cable", Color(0.08, 0.09, 0.11), 0.72, 0.25)
 	var m_insul := _mat("epoch_insulator", Color(0.76, 0.78, 0.74), 0.35, 0.10)
@@ -327,8 +330,8 @@ func _build_epoch_props_3d(m_bulb_warm: Material, m_bulb_voltaic: Material) -> v
 	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 78.0))
 
 	# 4. Focos en poste de madera en la Comisaría y en el Puesto del Paso (se apagan si se sabotea la red eléctrica)
-	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(994.0, 96.0), Vector2(915.0, 62.0), m_bulb_warm, m_bulb_voltaic)
-	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1538.0, 18.0), Vector2(1506.0, 50.0), m_bulb_warm, m_bulb_voltaic)
+	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(994.0, 96.0), Vector2(915.0, 62.0), m_bulb)
+	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1538.0, 18.0), Vector2(1506.0, 50.0), m_bulb)
 	mover_posiciones = false
 
 func _build_streetlights_3d() -> void:
@@ -337,28 +340,25 @@ func _build_streetlights_3d() -> void:
 	_floodlight_nodes_3d.clear()
 	if vm == null:
 		return
-	var m_bulb_warm := _mat("bulb_warm", Color(1.0, 0.88, 0.52), 0.2, 0.0, Color(1.0, 0.82, 0.40), 2.8)
-	var m_bulb_voltaic := _mat("bulb_voltaic", Color(0.55, 0.96, 1.0), 0.2, 0.0, Color(0.45, 0.92, 1.0), 3.4)
+	var m_bulb := _mat("bulb_voltaic", Color(0.55, 0.96, 1.0), 0.2, 0.0, Color(0.45, 0.92, 1.0), 3.4)
 
 	for sl in vm.streetlights:
 		var pos: Vector2 = sl.get("pos", Vector2.ZERO)
 		_add_model_2d(streetlights_root_3d, "graveyard/lightpost-single.glb", pos, 0.0, Vector2(9.0, 9.0), 29.0)
-		var bulb := _add_cyl_2d(streetlights_root_3d, pos + Vector2(3.5, 0), 2.2, 23.0, 3.6, m_bulb_warm, 1.6, 8)
+		var bulb := _add_cyl_2d(streetlights_root_3d, pos + Vector2(3.5, 0), 2.2, 23.0, 3.6, m_bulb, 1.6, 8)
 		var omni: OmniLight3D = null
 		if not _is_headless:
 			omni = OmniLight3D.new()
 			omni.position = to_3d(pos + Vector2(3.5, 0), 24.0)
 			omni.omni_range = 4.8 * Mapa3D.K
-			omni.light_energy = 1.65
-			omni.light_color = Color(1.0, 0.86, 0.52)
+			omni.light_energy = FAROLA_ENERGIA
+			omni.light_color = COLOR_LUZ_ELECTRICA
 			streetlights_root_3d.add_child(omni)
 		_streetlight_nodes_3d.append({
 			"bulb": bulb,
 			"light": omni,
-			"mat_warm": m_bulb_warm,
-			"mat_voltaic": m_bulb_voltaic,
 		})
-	_build_epoch_props_3d(m_bulb_warm, m_bulb_voltaic)
+	_build_epoch_props_3d(m_bulb)
 
 
 func _sync_dynamic_props_3d() -> void:

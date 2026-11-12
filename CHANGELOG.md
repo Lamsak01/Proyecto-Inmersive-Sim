@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — La red eléctrica la mueve el generador del Arreglador (Claude Code, decisión del usuario)
+- Antes la corriente del pueblo salía del generador de tu campamento (borrado) y el pueblo se quedó sin ella. Ahora la
+  da el generador diésel del Taller del Arreglador: hay corriente desde el principio y sabotearlo deja el pueblo a oscuras.
+- Fuera la bomba de riego del cuadro (era del huerto borrado) y la luz amarilla «sin corriente» de las farolas.
+- Arreglado: con corriente, las farolas seguían encendidas de día; ahora solo de noche.
+
 ## 2026-11-12 — Borrados también los animales de corral del jugador y el huerto de casa (Claude Code, usuario)
 - Fuera comprar crías, darles de comer, esquilar, recoger huevos, trasladar el corral al solar y el huerto de tu casa.
   Las carreras y peleas de animales siguen, con la misma suerte para todos (antes tus animales daban ventaja).

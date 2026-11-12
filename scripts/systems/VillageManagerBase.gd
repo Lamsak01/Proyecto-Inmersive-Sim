@@ -1456,9 +1456,8 @@ func _refresh_elevation_layer_visuals() -> void:
 
 func is_position_lit_by_lamp_or_lantern(pos: Vector2, ignore_entity: Node2D = null) -> bool:
 	var hr: int = int(WorldClock.current_hour) if WorldClock else 12
-	var gm = get_node_or_null("/root/GameManager")
-	var grid_on: bool = gm != null and gm.get_flag("electric_grid_active", false) == true
-	var lamps_lit: bool = VillageCulture.is_lamps_powered(self) and (hr >= 19 or hr < 7 or grid_on)
+	# Las farolas solo alumbran de noche y si nadie ha cortado su circuito.
+	var lamps_lit: bool = VillageCulture.is_lamps_powered(self) and (hr >= 19 or hr < 7)
 	if lamps_lit:
 		for sl in streetlights:
 			var sl_pos: Vector2 = sl.get("pos", Vector2.ZERO)

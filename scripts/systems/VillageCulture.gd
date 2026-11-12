@@ -36,6 +36,10 @@ const MARKET_VISIT_CHANCE: float = 0.25
 const REPAIR_PRICE: int = 8
 const REPAIRS_PER_DAY: int = 2
 const GRID_REPAIR_REWARD: int = 12
+## Partes de la red eléctrica que se pueden cortar en el cuadro del Taller del Arreglador. La corriente sale de su
+## generador diésel; la bomba de riego (del huerto borrado el 2026-11-12) ya no existe.
+const DIAS_APAGON_GENERADOR: int = 2
+const NOMBRES_NODO_RED: Dictionary = {"all": "el generador del Arreglador", "lamps": "el circuito de farolas"}
 const SAPLING_COST: int = 6
 const MAX_PLANTED_TREES: int = 12 # Tope de pinos sembrados por el jugador
 const MILITIA_MAX_BONUS: int = 4
@@ -728,10 +732,9 @@ static func open_grid_panel_menu(vm, speaker: Node, _player: Node2D = null) -> v
 		return
 	var g: Dictionary = grid_state(vm)
 	var is_sab: bool = is_grid_sabotaged(vm)
-	var status_line: String = "\n\n⚠️ El cuadro echa chispas (circuito averiado: %s)." % str(g.get("sabotaged_target", "all")) if is_sab else "\n\nLos tres seccionadores de cobre alimentan las farolas, la bomba de riego y el generador general."
+	var status_line: String = "\n\n⚠️ El cuadro echa chispas (averiado: %s)." % str(NOMBRES_NODO_RED.get(str(g.get("overloaded_node", "all")), "la red")) if is_sab else "\n\nDos seccionadores de cobre: uno para las farolas y otro para el generador diésel que da corriente al pueblo."
 	var choices: Array = [
 		{"label": "🌑 Cortar el circuito de farolas (Calles a oscuras)", "next": "END", "action": "culture_sabotage_grid:lamps"},
-		{"label": "🥀 Cortar la bomba eléctrica de riego (Secar aspersor)", "next": "END", "action": "culture_sabotage_grid:sprinkler"},
 		{"label": "💥 Cortocircuitar el generador general (Apagón 2 días)", "next": "END", "action": "culture_sabotage_grid:all"},
 	]
 	if is_sab:
@@ -1867,38 +1870,24 @@ static func grid_state(vm) -> Dictionary:
 		"overloaded_node": "",
 		"last_op_day": -99,
 		"lamps_disabled": false,
-		"sprinkler_disabled": false,
 	}
 	for k in g_defs.keys():
 		if not g.has(k):
 			g[k] = g_defs[k]
+	g.erase("sprinkler_disabled") # partidas guardadas de antes: la bomba de riego ya no existe
 	return g
 
 static func is_grid_sabotaged(vm) -> bool:
 	if vm == null:
 		return false
 	var g: Dictionary = grid_state(vm)
-	return int(g.get("sabotaged_days", 0)) > 0 or bool(g.get("lamps_disabled", false)) or bool(g.get("sprinkler_disabled", false))
+	return int(g.get("sabotaged_days", 0)) > 0 or bool(g.get("lamps_disabled", false))
 
 static func is_lamps_powered(vm) -> bool:
 	if vm == null:
 		return false
 	var g: Dictionary = grid_state(vm)
 	return not bool(g.get("lamps_disabled", false))
-
-static func is_sprinkler_powered(vm) -> bool:
-	if vm == null:
-		return false
-	var g: Dictionary = grid_state(vm)
-	return not bool(g.get("sprinkler_disabled", false))
-
-## La red solo tiene corriente si el generador está encendido. El generador era del campamento, borrado el 2026-11-12:
-## hasta que se rehaga, la red queda sin corriente.
-static func _generator_on() -> bool:
-	if GameManager == null:
-		return false
-	var camp_st: Variant = GameManager.get_flag("player_campsite_state", null)
-	return typeof(camp_st) == TYPE_DICTIONARY and bool((camp_st as Dictionary).get("generator_active", false))
 
 static func sabotage_grid(vm, node_target: String = "all", check_risk: bool = false, saboteur: String = "") -> Dictionary:
 	if vm == null:
@@ -1909,29 +1898,13 @@ static func sabotage_grid(vm, node_target: String = "all", check_risk: bool = fa
 	if check_risk and randf() < 0.30:
 		vm.wanted_level = clampi(int(vm.wanted_level) + 1, 1, 5)
 		return {"ok": false, "caught": true}
-	var target: String = node_target if node_target in ["all", "lamps", "sprinkler"] else "all"
+	var target: String = node_target if NOMBRES_NODO_RED.has(node_target) else "all"
 	g["overloaded_node"] = target
 	g["saboteur"] = saboteur
-	if target == "all":
-		g["sabotaged_days"] = 2
-		g["lamps_disabled"] = true
-		g["sprinkler_disabled"] = true
-	elif target == "lamps":
-		g["sabotaged_days"] = maxi(1, int(g.get("sabotaged_days", 0)))
-		g["lamps_disabled"] = true
-	elif target == "sprinkler":
-		g["sabotaged_days"] = maxi(1, int(g.get("sabotaged_days", 0)))
-		g["sprinkler_disabled"] = true
-	if GameManager != null and bool(g.get("lamps_disabled", false)):
-		GameManager.set_flag("electric_grid_active", false)
-	if GameManager != null:
-		GameManager.set_flag("sprinkler_grid_disabled", bool(g.get("sprinkler_disabled", false)))
-	var desc_map: Dictionary = {
-		"all": "el generador general",
-		"lamps": "el circuito de farolas",
-		"sprinkler": "la bomba eléctrica de riego",
-	}
-	VillageChronicle.add(vm, "grid_sabotage", "Alguien saboteó %s: saltaron chispas en el tendido eléctrico" % str(desc_map.get(target, "la red")), true)
+	# Cortar el generador deja el pueblo a oscuras más tiempo que cortar solo el circuito de farolas
+	g["sabotaged_days"] = DIAS_APAGON_GENERADOR if target == "all" else maxi(1, int(g.get("sabotaged_days", 0)))
+	g["lamps_disabled"] = true
+	VillageChronicle.add(vm, "grid_sabotage", "Alguien saboteó %s: saltaron chispas en el tendido eléctrico" % str(NOMBRES_NODO_RED[target]), true)
 	return {"ok": true, "caught": false, "target": target}
 
 static func repair_grid(vm) -> bool:
@@ -1941,11 +1914,7 @@ static func repair_grid(vm) -> bool:
 	g["sabotaged_days"] = 0
 	g["overloaded_node"] = ""
 	g["lamps_disabled"] = false
-	g["sprinkler_disabled"] = false
 	g["saboteur"] = ""
-	if GameManager != null:
-		GameManager.set_flag("electric_grid_active", _generator_on()) # Reparar no crea corriente si no hay generador
-		GameManager.set_flag("sprinkler_grid_disabled", false)
 	return true
 
 static func library_pos() -> Vector2:
@@ -2558,7 +2527,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 				tink.affinity = clampi(int(tink.affinity) - 15, -100, 100)
 			_msg_actor(vm, npc, "🚨 «¡Eh! ¡Suelta esos cables! ¡Guardias!» (Búsqueda +1)", Color.ORANGE_RED, -46.0)
 		else:
-			_msg_actor(vm, npc, "⚡💥 ¡Chispazo! Saboteaste el nodo eléctrico (%s)" % target, Color.CYAN, -46.0)
+			_msg_actor(vm, npc, "⚡💥 ¡Chispazo! Saboteaste %s" % str(NOMBRES_NODO_RED.get(target, "la red")), Color.CYAN, -46.0)
 	elif action_id == "culture_repair_grid":
 		if inv == null or int(inv.items.get("copper_coil", 0)) <= 0:
 			_msg_actor(vm, npc, "«Necesitamos al menos 1 Bobina de Cobre para empalmar la línea.»", Color.ORANGE_RED, -46.0)

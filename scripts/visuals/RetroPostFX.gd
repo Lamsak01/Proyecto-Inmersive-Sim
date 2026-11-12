@@ -115,10 +115,8 @@ func _collect_lights(out: Array, to_screen: Transform2D, px_per_world: float, ho
 		vm = get_tree().root.find_child("VillageManager", true, false)
 		if vm == null:
 			return
-	var gm = get_node_or_null("/root/GameManager")
-	var grid_on: bool = gm != null and bool(gm.get_flag("electric_grid_active", false))
-	# Con el circuito de farolas cortado (sabotaje), sin halos de farola.
-	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and (hour_f >= 19.0 or hour_f < 6.0 or grid_on)
+	# Halos de farola solo de noche; con el circuito de farolas cortado (sabotaje), ninguno.
+	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and (hour_f >= 19.0 or hour_f < 6.0)
 	if lamps_lit and "streetlights" in vm:
 		for sl in vm.streetlights:
 			var p: Vector2 = to_screen * ((sl.get("pos", Vector2.ZERO) as Vector2) + Vector2(3.5, -6.0))

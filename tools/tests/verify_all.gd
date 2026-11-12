@@ -3978,29 +3978,29 @@ func _initialize() -> void:
 	vil_pj.amputations_of(vm).clear()
 	p70_b.health_comp.region_max_override.clear()
 	p70_c.health_comp.region_max_override.clear()
-	# PJ.2: Red eléctrica lógica (sabotaje de farolas, aspersor o generador general, y reparación por jugador o arreglador)
+	# PJ.2: Red eléctrica del pueblo (generador del Arreglador): sabotaje de farolas o del generador, y reparación por jugador o arreglador
 	vcu_pj.repair_grid(vm)
-	assert(vcu_pj.is_lamps_powered(vm) and vcu_pj.is_sprinkler_powered(vm) and not vcu_pj.is_grid_sabotaged(vm), "PJ.2a: Grid starts repaired and powered")
+	assert(vcu_pj.is_lamps_powered(vm) and not vcu_pj.is_grid_sabotaged(vm), "PJ.2a: Grid starts repaired and powered")
 	vcu_pj.sabotage_grid(vm, "lamps", false)
-	assert(not vcu_pj.is_lamps_powered(vm) and vcu_pj.is_sprinkler_powered(vm) and vcu_pj.is_grid_sabotaged(vm), "PJ.2b: Sabotaging lamps circuit cuts streetlights while leaving sprinkler circuit intact")
-	vcu_pj.sabotage_grid(vm, "sprinkler", false)
-	var gm_pj = root.get_node_or_null("/root/GameManager")
-	assert(not vcu_pj.is_sprinkler_powered(vm) and bool(gm_pj.get_flag("sprinkler_grid_disabled", false)), "PJ.2c: Sabotaging sprinkler circuit disables electric irrigation")
+	assert(not vcu_pj.is_lamps_powered(vm) and vcu_pj.is_grid_sabotaged(vm), "PJ.2b: Sabotaging lamps circuit cuts streetlights")
 	p70_inv.remove_item("copper_coil", p70_inv.get_count("copper_coil"))
 	p70_inv.add_item("copper_coil", 1)
 	p70_inv.gold = 50
 	vm.town_state["treasury"] = 100
 	vcu_pj.on_player_action(vm, pj_tinker, "culture_repair_grid", p70_inv)
-	assert(vcu_pj.is_lamps_powered(vm) and vcu_pj.is_sprinkler_powered(vm) and p70_inv.get_count("copper_coil") == 0 and p70_inv.gold == 62 and int(vm.town_state["treasury"]) == 88, "PJ.2d: Player repairing grid uses 1 copper_coil and receives 12 gold from town treasury")
+	assert(vcu_pj.is_lamps_powered(vm) and p70_inv.get_count("copper_coil") == 0 and p70_inv.gold == 62 and int(vm.town_state["treasury"]) == 88, "PJ.2d: Player repairing grid uses 1 copper_coil and receives 12 gold from town treasury")
 	vcu_pj.sabotage_grid(vm, "lamps", false, "player")
 	p70_inv.add_item("copper_coil", 1)
 	vcu_pj.on_player_action(vm, pj_tinker, "culture_repair_grid", p70_inv)
 	assert(vcu_pj.is_lamps_powered(vm) and p70_inv.gold == 62 and int(vm.town_state["treasury"]) == 88, "PJ.2d2: Repairing a blackout you caused yourself pays nothing (no sabotage-and-collect loop)")
-	var pj_camp_bak: Variant = gm_pj.get_flag("player_campsite_state", null)
-	gm_pj.set_flag("player_campsite_state", {"generator_active": false})
-	vcu_pj.repair_grid(vm)
-	assert(not bool(gm_pj.get_flag("electric_grid_active", true)), "PJ.2d3: Repairing the wiring does not power the town without a running generator")
-	gm_pj.set_flag("player_campsite_state", pj_camp_bak)
+	# PJ.2c: las farolas alumbran de noche y no de día (antes, con corriente, se quedaban encendidas a mediodía)
+	var pj_hour_bak: int = int(t5_wc.current_hour)
+	var pj_lamp_pos: Vector2 = vm.streetlights[0].get("pos", Vector2.ZERO)
+	t5_wc.current_hour = 22
+	assert(vm.is_position_lit_by_lamp_or_lantern(pj_lamp_pos), "PJ.2c1: A powered streetlight lights its street at night")
+	t5_wc.current_hour = 12
+	assert(not vm.is_position_lit_by_lamp_or_lantern(pj_lamp_pos), "PJ.2c2: Streetlights are off at midday")
+	t5_wc.current_hour = pj_hour_bak
 	vcu_pj.sabotage_grid(vm, "all", false)
 	vcu_pj.grid_state(vm)["sabotaged_days"] = 1
 	pj_tinker.shop_stock["repair_kit"] = 2

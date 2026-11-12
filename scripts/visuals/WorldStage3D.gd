@@ -1139,7 +1139,6 @@ func _update_roof_cutaways_and_lighting() -> void:
 
 	# Luz diurna/nocturna, cielo con nubes según la hora, niebla atmosférica y farolas eléctricas 3D
 	var wc2 = get_node_or_null("/root/WorldClock") if is_inside_tree() else null
-	var gm2 = get_node_or_null("/root/GameManager") if is_inside_tree() else null
 	var hour: int = int(wc2.current_hour) if wc2 != null else 12
 	var minute: int = int(wc2.current_minute) if wc2 != null and "current_minute" in wc2 else 0
 	var hour_f: float = float(hour) + float(minute) / 60.0
@@ -1149,7 +1148,6 @@ func _update_roof_cutaways_and_lighting() -> void:
 	var is_night: bool = (hour >= 19 or hour < 6)
 	var is_dusk: bool = (hour in [6, 7, 17, 18])
 	var is_dawn_mist: bool = (hour_f >= 5.0 and hour_f <= 8.0)
-	var grid_on: bool = gm2 != null and gm2.get_flag("electric_grid_active", false) == true and VillageCulture.is_lamps_powered(vm)
 	var pl_indoors: bool = vm != null and is_finite(pl_pos.x) and vm.has_method("_is_pos_inside_any_building") and bool(vm._is_pos_inside_any_building(pl_pos))
 
 	# Interpolación continua de colores del cielo, nubes, sol/luna y niebla según la hora del día y el clima (§3b.2: ambiente más oscuro, sucio y nublado)
@@ -1269,33 +1267,25 @@ func _update_roof_cutaways_and_lighting() -> void:
 		if is_instance_valid(rn):
 			(rn as Node3D).visible = terrace_on
 
-	# Con el circuito de farolas cortado (sabotaje), las calles y los focos quedan a oscuras también de noche.
-	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and (is_night or grid_on)
+	# Las farolas eléctricas (generador del Arreglador) solo lucen de noche; con el circuito cortado, calles a oscuras.
+	var lamps_lit: bool = VillageCulture.is_lamps_powered(vm) and is_night
 	for sl_node in _streetlight_nodes_3d:
 		var bulb: MeshInstance3D = sl_node["bulb"]
 		var lt: OmniLight3D = sl_node["light"]
 		if is_instance_valid(bulb):
 			bulb.visible = lamps_lit
-			bulb.material_override = sl_node["mat_voltaic"] if grid_on else sl_node["mat_warm"]
 		if is_instance_valid(lt):
 			lt.visible = lamps_lit
-			lt.light_color = Color(0.55, 0.96, 1.0) if grid_on else Color(1.0, 0.82, 0.42)
-			lt.light_energy = 2.35 if grid_on else 1.75
 	for fl_node in _floodlight_nodes_3d:
 		var f_bulb: MeshInstance3D = fl_node.get("bulb")
 		var f_spot: SpotLight3D = fl_node.get("spot")
 		var f_pool: OmniLight3D = fl_node.get("pool")
 		if is_instance_valid(f_bulb):
 			f_bulb.visible = lamps_lit
-			f_bulb.material_override = fl_node["mat_voltaic"] if grid_on else fl_node["mat_warm"]
 		if is_instance_valid(f_spot):
 			f_spot.visible = lamps_lit
-			f_spot.light_color = Color(0.62, 0.96, 1.0) if grid_on else Color(1.0, 0.90, 0.62)
-			f_spot.light_energy = 3.2 if grid_on else 2.6
 		if is_instance_valid(f_pool):
 			f_pool.visible = lamps_lit
-			f_pool.light_color = Color(0.62, 0.96, 1.0) if grid_on else Color(1.0, 0.88, 0.56)
-			f_pool.light_energy = 2.1 if grid_on else 1.65
 
 
 
