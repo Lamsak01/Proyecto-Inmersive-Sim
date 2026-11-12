@@ -166,10 +166,6 @@ static func setup_world(vm) -> void:
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png",
 		Color(1.0, 0.88, 0.45))
 
-	# Alfombra discreta bajo el salón del casino en Planta 0 (z_index = -2, bajo las mesas)
-	var cas_rug: Polygon2D = vm._add_rect_poly(Vector2(543.0, -182.0), Vector2(52.0, 38.0), Color(0.44, 0.16, 0.14, 0.36), -2)
-	cas_rug.add_to_group("tavern_floor0_2d")
-
 	# Tabiques de la planta baja (piezas «Tabiques» de la escena): dejan de chocar cuando el protagonista está arriba
 	for sb_w: StaticBody2D in vm.interior_walls[BUILDING_ID]:
 		sb_w.add_to_group("tavern_floor0_2d")
@@ -177,43 +173,29 @@ static func setup_world(vm) -> void:
 		sb_w.collision_layer = load("res://scripts/fisica/Suelo.gd").capa(int(vm.player_elevation_level) == 0)
 
 	# Mostrador largo de Marta y pasa-platos del camarero
-	vm._add_rect_poly(sitio(M_BARRA), BAR_COUNTER_SIZE * 0.5, Color(0.42, 0.25, 0.12, 0.98), -1).add_to_group("tavern_floor0_2d")
 	vm._add_sprite_prop(tex_stall, sitio(M_BARRA) + Vector2(0.0, 4.0), Vector2(1.4, 1.2), -1).add_to_group("tavern_floor0_2d")
 	vm._add_prop_collider(sitio(M_BARRA), Vector2(96.0, 10.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_BARRA), Vector2(96.0, 10.0))
 
-	# Chimenea del gran salón, fogón de cocina, mesa de preparación y toneles tras la barra (2D + choque)
-	vm._add_rect_poly(sitio(M_CHIMENEA), Vector2(6.0, 14.0), Color(0.36, 0.34, 0.32, 0.98), -1).add_to_group("tavern_floor0_2d")
-	vm._add_rect_poly(sitio(M_CHIMENEA) + Vector2(2.0, 0.0), Vector2(3.0, 9.0), Color(0.95, 0.42, 0.12, 0.92), -1).add_to_group("tavern_floor0_2d")
+	# Chimenea del gran salón, fogón de cocina, mesa de preparación y toneles tras la barra: se ven en 3D; aquí solo su choque
 	vm._add_prop_collider(sitio(M_CHIMENEA), Vector2(12.0, 28.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_CHIMENEA), Vector2(12.0, 28.0))
-	vm._add_rect_poly(sitio(M_FOGONES), Vector2(12.0, 5.5), Color(0.24, 0.22, 0.22, 0.98), -1).add_to_group("tavern_floor0_2d")
 	vm._add_prop_collider(sitio(M_FOGONES), Vector2(24.0, 11.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_FOGONES), Vector2(24.0, 11.0))
-	vm._add_rect_poly(sitio(M_MESA_CORTE), Vector2(12.0, 5.0), Color(0.48, 0.32, 0.18, 0.98), -1).add_to_group("tavern_floor0_2d")
 	vm._add_prop_collider(sitio(M_MESA_CORTE), Vector2(24.0, 10.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_MESA_CORTE), Vector2(24.0, 10.0))
-	vm._add_rect_poly(sitio(M_TONELES), Vector2(26.0, 5.0), Color(0.38, 0.24, 0.12, 0.98), -1).add_to_group("tavern_floor0_2d")
 	vm._add_prop_collider(sitio(M_TONELES), Vector2(52.0, 10.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_TONELES), Vector2(52.0, 10.0))
 	for b_cell_pos in [Vector2(498.0, -302.0), Vector2(534.0, -302.0), Vector2(498.0, -268.0)]:
-		vm._add_rect_poly(b_cell_pos, Vector2(4.5, 4.5), Color(0.42, 0.27, 0.14, 0.96), -1).add_to_group("tavern_floor0_2d")
 		vm._add_prop_collider(b_cell_pos, Vector2(9.0, 9.0), "tavern_floor0_walls")
 		vm.register_no_stand_furniture(b_cell_pos, Vector2(9.0, 9.0))
 
-	# 6 Mesas de comedor y tertulia en el Gran Salón (Planta 0) — colisión de tablero ajustada para dejar libres las sillas
+	# 6 Mesas de comedor y tertulia en el Gran Salón (Planta 0), en 3D — colisión de tablero ajustada para dejar libres las sillas
 	for tp in dining_tables():
-		vm._add_rect_poly(tp, Vector2(11.0, 6.5), Color(0.54, 0.35, 0.18, 0.98), -1).add_to_group("tavern_floor0_2d")
-		for off in CHAIR_OFFSETS:
-			vm._add_rect_poly(tp + (off as Vector2), Vector2(3.5, 3.5), Color(0.38, 0.24, 0.12, 0.95), -1).add_to_group("tavern_floor0_2d")
 		vm._add_prop_collider(tp, Vector2(13.0, 8.0), "tavern_floor0_walls")
 		vm.register_no_stand_furniture(tp, Vector2(13.0, 8.0))
 
 	# 1. Mesa Verde de Póker / Blackjack / Ruleta con 4 sillas
-	vm._add_rect_poly(sitio(M_POKER), Vector2(14.0, 10.0), Color(0.42, 0.26, 0.12, 1.0), -1).add_to_group("tavern_floor0_2d")
-	vm._add_rect_poly(sitio(M_POKER), Vector2(11.5, 7.5), Color(0.10, 0.50, 0.25, 1.0), -1).add_to_group("tavern_floor0_2d")
-	for chair_off in POKER_CHAIR_OFFSETS:
-		vm._add_rect_poly(sitio(M_POKER) + (chair_off as Vector2), Vector2(4.0, 4.0), Color(0.55, 0.36, 0.18, 0.95), -1).add_to_group("tavern_floor0_2d")
 	vm._add_prop_collider(sitio(M_POKER), Vector2(14.0, 10.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_POKER), Vector2(14.0, 10.0))
 
@@ -222,18 +204,11 @@ static func setup_world(vm) -> void:
 	vm.entities_root.add_child(vm._tavern_games_label)
 
 	# 2. Mesa de Billar de la Posada
-	vm._add_rect_poly(sitio(M_BILLAR), Vector2(14.0, 8.5), Color(0.38, 0.22, 0.10, 1.0), -1).add_to_group("tavern_floor0_2d")
-	vm._add_rect_poly(sitio(M_BILLAR), Vector2(12.0, 6.5), Color(0.08, 0.48, 0.30, 1.0), -1).add_to_group("tavern_floor0_2d")
 	vm._add_prop_collider(sitio(M_BILLAR), Vector2(26.0, 16.0), "tavern_floor0_walls")
 	vm.register_no_stand_furniture(sitio(M_BILLAR), Vector2(26.0, 16.0))
 	vm._add_station_area("TavernPoolTableArea", sitio(M_BILLAR), 24.0, "tavern_pool")
 	vm._tavern_pool_label = vm._make_station_label(sitio(M_BILLAR) + Vector2(-115.0, -30.0), "🎱 Mesa de Billar [E: Jugar Billar de Posada]")
 	vm.entities_root.add_child(vm._tavern_pool_label)
-
-	# 3. Escalera de madera entre Planta 0 y Planta +1 (se sube y baja caminando, sin pulsar [E])
-	for step_i in range(8):
-		var sy: float = lerpf(STAIRS_BOTTOM_POS.y, STAIRS_TOP_POS.y, float(step_i) / 7.0)
-		vm._add_rect_poly(Vector2(STAIRS_BOTTOM_POS.x, sy), Vector2(12.0, 2.5), Color(0.48, 0.31, 0.16, 0.95), -1).add_to_group("tavern_floor0_2d")
 
 	# 3b. Barandillas sólidas y tabiques de los 3 cuartos en Planta +1 ("tavern_upper_walls")
 	# Paso a 3D, paso 2c: las barandillas son bajas (grupo «barandilla»): se pueden saltar… y caer al salón.

@@ -26,16 +26,16 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
   inventario con todo movido → fotos con `capturas_fijas.gd`. Las cruces se miden con la partida arrancada
   (hay casas que se colocan al arrancar).
 - Ojo con el inventario: mide cada copia de los lotes de árboles y el centro de las mallas de suelo; no mueve el río.
-  Antes de planear una tanda, comprobar que lo «quieto» no es un defecto de la medición (pasó dos veces).
 
 ## c) Siguiente paso técnico inmediato
 Paso 4, trozos seguros (decorado del código → piezas), cada uno comparando la escena entera antes y después
 (volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozos 1
-(`WorldStageTerrain3D`) y 2 (dibujo plano de `VillageWorldBuilder`) hechos. Siguientes: choques y zonas de
-`VillageWorldBuilder` → piezas, `EcosystemManager` (174; alimenta `tools/hornear_vegetacion.gd`), `VillageTavern`.
-El mapa plano antiguo no se ve (lo tapa la imagen 3D): su dibujo puro sobra. Corte final (anclas y ×5) solo con el usuario.
-Pendiente apuntado: muro débil y espada de `scenes/World.tscn`;
-tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
+(`WorldStageTerrain3D`), 2 (`VillageWorldBuilder`) y 3 (`VillageTavern`) hechos. Siguientes: dibujo plano de
+`VillageRestaurant`, `VillageLots`, `VillagePlaces`…; choques y zonas → piezas; `EcosystemManager` (174).
+**El mapa plano se ve desde arriba (P)** si está visible, opaco y con z > -2: hoy 38 cosas (letreros de pesca y bosque,
+postes, estacas del puesto). Antes de borrar, sacar esa lista antes y después (herramienta temporal) y fotos desde arriba.
+Corte final (anclas y ×5) solo con el usuario.
+Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
 
 ## d) Bloqueos activos

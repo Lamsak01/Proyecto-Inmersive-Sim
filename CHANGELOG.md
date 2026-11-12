@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Paso 4, trozo 3: fuera los muebles planos de la posada (Claude Code)
+- `VillageTavern` ya no dibuja en plano la barra, chimenea, fogones, toneles, mesas, sillas, póker, billar, alfombra
+  y escalera (44 polígonos que el juego ocultaba siempre). Se quedan choques, zonas, sprites y letreros.
+- Corrección: el mapa plano SÍ se ve en la vista desde arriba (P) si está visible, opaco y por encima de la imagen 3D.
+  Hoy cumplen eso 38 cosas (letreros de pesca y del bosque, sus postes, estacas del Puesto del Paso…). Los letreros
+  de título los apaga el juego (0 de 63 visibles). Fotos desde arriba del trozo 2 revisadas: sin cambios.
+- Comprobado: escena 3D idéntica; solo faltan 44 polígonos; lo visible desde arriba, igual; fotos fijas; `verify_all`.
+
 ## 2026-11-12 — Paso 4, trozo 2: fuera el dibujo plano invisible del constructor del pueblo (Claude Code)
 - `VillageWorldBuilder` ya no dibuja el mapa 2D antiguo (la imagen 3D lo tapa y ni se pinta): caminos, plaza, llanura, ciénaga, sendero, orillas, barro y agua del río, puentes y vados, alfombras, bancos y altar de la capilla, cementerio (suelo, caminos, verja y 24 tumbas), rueda e interior del molino, y los letreros planos de postes, cementerio, Puente Viejo y claro. Borradas `_add_road_rect` y `_add_cobble_rect`.
 - Se quedan los choques, las zonas de interacción, el agua para la física, los dibujos que pasan a 3D (postes, camas, mostradores) y los letreros que el juego actualiza. El texto de cada poste queda como comentario: hoy el poste 3D no lo muestra.
