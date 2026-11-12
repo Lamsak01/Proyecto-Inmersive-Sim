@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-11 — Paso 2, tanda 4: las «434 plantas quietas» eran un error de medición (Claude Code)
+- Los 434 «lotes» de `Nature3D` son paquetes de dibujo (un nodo fijo que junta muchas copias de un árbol o roca): el inventario miraba el paquete, no las copias. `tools/tests/inventario_mundo.gd` anota ahora cada copia. Resultado: de 1.102 árboles y rocas, 1.063 siguen al editor, 14 son copias ocultas y 25 varían entre partidas. **No hubo que tocar el juego.**
+- Inventario real: sigue 5.147, quieto 66 (42 de suelo y agua, 14 copias ocultas, luces del cielo, muro débil y espada de `scenes/World.tscn`), doble 0, otro sitio 120. La zona del zapato del Puente Viejo sale «quieta» porque sigue al río del editor y la medición no mueve el río.
+
 ## 2026-11-11 — Paso 2, tanda 3: los mostradores de las tiendas (Claude Code)
 - **Fallo arreglado:** la zona de uso y el letrero «gestionar negocio» de los 15 mostradores se traducían dos veces y acababan a kilómetros del mostrador. `_register_shop_business_stall` recibe ahora el sitio en el mapa original (la marca `puesto`) y guarda en la ficha el sitio real; sus cinco llamadas pasan la marca.
 - Sin hacer: el muro débil y la espada sueltos no son del código del mundo, están puestos a mano en `scenes/World.tscn`; se tratarán con el resto de esa escena.

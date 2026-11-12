@@ -82,9 +82,21 @@ func _volcar_3d(datos: Dictionary) -> void:
 	for n: Node in escenario.find_children("*", "Node3D", true, false):
 		if not (n is VisualInstance3D or n is CollisionShape3D) or _es_de_algo_vivo(n):
 			continue
+		if n is MultiMeshInstance3D and (n as MultiMeshInstance3D).multimesh != null:
+			_volcar_lote(datos, n as MultiMeshInstance3D, str(escenario.get_path_to(n)))
+			continue
 		var p: Vector3 = (n as Node3D).global_position
 		var en_mapa: Vector2 = Mapa3D.a_mapa(p)
 		datos["3d|" + str(escenario.get_path_to(n))] = [en_mapa.x, en_mapa.y, n.get_class()]
+
+
+## Un lote junta muchas copias de una malla (árboles, rocas) en un solo nodo que no se mueve: se anota cada copia.
+func _volcar_lote(datos: Dictionary, lote: MultiMeshInstance3D, ruta: String) -> void:
+	var copias: MultiMesh = lote.multimesh
+	for i in range(copias.instance_count):
+		var p: Vector3 = lote.global_transform * copias.get_instance_transform(i).origin
+		var en_mapa: Vector2 = Mapa3D.a_mapa(p)
+		datos["3d|%s/Copia_%d" % [ruta, i]] = [en_mapa.x, en_mapa.y, "Copia"]
 
 
 ## La lógica del juego sigue en el plano: paredes invisibles, zonas de uso, puertas, letreros.
