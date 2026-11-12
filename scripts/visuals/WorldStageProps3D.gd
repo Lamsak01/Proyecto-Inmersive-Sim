@@ -2,6 +2,9 @@
 extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
+const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
+const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
+const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
 
 ## Puesto del Paso, cementerio, alcantarillas, objetos de la época, farolas y objetos/props dinámicos 3D.
 
@@ -822,6 +825,8 @@ static func _tex_file(t: Texture2D) -> String:
 func _prop_kind_for(spr: Sprite2D) -> String:
 	if spr.name == "CropSprite":
 		return "crop"
+	if spr.has_meta(META_TIPO_3D): # el que lo crea dice qué es (p. ej. las rocas de la cantera, que comparten dibujo con las que se pican)
+		return String(spr.get_meta(META_TIPO_3D))
 	var mapped: String = String(PROP_KIND_BY_TEXTURE.get(_tex_file(spr.texture), ""))
 	if not mapped.is_empty():
 		return mapped
@@ -1165,6 +1170,10 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Sprite2D) -> void:
 			_add_cyl_2d(root, pos, 11.5, -1.0, 5.5, m_den_earth, 7.5, 10)
 			_add_box_2d(root, pos + Vector2(0, -3.0), Vector2(14.0, 9.0), 0.0, 6.8, m_den_rock)
 			_add_cyl_2d(root, pos + Vector2(0, 2.2), 5.2, 1.2, 2.4, m_den_hole, 4.6, 8)
+		"roca":
+			var rocas: Array[String] = ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
+			var h: int = absi(hash(pos.round()))
+			_add_model_2d(root, rocas[h % rocas.size()], pos, ROCA_HUNDIDA_PX, Vector2.ZERO, ROCA_ALTO_PX, float(h % 360))
 		"dropped_item":
 			var m_pouch := _mat("dropped_pouch_3d", Color(0.68, 0.52, 0.32), 0.85, 0.05)
 			_add_cyl_2d(root, pos, 3.4, 0.0, 4.2, m_pouch, 2.0, 8)

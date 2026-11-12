@@ -1249,8 +1249,6 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			npc.personal_gold += GARDEN_COST
 		var st: Dictionary = VillageLots.lot(vm, arg)
 		st["has_garden"] = true
-		var c: Vector2 = VillageLots.lot_def(arg)["center"]
-		vm._spawn_decor_prop("res://assests/world/village/chicken_1.png", c + Vector2(-46, 22), Vector2(0.9, 0.9))
 		move_coop_to_lot(vm, arg)
 		sync_home_props(vm)
 		VillageChronicle.add(vm, "home_garden", "Montaste un huerto y gallinero doméstico junto a tu casa", true)

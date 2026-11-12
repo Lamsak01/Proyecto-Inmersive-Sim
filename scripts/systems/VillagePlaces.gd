@@ -99,13 +99,11 @@ static func build_world(vm) -> void:
 	var tree: Texture2D = vm._load_tex(dec + "tilesets and props/props-sprites/pine-tree_0.png")
 	for tp in [Vector2(188, 224), Vector2(420, 224), Vector2(188, 338), Vector2(420, 338), Vector2(304, 228)]:
 		vm._add_sprite_prop(tree, tp, Vector2(0.7, 0.7), 0)
-	for fp in [Vector2(248, 226), Vector2(360, 226), Vector2(248, 334), Vector2(360, 334), Vector2(304, 316)]:
-		vm._spawn_decor_prop(dec + "buildings/Decorations_sprites/flowers_plants_0.png", fp, Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "park_bench") + Vector2(0, -8), Vector2(0.4, 0.4))
-	vm._spawn_decor_prop(bench, Vector2(372, 260), Vector2(0.4, 0.4))
+	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "park_bench") + Vector2(0, -8))
+	vm._spawn_decor_prop(bench, Vector2(372, 260))
 	# Bancos de la plaza
-	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "plaza_benches"), Vector2(0.4, 0.4))
-	vm._spawn_decor_prop(bench, Vector2(468, 82), Vector2(0.4, 0.4))
+	vm._spawn_decor_prop(bench, Sitio.original(SITIO_OCIO % "plaza_benches"))
+	vm._spawn_decor_prop(bench, Vector2(468, 82))
 	# Mirador del lago: barandilla de madera y un banco
 	var lv: Vector2 = Sitio.original(SITIO_OCIO % "lake_view") # lo que se dibuja aún se traduce: se le da el mapa original
 	var rail_top: Polygon2D = vm._add_rect_poly(lv + Vector2(0, -12), Vector2(36, 2), Color(0.50, 0.34, 0.18, 0.95), -1)
@@ -116,7 +114,7 @@ static func build_world(vm) -> void:
 		var rail_post: Polygon2D = vm._add_rect_poly(lv + Vector2(px, -9), Vector2(1.5, 4), Color(0.42, 0.28, 0.14, 0.95), -1)
 		if rail_post != null:
 			rail_post.add_to_group("ranch_fence_2d")
-	vm._spawn_decor_prop(bench, lv + Vector2(0, -2), Vector2(0.4, 0.4))
+	vm._spawn_decor_prop(bench, lv + Vector2(0, -2))
 
 ## Para las quedadas del SocialDirector.
 static func hangout_spots() -> Array:

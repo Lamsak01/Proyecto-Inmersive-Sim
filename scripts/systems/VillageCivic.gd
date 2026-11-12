@@ -87,25 +87,20 @@ static func inn_guest_beds() -> Array:
 static func build(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = VillageLots.lot_def(id)
 	var c: Vector2 = d["center"]
-	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
 	var props: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 	match str(st["kind"]):
 		"civic":
 			vm._construct_solid_building(HALL_ID, HALL_TITLE, c,
 				"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 			var sp: Dictionary = hall_spots()
-			vm._spawn_decor_prop(props + "table_chairs_1.png", sp["desk"], Vector2(0.5, 0.5))
+			vm._spawn_decor_prop(props + "table_chairs_1.png", sp["desk"])
 			vm._add_rect_poly(sp["ballot"], Vector2(6, 5), Color(0.55, 0.36, 0.18, 1.0), -1) # Urna
 			vm._spawn_house_chest(sp["coffers"], "Arcas del Pueblo", "town_hall")
 		"shelter":
 			vm._construct_solid_building(SHELTER_ID, SHELTER_TITLE, c,
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
-			for b in shelter_beds():
-				vm._add_sprite_prop(tex_bed, b, Vector2(1.0, 1.0), -1)
 		"inn":
 			VillageLots._build_shop_house(vm, id, st)
-			for b in inn_guest_beds().slice(1):
-				vm._add_sprite_prop(tex_bed, b, Vector2(1.0, 1.0), -1)
 
 # ---------------------------------------------------------------- elecciones en persona
 ## VillageTown la llama cuando tocan elecciones normales: hoy se vota en el ayuntamiento.

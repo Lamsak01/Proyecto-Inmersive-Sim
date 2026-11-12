@@ -213,8 +213,6 @@ var _jail_label: Label = null
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._jail_cell_gate_body)
 var _jail_cell_gate_body: StaticBody2D = null
 var _jail_cell_gate_col: CollisionShape2D = null
-var _jail_cell_gate_spr_closed: Sprite2D = null
-var _jail_cell_gate_spr_open: Sprite2D = null
 
 # Paso 3: Cofres Domésticos, Puertas con Cerradura/Cerrojo y Ventanas Forzables
 var house_chests: Array[Dictionary] = [] # [{pos, sprite, label, title, family_id, looted_day}]
@@ -1338,19 +1336,9 @@ func _update_streetlights_glow() -> void:
 		if is_instance_valid(spr):
 			spr.modulate = Color(0.90, 1.08, 1.18) if grid_on else Color.WHITE
 
-func _spawn_decor_prop(tex_path: String, pos: Vector2, sc: Vector2 = Vector2.ONE) -> void:
-	var tex := _load_tex(tex_path)
-	if not tex:
-		return
-	var spr := Sprite2D.new()
-	spr.texture = tex
-	var g_ancla: float = Anclas.giro(pos)
-	spr.global_position = Anclas.mover(pos, "decorado", tex_path.get_file().get_basename()) # número fijo del mapa: sigue a su edificio
-	spr.scale = sc
-	spr.z_index = -1
-	if absf(g_ancla) > 0.5:
-		spr.set_meta("giro_3d", g_ancla)
-	entities_root.add_child(spr)
+## Mueble o adorno con choque. Ya no se dibuja en plano (2026-11-12): su versión 3D está en la escena del edificio
+## o en una pieza del mapa; aquí solo queda la pared invisible que lo hace sólido, según el dibujo de origen.
+func _spawn_decor_prop(tex_path: String, pos: Vector2) -> void:
 	var fname: String = tex_path.get_file()
 	var col_sz := Vector2.ZERO
 	match fname:

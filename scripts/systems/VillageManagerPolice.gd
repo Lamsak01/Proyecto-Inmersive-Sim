@@ -319,10 +319,6 @@ func set_jail_cell_gate_locked(locked: bool) -> void:
 	if is_instance_valid(_jail_cell_gate_col):
 		_jail_cell_gate_col.disabled = not locked
 		_jail_cell_gate_col.set_deferred("disabled", not locked)
-	if is_instance_valid(_jail_cell_gate_spr_closed):
-		_jail_cell_gate_spr_closed.visible = locked
-	if is_instance_valid(_jail_cell_gate_spr_open):
-		_jail_cell_gate_spr_open.visible = not locked
 	if not locked:
 		for d_entry in building_doors:
 			if str(d_entry.get("building_id", "")) == "building_police":

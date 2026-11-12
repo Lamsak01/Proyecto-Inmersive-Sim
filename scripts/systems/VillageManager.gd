@@ -54,7 +54,6 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageNobility.ensure_lots(self) # V6: mansión y casa grande
 	VillageLots.build_world(self) # V4: calles y solares del borde, afueras y lomas
 	VillagePlaces.build_world(self) # V5c: parque, bancos de la plaza y mirador del lago
-	VillageWork.build_world(self) # V5d: lavadero
 	VillageUnderworld.build_sewers_world(self) # FIS3: trampillas en la calle y red de túneles conectada al sur
 	VillageClub.build_world(self) # P6: trampilla tras la taberna y club de pelea en el sótano
 	VillageHousing.sync_livestock(self) # FIS4: ganado vivo del rancho y animales propios del corral

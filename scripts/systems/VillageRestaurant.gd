@@ -115,34 +115,34 @@ static func build(vm) -> void:
 
 static func _build_furniture(vm) -> void:
 	for t in dining_tables():
-		vm._spawn_decor_prop(PROPS + "table_chairs_0.png", t, Vector2(0.42, 0.42))
-	vm._spawn_decor_prop(PROPS + "piano.png", sitio(M_PIANO), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "drinks_shelf_0.png", sitio(M_BARRA) + Vector2(0, 12), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "plants_3.png", BASE + Vector2(8, 88), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "plants_5.png", BASE + Vector2(187, 88), Vector2(0.5, 0.5))
+		vm._spawn_decor_prop(PROPS + "table_chairs_0.png", t)
+	vm._spawn_decor_prop(PROPS + "piano.png", sitio(M_PIANO))
+	vm._spawn_decor_prop(PROPS + "drinks_shelf_0.png", sitio(M_BARRA) + Vector2(0, 12))
+	vm._spawn_decor_prop(PROPS + "plants_3.png", BASE + Vector2(8, 88))
+	vm._spawn_decor_prop(PROPS + "plants_5.png", BASE + Vector2(187, 88))
 	# Cocina
-	vm._spawn_decor_prop(PROPS + "stove.png", sitio(M_FOGONES), Vector2(0.55, 0.55))
-	vm._spawn_decor_prop(PROPS + "storage_countertop2_0.png", sitio(M_ENCIMERA), Vector2(0.55, 0.55))
-	vm._spawn_decor_prop(PROPS + "kitchen_props_3.png", BASE + Vector2(210, 116), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "pots_pack_0.png", BASE + Vector2(266, 146), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "stove.png", sitio(M_FOGONES))
+	vm._spawn_decor_prop(PROPS + "storage_countertop2_0.png", sitio(M_ENCIMERA))
+	vm._spawn_decor_prop(PROPS + "kitchen_props_3.png", BASE + Vector2(210, 116))
+	vm._spawn_decor_prop(PROPS + "pots_pack_0.png", BASE + Vector2(266, 146))
 	# Cámara frigorífica
-	vm._spawn_decor_prop(PROPS + "crates_3.png", BASE + Vector2(264, 56), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "crates_3.png", BASE + Vector2(264, 56))
 	# Bodega
-	vm._spawn_decor_prop(PROPS + "drinks_shelf_1.png", sitio(M_BOTELLERO), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "barrels3_0.png", BASE + Vector2(96, 48), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "barrels_2.png", BASE + Vector2(130, 48), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(PROPS + "drinks_shelf_1.png", sitio(M_BOTELLERO))
+	vm._spawn_decor_prop(PROPS + "barrels3_0.png", BASE + Vector2(96, 48))
+	vm._spawn_decor_prop(PROPS + "barrels_2.png", BASE + Vector2(130, 48))
 	# Reservado y despacho del dueño
-	vm._spawn_decor_prop(PROPS + "big_round_table_chairs_0.png", sitio(M_RESERVADO), Vector2(0.5, 0.5))
-	vm._spawn_decor_prop(PROPS + "fireplace_0.png", BASE + Vector2(10, 12), Vector2(0.45, 0.45))
-	vm._spawn_decor_prop(PROPS + "table_chairs_0.png", sitio(M_CAMA_DUENO), Vector2(0.44, 0.44))
-	vm._spawn_decor_prop(PROPS + "storage_countertop_0.png", BASE + Vector2(154, 8), Vector2(0.42, 0.42))
+	vm._spawn_decor_prop(PROPS + "big_round_table_chairs_0.png", sitio(M_RESERVADO))
+	vm._spawn_decor_prop(PROPS + "fireplace_0.png", BASE + Vector2(10, 12))
+	vm._spawn_decor_prop(PROPS + "table_chairs_0.png", sitio(M_CAMA_DUENO))
+	vm._spawn_decor_prop(PROPS + "storage_countertop_0.png", BASE + Vector2(154, 8))
 
 static func _build_terrace(vm) -> void:
 	# Terraza: mesas y macetas (pasan a 3D)
 	for t in terrace_tables():
-		vm._spawn_decor_prop(PROPS + "round_table_0.png", t, Vector2(0.4, 0.4))
+		vm._spawn_decor_prop(PROPS + "round_table_0.png", t)
 	for pp in [BASE + Vector2(4, 232), BASE + Vector2(80, 232), BASE + Vector2(120, 232), BASE + Vector2(270, 232)]:
-		vm._spawn_decor_prop(PROPS + "plants_8.png", pp, Vector2(0.5, 0.5))
+		vm._spawn_decor_prop(PROPS + "plants_8.png", pp)
 
 # ---------------------------------------------------------------- recorrido por dentro
 static func room_of(p: Vector2) -> String:

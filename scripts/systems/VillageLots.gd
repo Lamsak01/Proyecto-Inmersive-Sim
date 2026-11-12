@@ -214,7 +214,7 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 			vm._add_sprite_prop(vm._load_tex("res://assests/Comprados/Epic RPG World - The Village V2.1/buildings/Decorations_sprites/sign_1.png"), site_work_pos(id), Vector2(0.8, 0.8), -1)
 		"building":
 			for off in [Vector2(-30, -10), Vector2(24, 8), Vector2(-6, 18)]:
-				vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/crates_0.png", c + off, Vector2(0.5, 0.5))
+				vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/crates_0.png", c + off)
 		"built":
 			_build_kind(vm, id, st)
 	var rec: Array = _capture_end(vm, snap)
@@ -233,16 +233,11 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 	var c: Vector2 = d["center"]
 	match str(st["kind"]):
 		"house":
-			var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
 			var fam: String = "family_lot_" + id
-			var has_up: bool = bool((st.get("upgrades", {}) as Dictionary).get("upper_floor", false))
-			var beds: Array = _house_beds(id, has_up)
 			# La casa es una copia de la casa modelo de su tamaño (con la puerta al norte, con media vuelta): de ella sale su planta
 			vm._construct_solid_building(CasaModelo.PREFIJO + id, str(st["title"]), c,
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png", CasaModelo.planta(plot_of(id), bool(d["door_south"])))
-			for b in beds:
-				vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
-			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", house_site(id, Marca.MESA), Vector2(0.45, 0.45))
+			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", house_site(id, Marca.MESA))
 			vm._spawn_house_chest(house_site(id, Marca.COFRE), "Cofre Familiar (" + str(st["title"]) + ")", fam)
 		"shop_house":
 			_build_shop_house(vm, id, st)
@@ -280,10 +275,7 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 	var stall: Sprite2D = vm._add_sprite_prop(vm._load_tex("res://assests/world/village/work_stall.png"), lay["stall_pos"], Vector2(1.3, 1.3), -1)
 	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"], stall)
-	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
-	for b in [lay["bed1_pos"], lay["bed2_pos"]]:
-		vm._add_sprite_prop(tex_bed, b, Vector2(1.12, 1.12), -1)
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", lay["table_pos"], Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", lay["table_pos"])
 	vm._spawn_house_chest(lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
 	load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id) # V5d: campos, corrales, cantera…
 

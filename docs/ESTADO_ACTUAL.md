@@ -28,18 +28,18 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 - Ojo con el inventario: mide cada copia de los lotes de árboles y el centro de las mallas de suelo; no mueve el río.
 
 ## c) Siguiente paso técnico inmediato
-Paso 4, trozos seguros (decorado del código → piezas), cada uno comparando la escena entera antes y después
-(volcado del árbol de escena 3D, sin ruido en terreno/decorado/vegetación) y el volcado de la lógica. Trozos 1
-(`WorldStageTerrain3D`), 2 (`VillageWorldBuilder`), 3 (`VillageTavern`), 4 (`VillageRestaurant`) y 5 (`VillageLots`) hechos. Siguientes:
-dibujo plano de `VillagePlaces`, `VillageManagerSocial`…; choques y zonas → piezas; `EcosystemManager` (174).
-**El mapa plano se ve desde arriba (P)** si está visible, opaco y con z > -2: hoy 21 cosas (postes,
-estacas del puesto). Carteles de madera en las puertas (`mapa/cartel.gd`); textos flotantes borrados (decisión del usuario); los postes de los caminos y del bosque llevan su texto pintado. Las instrucciones del minijuego de pesca siguen planas (sin revisar). Antes de borrar, sacar esa lista antes y después (herramienta temporal) y fotos desde arriba.
+Paso 4, trozos seguros (decorado del código → piezas), comparando árbol 3D y lógica antes y después. Hechos: terreno,
+constructor, taberna, restaurante, solares. Siguen: `VillagePlaces`, `VillageManagerSocial`…, `EcosystemManager`.
+**Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
+plano). Capa 1 hecha: desde arriba ya no se ve nada plano (lista 0). Capa 2 en curso: los dibujos planos ocultos que hacen
+de plano del 3D (`_add_rect_poly`/`_add_poly`, sprites fuente de `WorldStageProps3D`, etiquetas de estación) → piezas o
+borrar. Comprobar cada tanda con la lista de lo visible y fotos. Pesca: instrucciones del minijuego planas (sin revisar).
 Corte final (anclas y ×5) solo con el usuario.
 Pendiente apuntado: muro débil y espada de `scenes/World.tscn`; tamaños (`VillageTavern.SIZE/RECT`, `VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS`; matas de
 `_build_ground_foliage_3d` no esquivan una plaza movida; `FOREST_POLY` y `RIVER_*` sin pieza.
 
 ## d) Bloqueos activos
-- Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla).
+- Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). Igual «No two conscious villagers may overlap» (dos vecinos en la terraza del restaurante; 1 de 2 veces, 2026-11-12).
 - Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración. Inventario 2026-11-12
   (`docs/INVENTARIO_MUNDO.md`): sigue 5.297, quieto 75 (río, luces, sitios del código que quedan), doble 0, otro
   sitio 123 (ruido entre partidas y sitios al aire libre).

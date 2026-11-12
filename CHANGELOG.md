@@ -4,6 +4,18 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Capa 1 del adiós al 2D: nada plano a la vista desde arriba (Claude Code)
+- Decisión del usuario: quitar todo lo plano que se ve o se edita (capas 1 y 2); el «cerebro» plano de los vecinos se queda.
+- Los muebles y adornos de código (`_spawn_decor_prop`, 43 llamadas) ya no se dibujan: solo dejan su choque; su 3D está
+  en las escenas de los edificios o en piezas. Borradas las flores del parque y la gallina del huerto (no hacían nada más).
+- Borradas las camas planas (casas, solares, botica, albergue, posada de solar, mansiones, hospital, comisaría, capilla,
+  piso alto de la taberna), las rejas planas de la celda, el lavadero plano y todo el dibujo plano del Puesto del Paso
+  (`sync_outpost_visuals` solo rehace el 3D).
+- Las rocas de la cantera, que no existían en 3D, son rocas 3D (marca `tipo_3d` en el dibujo, `WorldStageProps3D`).
+- Comprobado: lista de lo visible desde arriba 21 → 0; fotos en 1.ª persona y desde arriba de terraza, puesto,
+  lavadero, comisaría, solar y cantera (el 3D igual); verify_all en verde a la segunda (la primera falló al azar
+  el solape de dos vecinos en la terraza; apuntado en el estado).
+
 ## 2026-11-12 — Los textos de los caminos, pintados en sus postes (Claude Code)
 - Los 6 postes de los caminos y los 5 avisos del bosque llevan su texto pintado en la tabla (letras claras por las dos
   caras; `Cartel.letras`/`escribir`, meta `texto_cartel`, `_escribir_poste` en `WorldStageProps3D`). Los avisos del

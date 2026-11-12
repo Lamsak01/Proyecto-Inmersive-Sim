@@ -34,7 +34,6 @@ static func _spawn_tavern_and_rooms(vm: VillageManager) -> void:
 # 4 LOCALES COMERCIALES + 4 CASAS RESIDENCIALES + BOTICA-VIVIENDA MIXTA
 static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 	var tex_stall := vm._load_tex("res://assests/world/village/work_stall.png")
-	var tex_bed := vm._load_tex("res://assests/world/village/tavern_bed.png")
 	var tex_family := vm._load_tex("res://assests/world/village/villager_traveler.png")
 
 	vm.trade_configs = {
@@ -107,11 +106,11 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		var table_pos: Vector2 = Marca.sitio(house_id, Marca.MESA)
 
 		if is_mixed:
-			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), tex_bed, tex_stall, bed1_pos, bed2_pos, table_pos, fam_id, int(role_key))
+			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), tex_stall, bed1_pos, bed2_pos, table_pos, fam_id, int(role_key))
 		else:
 			var is_smithy: bool = (role_key == VillageNPC.TradeRole.BLACKSMITH)
 			_build_enclosed_shop_visuals(vm, sc, str(cfg["shop_title"]), tex_stall, is_smithy, fam_id, int(role_key))
-			_build_residential_house_visuals(vm, hc, str(cfg["house_title"]), tex_bed, bed1_pos, bed2_pos, table_pos, fam_id)
+			_build_residential_house_visuals(vm, hc, str(cfg["house_title"]), table_pos, fam_id)
 
 		cfg["work_pos"] = work_pos
 		cfg["kin_work_pos"] = kin_work_pos
@@ -156,19 +155,17 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 
 	vm._spawn_house_chest(Marca.sitio("shop_" + fam_id, Marca.COFRE), "Cofre de " + shop_title, fam_id)
 	if is_blacksmith:
-		vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/fireplace_0.png", sc + Vector2(-36, -16), Vector2(0.32, 0.32))
-		vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/stand-1_part5.png", sc + Vector2(26, -12), Vector2(0.65, 0.65))
+		vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/fireplace_0.png", sc + Vector2(-36, -16))
+		vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/stand-1_part5.png", sc + Vector2(26, -12))
 
-static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, house_title: String, tex_bed: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String) -> void:
+static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, house_title: String, table_pos: Vector2, fam_id: String) -> void:
 	vm._construct_solid_building("house_" + fam_id, house_title, hc,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
-	for b_pos in [bed1_pos, bed2_pos]:
-		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos, Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos)
 	vm._spawn_house_chest(Marca.sitio("house_" + fam_id, Marca.COFRE), "Cofre Familiar (" + house_title + ")", fam_id)
 
-static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, tex_bed: Texture2D, tex_stall: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String, role_id: int = -1) -> void:
+static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, tex_stall: Texture2D, bed1_pos: Vector2, bed2_pos: Vector2, table_pos: Vector2, fam_id: String, role_id: int = -1) -> void:
 	vm._construct_solid_building("mixed_" + fam_id, title, center,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 
@@ -184,10 +181,9 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 	vm.register_no_stand_furniture(center + Vector2(28, -38), Vector2(16.0, 8.5))
 
 	for b_pos in [bed1_pos, bed2_pos]:
-		vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.12, 1.12), -1)
 		vm._add_prop_collider(b_pos, Vector2(12.0, 17.0))
 
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos, Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", table_pos)
 	vm._spawn_house_chest(Marca.sitio("mixed_" + fam_id, Marca.COFRE), "Cofre de la Botica Raíz Verde", fam_id)
 
 # PASO 1: 🏥 HOSPITAL DE URGENCIAS Y ⚰️ MORGUE FORENSE (`Vector2(745, 148)`)
@@ -195,9 +191,7 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm._construct_solid_building("building_hospital", "🏥 Hospital de Urgencias y ⚰️ Morgue Forense", vm._hospital_center,
 		"res://assests/world/village/floor_hospital_tile.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 
-	var tex_hbed := vm._load_tex("res://assests/world/village/hospital_bed.png")
 	for b_pos in [vm._hospital_bed_pos, Marca.sitio(vm.ID_HOSPITAL, Marca.CAMA_1)]:
-		vm._add_sprite_prop(tex_hbed, b_pos, Vector2(1.15, 1.15), -1)
 		vm._add_prop_collider(b_pos, Vector2(13.5, 19.5))
 
 	vm._add_station_area("HospitalEmergencyBedArea", vm._hospital_bed_pos, 16.0, "hospital_bed")
@@ -220,7 +214,7 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm.entities_root.add_child(vm._morgue_label)
 
 	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_HOSPITAL, Marca.MESA), Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_HOSPITAL, Marca.MESA))
 	vm._register_authority_npc(
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",
@@ -234,11 +228,7 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._construct_solid_building("building_police", "🚓 Comisaría de Policía y 🔒 Cárcel del Valle", vm._police_center,
 		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
-	var tex_bars_h := vm._load_tex("res://assests/world/village/jail_bars_h.png")
-	var tex_bars_v := vm._load_tex("res://assests/world/village/jail_bars_v.png")
-	var tex_bed := vm._load_tex("res://assests/world/village/tavern_bed.png")
-
-
+	# Reja de la celda: solo su choque (la reja 3D está en la escena de la comisaría)
 	vm._jail_cell_gate_body = StaticBody2D.new()
 	vm._jail_cell_gate_body.name = "JailCellGateBody"
 	vm._jail_cell_gate_body.global_position = vm.sitio(Vector2(902, 152)) # la celda sigue a la comisaría
@@ -252,13 +242,8 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._jail_cell_gate_body.add_child(vm._jail_cell_gate_col)
 	vm.entities_root.add_child(vm._jail_cell_gate_body)
 
-	vm._jail_cell_gate_spr_closed = vm._add_sprite_prop(tex_bars_h, Vector2(902, 152), Vector2(0.85, 1.0), 2, false)
-	vm._jail_cell_gate_spr_open = vm._add_sprite_prop(tex_bars_v, Vector2(890, 141), Vector2(1.0, 0.75), 2, true)
 
-	for c_bed_pos in [Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_CELDA), Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_1)]:
-		vm._add_sprite_prop(tex_bed, c_bed_pos, Vector2.ONE, -1, true, Color(0.75, 0.78, 0.85, 1.0))
-
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_COMISARIA, Marca.MESA), Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_COMISARIA, Marca.MESA))
 	vm._add_prop_collider(Vector2(960, 128), Vector2(20.0, 11.5))
 	vm.register_no_stand_furniture(Vector2(960, 128), Vector2(20.0, 11.5))
 	vm.register_no_stand_furniture(Vector2(952, 185), Vector2(7.0, 6.0))
@@ -312,9 +297,8 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm.entities_root.add_child(vm._church_altar_label)
 
 	# G3: el sacerdote vive en la capilla (cama en la esquina noreste y mesa propia en la noroeste)
-	vm._add_sprite_prop(vm._load_tex("res://assests/world/village/tavern_bed.png"), Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Vector2.ONE, -1, true, Color(0.92, 0.88, 0.80, 1.0))
 	vm._add_prop_collider(Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Vector2(13.0, 18.0))
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_CAPILLA, Marca.MESA), Vector2(0.45, 0.45))
+	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_CAPILLA, Marca.MESA))
 	vm._register_authority_npc(
 		"NPC_Priest_Anselmo", "Hermano Anselmo", "Sacerdote del Alba", VillageNPC.TradeRole.PRIEST,
 		"res://assests/world/village/villager_traveler.png",

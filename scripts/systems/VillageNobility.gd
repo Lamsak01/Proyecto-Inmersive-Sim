@@ -93,10 +93,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 	var big: bool = str(st["kind"]) == "mansion"
 	vm._construct_solid_building(BUILDING_IDS[id], str(st["title"]), c,
 		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
-	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
-	for b in beds(id):
-		vm._add_sprite_prop(tex_bed, b, Vector2(1.2, 1.2), -1)
-	vm._spawn_decor_prop(props + "table_chairs_1.png", table_pos(id), Vector2(0.5, 0.5))
+	vm._spawn_decor_prop(props + "table_chairs_1.png", table_pos(id))
 	vm._add_rect_poly(study_pos(id), Vector2(12, 6), Color(0.40, 0.22, 0.12, 1.0), -1) # Escritorio
 	var fam: String = MANSION_FAMILY if big else MANOR_FAMILY
 	vm._spawn_house_chest(Marca.sitio(BUILDING_IDS[id], Marca.COFRE), "Cofre de " + str(HOUSEHOLDS[id]["name"]), fam)

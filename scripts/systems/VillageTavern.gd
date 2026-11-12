@@ -158,7 +158,6 @@ static func setup_world(vm) -> void:
 	vm._tavern_bed_pos = sitio(M_CAMA_JUGADOR)
 	vm._tavern_well_pos = preload("res://mapa/objeto.gd").pos("pozo_taberna", WELL_POS) # editor del mapa: el pozo movido manda
 
-	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
 	var tex_stall: Texture2D = vm._load_tex("res://assests/world/village/work_stall.png")
 	var tex_innkeeper: Texture2D = vm._load_tex("res://assests/world/village/villager_innkeeper.png")
 
@@ -228,12 +227,6 @@ static func setup_world(vm) -> void:
 	for part_ux in BEDROOM_PARTITIONS_X:
 		if float(part_ux) < 556.0:
 			vm._add_prop_collider(Vector2(float(part_ux), -265.0), Vector2(5.0, 98.0), "tavern_upper_walls")
-
-	# 4. Camas de huéspedes en Planta +1 (2.º piso)
-	for b_pos in all_upper_beds():
-		var spr: Sprite2D = vm._add_sprite_prop(tex_bed, b_pos, Vector2(1.18, 1.18), -1)
-		if spr != null:
-			spr.add_to_group("tavern_upper_2d")
 
 	vm._add_station_area("TavernPlayerBedArea", sitio(M_CAMA_JUGADOR), 20.0, "tavern_bed")
 	vm._tavern_bed_label = vm._make_station_label(sitio(M_CAMA_JUGADOR) + Vector2(-115.0, -28.0), "🛌 Cama de Posada (Piso +1) [E: Dormir hasta 06:00 (-8 Oro)]")
@@ -810,9 +803,3 @@ static func tick(vm, delta: float) -> void:
 		if speaker != null:
 			speaker._spawn_floating_text("🕳️🥊 «De 21:00 a 03:00 abre la trampilla del sótano en el cuarto de la escalera»", Color(1.0, 0.84, 0.45), -34.0)
 
-	# 3. En modo 2D, mostrar las camas del piso superior solo cuando el jugador está en Planta +1
-	if vm.is_inside_tree():
-		var show_upper_2d: bool = int(vm.player_elevation_level) == 1
-		for node_u in vm.get_tree().get_nodes_in_group("tavern_upper_2d"):
-			if node_u is CanvasItem:
-				(node_u as CanvasItem).visible = show_upper_2d

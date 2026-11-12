@@ -57,12 +57,6 @@ static func master_of(vm, key: String):
 		return m
 	return null
 
-# ---------------------------------------------------------------- mapa
-static func build_world(vm) -> void:
-	var p: Vector2 = Sitio.original(SITIO_LAVADERO) # lo que se dibuja aún se traduce: se le da el mapa original
-	vm._add_rect_poly(p, Vector2(18, 8), Color(0.55, 0.55, 0.58, 0.95), -2) # Pila de piedra
-	vm._add_rect_poly(p, Vector2(14, 5), Color(0.30, 0.55, 0.78, 0.95), -1) # Agua
-
 # ---------------------------------------------------------------- jornaleros
 static func _is_work_day() -> bool:
 	return WorldClock == null or not (WorldClock.has_method("is_rite_day") and WorldClock.is_rite_day())

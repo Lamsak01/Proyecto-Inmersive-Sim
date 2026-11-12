@@ -1975,52 +1975,9 @@ static func ensure_lots(vm) -> void:
 		st["title"] = e[2]
 	sync_outpost_visuals(vm)
 
-static func _clear_outpost_visuals(vm) -> void:
-	if vm == null:
-		return
-	for nd in vm.get_meta("outpost_nodes", []):
-		if is_instance_valid(nd):
-			nd.queue_free()
-	vm.set_meta("outpost_nodes", [])
-
+## El Puesto del Paso solo se dibuja en 3D, según su estado (WorldStageProps3D.rebuild_outpost_3d); ya no tiene dibujo plano.
 static func sync_outpost_visuals(vm) -> void:
-	if vm == null or not is_instance_valid(vm.entities_root):
-		return
-	_clear_outpost_visuals(vm)
-	var cap: Dictionary = VillageLots._capture_begin(vm)
-	var op: Dictionary = outpost_state(vm)
-	var founded: bool = bool(op.get("founded", false))
-	var upgs: Dictionary = op.get("upgrades", {})
-	var c: Vector2 = outpost_center()
-	# Extensión del camino del este hacia el Paso Fronterizo
-	vm._add_rect_poly(Vector2(1512, 50), Vector2(36, 14), Color(0.46, 0.36, 0.24, 0.92), -3)
-	if not founded:
-		vm._add_rect_poly(c, Vector2(68, 72), Color(0.28, 0.34, 0.20, 0.45), -3)
-		for p in [Vector2(-64, -68), Vector2(64, -68), Vector2(64, 68), Vector2(-64, 68)]:
-			vm._add_rect_poly(c + p, Vector2(3, 5), Color(0.48, 0.32, 0.16, 1.0), -1)
-		vm._add_rect_poly(outpost_gate_pos(), Vector2(5, 8), Color(0.55, 0.36, 0.18, 1.0), -1)
-	else:
-		# Explanada empedrada y empalizada de troncos del Puesto del Paso
-		vm._add_rect_poly(c, Vector2(76, 82), Color(0.36, 0.30, 0.22, 0.92), -2)
-		vm._add_rect_poly(c + Vector2(0, -80), Vector2(76, 4), Color(0.42, 0.27, 0.14, 1.0), 1)
-		vm._add_rect_poly(c + Vector2(0, 80), Vector2(76, 4), Color(0.42, 0.27, 0.14, 1.0), 1)
-		vm._add_rect_poly(c + Vector2(74, 0), Vector2(4, 82), Color(0.42, 0.27, 0.14, 1.0), 1)
-		vm._add_rect_poly(c + Vector2(-74, -50), Vector2(4, 30), Color(0.42, 0.27, 0.14, 1.0), 1)
-		vm._add_rect_poly(c + Vector2(-74, 50), Vector2(4, 30), Color(0.42, 0.27, 0.14, 1.0), 1)
-		# Cabaña de mando y arca de recaudación
-		vm._add_rect_poly(c + Vector2(32, 0), Vector2(24, 20), Color(0.48, 0.32, 0.18, 1.0), -1)
-		vm._add_rect_poly(c + Vector2(8, 0), Vector2(6, 4), Color(0.82, 0.68, 0.24, 1.0), 0)
-		# Hoguera central del campamento
-		vm._add_rect_poly(c + Vector2(-18, 0), Vector2(6, 6), Color(0.35, 0.35, 0.38, 1.0), -1)
-		vm._add_rect_poly(c + Vector2(-18, 0), Vector2(4, 4), Color(1.0, 0.58, 0.18, 0.95), 0)
-		if bool(upgs.get("sawmill", false)):
-			vm._add_rect_poly(c + Vector2(-28, -52), Vector2(22, 14), Color(0.54, 0.36, 0.20, 1.0), -1)
-		if bool(upgs.get("granary", false)):
-			vm._add_rect_poly(c + Vector2(-28, 52), Vector2(20, 14), Color(0.76, 0.62, 0.32, 1.0), -1)
-		if bool(upgs.get("watchtower", false)):
-			vm._add_rect_poly(c + Vector2(-58, -58), Vector2(12, 12), Color(0.45, 0.34, 0.22, 1.0), 1)
-	vm.set_meta("outpost_nodes", VillageLots._capture_end(vm, cap)[0])
-	if vm.has_method("refresh_world_stage_3d"):
+	if vm != null and vm.has_method("refresh_world_stage_3d"):
 		vm.refresh_world_stage_3d()
 
 static func build(vm, id: String, st: Dictionary) -> void:
@@ -2056,7 +2013,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 			vm.register_no_stand_furniture(c + Vector2(-36, -18 * m), Vector2(18.0, 9.5))
 			vm._add_prop_collider(c + Vector2(42, -38 * m), Vector2(14.0, 6.0))
 			vm.register_no_stand_furniture(c + Vector2(36, -22 * m), Vector2(16.0, 9.0))
-			vm._spawn_decor_prop(props + "table_chairs_1.png", reading_spot(), Vector2(0.45, 0.45))
+			vm._spawn_decor_prop(props + "table_chairs_1.png", reading_spot())
 			vm.register_no_stand_furniture(reading_spot(), Vector2(22.0, 12.5))
 			vm._add_station_area("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
 		"school":
