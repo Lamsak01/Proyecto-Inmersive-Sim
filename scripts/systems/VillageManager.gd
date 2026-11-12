@@ -1022,8 +1022,8 @@ func _process_daily_map_edge_arrivals() -> void:
 			VillageNPC.TradeRole.INNKEEPER,
 			"Chef y Posadera (Novata)",
 			_load_tex("res://assests/world/village/villager_innkeeper.png"),
-			VillageTavern.INNKEEPER_WORK_POS,
-			VillageTavern.MARTA_BED_POS,
+			VillageTavern.sitio(VillageTavern.M_TRABAJO),
+			VillageTavern.sitio(VillageTavern.M_CAMA_MARTA),
 			{"country_stew": 2, "bread": 3, "roasted_chicken": 1},
 			_tavern_social_pos,
 			"family_tavern",
@@ -1456,7 +1456,7 @@ func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> Vil
 		dyn_npc.person_profile = PersonProfile.from_dict(npc_data["person_profile"])
 	entities_root.add_child(dyn_npc)
 	var default_tex := _load_tex("res://assests/world/village/villager_traveler.png")
-	var def_bed: Vector2 = VillageTavern.GUEST_BEDS[0]
+	var def_bed: Vector2 = VillageTavern.guest_beds()[0]
 	dyn_npc.setup_npc(
 		default_tex, Vector2(float(npc_data.get("work_x", 440.0)), float(npc_data.get("work_y", 44.0))),
 		Vector2(float(npc_data.get("bed_x", def_bed.x)), float(npc_data.get("bed_y", def_bed.y))), {},
@@ -1519,9 +1519,9 @@ func reconcile_npc_registries_after_load() -> void:
 				unemployed_npcs.append(v)
 			elif v.trade_role == VillageNPC.TradeRole.INNKEEPER and not v.is_dead:
 				_innkeeper_npc = v
-				v.work_position = VillageTavern.INNKEEPER_WORK_POS
-				v.bed_position = VillageTavern.MARTA_BED_POS
-				v.home_table_pos = VillageTavern.SOCIAL_POS
+				v.work_position = VillageTavern.sitio(VillageTavern.M_TRABAJO)
+				v.bed_position = VillageTavern.sitio(VillageTavern.M_CAMA_MARTA)
+				v.home_table_pos = VillageTavern.sitio(VillageTavern.M_MESA_CENTRAL)
 			elif v.trade_role in [VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.PRIEST] and not v.is_dead:
 				authority_npcs.append(v)
 				trade_npcs[r_int] = v

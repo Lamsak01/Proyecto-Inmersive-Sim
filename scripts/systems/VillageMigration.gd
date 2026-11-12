@@ -18,7 +18,9 @@ const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const POP_CAP: int = 100
-const TAVERN_GUEST_BEDS: Array = preload("res://scripts/systems/VillageTavern.gd").GUEST_BEDS # en un solo sitio
+## Camas de huéspedes de la taberna (marcas de su escena), en el mapa original.
+static func tavern_guest_beds() -> Array:
+	return preload("res://scripts/systems/VillageTavern.gd").guest_beds()
 const TAVERN_DAY_SPOTS: Array = [
 	Vector2(440, 44), Vector2(495, 44), Vector2(465, 58),
 	Vector2(304, 280), Vector2(236, 268), Vector2(360, 280),
@@ -94,7 +96,7 @@ static func free_house_beds(vm) -> int:
 
 static func free_tavern_bed(vm):
 	var used: Array = []
-	var camas: Array = vm.sitios(TAVERN_GUEST_BEDS) # plan de sitios: camas en su sitio actual
+	var camas: Array = vm.sitios(tavern_guest_beds()) # plan de sitios: camas en su sitio actual
 	for n in residents(vm):
 		# E3: cuenta cualquier vecino que duerma ahí (también un maestro que ya tiene oficio), no solo los parados
 		if house_of(n) == "" and n.bed_position in camas:
@@ -106,7 +108,7 @@ static func free_tavern_bed(vm):
 
 static func free_tavern_beds_count(vm) -> int:
 	var used: Array = []
-	var camas: Array = vm.sitios(TAVERN_GUEST_BEDS)
+	var camas: Array = vm.sitios(tavern_guest_beds())
 	for n in residents(vm):
 		if house_of(n) == "" and n.bed_position in camas:
 			used.append(n.bed_position)
@@ -278,7 +280,7 @@ static func _spawn_one(vm, kind: Dictionary, idx: int):
 	var base_spot: Vector2 = TAVERN_DAY_SPOTS[idx % TAVERN_DAY_SPOTS.size()]
 	var jitter := Vector2(float(((idx * 7) % 11) - 5) * 4.5, float(((idx * 5) % 7) - 3) * 3.5)
 	var n = vm._spawn_generated_newcomer("NPC_Traveler_", VillageNPC.TradeRole.UNEMPLOYED, VillageNPC.TradeRole.UNEMPLOYED,
-		str(kind["label"]), tex, base_spot + jitter, TAVERN_GUEST_BEDS[idx % TAVERN_GUEST_BEDS.size()],
+		str(kind["label"]), tex, base_spot + jitter, tavern_guest_beds()[idx % tavern_guest_beds().size()],
 		{}, vm._tavern_social_pos, "none", "Huésped de Posada")
 	n.personal_gold = randi_range(int(kind["gold"].x), int(kind["gold"].y))
 	n.set_meta("arrived_day", int(WorldClock.current_day) if WorldClock else 1) # M19 «El forastero raro»

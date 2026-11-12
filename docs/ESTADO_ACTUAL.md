@@ -8,8 +8,8 @@ toca el código del mundo** (la que hizo este avance; el usuario lo confirmó el
 mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## b) Último avance completado
-- 2026-11-11: paso 1, tandas 2 a 7. **116 marcas en 21 edificios**: las 5 familias fundadoras (tiendas, casas y
-  botica), casa de comidas, hospital y morgue, comisaría, capilla, ayuntamiento, albergue, escuela, biblioteca,
+- 2026-11-11: paso 1, tandas 2 a 8. **138 marcas en 22 edificios** (todos los edificios únicos): las 5 familias fundadoras (tiendas, casas y
+  botica), casa de comidas, taberna, hospital y morgue, comisaría, capilla, ayuntamiento, albergue, escuela, biblioteca,
   molino
   abandonado, mansión, casa grande, terminales (comisaría, ayuntamiento, taller) y expositor de la herrería. El código las lee y sus números están borrados.
 - Cómo funciona: `mapa/marca.gd` (`Marker3D` con `id_marca`, grupo «Marcas» de `mapa/edificios/<id>.tscn`).
@@ -20,11 +20,11 @@ mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
   comparar un volcado de sitios y de todo `entities_root` antes y después. Ojo: el centro de la escena no siempre es
   el centro del solar (ayuntamiento, biblioteca): restar siempre el `centro_original` de la escena.
 - Arreglado de paso (sin probar jugando): jugador rescatado → camilla real; inspector al amanecer → escritorio real;
-  aviso del expositor de armas. Medido: sondeo 29/29, viejos 0; `partida_caso1.gd` completa (25 pasos).
+  aviso del expositor de armas. Medido: sondeo 29/29, viejos 0; `partida_caso1.gd` completa; `fisica_3d.gd` PASSED.
 
 ## c) Siguiente paso técnico inmediato
 Seguir el paso 1, en este orden:
-1. **Marcas que faltan**: solo la taberna (`VillageTavern`, ~120 números, dos plantas: es la mayor). Quedan como números a propósito: rejas y puerta de la celda, bancos de
+1. **Marcas de edificios únicos: hechas.** Pasar `verify_all.gd` (pendiente desde la primera tanda) y el inventario. Quedan como números a propósito: rejas y puerta de la celda, bancos de
    la capilla, salas, pasos, tabiques, sillas (pegadas a su mesa), paredes invisibles de muebles y decorado suelto.
 2. **Capilla**: 14 muebles salen fuera del edificio (fallo visible); están así también en su escena: recolocarlos.
 3. **Casas y tiendas de solar con escena base**: incluye los oficios en solares y la posada (`VillageTrades`,

@@ -239,10 +239,10 @@ var _tavern_bed_label: Label = null
 var _tavern_games_label: Label = null
 var _tavern_pool_label: Label = null
 
-var _tavern_bed_pos := VillageTavern.PLAYER_BED_POS
-var _tavern_social_pos := VillageTavern.SOCIAL_POS
-var _tavern_games_pos := VillageTavern.GAMES_POS
-var _tavern_pool_pos := VillageTavern.POOL_POS
+var _tavern_bed_pos := VillageTavern.sitio(VillageTavern.M_CAMA_JUGADOR)
+var _tavern_social_pos := VillageTavern.sitio(VillageTavern.M_MESA_CENTRAL)
+var _tavern_games_pos := VillageTavern.sitio(VillageTavern.M_POKER)
+var _tavern_pool_pos := VillageTavern.sitio(VillageTavern.M_BILLAR)
 var _well_pos := Vector2(184, 82)
 var _tavern_well_pos := VillageTavern.WELL_POS
 var _plaza_well_pos := Vector2(416, 62)
@@ -317,7 +317,7 @@ var _titles_declutter_t: float = 0.0
 ## El trozo del letrero que ocupa el texto de verdad (los letreros son más anchos que su texto y van centrados).
 
 func get_poker_chair_positions() -> Array[Vector2]:
-	return VillageTavern.POKER_CHAIRS.duplicate()
+	return VillageTavern.poker_chairs()
 
 func set_camp_farm_enabled(en: bool) -> void:
 	if is_instance_valid(_compost_sprite):

@@ -9,6 +9,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_cf47d9ff.res" id="7_3atmw"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_bdf284d5.res" id="8_edy8v"]
 [ext_resource type="Script" path="res://mapa/mueble.gd" id="9_27ef6"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="10_2sijn"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -744,3 +745,135 @@ tam3 = Vector3(0.672, 0.71860003, 0.448)
 piso = 1
 
 [node name="Marcas" type="Node3D" parent="." unique_id=1930483179]
+
+[node name="barra" type="Marker3D" parent="Marcas" unique_id=947280322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.376, 0, -0.56)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "barra"
+
+[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=1032371501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.376, 0, -1.344)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "trabajo"
+
+[node name="pasaplatos" type="Marker3D" parent="Marcas" unique_id=1272285456]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.128, 0, -1.232)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "pasaplatos"
+
+[node name="toneles" type="Marker3D" parent="Marcas" unique_id=29340395]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.448, 0, -4.48)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "toneles"
+
+[node name="fogones" type="Marker3D" parent="Marcas" unique_id=371397679]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.952, 0, -4.032)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "fogones"
+
+[node name="mesa_corte" type="Marker3D" parent="Marcas" unique_id=360785631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.928, 0, -4.032)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "mesa_corte"
+
+[node name="chimenea" type="Marker3D" parent="Marcas" unique_id=859446738]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.184, 0, 2.352)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "chimenea"
+
+[node name="mesa_central" type="Marker3D" parent="Marcas" unique_id=1496923365]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.784, 0, 1.456)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "mesa_central"
+
+[node name="poker" type="Marker3D" parent="Marcas" unique_id=2102144168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.704, 0, 2.576)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "poker"
+
+[node name="billar" type="Marker3D" parent="Marcas" unique_id=450457315]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.84, 0, 2.576)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "billar"
+
+[node name="cama_marta" type="Marker3D" parent="Marcas" unique_id=65053467]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.504, 0, -1.568)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "cama_marta"
+
+[node name="cama_alistair" type="Marker3D" parent="Marcas" unique_id=491397684]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.264, 0, -1.568)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "cama_alistair"
+
+[node name="cama_jugador" type="Marker3D" parent="Marcas" unique_id=491984937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.096, 0, -1.568)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "cama_jugador"
+
+[node name="mesa_1" type="Marker3D" parent="Marcas" unique_id=1719325963]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.616, 0, 1.232)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "mesa_1"
+
+[node name="mesa_2" type="Marker3D" parent="Marcas" unique_id=1412206113]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.256, 0, 1.232)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "mesa_2"
+
+[node name="mesa_3" type="Marker3D" parent="Marcas" unique_id=841980971]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.616, 0, 3.136)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "mesa_3"
+
+[node name="mesa_4" type="Marker3D" parent="Marcas" unique_id=1676362966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.256, 0, 3.136)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "mesa_4"
+
+[node name="mesa_5" type="Marker3D" parent="Marcas" unique_id=1475550064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.896, 0, 3.136)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "mesa_5"
+
+[node name="mesa_6" type="Marker3D" parent="Marcas" unique_id=767819338]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.12, 0, 1.008)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "mesa_6"
+
+[node name="cama_huesped_1" type="Marker3D" parent="Marcas" unique_id=1741152450]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.904, 0, -1.568)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "cama_huesped_1"
+
+[node name="cama_huesped_2" type="Marker3D" parent="Marcas" unique_id=1752597640]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.568)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "cama_huesped_2"
+
+[node name="cama_huesped_3" type="Marker3D" parent="Marcas" unique_id=257110446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.904, 0, -1.568)
+gizmo_extents = 0.5
+script = ExtResource("10_2sijn")
+id_marca = "cama_huesped_3"

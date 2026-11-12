@@ -82,7 +82,7 @@ func _initialize() -> void:
 			lots._draw_lot(vm, str(free[0]), st)
 		var n = mig._spawn_one(vm, mig.SETTLER_KINDS[0], added)
 		if not mig.move_into_house(vm, n):
-			n.bed_position = mig.TAVERN_GUEST_BEDS[added % 3]
+			n.bed_position = mig.tavern_guest_beds()[added % 3]
 		n.global_position = n.bed_position + Vector2(0, 20)
 		added += 1
 	print("PHASE2 topped_up=%d pop=%d" % [added, mig.population(vm)])

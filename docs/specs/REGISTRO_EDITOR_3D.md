@@ -113,7 +113,7 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 ## Edificios como escenas (2026-11-11, paso 1 de `docs/PLAN_MUNDO_DESDE_EDITOR.md`)
 - Los 29 edificios fijos son escenas en `mapa/edificios/<id>.tscn` (mallas y texturas compartidas en `comun/`); en
   Mundo3D → «Edificios» cada pieza es una copia de su escena. Grupos fijos (`scripts/visuals/PartesEdificio3D.gd`):
-  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (`Marker3D` con `mapa/marca.gd` e `id_marca`: sitios de la lógica; 116 marcas en 21 edificios a 2026-11-11, lista en `docs/ESTADO_ACTUAL.md`; el código los lee con `Marca.sitio`).
+  **Muros**, **Interior**, **PisoAlto**, **Tejado**, **Muebles** (piezas `mapa/mueble.gd`) y **Marcas** (`Marker3D` con `mapa/marca.gd` e `id_marca`: sitios de la lógica; 138 marcas en 22 edificios a 2026-11-11, lista en `docs/ESTADO_ACTUAL.md`; el código los lee con `Marca.sitio`).
 - Para cambiar un edificio por dentro: abrir su escena (doble clic en `mapa/edificios/…`), mover muebles, guardar.
 - Lo que se mueve jugando (puerta, postigo, luces de noche, reja de la celda, puertas de cuarto, cuerpos de la morgue)
   lleva una etiqueta (metadato `rol`); el juego lo busca por la etiqueta, no por nombre ni posición.

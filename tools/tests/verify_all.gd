@@ -2912,9 +2912,9 @@ func _initialize() -> void:
 	# Una cama de posada ocupada por alguien con oficio (p. ej. el maestro) ya no cuenta como libre
 	ve_b.trade_role = load("res://scripts/enemies/VillageNPC.gd").TradeRole.TEACHER
 	ve_b.lodging = ""
-	ve_b.bed_position = vmi.TAVERN_GUEST_BEDS[0]
+	ve_b.bed_position = vmi.tavern_guest_beds()[0]
 	var ve_bed = vmi.free_tavern_bed(vm)
-	assert(ve_bed == null or ve_bed != vmi.TAVERN_GUEST_BEDS[0], "E: A tavern bed held by a working resident is not handed out again")
+	assert(ve_bed == null or ve_bed != vmi.tavern_guest_beds()[0], "E: A tavern bed held by a working resident is not handed out again")
 	for le_id in ve_saved.keys():
 		var le_st: Dictionary = vl.lot(vm, le_id)
 		for k in (ve_saved[le_id] as Dictionary).keys():

@@ -398,9 +398,9 @@ func modify_family_reputation(fam_id: String, delta_amount: int, reason: String 
 func _spawn_unemployed_tavern_guests() -> void:
 	var tex_traveler := _load_tex("res://assests/world/village/villager_traveler.png")
 	var guest_defs: Array[Dictionary] = [
-		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": Vector2(440, 44), "bed_pos": VillageTavern.GUEST_BEDS[0]},
-		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": Vector2(495, 44), "bed_pos": VillageTavern.GUEST_BEDS[1]},
-		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": Vector2(465, 58), "bed_pos": VillageTavern.GUEST_BEDS[2]}
+		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": Vector2(440, 44), "bed_pos": VillageTavern.guest_beds()[0]},
+		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": Vector2(495, 44), "bed_pos": VillageTavern.guest_beds()[1]},
+		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": Vector2(465, 58), "bed_pos": VillageTavern.guest_beds()[2]}
 	]
 	for g in guest_defs:
 		var npc := VillageNPC.new()

@@ -408,7 +408,7 @@ func _paso4_vecino_sube() -> void:
 	n.set_process(false)
 	n.global_position = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(-14.0, -4.0))
 	vm.set_npc_elevation_level(n, 0)
-	var cama: Vector2 = Anclas.mover(VillageTavern.GUEST_BEDS[0])
+	var cama: Vector2 = Anclas.mover(VillageTavern.guest_beds()[0])
 	var h_antes: float = Suelo.altura_px(n.global_position, 0, vm)
 	var salto_max: float = 0.0
 	var h_max: float = h_antes
