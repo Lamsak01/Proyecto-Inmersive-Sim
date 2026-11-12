@@ -274,35 +274,35 @@ func _initialize() -> void:
 	if not bool(d_mill.get("is_open", false)):
 		await _aim_and_press_e(pl, stage, Vector2(188.0, -1014.0), -0.05, "puerta")
 	var walked_mill_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1035.0), Vector2(154.0, -1061.0)], 5.0)
-	var e_grate: Dictionary = await _aim_and_press_e(pl, stage, Vector2(138.0, -1061.0), -0.22, "reja")
+	var e_grate: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "sotano"), -0.22, "reja")
 	var note_grate: bool = _has_note_with_source(det_ui, "clue_mill_cellar_grate")
 	_record("B2_molino_sotano_reja", walked_mill_in and bool(e_grate["ok"]) and note_grate,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_mill_in), str(e_grate["label"]), str(note_grate)])
 
 	# Pajar (152, -1084)
 	var w_hay: bool = await _walk_to_waypoints(pl, stage, [Vector2(168.0, -1072.0)], 5.0)
-	var e_hay: Dictionary = await _aim_and_press_e(pl, stage, Vector2(152.0, -1084.0), -0.22, "pajar")
+	var e_hay: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "pajar"), -0.22, "pajar")
 	var note_hay: bool = _has_note_with_source(det_ui, "clue_mill_hayloft")
 	_record("B3_molino_pajar", w_hay and bool(e_hay["ok"]) and note_hay,
 		"prompt='%s' anotada=%s" % [str(e_hay["label"]), str(note_hay)])
 
 	# Hogar de piedra (224, -1086)
 	var w_hearth: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1066.0), Vector2(208.0, -1075.0)], 4.0)
-	var e_hearth: Dictionary = await _aim_and_press_e(pl, stage, Vector2(224.0, -1086.0), -0.22, "hogar")
+	var e_hearth: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "hogar"), -0.22, "hogar")
 	var note_hearth: bool = _has_note_with_source(det_ui, "clue_mill_hearth")
 	_record("B4_molino_hogar_ceniza", w_hearth and bool(e_hearth["ok"]) and note_hearth,
 		"prompt='%s' anotada=%s" % [str(e_hearth["label"]), str(note_hearth)])
 
 	# Cordel de cáñamo encerado (150, -1040)
 	var w_cord: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1056.0), Vector2(168.0, -1044.0)], 4.0)
-	var e_cord: Dictionary = await _aim_and_press_e(pl, stage, Vector2(150.0, -1040.0), -0.22, "cordel")
+	var e_cord: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "cordel"), -0.22, "cordel")
 	var note_cord: bool = _has_note_with_source(det_ui, "clue_mill_hemp_cord")
 	_record("B5_molino_cordel", w_cord and bool(e_cord["ok"]) and note_cord,
 		"prompt='%s' anotada=%s" % [str(e_cord["label"]), str(note_cord)])
 
 	# Papel sobre la mesa (218, -1050)
 	var w_paper: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1050.0), Vector2(200.0, -1050.0)], 4.0)
-	var e_paper: Dictionary = await _aim_and_press_e(pl, stage, Vector2(218.0, -1050.0), -0.22, "papel")
+	var e_paper: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "mesa_papel"), -0.22, "papel")
 	var note_paper: bool = _has_note_with_source(det_ui, "clue_mill_table_paper")
 	_record("B6_molino_mesa_papel", w_paper and bool(e_paper["ok"]) and note_paper,
 		"prompt='%s' anotada=%s" % [str(e_paper["label"]), str(note_paper)])

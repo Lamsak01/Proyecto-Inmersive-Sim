@@ -662,7 +662,7 @@ func interact(player: Node2D) -> void:
 			Color(0.92, 0.52, 0.42)
 		)
 		return
-	if o.distance_squared_to(Vector2(138.0, -1061.0)) <= 28.0 * 28.0:
+	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.SOTANO)) <= 28.0 * 28.0:
 		_record_case_clue(
 			player,
 			"🔩 Reja de hierro",
@@ -673,7 +673,7 @@ func interact(player: Node2D) -> void:
 			Color(0.76, 0.88, 0.96)
 		)
 		return
-	if o.distance_squared_to(Vector2(218.0, -1050.0)) <= 28.0 * 28.0 and o.distance_squared_to(Vector2(218.0, -1050.0)) <= o.distance_squared_to(Vector2(224.0, -1086.0)):
+	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.MESA_PAPEL)) <= 28.0 * 28.0 and o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.MESA_PAPEL)) <= o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.HOGAR)):
 		_record_case_clue(
 			player,
 			"📄 Papel sobre la mesa",
@@ -684,7 +684,7 @@ func interact(player: Node2D) -> void:
 			Color(0.96, 0.90, 0.72)
 		)
 		return
-	if o.distance_squared_to(Vector2(150.0, -1040.0)) <= 26.0 * 26.0:
+	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.CORDEL)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🪢 Rollo de cordel",
@@ -695,7 +695,7 @@ func interact(player: Node2D) -> void:
 			Color(0.90, 0.80, 0.58)
 		)
 		return
-	if o.distance_squared_to(Vector2(224.0, -1086.0)) <= 26.0 * 26.0:
+	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.HOGAR)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🪨 Hogar de piedra",
@@ -706,7 +706,7 @@ func interact(player: Node2D) -> void:
 			Color(0.78, 0.78, 0.82)
 		)
 		return
-	if o.distance_squared_to(Vector2(152.0, -1084.0)) <= 26.0 * 26.0:
+	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.PAJAR)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🌾 Pajar",

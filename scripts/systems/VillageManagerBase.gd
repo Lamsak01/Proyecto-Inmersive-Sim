@@ -161,6 +161,7 @@ var _hospital_center := Vector2(745, 148)
 const ID_HOSPITAL: String = "building_hospital"
 const ID_COMISARIA: String = "building_police"
 const ID_CAPILLA: String = "building_church"
+const ID_MOLINO: String = "building_abandoned_mill"
 const MESAS_MORGUE: int = 3
 ## Los sitios de estos edificios son marcas de su escena (mapa/marca.gd), en el mapa original como todo lo de aquí
 var _hospital_bed_pos: Vector2 = Marca.sitio(ID_HOSPITAL, Marca.CAMILLA)

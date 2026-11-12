@@ -750,7 +750,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	var mill_center: Vector2 = FishingSpot.ABANDONED_MILL_CENTER
 	var mill_size: Vector2 = FishingSpot.ABANDONED_MILL_SIZE
 	vm._construct_solid_building(
-		"building_abandoned_mill",
+		vm.ID_MOLINO,
 		"🏚️ Molino Viejo Abandonado",
 		mill_center,
 		mill_size,
@@ -768,16 +768,17 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		wheel_2d.add_to_group("ranch_fence_2d")
 
 	# Interior del Molino Viejo Abandonado (4 pistas/elementos del Caso I, dejando libre el pasillo central):
-	# (a) Pajar con paja seca (esquina noroeste: Vector2(152, -1084))
-	var straw_pos := Vector2(152.0, -1084.0)
+	# Sus sitios son marcas de la escena del molino (mapa/marca.gd)
+	# (a) Pajar con paja seca (esquina noroeste)
+	var straw_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.PAJAR)
 	var straw_2d := vm._add_rect_poly(straw_pos, Vector2(30.0, 22.0), Color(0.76, 0.64, 0.28, 0.95), -1)
 	if straw_2d != null:
 		straw_2d.add_to_group("ranch_fence_2d")
 	vm._add_prop_collider(straw_pos, Vector2(24.0, 16.0))
 	vm._add_station_area("MillHayloftArea", straw_pos, 26.0, "mill_hayloft")
 
-	# (b) Hogar viejo con ceniza de carbón (esquina noreste: Vector2(224, -1086))
-	var hearth_pos := Vector2(224.0, -1086.0)
+	# (b) Hogar viejo con ceniza de carbón (esquina noreste)
+	var hearth_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.HOGAR)
 	var hearth_2d := vm._add_rect_poly(hearth_pos, Vector2(28.0, 18.0), Color(0.32, 0.31, 0.30, 0.98), -1)
 	var ash_2d := vm._add_rect_poly(hearth_pos + Vector2(0.0, 2.0), Vector2(16.0, 10.0), Color(0.14, 0.14, 0.15, 0.98), -1)
 	for hp in [hearth_2d, ash_2d]:
@@ -786,8 +787,8 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	vm._add_prop_collider(hearth_pos, Vector2(24.0, 14.0))
 	vm._add_station_area("MillHearthArea", hearth_pos, 28.0, "mill_hearth")
 
-	# (c) Cordel de cáñamo encerado (esquina suroeste: Vector2(150, -1040))
-	var cord_pos := Vector2(150.0, -1040.0)
+	# (c) Cordel de cáñamo encerado (esquina suroeste)
+	var cord_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.CORDEL)
 	var cord_bench_2d := vm._add_rect_poly(cord_pos, Vector2(22.0, 16.0), Color(0.42, 0.29, 0.18, 0.96), -1)
 	var cord_coil_2d := vm._add_rect_poly(cord_pos, Vector2(9.0, 9.0), Color(0.68, 0.58, 0.36, 0.98), -1)
 	for cp in [cord_bench_2d, cord_coil_2d]:
@@ -796,8 +797,8 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	vm._add_prop_collider(cord_pos, Vector2(18.0, 12.0))
 	vm._add_station_area("MillHempCordArea", cord_pos, 26.0, "mill_hemp_cord")
 
-	# (d) Mesa con papel («Lista de nombres — texto pendiente del autor») (sureste: Vector2(218, -1050))
-	var table_pos := Vector2(218.0, -1050.0)
+	# (d) Mesa con papel («Lista de nombres — texto pendiente del autor») (sureste)
+	var table_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.MESA_PAPEL)
 	var table_2d := vm._add_rect_poly(table_pos, Vector2(26.0, 18.0), Color(0.45, 0.31, 0.19, 0.98), -1)
 	var paper_2d := vm._add_rect_poly(table_pos + Vector2(-2.0, -1.0), Vector2(10.0, 7.0), Color(0.90, 0.85, 0.72, 0.98), -1)
 	for tp in [table_2d, paper_2d]:
@@ -806,11 +807,11 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	vm._add_prop_collider(table_pos, Vector2(22.0, 14.0))
 	vm._add_station_area("MillPaperTableArea", table_pos, 26.0, "mill_table_paper")
 
-	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda (oeste: Vector2(138, -1061))
-	var cellar_pos := Vector2(138.0, -1061.0)
+	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda (oeste)
+	var cellar_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.SOTANO)
 	var cellar_pit_2d := vm._add_rect_poly(cellar_pos, Vector2(22.0, 20.0), Color(0.14, 0.16, 0.18, 0.96), -1)
-	var cellar_grate_2d := vm._add_rect_poly(Vector2(128.0, -1061.0), Vector2(3.5, 20.0), Color(0.32, 0.24, 0.18, 0.98), 0)
-	var cellar_cloth_2d := vm._add_rect_poly(Vector2(129.5, -1059.0), Vector2(4.0, 3.0), Color(0.24, 0.50, 0.74, 0.98), 0)
+	var cellar_grate_2d := vm._add_rect_poly(cellar_pos + Vector2(-10.0, 0.0), Vector2(3.5, 20.0), Color(0.32, 0.24, 0.18, 0.98), 0)
+	var cellar_cloth_2d := vm._add_rect_poly(cellar_pos + Vector2(-8.5, 2.0), Vector2(4.0, 3.0), Color(0.24, 0.50, 0.74, 0.98), 0)
 	for clp in [cellar_pit_2d, cellar_grate_2d, cellar_cloth_2d]:
 		if clp != null:
 			clp.add_to_group("ranch_fence_2d")

@@ -7,6 +7,7 @@
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_da03f7f.res" id="5_qkng0"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_c5b68800.res" id="6_v2fue"]
 [ext_resource type="ArrayMesh" path="res://mapa/edificios/comun/malla_856a55cb.res" id="7_vf4rm"]
+[ext_resource type="Script" path="res://mapa/marca.gd" id="8_37uc6"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7bom6"]
 albedo_color = Color(0.658, 0.6265, 0.604, 1)
@@ -206,3 +207,33 @@ mesh = ExtResource("7_vf4rm")
 [node name="Muebles" type="Node3D" parent="." unique_id=78202326]
 
 [node name="Marcas" type="Node3D" parent="." unique_id=1228750739]
+
+[node name="pajar" type="Marker3D" parent="Marcas" unique_id=830332041]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.016, 0, -1.344)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "pajar"
+
+[node name="hogar" type="Marker3D" parent="Marcas" unique_id=1206732258]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.016, 0, -1.456)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "hogar"
+
+[node name="cordel" type="Marker3D" parent="Marcas" unique_id=1100419912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.128, 0, 1.12)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "cordel"
+
+[node name="mesa_papel" type="Marker3D" parent="Marcas" unique_id=951958283]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.68, 0, 0.56)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "mesa_papel"
+
+[node name="sotano" type="Marker3D" parent="Marcas" unique_id=660928949]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8, 0, -0.056)
+gizmo_extents = 0.5
+script = ExtResource("8_37uc6")
+id_marca = "sotano"

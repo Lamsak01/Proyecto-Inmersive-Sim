@@ -8,9 +8,10 @@ toca el código del mundo** (la que hizo este avance; el usuario lo confirmó el
 mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## b) Último avance completado
-- 2026-11-11: paso 1, tandas 2 a 6. **99 marcas en 18 edificios**: las 5 familias fundadoras (tiendas, casas y
+- 2026-11-11: paso 1, tandas 2 a 7. **116 marcas en 21 edificios**: las 5 familias fundadoras (tiendas, casas y
   botica), casa de comidas, hospital y morgue, comisaría, capilla, ayuntamiento, albergue, escuela, biblioteca,
-  terminales (comisaría, ayuntamiento, taller) y expositor de la herrería. El código las lee y sus números están borrados.
+  molino
+  abandonado, mansión, casa grande, terminales (comisaría, ayuntamiento, taller) y expositor de la herrería. El código las lee y sus números están borrados.
 - Cómo funciona: `mapa/marca.gd` (`Marker3D` con `id_marca`, grupo «Marcas» de `mapa/edificios/<id>.tscn`).
   `Marca.sitio(id_edificio, marca)` da el sitio en el mapa ORIGINAL (centro original de la escena + posición local): lo
   que esperan `_add_*` y `setup_npc`, que lo traducen con las anclas. Cambiará al quitar las anclas (paso 4).
@@ -23,8 +24,7 @@ mientras dure. Paso 0 hecho (inventario). **Paso 1 en curso.**
 
 ## c) Siguiente paso técnico inmediato
 Seguir el paso 1, en este orden:
-1. **Marcas que faltan**: molino abandonado, mansión y casa grande (`VillageNobility`), y la taberna
-   (`VillageTavern`, ~120 números, la mayor). Quedan como números a propósito: rejas y puerta de la celda, bancos de
+1. **Marcas que faltan**: solo la taberna (`VillageTavern`, ~120 números, dos plantas: es la mayor). Quedan como números a propósito: rejas y puerta de la celda, bancos de
    la capilla, salas, pasos, tabiques, sillas (pegadas a su mesa), paredes invisibles de muebles y decorado suelto.
 2. **Capilla**: 14 muebles salen fuera del edificio (fallo visible); están así también en su escena: recolocarlos.
 3. **Casas y tiendas de solar con escena base**: incluye los oficios en solares y la posada (`VillageTrades`,

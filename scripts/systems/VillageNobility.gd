@@ -16,6 +16,7 @@ extends RefCounted
 
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
+const Marca = preload("res://mapa/marca.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const PersonProfile = preload("res://scripts/data/PersonProfile.gd")
 
@@ -68,23 +69,29 @@ static func ensure_lots(vm) -> void:
 static func _m(id: String) -> float:
 	return -1.0 if bool(VillageLots.lot_def(id)["door_south"]) else 1.0
 
+## Camas, despacho, mesa y cofre: marcas de la escena de cada casa (mapa/marca.gd), en el mapa original.
+const BUILDING_IDS: Dictionary = {MANSION_LOT: "building_mansion", MANOR_LOT: "building_manor"}
+const BED_COUNT: Dictionary = {MANSION_LOT: 3, MANOR_LOT: 2}
+const BED_MARK: String = "cama_%d"
+
 static func beds(id: String) -> Array:
-	var c: Vector2 = VillageLots.building_center(id)
-	var xs: Array = [-56, 0, 56] if id == MANSION_LOT else [-36, 36]
-	return xs.map(func(x): return c + Vector2(x, 36 * _m(id)))
+	var out: Array = []
+	for i in range(1, int(BED_COUNT[id]) + 1):
+		out.append(Marca.sitio(BUILDING_IDS[id], BED_MARK % i))
+	return out
 
 static func study_pos(id: String) -> Vector2:
-	return VillageLots.building_center(id) + Vector2(-40, 4 * _m(id))
+	return Marca.sitio(BUILDING_IDS[id], Marca.DESPACHO)
 
 static func table_pos(id: String) -> Vector2:
-	return VillageLots.building_center(id) + Vector2(30, 6 * _m(id))
+	return Marca.sitio(BUILDING_IDS[id], Marca.MESA)
 
 static func build(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = VillageLots.lot_def(id)
 	var c: Vector2 = VillageLots.building_center(id)
 	var props: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 	var big: bool = str(st["kind"]) == "mansion"
-	vm._construct_solid_building("building_" + str(st["kind"]), str(st["title"]), c, Vector2(180, 120) if big else Vector2(150, 104),
+	vm._construct_solid_building(BUILDING_IDS[id], str(st["title"]), c, Vector2(180, 120) if big else Vector2(150, 104),
 		bool(d["door_south"]), "res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png",
 		"res://assests/world/village/wall_stone_v.png", 48.0, 0.0, Color(1.0, 0.84, 0.5) if big else Color(0.95, 0.88, 0.7))
 	var tex_bed: Texture2D = vm._load_tex("res://assests/world/village/tavern_bed.png")
@@ -93,7 +100,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 	vm._spawn_decor_prop(props + "table_chairs_1.png", table_pos(id), Vector2(0.5, 0.5))
 	vm._add_rect_poly(study_pos(id), Vector2(12, 6), Color(0.40, 0.22, 0.12, 1.0), -1) # Escritorio
 	var fam: String = MANSION_FAMILY if big else MANOR_FAMILY
-	vm._spawn_house_chest(c + Vector2(72 if big else 58, 0), "Cofre de " + str(HOUSEHOLDS[id]["name"]), fam)
+	vm._spawn_house_chest(Marca.sitio(BUILDING_IDS[id], Marca.COFRE), "Cofre de " + str(HOUSEHOLDS[id]["name"]), fam)
 	if not vm.house_pantry.has(fam):
 		vm.house_pantry[fam] = 6
 

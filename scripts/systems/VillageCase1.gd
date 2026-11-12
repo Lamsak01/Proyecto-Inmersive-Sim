@@ -180,7 +180,7 @@ static func relative_page_pos(vm) -> Vector2:
 
 ## Gabinete de los señores: en el rincón del estudio de la mansión.
 static func cabinet_pos() -> Vector2:
-	return VillageLots.building_center(MANSION_LOT) + Vector2(-70.0, -40.0)
+	return load("res://mapa/marca.gd").call("sitio", "building_mansion", "gabinete") # marca de la escena de la mansión
 
 
 # ---------------------------------------------------------------- sincronía con el mundo
