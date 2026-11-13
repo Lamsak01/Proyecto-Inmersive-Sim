@@ -828,7 +828,9 @@ const PROP_KIND_BY_TEXTURE := {
 	"iron_sword.png": "weapon_sword",
 	"steel_hammer.png": "weapon_hammer",
 	"crate.png": "crate",
+	"crates_0.png": "crate", ## caja rompible de la escena del mundo (2026-11-13: antes no tenía 3D y chocaba invisible)
 	"barrel.png": "barrel",
+	"barrels_0.png": "barrel", ## barril rompible de la escena del mundo (igual)
 	"weak_wall.png": "weak_wall",
 	"wild_herb.png": "wild_herb",
 	"wild_mushroom.png": "wild_mushroom",

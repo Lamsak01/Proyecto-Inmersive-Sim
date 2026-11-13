@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Restos planos: animales del rancho, caja y barril (Claude Code)
+- Animales del corral del rancho: fuera su dibujo plano (ya tenían modelo 3D). Dibujos planos 14 → 6 (y 2 son textos
+  pasajeros).
+- La caja y el barril rompibles de la escena del mundo no tenían modelo 3D (su imagen no estaba en la tabla) y chocaban
+  sin verse: ahora salen en 3D y su dibujo plano se apaga.
+
 ## 2026-11-13 — Vecinos que se encimaban en la puerta del restaurante (Claude Code)
 - Cola en las puertas (`VillageNPCSocial._esperar_turno_en_puerta`): quien va a cruzar un umbral espera fuera si otro
   ya lo cruza en su mismo sentido.

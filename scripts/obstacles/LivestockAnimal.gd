@@ -12,16 +12,15 @@ var animal_index: int = 0
 var species: String = "sheep"
 var stage: String = "chick"
 var pen_rect: Rect2 = Rect2()
-var sprite: Sprite2D = null
+var _montado: bool = false ## ya tiene su modelo 3D (sin dibujo plano desde el 2026-11-13)
 var model_3d: Node = null
 
 var _target_pos: Vector2 = Vector2.ZERO
 var _move_timer: float = 1.0
-var _hop_phase: float = 0.0
 
 
 func configure_from_entry(p_vm: Node2D, p_index: int, d: Dictionary, p_pen_rect: Rect2) -> void:
-	if sprite == null or not is_instance_valid(sprite):
+	if not _montado:
 		setup_animal(p_vm, p_index, d, p_pen_rect)
 	else:
 		vm = p_vm
@@ -49,12 +48,7 @@ func setup_animal(p_vm: Node2D, p_index: int, d: Dictionary, p_pen_rect: Rect2) 
 	)
 	_target_pos = global_position
 	_move_timer = randf_range(0.6, 2.4)
-	_hop_phase = randf() * TAU
-
-	sprite = Sprite2D.new()
-	sprite.name = "Sprite2D"
-	sprite.position = Vector2(0.0, -3.0)
-	add_child(sprite)
+	_montado = true
 	update_from_dict(p_index, d)
 
 
@@ -62,18 +56,6 @@ func update_from_dict(p_index: int, d: Dictionary) -> void:
 	animal_index = p_index
 	species = str(d.get("species", "sheep"))
 	stage = str(d.get("stage", "chick"))
-
-	if sprite != null and is_instance_valid(sprite):
-		if species in ["sheep", "cow", "bull", "donkey", "horse"]:
-			sprite.texture = load("res://assests/world/harvest/wild_deer.png")
-			sprite.modulate = Color(0.96, 0.94, 0.88)
-			var sc_s: float = 0.48 if stage == "chick" else (0.66 if stage == "juvenile" else 0.85)
-			sprite.scale = Vector2(sc_s, sc_s)
-		else:
-			sprite.texture = load("res://assests/world/camp/chicken.png")
-			sprite.modulate = Color(1.0, 0.95, 0.62) if stage == "chick" else Color.WHITE
-			var sc_r: float = 0.68 if stage == "chick" else (0.90 if stage == "juvenile" else 1.15)
-			sprite.scale = Vector2(sc_r, sc_r)
 
 	var rel: String = "procedural:chicken"
 	var h_px: float = 5.5 if stage == "chick" else (7.0 if stage == "juvenile" else 9.0)
@@ -110,8 +92,6 @@ func _process(delta: float) -> void:
 		var h: int = int(WorldClock.current_hour)
 		is_night = (h >= 21 or h < 6)
 	if is_night:
-		if sprite != null:
-			sprite.offset.y = 0.0
 		return
 
 	_move_timer -= delta
@@ -132,14 +112,6 @@ func _process(delta: float) -> void:
 		var move_v: Vector2 = (diff.normalized() * spd * delta if diff.length() > 1.8 else Vector2.ZERO) + sep_step
 		global_position.x = clampf(global_position.x + move_v.x, pen_rect.position.x, pen_rect.end.x)
 		global_position.y = clampf(global_position.y + move_v.y, pen_rect.position.y, pen_rect.end.y)
-		if sprite != null:
-			if absf(move_v.x) > 0.02:
-				sprite.flip_h = move_v.x > 0.0
-			_hop_phase += delta * 12.0
-			sprite.offset.y = -absf(sin(_hop_phase)) * 1.6
-	else:
-		if sprite != null:
-			sprite.offset.y = 0.0
 
 
 func _compute_separation_step(delta: float) -> Vector2:
