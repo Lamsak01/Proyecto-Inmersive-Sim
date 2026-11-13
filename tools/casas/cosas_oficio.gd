@@ -1,7 +1,7 @@
 extends RefCounted
 
 ## Cosas armadas a mano propias de un oficio (2026-11-13), para lo que no hay modelo comprado: el horno de pan, la
-## reja corredera del calabozo de la comisaría y las mesas de la morgue con su cuerpo bajo la sábana.
+## reja corredera del calabozo de la comisaría, la pizarra de la escuela y las mesas de la morgue con su cuerpo bajo la sábana.
 ## Metros respecto a la pieza (tools/casas/armar_casa.gd las dibuja); el suelo de la pieza es y = 0; la boca del
 ## horno mira al sur (+z) sin giro.
 
@@ -28,6 +28,11 @@ const REJA_ALTO_M: float = 2.2
 const TRAVESANO_ALTO_M: float = 0.05
 const ACERO := Color(0.62, 0.64, 0.66)
 const SABANA := Color(0.88, 0.88, 0.84)
+const MADERA_MARCO := Color(0.4, 0.26, 0.14)
+const PIZARRA_VERDE := Color(0.12, 0.2, 0.16)
+const PIZARRA_TAM := Vector3(2.2, 1.1, 0.04)   ## colgada de la pared, de cara al sur (+z) sin giro
+const PIZARRA_ALTO_M: float = 0.95           ## altura de su borde de abajo
+const MARCO_M: float = 0.06
 const MESA_MORGUE_TAM := Vector3(0.8, 0.85, 1.9)  ## tablero de acero sobre cuatro patas (su choque lo pone el juego)
 const TABLERO_GROSOR_M: float = 0.05
 const PATA_GROSOR_M: float = 0.06
@@ -103,3 +108,10 @@ static func cuerpos_morgue(interior: Node3D, marcas: Dictionary, suelo_y: float)
 		Piezas.caja(cuerpo, Vector3.ZERO, CUERPO_TAM, sabana)
 		Piezas.caja(cuerpo, Vector3(0.0, 0.0, -(CUERPO_TAM.z - CABEZA_TAM.z) * 0.5), CABEZA_TAM + Vector3(0.0, CUERPO_TAM.y, 0.0), sabana)
 		i += 1
+
+
+## La pizarra de la escuela: un marco de madera con la losa verde delante, pegada a la pared.
+static func pizarra(padre: Node3D) -> void:
+	var marco := PIZARRA_TAM + Vector3(MARCO_M, MARCO_M, 0.0) * 2.0
+	Piezas.caja(padre, Vector3(0.0, PIZARRA_ALTO_M - MARCO_M, 0.0), marco, Cosas.mat(MADERA_MARCO))
+	Piezas.caja(padre, Vector3(0.0, PIZARRA_ALTO_M, PIZARRA_TAM.z), PIZARRA_TAM, Cosas.mat(PIZARRA_VERDE))

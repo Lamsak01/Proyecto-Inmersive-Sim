@@ -13668,8 +13668,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 392, 0.5495177, -10.08)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_school"
 centro_original = Vector2(1400, -36)
-planta_m = Vector2(7.168, 5.376)
-puerta_ancho_m = 2.352
+planta_m = Vector2(11.2, 9.8)
+puerta_ancho_m = 1.4
 
 [node name="building_shelter" type="Node3D" parent="Edificios" unique_id=550768864 instance=ExtResource("25_fpa1y")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 305.2, 0.5495177, 39.2)
@@ -13915,7 +13915,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 392, 0.5495177, -10.08)
 script = ExtResource("33_nou5s")
 id_solar = "e3"
 centro_original = Vector2(1400, -36)
-terreno_m = Vector2(7.28, 5.376)
+terreno_m = Vector2(12.4, 11.0)
 zona = "borde"
 
 [node name="solar_e4" type="Node3D" parent="Solares" unique_id=1787223528]

@@ -288,7 +288,7 @@ static func school_lot_ready(vm) -> bool:
 const SCHOOL_ID: String = "building_school"
 const DESK_MARK: String = "pupitre_%d"
 const TEACHER_MARK: String = "maestro"
-const DESKS: int = 6
+const DESKS: int = 12
 const EXTRA_PUPIL_STEP: float = 8.0 ## si hay más alumnos que pupitres, se aprietan a su lado, cada tanda un poco más allá
 
 static func desk_pos(i: int) -> Vector2:
