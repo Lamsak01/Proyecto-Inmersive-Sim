@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Borrada la copia vieja del mundo (Claude Code)
+- `scenes/World.antes-x5.tscn` tenía el mismo uid que `World.tscn` (aviso de Godot): el juego podía cargar la copia
+  de antes del ×5. Sigue en el historial de git.
+
 ## 2026-11-12 — El río y sus puentes, al editor 3D; adiós al editor 2D (Claude Code)
 - Los 28 puntos del río y los 6 puentes y vados están en `mapa/Mundo3D.tscn` (carpetas «Rio» y «Cruces»), con el
   ancho en metros. Al moverlos, el agua de la maqueta se rehace sola. Comprobado: río idéntico punto por punto.

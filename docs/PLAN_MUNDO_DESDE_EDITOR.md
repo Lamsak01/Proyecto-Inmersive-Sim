@@ -57,7 +57,7 @@ moviendo piezas, no con un factor.
    pasan a piezas. *Jugable.* Prueba: inventario de exteriores a 0 + fotos de cada zona.
 3. **Sitios de los vecinos fuera de edificios**: oficios al aire libre, ocio, paseos, puntos de ruta, pistas del Caso I →
    marcas. *Jugable.* Pruebas: `partida_caso1.gd` y `atascos_vecinos.gd`.
-4. **Quitar la traducción**: se borran las anclas, el factor ×5 y las copias `*.antes-x5`. *Jugable.* Prueba final:
+4. **Quitar la traducción**: se borran las anclas, el factor ×5 y la copia `mapa/Mundo3D.antes-x5.tscn` (la de `World` se borró el 2026-11-12: compartía uid con `World.tscn`). *Jugable.* Prueba final:
    inventario total a 0, `verify_all.gd`, y una prueba nueva que mueve **cada** pieza del editor al azar y comprueba que
    nada queda en su sitio viejo y que cada cama, mesa y puesto cae dentro de su edificio.
 5. **Aparte y con aprobación propia: caminar con navegación 3D** (rutas sacadas del escenario). Cambia cómo encuentran el
