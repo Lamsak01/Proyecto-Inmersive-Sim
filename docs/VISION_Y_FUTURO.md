@@ -363,4 +363,4 @@ Reparto por familias (decidido por Claude a petición del usuario, 2026-11-13; e
 así que la casa va por el oficio): 1 pobre — leñador y cantera (casa-taller con lumbre, velas, tina y letrina; hechas),
 albergue y casas de recién llegados (hechos); 2 artesano — herrero, carnicero, carpintero, pescadero, granja, rancho,
 panadería, sastrería, herbolaria y la «Posada Humilde» de los Candil (hechas); 3 acomodado — el Arreglador (hecha;
-tiene el generador del pueblo); 4 señor y autoridades — mansión, casona, ayuntamiento y comisaría.
+tiene el generador del pueblo); 4 señor y autoridades — mansión (hecha, de una planta: lo de arriba va abajo), casona, ayuntamiento y comisaría.

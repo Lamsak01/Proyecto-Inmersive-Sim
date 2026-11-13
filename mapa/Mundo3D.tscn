@@ -13724,8 +13724,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 368.2, 0.4438412, -123.2)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_mansion"
 centro_original = Vector2(1315, -440)
-planta_m = Vector2(10.08, 6.72)
-puerta_ancho_m = 2.688
+planta_m = Vector2(19.6, 14.0)
+puerta_ancho_m = 2.0
 
 [node name="building_manor" type="Node3D" parent="Edificios" unique_id=1007367027 instance=ExtResource("32_04a1h")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.2, 0.7397353, -156.8)
@@ -14090,7 +14090,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 368.2, 0.4438412, -123.2)
 script = ExtResource("33_nou5s")
 id_solar = "f1"
 centro_original = Vector2(1315, -440)
-terreno_m = Vector2(14, 10.08)
+terreno_m = Vector2(24, 20)
 zona = "apartado"
 
 [node name="solar_f2" type="Node3D" parent="Solares" unique_id=1715330098]

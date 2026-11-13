@@ -89,11 +89,9 @@ static func table_pos(id: String) -> Vector2:
 static func build(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = VillageLots.lot_def(id)
 	var c: Vector2 = VillageLots.building_center(id)
-	var props: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 	var big: bool = str(st["kind"]) == "mansion"
 	vm._construct_solid_building(BUILDING_IDS[id], str(st["title"]), c,
 		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
-	vm.adorno_en_edificio(BUILDING_IDS[id], props + "table_chairs_1.png", Marca.sitio(BUILDING_IDS[id], Marca.MESA))
 	var fam: String = MANSION_FAMILY if big else MANOR_FAMILY
 	vm.cofre_en_edificio(BUILDING_IDS[id], Marca.sitio(BUILDING_IDS[id], Marca.COFRE), "Cofre de " + str(HOUSEHOLDS[id]["name"]), fam)
 	if not vm.house_pantry.has(fam):

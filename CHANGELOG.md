@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — La mansión del Señor del Valle, de tamaño real (Claude Code)
+- Primera casa de nivel 4: de 10,1 × 6,7 m a 19,6 × 14 m, de piedra y teja roja, con generador diésel propio y su
+  cable hasta el cuadro de la puerta. Gran salón de punta a punta (recibidor con teléfono y, al fondo, chimenea, retratos
+  y mesa de banquete con candelabros y lámpara de techo); alcobas del señor y de la señora, despacho (escritorio con
+  teléfono, terminal verde, librerías y sitio libre para el gabinete del Caso I), cocina con nevera, cuarto de la
+  criada, baño completo y cuarto del heredero. Objetos nuevos del nivel 4: teléfono de baquelita, nevera, lámpara de
+  techo, chimenea labrada, candelabro y retrato. Quitada la mesa plana que el juego ponía encima. Sin piso de arriba
+  (el juego no tiene pisos en las casas). Probado: rutas de los vecinos por dentro sin choques, fotos y puertas 29/0.
+
 ## 2026-11-13 — Casas de los recién llegados, de tamaño real (Claude Code)
 - Las tres casas que se levantan en los solares crecen y se hacen por cuartos (nivel pobre): casita de 9,2 × 6,4 m,
   casa de 11,2 × 8,4 m y casona de 12,6 × 9 m, con sala-cocina con lumbre, dormitorio por cama, aseo con tina,
