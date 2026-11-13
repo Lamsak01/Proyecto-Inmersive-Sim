@@ -178,10 +178,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			_adjust_camera_zoom(delta_z)
 			get_viewport().set_input_as_handled()
 
+## Vista desde arriba: con el mapa ×5 cada pantalla era casi solo hierba (partida del usuario, 2026-11-12); se deja
+## alejar algo más (1,4 → 1,0: un 40 % más de terreno por lado) sin llegar a donde el portátil se resiente.
+const ZOOM_MIN: float = 1.0
+const ZOOM_MAX: float = 3.6
+
 func _adjust_camera_zoom(delta_z: float) -> void:
 	var player_cam := get_node_or_null("Entities/PlayerGood/Camera2D") as Camera2D
 	if player_cam:
-		var next_z: float = clampf(player_cam.zoom.x + delta_z, 1.4, 3.6)
+		var next_z: float = clampf(player_cam.zoom.x + delta_z, ZOOM_MIN, ZOOM_MAX)
 		player_cam.zoom = Vector2(next_z, next_z)
 
 func _on_world_time_updated(_day: int, _hour: int, _minute: int) -> void:

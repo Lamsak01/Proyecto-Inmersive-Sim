@@ -14,6 +14,12 @@ const WB = preload("res://scripts/visuals/WorldStageBase3D.gd")
 const FS = preload("res://scripts/fisica/RioLago.gd")
 const PIEZA = preload("res://mapa/pieza.gd")
 const Nucleo = preload("res://mapa/pincel_nucleo.gd")
+## Rayo del ratón al suelo: con el mapa ×5 (más de 1 km de lado) hay que llegar lejos para pintar mirando desde arriba
+const RAYO_ALCANCE_M: float = 2500.0
+const RAYO_PASO_MIN_M: float = 0.5   ## paso de partida, fino junto a la cámara
+const RAYO_PASO_MAX_M: float = 4.0   ## paso tope lejos (luego se afina a medias)
+const RAYO_CRECE: float = 1.15
+const RAYO_AFINADOS: int = 14        ## búsqueda a medias tras cruzar el suelo: deja el punto a milímetros
 
 var _panel: HBoxContainer
 var _c1: VBoxContainer
@@ -213,18 +219,18 @@ func _tocar_suelo(cam: Camera3D, pos: Vector2):
 	var o: Vector3 = cam.project_ray_origin(pos)
 	var d: Vector3 = cam.project_ray_normal(pos)
 	var t: float = 0.0
-	var paso: float = 0.5
+	var paso: float = RAYO_PASO_MIN_M
 	var prev_t: float = 0.0
 	var prev_sobre: bool = _sobre_suelo(o)
 	if not prev_sobre:
 		return null
-	while t < 600.0:
+	while t < RAYO_ALCANCE_M:
 		t += paso
 		var p: Vector3 = o + d * t
 		if not _sobre_suelo(p):
 			var a: float = prev_t
 			var b: float = t
-			for _i in range(12):
+			for _i in range(RAYO_AFINADOS):
 				var m: float = (a + b) * 0.5
 				if _sobre_suelo(o + d * m):
 					a = m
@@ -234,7 +240,7 @@ func _tocar_suelo(cam: Camera3D, pos: Vector2):
 			var q2: Vector2 = _a_2d(q)
 			return _a_3d(q2, WB.terrain_height_px(q2))
 		prev_t = t
-		paso = minf(2.0, paso * 1.15)
+		paso = minf(RAYO_PASO_MAX_M, paso * RAYO_CRECE)
 	return null
 
 

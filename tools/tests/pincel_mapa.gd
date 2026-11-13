@@ -59,7 +59,8 @@ func _initialize() -> void:
 	_ok(en_agua == 0, "nada dentro del río (%d intentos sembraron %d en la orilla)" % [20, nu.nuevos.size()])
 	nu.empezar()
 	nu.radio = 40.0
-	nu.pintar(Vector2(434, -224)) # centro de la posada El Jabalí
+	# Centro real de la posada El Jabalí, donde esté (el editor la puede mover)
+	nu.pintar(Mapa3D.a_mapa((mundo.get_node("Edificios/building_tavern") as Node3D).global_position))
 	_ok(nu.nuevos.is_empty(), "nada dentro de la posada (%d)" % nu.nuevos.size())
 	# Goma
 	nu.empezar()

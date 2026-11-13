@@ -1262,12 +1262,13 @@ func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 		var d_pos2: Vector2 = b.get("door_pos", Vector2.ZERO)
 		if prop_rect.intersects(Rect2(d_pos2 - Vector2(22.0, 24.0), Vector2(44.0, 48.0))):
 			return true
+	# Los pasos interiores están en el plano de cada local; el mueble, en el mundo: se pasan al mundo para compararlos
 	for op in VillageTavern.OPENINGS_FLOOR_0:
-		var op_pos: Vector2 = op.get("pos", Vector2.ZERO)
+		var op_pos: Vector2 = VillageTavern.al_mundo(op.get("pos", Vector2.ZERO))
 		if prop_rect.intersects(Rect2(op_pos - Vector2(18.0, 18.0), Vector2(36.0, 36.0))):
 			return true
 	for op_r in VillageRestaurant.OPENINGS:
-		var opr_pos: Vector2 = op_r.get("pos", Vector2.ZERO)
+		var opr_pos: Vector2 = VillageRestaurant.al_mundo(op_r.get("pos", Vector2.ZERO))
 		if prop_rect.intersects(Rect2(opr_pos - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
 			return true
 	for p_gap: Vector2 in [EdificioEditor.a_mundo(ID_HOSPITAL, Vector2(745.0, 152.0)), EdificioEditor.a_mundo(ID_COMISARIA, Vector2(902.0, 152.0))]: # pasos de sala y reja, en su plano

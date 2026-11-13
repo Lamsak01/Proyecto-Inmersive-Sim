@@ -170,6 +170,8 @@ func _build_ground_foliage_3d() -> void:
 		Vector2(-1200, 405), Vector2(-1345, 485), Vector2(-1660, 500), Vector2(-1875, 435),
 		Vector2(-1930, 310)
 	])
+	# La plaza va con su pieza del editor: se mira en el mundo, donde caerá la mata
+	var plaza_guard: Rect2 = Zona.rect_mundo(ZONA_PLAZA_ID).grow(MATAS_MARGEN_PLAZA_PX)
 	var idx: int = 0
 	for gx in range(-2050, 1480, 95):
 		for gy in range(-520, 1280, 95):
@@ -177,8 +179,9 @@ func _build_ground_foliage_3d() -> void:
 			var jx: float = float(((idx * 73) % 59) - 29)
 			var jy: float = float(((idx * 41) % 59) - 29)
 			var fp := Vector2(float(gx) + jx, float(gy) + jy)
+			var fp_mundo: Vector2 = Zona.estirar(fp) # donde la pone _add_model_2d (mapa ×E, zonas con su pieza)
 			# Saltar calzadas principales, plaza central, lago, ciénaga y huellas de edificios
-			if absf(fp.y - 50.0) < 30.0 or (fp.x > 375.0 and fp.x < 555.0 and fp.y > 0.0 and fp.y < 95.0):
+			if absf(fp.y - 50.0) < 30.0 or plaza_guard.has_point(fp_mundo):
 				continue
 			if Geometry2D.is_point_in_polygon(fp, lake_poly_guard) or Geometry2D.is_point_in_polygon(fp, marsh_poly_guard):
 				continue
@@ -194,8 +197,8 @@ func _build_ground_foliage_3d() -> void:
 				continue
 			if vm != null and "building_footprints" in vm:
 				var inside_b: bool = false
-				for b_fp in vm.building_footprints:
-					if (b_fp["rect"] as Rect2).grow(12.0).has_point(fp):
+				for b_fp in vm.building_footprints: # huellas ya en el mundo: se comparan con el sitio real de la mata
+					if (b_fp["rect"] as Rect2).grow(MATAS_MARGEN_EDIFICIO_PX).has_point(fp_mundo):
 						inside_b = true
 						break
 				if inside_b:
@@ -513,6 +516,10 @@ func _build_static_terrain_3d() -> void:
 	# Río de norte a sur, Puente Viejo en el centro del pueblo, arroyo del bosque norte, Claro (barro pardo) y Molino Viejo (barro rojo / arcilla)
 	_build_river_and_arroyo_3d()
 	estirar_terreno = false
+
+const ZONA_PLAZA_ID := "plaza"            ## pieza de «Zonas» que lleva la plaza
+const MATAS_MARGEN_PLAZA_PX: float = 65.0  ## 13 px del mapa original ×5: las matas no asoman en el empedrado
+const MATAS_MARGEN_EDIFICIO_PX: float = 12.0 ## pasillo sin hierba alrededor de cada casa
 
 ## Plaza Central (mapa original) y lámina de agua de la ciénaga: mallas de suelo que aún dibuja el código.
 const PLAZA_RECT: Rect2 = Rect2(Vector2(388, 12), Vector2(154, 72))

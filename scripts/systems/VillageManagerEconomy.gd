@@ -1,5 +1,6 @@
 @tool
 extends "res://scripts/systems/VillageManagerPolice.gd"
+const MERCADER_LLEGADA_PX: float = 26.0 ## a esta distancia de la tienda ya compra
 
 
 
@@ -1245,7 +1246,7 @@ func update_traveling_merchant_ai(merchant: VillageNPC, delta: float) -> void:
 
 	# A partir de las 19:00 regresan caminando hacia el borde del mapa para salir de la región con su Salvoconducto Real
 	if h >= 19 or h < 6:
-		var exit_pos: Vector2 = Vector2(-910, 48) if m_id == "casimir" else Vector2(1000, 48)
+		var exit_pos: Vector2 = VillageWork.Sitio.mundo(SITIO_ENTRADA_OESTE if m_id == "casimir" else SITIO_ENTRADA_ESTE)
 		merchant._merchant_leaving = true
 		merchant.current_activity = VillageNPC.ActivityState.WORKING
 		merchant._move_towards_point(exit_pos, 62.0, delta)
@@ -1260,44 +1261,35 @@ func update_traveling_merchant_ai(merchant: VillageNPC, delta: float) -> void:
 
 	merchant._merchant_leaving = false
 	merchant.current_activity = VillageNPC.ActivityState.WORKING
-	var target_spot: Vector2 = Vector2(465, 44)
-	if m_id == "casimir":
-		if h < 12:
-			target_spot = Vector2(335, -30) # Herrería de Thoran
-		elif h < 16:
-			target_spot = Vector2(585, 142) # Carpintería de Bram
-		else:
-			target_spot = Vector2(455, 44)  # Plaza Central para comerciar con el jugador
-	else:
-		if h < 11:
-			target_spot = Vector2(585, -30) # Carnicería y Peletería de Garrick
-		elif h < 14:
-			target_spot = Vector2(465, 142) # Pescadería de Marlo
-		elif h < 16:
-			target_spot = Vector2(325, 150) # Botica de Elena
-		else:
-			target_spot = Vector2(480, 44)  # Plaza Central para comprar caza legal al jugador
-
+	var parada: Array = _parada_mercader(m_id, h)
+	var target_spot: Vector2 = parada[0]
 	merchant._move_towards_point(target_spot, 56.0, delta)
 
 	# Cuando llega a cada taller, compra solo las existencias disponibles (no gasta todo su oro si no hay suficiente mercancía)
+	var compra: Array = parada[1]
+	if compra.is_empty() or bool(merchant.get_meta(compra[0], false)) or merchant.global_position.distance_to(target_spot) > MERCADER_LLEGADA_PX:
+		return
+	merchant.set_meta(compra[0], true)
+	_merchant_buy_from_local_shop(merchant, int(compra[1]), compra[2], int(compra[3]), int(compra[4]))
+
+
+## Parada del mercader a la hora h: [sitio en el mundo, compra]. Compra = [marca de «ya compró», oficio, cosas, pago por
+## unidad, gasto tope] o vacía (en la plaza no compra en tiendas). Los sitios están en el plano de cada tienda (delante
+## de su mostrador) y van con ella si se mueve en el editor; la plaza va con su pieza de «Zonas».
+func _parada_mercader(m_id: String, h: int) -> Array:
 	if m_id == "casimir":
-		if h < 12 and not bool(merchant.get_meta("route_Bought_smith", false)) and merchant.global_position.distance_to(Vector2(335, -30)) <= 26.0:
-			merchant.set_meta("route_Bought_smith", true)
-			_merchant_buy_from_local_shop(merchant, int(VillageNPC.TradeRole.BLACKSMITH), ["repair_kit", "iron_ore", "steel_ingot"], 24, 68)
-		elif h >= 12 and h < 16 and not bool(merchant.get_meta("route_Bought_carp", false)) and merchant.global_position.distance_to(Vector2(585, 142)) <= 26.0:
-			merchant.set_meta("route_Bought_carp", true)
-			_merchant_buy_from_local_shop(merchant, int(VillageNPC.TradeRole.CARPENTER), ["repair_kit", "wood", "copper_coil"], 20, 62)
-	else:
-		if h < 11 and not bool(merchant.get_meta("route_Bought_butcher", false)) and merchant.global_position.distance_to(Vector2(585, -30)) <= 26.0:
-			merchant.set_meta("route_Bought_butcher", true)
-			_merchant_buy_from_local_shop(merchant, int(VillageNPC.TradeRole.BUTCHER), ["leather", "cooked_meat", "roasted_chicken", "fox_pelt", "antlers"], 26, 78)
-		elif h >= 11 and h < 14 and not bool(merchant.get_meta("route_Bought_fish", false)) and merchant.global_position.distance_to(Vector2(465, 142)) <= 26.0:
-			merchant.set_meta("route_Bought_fish", true)
-			_merchant_buy_from_local_shop(merchant, int(VillageNPC.TradeRole.FISHMONGER), ["cooked_fish", "bread", "fertilizer"], 18, 48)
-		elif h >= 14 and h < 16 and not bool(merchant.get_meta("route_Bought_herb", false)) and merchant.global_position.distance_to(Vector2(325, 150)) <= 26.0:
-			merchant.set_meta("route_Bought_herb", true)
-			_merchant_buy_from_local_shop(merchant, int(VillageNPC.TradeRole.HERBALIST), ["herbal_poultice", "carrot_seeds"], 16, 42)
+		if h < 12:
+			return [EdificioEditor.a_mundo("shop_family_smith", Vector2(335, -30)), ["route_Bought_smith", VillageNPC.TradeRole.BLACKSMITH, ["repair_kit", "iron_ore", "steel_ingot"], 24, 68]]
+		if h < 16:
+			return [EdificioEditor.a_mundo("shop_family_carpenter", Vector2(585, 142)), ["route_Bought_carp", VillageNPC.TradeRole.CARPENTER, ["repair_kit", "wood", "copper_coil"], 20, 62]]
+		return [ZonaMapa.estirar(Vector2(455, 44)), []] # Plaza Central para comerciar con el jugador
+	if h < 11:
+		return [EdificioEditor.a_mundo("shop_family_butcher", Vector2(585, -30)), ["route_Bought_butcher", VillageNPC.TradeRole.BUTCHER, ["leather", "cooked_meat", "roasted_chicken", "fox_pelt", "antlers"], 26, 78]]
+	if h < 14:
+		return [EdificioEditor.a_mundo("shop_family_fishmonger", Vector2(465, 142)), ["route_Bought_fish", VillageNPC.TradeRole.FISHMONGER, ["cooked_fish", "bread", "fertilizer"], 18, 48]]
+	if h < 16:
+		return [EdificioEditor.a_mundo("mixed_family_herbalist", Vector2(325, 150)), ["route_Bought_herb", VillageNPC.TradeRole.HERBALIST, ["herbal_poultice", "carrot_seeds"], 16, 42]]
+	return [ZonaMapa.estirar(Vector2(480, 44)), []] # Plaza Central para comprar caza legal al jugador
 
 func _merchant_buy_from_local_shop(merchant: VillageNPC, role_id: int, wanted_keys: Array, unit_pay: int, max_spend_here: int) -> void:
 	var holder: VillageNPC = trade_npcs.get(role_id)

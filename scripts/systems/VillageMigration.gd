@@ -26,6 +26,8 @@ static func tavern_guest_beds() -> Array:
 		out.append(taberna.al_mundo(cama))
 	return out
 const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_ENTRADA_OESTE := "entrada_oeste" ## por donde se llega y se marcha (igual que VillageManagerSocial)
+const SITIO_ENTRADA_ESTE := "entrada_este"
 const SITIOS_ESPERA := "espera" ## cruces espera_1, espera_2… de «Sitios»: dónde pasa el día quien aún no tiene casa
 const ARRIVE_MIN_SCORE: float = 0.05
 const LEAVE_BELOW_SCORE: float = 0.2
@@ -412,8 +414,12 @@ static func leave_chance(vm, n, score: float) -> float:
 	var homeless: bool = n.is_vagrant_camper or n.in_shelter
 	return clampf((LEAVE_BELOW_SCORE - score) * (0.5 if homeless else 0.15), 0.0, 0.3)
 
+## Se marcha por la entrada del valle más cercana (las mismas cruces de «Sitios» por las que se llega).
 static func exit_pos(n) -> Vector2:
-	return Vector2(-900, 48) if n.global_position.x < 300.0 else Vector2(1480, 48)
+	var oeste: Vector2 = Sitio.mundo(SITIO_ENTRADA_OESTE)
+	var este: Vector2 = Sitio.mundo(SITIO_ENTRADA_ESTE)
+	var pos: Vector2 = n.global_position
+	return oeste if pos.distance_to(oeste) < pos.distance_to(este) else este
 
 static func start_leaving(vm, n) -> void:
 	n.set_meta("leaving", true)

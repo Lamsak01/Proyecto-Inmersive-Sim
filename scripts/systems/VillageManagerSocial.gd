@@ -22,6 +22,8 @@ func _register_authority_npc(node_name: String, npc_name_str: String, title: Str
 
 const SITIO_ENTRADA_OESTE := "entrada_oeste" ## cruces de «Sitios»: por dónde llega andando quien viene de fuera
 const SITIO_ENTRADA_ESTE := "entrada_este"
+const ZonaMapa = preload("res://mapa/zona.gd") # terreno del mapa original ×5, que va con su pieza (plaza, lago, ciénaga)
+const CHARCA_CIENAGA_ORIGINAL := Rect2(Vector2(-1910, 165), Vector2(710, 320)) ## agua de la ciénaga (mapa original)
 
 ## Devuelve el punto del borde del mapa (camino del oeste o del este, cruces «entrada_…» de «Sitios», ya en el mundo)
 ## desde la que cualquier nuevo habitante entra caminando físicamente al pueblo (Prohibido el respawn instantáneo en mitad de la calle).
@@ -458,6 +460,11 @@ func _get_nearest_well_dist_sq(pos: Vector2) -> float:
 			best_d2 = d2
 	return best_d2
 
+## Charca de la Ciénaga del Suroeste en el mundo: escrita en el mapa original, va ×5 y con su pieza de «Zonas».
+func _charca_cienaga_mundo() -> Rect2:
+	var tam: Vector2 = CHARCA_CIENAGA_ORIGINAL.size * Mapa3D.E
+	return Rect2(ZonaMapa.estirar(CHARCA_CIENAGA_ORIGINAL.get_center()) - tam * 0.5, tam) # por el centro: cae seguro en la zona
+
 ## Devuelve `true` si `world_pos` está a `<= max_meters` (por defecto 2.0m = 32 px del borde) de cualquier fuente de agua
 ## (Pozos de Agua de la Granja/Taberna/Plaza, Lago del Oeste, Ciénaga de las Ranas o lavabo de Urgencias del Hospital).
 
@@ -471,7 +478,7 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	if Geometry2D.is_point_in_polygon(world_pos, orilla):
 		return true
 	# Charca de agua de la Ciénaga del Suroeste
-	if Rect2(Vector2(-1910, 165), Vector2(710, 320)).grow(max_meters * 16.0).has_point(world_pos):
+	if _charca_cienaga_mundo().grow(max_meters * 16.0).has_point(world_pos):
 		return true
 	# Arroyo / Fuente del Lavadero del pueblo
 	if world_pos.distance_squared_to(VillageWork.Sitio.mundo(VillageWork.SITIO_LAVADERO)) <= max_well_dist * max_well_dist:

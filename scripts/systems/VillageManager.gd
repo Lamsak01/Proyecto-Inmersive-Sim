@@ -938,7 +938,7 @@ func _on_day_passed(_new_day: int) -> void:
 		if p_div and p_div.has_method("show_hint"):
 			p_div.show_hint("💰📈 Tus negocios del valle generaron +%d Oro hoy (Recáudalo en sus Cajas Registradoras [E])." % total_player_dividends)
 
-## Gestiona la llegada diaria de hasta `MAX_DAILY_ARRIVALS = 2` personas caminando físicamente desde el borde del mapa (`Vector2(-900, 48)` o `Vector2(990, 48)`).
+## Gestiona la llegada diaria de hasta `MAX_DAILY_ARRIVALS = 2` personas caminando físicamente desde las entradas del valle (cruces «entrada_oeste» y «entrada_este» de «Sitios»).
 ## Si toda la aldea muere, NO reaparece de golpe al día siguiente: llegan como máximo 2 personas por día y entran como Novatos (35% eficiencia).
 
 func _process_daily_map_edge_arrivals() -> void:

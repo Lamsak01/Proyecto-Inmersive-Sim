@@ -9,7 +9,8 @@ const Mezclas = preload("res://mapa/pincel_mezclas.gd")
 const WB = preload("res://scripts/visuals/WorldStageBase3D.gd")
 const FS = preload("res://scripts/fisica/RioLago.gd")
 const PIEZA = preload("res://mapa/pieza.gd")
-const REFERENCIA := "res://mapa/referencia_mapa.json"
+const MARGEN_ADORNO_PX: float = 4.0 ## un palmo libre alrededor de cada adorno
+const MARGEN_EDIFICIO_M: float = 0.56 ## 10 px del mapa: un pasillo libre alrededor de cada pared
 
 var raiz: Node3D = null
 var mezcla: Dictionary = {} # vacía = usar «plantillas» (lo seleccionado)
@@ -20,14 +21,13 @@ var nuevos: Array[Node] = []
 var borrados: Array = [] # [nodo, padre, índice]
 var aviso: String = ""
 var _ocupados: Dictionary = {}
+var _adornos: Array[Vector3] = [] # piezas del «Decorado»: (x, y del mapa, radio en px)
 var _celda: float = 32.0
-var _edificios_ref: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 
 
 func _init() -> void:
 	_rng.randomize()
-	_leer_referencia()
 
 
 func sembrar(semilla: int) -> void:
@@ -152,31 +152,25 @@ func _prohibido(p: Vector2) -> bool:
 				var loc: Vector3 = (t as Node3D).global_transform.affine_inverse() * p3
 				if absf(loc.x) <= 0.6 and absf(loc.z) <= 0.75:
 					return true
+	for a in _adornos:
+		if p.distance_to(Vector2(a.x, a.y)) <= a.z:
+			return true
 	var eds := raiz.get_node_or_null("Edificios")
 	if eds != null:
 		for e in eds.get_children():
-			var r = _edificios_ref.get(str(e.get("id_edificio")), null)
-			if r == null or not (e is Node3D):
-				continue
-			var centro_nuevo: Vector2 = _a_2d((e as Node3D).global_position - (e.get("origen_3d") as Vector3)) + (e.get("centro_original") as Vector2)
-			var rr: Rect2 = r
-			var rect := Rect2(centro_nuevo - rr.size * 0.5, rr.size).grow(10.0)
-			if rect.has_point(p):
+			if e is Node3D and _dentro_de_planta(e as Node3D, p3):
 				return true
 	return false
 
 
-func _leer_referencia() -> void:
-	_edificios_ref.clear()
-	if not FileAccess.file_exists(REFERENCIA):
-		return
-	var j = JSON.parse_string(FileAccess.get_file_as_string(REFERENCIA))
-	if not (j is Dictionary):
-		return
-	for e in j.get("edificios", []):
-		var r: Array = e["r"]
-		var big: float = maxf(r[2], r[3])
-		_edificios_ref[str(e["id"])] = Rect2(r[0], r[1], r[2], r[3]) if big > 0 else Rect2()
+## La pieza del edificio está en su centro y lleva su giro: el punto se mira en los ejes del edificio contra su planta real
+## (en metros), así sirve aunque el usuario lo mueva o lo gire en el editor.
+func _dentro_de_planta(e: Node3D, p3: Vector3) -> bool:
+	var planta: Vector2 = e.get("planta_m") if e.get("planta_m") != null else Vector2.ZERO
+	if planta == Vector2.ZERO:
+		return false
+	var loc: Vector3 = e.global_transform.affine_inverse() * p3
+	return absf(loc.x) <= planta.x * 0.5 + MARGEN_EDIFICIO_M and absf(loc.z) <= planta.y * 0.5 + MARGEN_EDIFICIO_M
 
 
 func _rehacer_ocupados() -> void:
@@ -187,6 +181,20 @@ func _rehacer_ocupados() -> void:
 	var dec := raiz.get_node_or_null("Decoracion")
 	if dec != null:
 		_marcar_todo(dec)
+	_adornos.clear()
+	var decorado := raiz.get_node_or_null("Decorado")
+	if decorado != null:
+		_leer_adornos(decorado)
+
+
+## Bancos, puentes, terrazas, vallas… guardan su tamaño en «radio» (px): ahí no se siembra, para no tapar el adorno.
+func _leer_adornos(n: Node) -> void:
+	for c in n.get_children():
+		if c is Node3D and c.has_meta("radio"):
+			var q: Vector2 = _a_2d((c as Node3D).global_position)
+			_adornos.append(Vector3(q.x, q.y, float(c.get_meta("radio")) + MARGEN_ADORNO_PX))
+		elif c.get_child_count() > 0:
+			_leer_adornos(c)
 
 
 func _marcar_todo(n: Node) -> void:

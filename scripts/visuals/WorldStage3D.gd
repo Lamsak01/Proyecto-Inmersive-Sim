@@ -398,6 +398,11 @@ func _sync_player_aim_from_fp() -> void:
 ## Cuelga de `arm_root` como el antiguo de cilindros y bolas, así los gestos (golpe, arco, escudo) no cambian.
 const BRAZO_FP_ESCALA: float = 0.5
 const BRAZO_FP_HOMBRO := Vector3(0.0, 0.02, 0.2)        # dónde queda el hombro respecto a la raíz del brazo (detrás de la cámara)
+## Altura del sol (grados sobre el horizonte). A mediodía 70°, como en verano: con 56° las casas de tejado alto
+## echaban sombras de casi tres cuartos de su altura, desproporcionadas vistas desde arriba (partida 2026-11-12).
+const SOL_ALTO_ORTO_DEG: float = 38.0
+const SOL_ALTO_MEDIODIA_DEG: float = 70.0
+const SOL_ALTO_NOCHE_DEG: float = 48.0  ## la luz de luna, fija
 const BRAZO_FP_PIEL := "characters/T_Superhero_Male_Ligh.png" # la piel clara de los aldeanos (así se llama el archivo)
 
 func _add_fp_arm_limb(arm_root: Node3D, is_right: bool) -> void:
@@ -1245,7 +1250,7 @@ func _update_roof_cutaways_and_lighting() -> void:
 
 	if is_instance_valid(sun_light):
 		var yaw_deg: float = lerpf(-115.0, -155.0, clampf((hour_f - 6.0) / 13.0, 0.0, 1.0))
-		var pitch_deg: float = -38.0 - 18.0 * sin(sun_ang) if not is_night else -48.0
+		var pitch_deg: float = -SOL_ALTO_ORTO_DEG - (SOL_ALTO_MEDIODIA_DEG - SOL_ALTO_ORTO_DEG) * sin(sun_ang) if not is_night else -SOL_ALTO_NOCHE_DEG
 		sun_light.rotation_degrees = Vector3(pitch_deg, yaw_deg, 0.0)
 		if pl_in_lib_secret:
 			sun_light.light_energy = 0.015

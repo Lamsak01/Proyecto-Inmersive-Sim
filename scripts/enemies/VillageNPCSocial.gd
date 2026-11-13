@@ -2,6 +2,8 @@
 extends "res://scripts/enemies/VillageNPCBase.gd"
 const _MARCA = preload("res://mapa/marca.gd")
 const _EDIFICIO = preload("res://mapa/edificio.gd")
+const _ZONA = preload("res://mapa/zona.gd") # la plaza va con su pieza de «Zonas» (mapa original ×5)
+const _PLAZA_ORIGINAL := Vector2(465, 44) ## centro de la plaza en el mapa original: sitio de reserva
 const _HOSPITAL_ID := "building_hospital"
 const _CAMA_URGENCIAS_PLANO := Vector2(718.0, 136.0) ## cama de urgencias, en el plano del hospital
 const _MORGUE_ENTREGA_PLANO := Vector2(745.0, 174.0) ## donde se dejan los cadáveres, en el plano del hospital
@@ -217,7 +219,7 @@ func _get_family_shop_search_pos(kin) -> Vector2:
 		var cfg: Dictionary = vm.trade_configs[linked_trade]
 		if cfg.has("work_pos"):
 			return cfg["work_pos"] as Vector2
-	return Vector2(465, 44)
+	return _ZONA.estirar(_PLAZA_ORIGINAL)
 
 func _process_family_missing_search(delta: float) -> bool:
 	if is_instance_valid(_searching_missing_kin):

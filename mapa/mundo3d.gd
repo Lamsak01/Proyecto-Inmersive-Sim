@@ -12,6 +12,8 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const WB = preload("res://scripts/visuals/WorldStageBase3D.gd")
 const FS = preload("res://scripts/fisica/RioLago.gd")
 const REFERENCIA := "res://mapa/referencia_mapa.json"
+const TERRENO := "res://scripts/visuals/WorldStageTerrain3D.gd" ## dueño de la plaza que dibuja el juego
+const COLOR_CAMINO := Color(0.62, 0.52, 0.38)
 const PASO_SUELO: float = 40.0
 const SOL_GIRO := Vector3(-50.0, 35.0, 0.0)
 const SOL_FUERZA: float = 1.3
@@ -55,7 +57,10 @@ func _construir() -> void:
 	var E: float = Mapa3D.E
 	_suelo(vista)
 	_rio(vista)
-	_poligonos(vista, _escalar_polis(ref.get("caminos", []), E), Color(0.62, 0.52, 0.38), 0.35)
+	# Con tramos en «Caminos» el juego deja de dibujar los caminos viejos y solo añade la plaza: aquí, lo mismo
+	var tramos := get_node_or_null("Caminos")
+	var caminos_viejos: Array = ref.get("caminos", []) if tramos == null or tramos.get_child_count() == 0 else [_plaza()]
+	_poligonos(vista, _escalar_polis(caminos_viejos, E), COLOR_CAMINO, 0.35)
 	if ref.get("lago", []) is Array and (ref["lago"] as Array).size() > 2:
 		_poligonos(vista, [FS.lake_outline_world()], Color(0.20, 0.45, 0.75), 0.6, true)
 	var ed := get_node_or_null("Edificios")
@@ -95,6 +100,12 @@ func _luz_y_cielo(vista: Node3D) -> void:
 
 
 ## Polígonos de la referencia (mapa original) estirados E veces.
+## Plaza Central del juego (mapa original, como la referencia), en el formato de los polígonos de la referencia.
+func _plaza() -> Array:
+	var r: Rect2 = load(TERRENO).PLAZA_RECT
+	return [[r.position.x, r.position.y], [r.end.x, r.position.y], [r.end.x, r.end.y], [r.position.x, r.end.y]]
+
+
 func _escalar_polis(lista: Array, E: float) -> Array:
 	var out: Array = []
 	for poly in lista:

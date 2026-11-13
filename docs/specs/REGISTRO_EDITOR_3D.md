@@ -83,8 +83,10 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   `mapa/pincel_nucleo.gd`; prueba sin editor `tools/tests/pincel_mapa.gd` (8/8). Guía: `docs/PINCEL_MAPA_GUIA.md`.
 - **Probado dentro del editor de Godot** (portátil, 2026-11-10) con ratón simulado: pinta, borra, Ctrl+Z deshace los
   trazos y la escena no se guarda sola. Prueba: `PINCEL_PRUEBA=1` (ver final de `pincel_plugin.gd`). El panel va en la
-  barra de abajo («Pincel del mapa», junto a Output) y se abre solo al abrir Mundo3D. Pendiente menor: no evita suelos
-  de adorno del Decorado (terrazas empedradas).
+  barra de abajo («Pincel del mapa», junto a Output) y se abre solo al abrir Mundo3D. No siembra sobre las piezas del
+  «Decorado» (su «radio» + 4 px) ni dentro de la planta real de cada edificio, girada y movida (2026-11-13; antes usaba
+  la planta del mapa pequeño y veía los edificios a decenas de metros de su sitio). La vista del editor ya no dibuja los
+  caminos viejos de la referencia cuando hay tramos en «Caminos» (solo la plaza), igual que el juego.
 - «Decorado» es ya la única fuente de los adornos del terreno: el código dejó de dibujarlos y `tools/hornear_decorado.gd`
   se borró (2026-11-12). `WorldStageTerrain3D` solo hace suelo, caminos, plaza y agua.
 - Para sumar los modelos del usuario a las mezclas fijas: añadirlos a `pincel_mezclas.gd` (ruta «res://mis_recursos/…»).

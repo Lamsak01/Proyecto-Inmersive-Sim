@@ -2,6 +2,12 @@
 extends RefCounted
 const Edificio = preload("res://mapa/edificio.gd")
 const Marca = preload("res://mapa/marca.gd")
+const ZonaMapa = preload("res://mapa/zona.gd") # la plaza va con su pieza de «Zonas»
+## Sitios del Inquisidor (antes iba a puntos del mapa pequeño, en un prado vacío del mundo ×5)
+const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_SALIDA := "entrada_este"             ## cruz de «Sitios» por la que sale del valle
+const JUICIO_PLAZA_ORIGINAL := Vector2(465, 38)   ## donde celebra el juicio en la plaza
+const PLAZA_ORIGINAL := Vector2(465, 44)          ## centro de la plaza (mapa original)
 const ANTE_CELDA_PLANO := Vector2(902, 144) ## delante de la reja, por fuera (plano de la comisaría)
 const CAMA_CELDA_PLANO := Vector2(872, 176) ## catre de la celda (plano de la comisaría)
 
@@ -298,10 +304,11 @@ static func on_traveling_merchant_murdered(vm: VillageManager, merchant: Village
 static func _get_investigation_crime_pos(vm: VillageManager) -> Vector2:
 	if vm.active_royal_investigation.has("crime_pos_x") and vm.active_royal_investigation.has("crime_pos_y"):
 		return Vector2(float(vm.active_royal_investigation["crime_pos_x"]), float(vm.active_royal_investigation["crime_pos_y"]))
-	var raw_cp: Variant = vm.active_royal_investigation.get("crime_pos", Vector2(465, 44))
+	var plaza: Vector2 = ZonaMapa.estirar(PLAZA_ORIGINAL) # reserva: el centro de la plaza
+	var raw_cp: Variant = vm.active_royal_investigation.get("crime_pos", plaza)
 	if typeof(raw_cp) == TYPE_VECTOR2:
 		return raw_cp as Vector2
-	return Vector2(465, 44)
+	return plaza
 
 ## Comunica en tiempo real cualquier arresto, fianza o ficha forense de la Comisaría/Morgue al expediente del Inquisidor Real Alistair
 static func _notify_inquisitor_of_police_crime(vm: VillageManager, clue_text: String, suspicion_boost: int) -> void:
@@ -337,7 +344,7 @@ static func _spawn_royal_investigator(vm: VillageManager) -> void:
 	inv_npc.days_in_role = 7
 	inv_npc.tavern_social_pos = vm._tavern_social_pos
 	vm.entities_root.add_child(inv_npc)
-	# Alistair duerme en su propia cama de huéspedes en la Posada (`Vector2(400, -252)`), nunca en la cama del Comisario Vane
+	# Alistair duerme en su propia cama de huéspedes en la Posada (marca «cama_alistair»), nunca en la cama del Comisario Vane
 	inv_npc.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"), vm.VillageWork.Sitio.mundo("puesto_inquisidor"), vm.VillageTavern.mundo(vm.VillageTavern.M_CAMA_ALISTAIR), {}, vm._tavern_social_pos, "family_police", "Inquisición Real de la Corona")
 	inv_npc.global_position = vm._get_map_edge_arrival_pos(1)
 	vm._royal_investigator_npc = inv_npc
@@ -406,7 +413,7 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 		return
 	if vm.active_royal_investigation.is_empty() or not bool(vm.active_royal_investigation.get("active", false)):
 		inv_npc.is_sleeping = false
-		var exit_pt := Vector2(1000, 48)
+		var exit_pt: Vector2 = Sitio.mundo(SITIO_SALIDA)
 		inv_npc._move_towards_point(exit_pt, 94.0, delta)
 		if inv_npc.global_position.distance_to(exit_pt) <= 18.0:
 			if vm._royal_investigator_npc == inv_npc:
@@ -443,9 +450,9 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 
 	# Rutina diaria para fases de investigación (`CRIME_SCENE`, `MORGUE`, `INITIAL_PLAYER_INTERVIEW`, `INTERVIEWS`):
 	if stage in ["CRIME_SCENE", "MORGUE", "INITIAL_PLAYER_INTERVIEW", "INTERVIEWS"]:
-		# 1. Noche (22:00 a 06:00): Descansa en su propia cama de la Posada (`Vector2(400, -252)`), sin usar la cama del Comisario Vane
+		# 1. Noche (22:00 a 06:00): Descansa en su propia cama de la Posada (marca «cama_alistair»), sin usar la cama del Comisario Vane
 		if h >= 22 or h < 6:
-			var bed_pt := Vector2(400, -252)
+			var bed_pt: Vector2 = vm.VillageTavern.mundo(vm.VillageTavern.M_CAMA_ALISTAIR)
 			if inv_npc.global_position.distance_to(bed_pt) > 12.0:
 				inv_npc.is_sleeping = false
 				inv_npc._move_towards_point(bed_pt, 78.0, delta)
@@ -603,7 +610,7 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 				vm.active_royal_investigation["stage"] = "DEPARTING"
 				vm.active_royal_investigation["stage_timer"] = 0.0
 				return
-			var plaza_trial_pos := Vector2(465, 38)
+			var plaza_trial_pos: Vector2 = ZonaMapa.estirar(JUICIO_PLAZA_ORIGINAL)
 			scapegoat_pl.is_sleeping = false
 			scapegoat_pl.hold_for_interview(inv_npc, 1.2)
 			if inv_npc.global_position.distance_to(plaza_trial_pos) > 26.0:
@@ -658,7 +665,7 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 					vm.active_royal_investigation["stage_timer"] = 0.0
 		"DEPARTING":
 			inv_npc.is_sleeping = false
-			var exit_pos := Vector2(1000, 48)
+			var exit_pos: Vector2 = Sitio.mundo(SITIO_SALIDA)
 			inv_npc._move_towards_point(exit_pos, 94.0, delta)
 			if inv_npc.global_position.distance_to(exit_pos) <= 20.0:
 				vm.active_royal_investigation["active"] = false

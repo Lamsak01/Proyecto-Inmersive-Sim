@@ -10,6 +10,8 @@ extends RefCounted
 ## abiertamente (`open`): entonces él mismo lo va contando.
 
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
+const ZonaMapa = preload("res://mapa/zona.gd") # la plaza va con su pieza de «Zonas» (mapa original ×5)
+const PLAZA_SUR_ORIGINAL := Vector2(450.0, 120.0) ## al sur de la plaza (mapa original): reserva si no hay jugador
 const VillageSecrets = preload("res://scripts/systems/VillageSecrets.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
@@ -425,7 +427,7 @@ static func prowl_spot_for_desire(vm: VillageManager, d: Dictionary, step: int =
 		var pl = vm.get_tree().get_first_node_in_group("player") as Node2D if vm.is_inside_tree() else null
 		if pl != null:
 			return pl.global_position + off
-		return Vector2(450.0, 120.0) + off
+		return ZonaMapa.estirar(PLAZA_SUR_ORIGINAL) + off
 	var t: VillageNPC = by_key.get(t_key, null)
 	if t == null or not is_instance_valid(t):
 		return Vector2.ZERO

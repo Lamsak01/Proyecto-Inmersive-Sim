@@ -4,6 +4,29 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Puentes del río recompuestos y editor del mapa más fiel (Claude Code)
+- Los 3 puentes del río (centro, norte y sur): barandillas, postes y estribos estaban separados metros del tablero; juntados
+  con su forma original (`tools/juntar_decorado.py`).
+- Pincel del mapa: ya no siembra dentro de los edificios (miraba la planta del mapa pequeño, a decenas de metros del
+  sitio real) ni encima de bancos, puentes, terrazas y demás piezas del «Decorado».
+- Matas de hierba y flores: esquivan la plaza donde esté su pieza y las casas en su sitio real (comparaban su sitio
+  del mapa pequeño con las casas del mundo ×5 y no esquivaban ninguna).
+- Pincel del mapa: alcanza el suelo hasta 2,5 km de la cámara (antes 600 m; con el mapa ×5 no pintaba mirando de lejos).
+- Vista desde arriba: se puede alejar más (zoom mínimo 1,4 → 1,0). Sin medir aún el rendimiento con la cámara tan lejos.
+- Sol más alto a mediodía (70° en vez de 56°): sombras de las casas más cortas a esas horas; amanecer y tarde igual.
+- Pasos interiores de la posada y el restaurante: el aviso de «mueble que tapa un paso» los miraba en el plano del local
+  contra muebles del mundo y nunca saltaba; ahora los compara en el mundo (como el hospital y la comisaría).
+- Igual con la terraza del restaurante al esconder los dibujos planos: ahora se pasa al mundo con el local movido o girado.
+- Mercaderes ambulantes (Casimir y el otro): iban a las tiendas con las coordenadas del mapa pequeño (un prado vacío
+  cerca del centro) y nunca compraban; ahora caminan al mostrador de cada tienda donde esté, a la plaza y salen por las entradas del valle.
+- Inquisidor Real Alistair: su cama (ahora la marca de su cama en la posada), el juicio en la plaza y su salida del valle
+  usaban puntos del mapa pequeño; ahora van a su sitio en el mundo ×5. Mercaderes, Inquisidor y vecinos que emigran salen
+  por las mismas cruces de «Sitios» por las que se llega (entrada oeste y este), movibles en el editor.
+- «Junto al agua» (lavarse, beber): la charca de la ciénaga se miraba en el mapa pequeño; ahora en el mundo, con su pieza.
+- Sitios de reserva en la plaza (vecino sin puesto de trabajo, lugar del crimen por defecto, deseos sin jugador): del mapa
+  pequeño al mundo ×5.
+- Vista del editor: sin caminos fantasma (los viejos de la referencia ×5) cuando hay tramos en «Caminos»; solo la plaza.
+
 ## 2026-11-13 — Lavadero, corral, huertos y valla del lago recompuestos (Claude Code)
 - Mismo arreglo que el cementerio con `tools/juntar_decorado.py`: lavadero (tejado otra vez sobre sus postes), corral del
   rancho, los dos huertos del sur (surcos sueltos a 30 m) y la valla con banco junto al lago. Fotos en `docs/capturas_arreglos/`.

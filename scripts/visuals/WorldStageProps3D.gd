@@ -819,6 +819,7 @@ func _sync_heist_target_3d() -> void:
 # OBJETOS QUIETOS 2D -> 3D (pozos, farolas, tablón…)
 # ==============================================================================
 ## Qué versión 3D lleva cada dibujo 2D, según el nombre de su imagen. "hide" = ya tiene 3D propio, solo se esconde.
+const TERRAZA_MARGEN_PX: float = 6.0 ## borde de la terraza que también se limpia de dibujos planos
 const PROP_KIND_BY_TEXTURE := {
 	"bench_0.png": "hide",
 	"flowers_plants_0.png": "hide",
@@ -1129,6 +1130,16 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
 ## en lugar de `.visible`, de modo que ningún test de estado de puertas o ventanas se vea afectado).
 ## Esconde los dibujos planos del mapa que ya tienen versión 3D (pinos, rocas, objetos, fachadas). Desde 2026-11-12 ya no
 ## hay modo 2D al que volver: se esconden siempre.
+## La terraza del restaurante está en el plano del local; los dibujos, en el mundo: se pasan sus 4 esquinas al mundo
+## (el local puede estar movido o girado en el editor) y se toma el rectángulo que las abarca.
+func _terraza_en_mundo() -> Rect2:
+	var t: Rect2 = VillageRestaurant.TERRACE.grow(TERRAZA_MARGEN_PX)
+	var r := Rect2(VillageRestaurant.al_mundo(t.position), Vector2.ZERO)
+	for esquina: Vector2 in [Vector2(t.end.x, t.position.y), t.end, Vector2(t.position.x, t.end.y)]:
+		r = r.expand(VillageRestaurant.al_mundo(esquina))
+	return r
+
+
 func _sync_2d_flat_visuals() -> void:
 	if vm == null or not is_instance_valid(vm.entities_root):
 		return
@@ -1137,7 +1148,7 @@ func _sync_2d_flat_visuals() -> void:
 		var spr_n = src.get("sprite")
 		if spr_n is CanvasItem and is_instance_valid(spr_n):
 			(spr_n as CanvasItem).self_modulate.a = target_a
-	var inner_rects: Array[Rect2] = [VillageRestaurant.TERRACE.grow(6.0)]
+	var inner_rects: Array[Rect2] = [_terraza_en_mundo()]
 	for b in vm.building_footprints:
 		inner_rects.append((b["rect"] as Rect2).grow(-3.0))
 	for child in vm.entities_root.get_children():
