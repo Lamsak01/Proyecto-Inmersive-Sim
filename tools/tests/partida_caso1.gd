@@ -8,7 +8,19 @@ const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escri
 const Marca = preload("res://mapa/marca.gd")
 const Sitio = preload("res://mapa/sitio.gd")
 const Zona = preload("res://mapa/zona.gd")
+const EdificioEditor = preload("res://mapa/edificio.gd")
 const MOLINO_ID: String = "building_abandoned_mill"
+const COMISARIA_ID: String = "building_police"
+const BIBLIOTECA_ID: String = "building_library"
+const HOSPITAL_ID: String = "building_hospital"
+const BOTICA_ID: String = "mixed_family_herbalist"
+const MANSION_ID: String = "building_mansion"
+const PUERTA_FUERA_M: float = 1.6     ## a cuánto del portón, por fuera, se para antes de abrirlo
+const CERCA_PX: float = 14.0          ## a cuánto de la pista se para (cada pista se ofrece en su zona, de ~1,5 m)
+const EN_ZONA_PX: float = 24.0        ## ya dentro de la zona de la pista, aunque un mueble no deje llegar más
+const RUTA_TRAMOS_MAX: int = 40
+const TRAMO_LLEGA_PX: float = 3.0     ## cada tramo de la ruta, hasta casi pisarlo (los tramos de un paso son cortos)
+const TRAMO_FRAMES_MAX: int = 900
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const PX_POR_M: float = 1.0 / Mapa3D.ESCALA ## píxeles del mapa por metro (el molino: 14 m = 250 px)
 const OUT_DIR: String = "docs/capturas_arreglos/caso1/partida"
@@ -80,6 +92,39 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 	await physics_frame
 	await physics_frame
 	return true
+
+## El punto de fuera de un portón: a PUERTA_FUERA_M, del lado contrario al centro del edificio.
+func _fuera_de(id: String) -> Vector2:
+	var puerta: Vector2 = Marca.mundo(id, "puerta")
+	var centro: Vector2 = EdificioEditor.a_mundo(id, EdificioEditor.centro_de_fabrica(id))
+	return puerta + (puerta - centro).normalized() * PUERTA_FUERA_M * PX_POR_M
+
+
+## Sigue a pie la ruta de los vecinos (cuartos y pasos del edificio) hasta `meta`, tramo a tramo. ¿Llegó a su zona?
+func _andar_por_ruta(pl: CharacterBody2D, stage: Node, vm: Node, meta: Vector2, cerca: float = CERCA_PX) -> bool:
+	for _i in range(RUTA_TRAMOS_MAX):
+		if pl.global_position.distance_to(meta) <= cerca + TRAMO_LLEGA_PX:
+			break
+		var wp: Vector2 = vm.call("get_navigation_waypoint", pl.global_position, meta, pl)
+		if wp.distance_to(meta) < cerca: # el último tramo: parar delante de la pista, para poder mirarla
+			wp = meta + (pl.global_position - meta).normalized() * cerca
+		await _walk_to_waypoints(pl, stage, [wp], TRAMO_LLEGA_PX, TRAMO_FRAMES_MAX, true)
+	return pl.global_position.distance_to(meta) <= EN_ZONA_PX
+
+
+## Hasta el portón por fuera, abrirlo y entrar por la ruta hasta `meta` (una pista, ya en el mundo).
+func _entrar_y_andar(pl: CharacterBody2D, stage: Node, vm: Node, id: String, meta: Vector2) -> bool:
+	var llega: bool = await _walk_to_waypoints(pl, stage, [_fuera_de(id)], 5.0, 6000, true)
+	var d: Dictionary = vm.call("_find_nearest_door", Marca.mundo(id, "puerta"), 25.0)
+	if not d.is_empty():
+		vm.call("_set_door_state", d, true, false, true)
+	return await _andar_por_ruta(pl, stage, vm, meta) and llega
+
+
+## Salir por la ruta hasta fuera del portón.
+func _salir(pl: CharacterBody2D, stage: Node, vm: Node, id: String) -> bool:
+	return await _andar_por_ruta(pl, stage, vm, _fuera_de(id), 6.0)
+
 
 ## Una marca del molino (ya en el mundo), con un desfase en metros (x al este, z al sur, como en su plano).
 func _molino(marca: String, desfase_m: Vector2 = Vector2.ZERO) -> Vector2:
@@ -219,14 +264,17 @@ func _initialize() -> void:
 	_record("A2_caminar_al_claro", walked_clearing, "pos_final=%s" % str(pl.global_position.round()))
 
 	# Examinar Orilla del arroyo con [E]
-	var e_clearing: Dictionary = await _aim_and_press_e(pl, stage, Vector2(138.0, -860.0), -0.20, "orilla")
+	var claro: Vector2 = Sitio.mundo("claro_caso1") # el claro y el cuerpo son cruces de «Sitios», ya en el mundo
+	await _walk_to_waypoints(pl, stage, [claro], 8.0, 6000, true)
+	var e_clearing: Dictionary = await _aim_and_press_e(pl, stage, claro, -0.20, "orilla", true)
 	var note_clearing: bool = _has_note_with_source(det_ui, "clue_case1_clearing")
 	_record("A3_pista_orilla_claro", bool(e_clearing["ok"]) and note_clearing,
 		"prompt='%s' anotada=%s" % [str(e_clearing["label"]), str(note_clearing)])
 
 	# Caminar unos pasos hasta el cuerpo en el claro (138, -870) y examinarlo con [E]
-	await _walk_to_waypoints(pl, stage, [Vector2(138.0, -862.0)])
-	var e_corpse: Dictionary = await _aim_and_press_e(pl, stage, Vector2(138.0, -870.0), -0.22, "cuerpo")
+	var cuerpo: Vector2 = Sitio.mundo("cuerpo_caso1")
+	await _walk_to_waypoints(pl, stage, [cuerpo + (pl.global_position - cuerpo).normalized() * CERCA_PX], 4.0, 6000, true)
+	var e_corpse: Dictionary = await _aim_and_press_e(pl, stage, cuerpo, -0.22, "cuerpo", true)
 	var det_opened: bool = det_ui != null and bool(det_ui.visible)
 	var body_notes_before: int = (det_ui.get("notebook_notes") as Array).size() if det_ui != null else 0
 	if det_opened:
@@ -312,7 +360,7 @@ func _initialize() -> void:
 	_record("B5_molino_cordel", w_cord and bool(e_cord["ok"]) and note_cord,
 		"prompt='%s' anotada=%s" % [str(e_cord["label"]), str(note_cord)])
 
-	var w_paper: bool = await _walk_to_waypoints(pl, stage, [_molino("mesa_papel", Vector2(-1.4, 0.0))], 4.0, 6000, true)
+	var w_paper: bool = await _andar_por_ruta(pl, stage, vm, _molino("mesa_papel"))
 	var e_paper: Dictionary = await _aim_and_press_e(pl, stage, _molino("mesa_papel"), -0.3, "papel", true)
 	var note_paper: bool = _has_note_with_source(det_ui, "clue_mill_table_paper")
 	_record("B6_molino_mesa_papel", w_paper and bool(e_paper["ok"]) and note_paper,
@@ -347,57 +395,41 @@ func _initialize() -> void:
 		Vector2(420.0, 50.0),
 		Vector2(672.0, 50.0),
 		Vector2(672.0, 86.0),
-		Vector2(915.0, 86.0),
-		Vector2(915.0, 92.0),
 	]
 	var walked_pol_door: bool = await _walk_to_waypoints(pl, stage, path_to_police)
-	var d_pol: Dictionary = vm.call("_find_nearest_door", Vector2(915.0, 100.0), 20.0)
-	if not bool(d_pol.get("is_open", false)):
-		await _aim_and_press_e(pl, stage, Vector2(915.0, 100.0), -0.05, "puerta")
-	var walked_pol_in: bool = await _walk_to_waypoints(pl, stage, [
-		Vector2(915.0, 124.0),
-		Vector2(930.0, 146.0),
-		Vector2(930.0, 164.0),
-	])
-	var e_pol: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_police", "archivo"), -0.22, "carpeta")
+	var archivo: Vector2 = Marca.mundo(COMISARIA_ID, "archivo")
+	var walked_pol_in: bool = await _entrar_y_andar(pl, stage, vm, COMISARIA_ID, archivo)
+	var e_pol: Dictionary = await _aim_and_press_e(pl, stage, archivo, -0.22, "carpeta", true)
 	var note_pol: bool = _has_note_with_source(det_ui, "clue_police_archived_report")
 	_record("C1_comisaria_denuncia_archivada", walked_pol_door and walked_pol_in and bool(e_pol["ok"]) and note_pol,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_pol_in), str(e_pol["label"]), str(note_pol)])
 
 	# Salir de la Comisaría y caminar hasta la Biblioteca (910, -420; puerta sur en 910, -372)
+	await _salir(pl, stage, vm, COMISARIA_ID)
 	var path_to_library: Array[Vector2] = [
-		Vector2(930.0, 146.0),
-		Vector2(915.0, 124.0),
-		Vector2(915.0, 82.0),
 		Vector2(672.0, 82.0),
 		Vector2(672.0, -351.0),
-		Vector2(910.0, -362.0),
 	]
 	var walked_lib_door: bool = await _walk_to_waypoints(pl, stage, path_to_library, 4.0)
-	var d_lib: Dictionary = vm.call("_find_nearest_door", Vector2(910.0, -372.0), 20.0)
-	if not d_lib.is_empty():
-		d_lib["is_locked"] = false
-	if not bool(d_lib.get("is_open", false)):
-		await _aim_and_press_e(pl, stage, Vector2(910.0, -372.0), -0.05, "puerta")
-	var walked_lib_lever: bool = await _walk_to_waypoints(pl, stage, [
-		Vector2(910.0, -396.0),
-		Vector2(948.0, -406.0),
-	], 4.0)
-	var e_lever: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_library", "palanca"), -0.18, "estantería")
+	var palanca: Vector2 = Marca.mundo(BIBLIOTECA_ID, "palanca")
+	var walked_lib_lever: bool = await _entrar_y_andar(pl, stage, vm, BIBLIOTECA_ID, palanca)
+	var e_lever: Dictionary = await _aim_and_press_e(pl, stage, palanca, -0.18, "estantería", true)
 	var note_lever: bool = _has_note_with_source(det_ui, "clue_library_book_lever")
 	_record("C2_biblioteca_libro_palanca", walked_lib_door and walked_lib_lever and bool(e_lever["ok"]) and note_lever,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_lib_lever), str(e_lever["label"]), str(note_lever)])
 
-	# Entrar a pie a la sala oculta de la biblioteca (x=944, y=-435) y examinar el cuaderno de firmas (944, -448)
-	var walked_secret_room: bool = await _walk_to_waypoints(pl, stage, [Vector2(948.0, -434.0), Vector2(944.0, -435.0)], 3.0)
-	var e_ledger: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_library", "libro_mayor"), -0.22, "cuaderno")
+	# Entrar a pie a la sala oculta (tras la estantería del archivo) y examinar el cuaderno de firmas
+	var libro_mayor: Vector2 = Marca.mundo(BIBLIOTECA_ID, "libro_mayor")
+	var walked_secret_room: bool = await _andar_por_ruta(pl, stage, vm, libro_mayor)
+	var e_ledger: Dictionary = await _aim_and_press_e(pl, stage, libro_mayor, -0.22, "cuaderno", true)
 	var note_ledger: bool = _has_note_with_source(det_ui, "clue_library_secret_ledger")
 	_record("C3_biblioteca_cuaderno_firmas", walked_secret_room and bool(e_ledger["ok"]) and note_ledger,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_secret_room), str(e_ledger["label"]), str(note_ledger)])
 
-	# Examinar el libro antiguo con la página arrancada (959, -448)
-	var walked_torn: bool = await _walk_to_waypoints(pl, stage, [Vector2(957.0, -434.0)], 4.0)
-	var e_torn: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_library", "libro_roto"), -0.22, "libro")
+	# Examinar el libro antiguo con la página arrancada, en la misma mesa
+	var libro_roto: Vector2 = Marca.mundo(BIBLIOTECA_ID, "libro_roto")
+	var walked_torn: bool = await _andar_por_ruta(pl, stage, vm, libro_roto)
+	var e_torn: Dictionary = await _aim_and_press_e(pl, stage, libro_roto, -0.22, "libro", true)
 	var note_torn: bool = _has_note_with_source(det_ui, "clue_library_torn_book")
 	_record("C4_biblioteca_libro_pagina_arrancada", walked_torn and bool(e_torn["ok"]) and note_torn,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_torn), str(e_torn["label"]), str(note_torn)])
@@ -406,24 +438,15 @@ func _initialize() -> void:
 	# BLOQUE D: Resto de pistas del Caso I (Autopsia en Morgue, Testigos, Diálogos/Casas/Secuestradores) y Acusación final
 	# =========================================================================
 	# D1: Caminar de la Biblioteca a la Morgue del Hospital (745, 148; puerta norte en 745, 100; mesa en 745, 174)
+	await _salir(pl, stage, vm, BIBLIOTECA_ID)
 	var path_to_morgue: Array[Vector2] = [
-		Vector2(948.0, -406.0),
-		Vector2(910.0, -396.0),
-		Vector2(910.0, -356.0),
 		Vector2(672.0, -351.0),
 		Vector2(672.0, 84.0),
-		Vector2(745.0, 84.0),
-		Vector2(745.0, 92.0),
 	]
 	var walked_hosp_door: bool = await _walk_to_waypoints(pl, stage, path_to_morgue, 4.0)
-	var d_hosp: Dictionary = vm.call("_find_nearest_door", Vector2(745.0, 100.0), 20.0)
-	if not bool(d_hosp.get("is_open", false)):
-		await _aim_and_press_e(pl, stage, Vector2(745.0, 100.0), -0.05, "puerta")
-	var walked_morgue_in: bool = await _walk_to_waypoints(pl, stage, [
-		Vector2(745.0, 122.0),
-		Vector2(745.0, 152.0),
-	], 4.0)
-	var e_morgue: Dictionary = await _aim_and_press_e(pl, stage, Vector2(745.0, 174.0), -0.22, "autopsia")
+	var mesa_autopsia: Vector2 = Marca.mundo(HOSPITAL_ID, "mesa_morgue_2") # la del medio: ahí se abre la autopsia
+	var walked_morgue_in: bool = await _entrar_y_andar(pl, stage, vm, HOSPITAL_ID, mesa_autopsia)
+	var e_morgue: Dictionary = await _aim_and_press_e(pl, stage, mesa_autopsia, -0.22, "autopsia", true)
 	var morgue_opened: bool = det_ui != null and bool(det_ui.visible) and str(det_ui.get("current_mode")) == "morgue"
 	if morgue_opened:
 		# Sangre: Del corazón (0) -> Tintura de corteza (1) -> Una hierba de embalsamar (0)
@@ -484,19 +507,14 @@ func _initialize() -> void:
 		"ya_por_la_hora=%s papeles=%s" % [str(roles_before), str(roles)])
 
 	# D2: Botica (325, 132; puerta norte en 325, 108): el boticario analiza el líquido del estómago
+	await _salir(pl, stage, vm, HOSPITAL_ID)
 	var path_to_apothecary: Array[Vector2] = [
-		Vector2(745.0, 122.0),
-		Vector2(745.0, 84.0),
 		Vector2(672.0, 84.0),
 		Vector2(672.0, 50.0),
 		Vector2(325.0, 50.0),
-		Vector2(325.0, 92.0),
 	]
 	var walked_apoth: bool = await _walk_to_waypoints(pl, stage, path_to_apothecary, 4.0)
-	var d_apoth: Dictionary = vm.call("_find_nearest_door", Vector2(325.0, 108.0), 25.0)
-	if not d_apoth.is_empty():
-		vm.call("_set_door_state", d_apoth, true, false, true)
-	var walked_apoth_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(325.0, 130.0)], 4.0)
+	var walked_apoth_in: bool = await _entrar_y_andar(pl, stage, vm, BOTICA_ID, Marca.mundo(BOTICA_ID, "puerta", Vector2.ZERO).lerp(EdificioEditor.a_mundo(BOTICA_ID, EdificioEditor.centro_de_fabrica(BOTICA_ID)), 0.5))
 	var alch_ok: Dictionary = _case_dialogue(C1, vm, str(roles.get("alchemist", "")), "case1:alchemist_analyze_flask")
 	var note_alch: bool = _has_note_with_source(det_ui, "clue_case1_alchemist_analyze_flask")
 	await _save_shot("01_botica_dialogo_caso1_v2")
@@ -504,20 +522,16 @@ func _initialize() -> void:
 		"walk=%s npc=%s opcion_en_dialogo=%s anotada=%s" % [str(walked_apoth_in), str(alch_ok["npc"]), str(alch_ok["offered"]), str(note_alch)])
 
 	# D3: Mansión del Señor del Valle (puerta sur 1315, -364): gabinete forzado y criada
+	await _salir(pl, stage, vm, BOTICA_ID)
 	var path_to_mansion: Array[Vector2] = [
-		Vector2(325.0, 92.0),
 		Vector2(325.0, 50.0),
 		Vector2(672.0, 50.0),
 		Vector2(672.0, -342.0),
 		Vector2(1315.0, -342.0),
-		Vector2(1315.0, -352.0),
 	]
 	var walked_mansion: bool = await _walk_to_waypoints(pl, stage, path_to_mansion, 5.0)
-	var d_man: Dictionary = vm.call("_find_nearest_door", Vector2(1315.0, -364.0), 25.0)
-	if not d_man.is_empty():
-		vm.call("_set_door_state", d_man, true, false, true)
 	var cab: Vector2 = C1.cabinet_pos()
-	var walked_cab: bool = await _walk_to_waypoints(pl, stage, [Vector2(1315.0, -408.0), cab + Vector2(0.0, 26.0)], 5.0)
+	var walked_cab: bool = await _entrar_y_andar(pl, stage, vm, MANSION_ID, cab)
 	var e_cab: Dictionary = await _aim_and_press_e(pl, stage, cab, -0.20, "gabinete", true)
 	var note_cab: bool = _has_note_with_source(det_ui, "clue_case1_forced_cabinet")
 	await _save_shot("02_mansion_gabinete_forzado_v2")
@@ -554,28 +568,13 @@ func _initialize() -> void:
 		if is_instance_valid(kd) and (kd as Node2D).global_position.distance_to(MapaViejo.a_mundo(Vector2(188.0, -1060.0))) < 80.0:
 			near_mill += 1
 	_record("D4d_secuestradores_en_el_molino", near_mill == 2, "forasteros_en_el_molino=%d (el tercero es el vecino de la lana azul)" % near_mill)
-	await _walk_to_waypoints(pl, stage, [
-		Vector2(1315.0, -408.0),
-		Vector2(1315.0, -352.0),
-		Vector2(1315.0, -342.0),
-		Vector2(672.0, -342.0),
-		Vector2(672.0, -195.0),
-	], 5.0)
+	await _salir(pl, stage, vm, MANSION_ID)
+	await _walk_to_waypoints(pl, stage, [Vector2(1315.0, -342.0), Vector2(672.0, -342.0), Vector2(672.0, -195.0)], 5.0)
 
 	# D5: Informe del caso en la comisaría (bandeja del alguacil): eliges culpable y queda guardado para el final
-	var path_to_accuse: Array[Vector2] = [
-		Vector2(672.0, 86.0),
-		Vector2(915.0, 86.0),
-		Vector2(915.0, 92.0),
-	]
-	var walked_accuse: bool = await _walk_to_waypoints(pl, stage, path_to_accuse, 5.0)
-	print("[CASO1] D5 tras llegar a la puerta: pos=%s ok=%s" % [str(pl.global_position.round()), str(walked_accuse)])
-	var d_pol2: Dictionary = vm.call("_find_nearest_door", Vector2(915.0, 100.0), 20.0)
-	if not d_pol2.is_empty():
-		vm.call("_set_door_state", d_pol2, true, false, true)
-	var walked_in2: bool = await _walk_to_waypoints(pl, stage, [Vector2(915.0, 120.0), Vector2(942.0, 124.0)], 5.0)
-	print("[CASO1] D5 dentro: pos=%s ok=%s puerta=%s" % [str(pl.global_position.round()), str(walked_in2), str(not d_pol2.is_empty())])
-	walked_accuse = walked_accuse and walked_in2
+	var walked_accuse: bool = await _walk_to_waypoints(pl, stage, [Vector2(672.0, 86.0)], 5.0)
+	walked_accuse = await _entrar_y_andar(pl, stage, vm, COMISARIA_ID, C1.report_pos()) and walked_accuse
+	print("[CASO1] D5 junto a la bandeja: pos=%s ok=%s" % [str(pl.global_position.round()), str(walked_accuse)])
 	var rep_e: Dictionary = await _aim_and_press_e(pl, stage, C1.report_pos(), -0.30, "informe", true)
 	var dm = root.find_child("dialogue_manager", true, false)
 	var form_open: bool = dm != null and bool(dm.call("is_active")) and (dm.get("graph") as Dictionary).has("confirm_young")

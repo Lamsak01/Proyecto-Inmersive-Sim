@@ -28,8 +28,8 @@ carpintero, pescadero), 6 casas-tienda de artesano (con la posada), 2 pobres, el
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c) Siguiente paso técnico inmediato
-**Partida automática del Caso I** (`tools/tests/partida_caso1.gd`): el molino ya anda con sus marcas (7 ✅); claro, comisaría,
-biblioteca, morgue, botica y mansión fallan (puntos del mapa viejo, edificios agrandados): pasarlos a marcas igual.
+**Partida automática del Caso I** (`tools/tests/partida_caso1.gd`): 25/25 (2026-11-13); dentro de cada edificio anda por la
+ruta de los vecinos hasta las marcas. Falta verla jugada por el usuario.
 **×5 que queda (decidir con el usuario si se quita):** `Mapa3D.E` solo estira lo que aún está escrito en medidas del
 mapa original: relieve, lago, ciénaga, manchas del mapa del valle (`mapa/zona.gd`). No se ve; quitarlo: mucho y arriesgado.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa

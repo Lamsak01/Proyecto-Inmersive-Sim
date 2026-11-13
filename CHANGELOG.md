@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — La partida automática del Caso I, otra vez entera (Claude Code)
+- La prueba andaba a puntos del mapa viejo y, con los edificios agrandados, ya no llegaba a las pistas del claro, la
+  comisaría, la biblioteca, la morgue, la botica, la mansión ni la bandeja del informe. Ahora va al portón por fuera,
+  lo abre y entra por la misma ruta que los vecinos hasta las marcas de cada pista; se para delante para mirarla.
+- Probado: 25 de 25 pasos en verde (antes 9).
+
 ## 2026-11-13 — El Molino Viejo Abandonado, de tamaño real (Claude Code)
 - De 6,9 × 5,2 m a 14 × 9,8 m. El muro del portón y el del oeste siguen donde estaban (la rueda, el canal y el barro rojo
   no se mueven); crece al norte y al este. Ruina de piedra, tablas rotas y techo de paja, sin más luz que una vela.
