@@ -77,7 +77,7 @@ static func _muros(muros: Node3D, piso_alto: Node3D, plano: Dictionary, medio: V
 static func alto_muros(plano: Dictionary) -> float:
 	if not plano.has("ESCALERA"):
 		return MURO_ALTO_M
-	return MURO_ALTO_M - SUELO_Y_M + Mapa3D.alto_a_3d(Mapa3D.PISO_ALTO_PX)
+	return MURO_ALTO_M - SUELO_Y_M + Mapa3D.piso_alto_m()
 
 
 ## Los trozos de muro de cada planta: dónde van (`padre`), desde qué altura (`base`) y cuánto suben (`alto`), con sus
@@ -85,7 +85,7 @@ static func alto_muros(plano: Dictionary) -> float:
 static func _plantas(muros: Node3D, piso_alto: Node3D, plano: Dictionary) -> Array[Dictionary]:
 	if not plano.has("ESCALERA"):
 		return [{"padre": muros, "base": 0.0, "alto": MURO_ALTO_M, "suelo": SUELO_Y_M, "ventanas": plano["VENTANAS"]}]
-	var alto_m: float = Mapa3D.alto_a_3d(Mapa3D.PISO_ALTO_PX)
+	var alto_m: float = Mapa3D.piso_alto_m()
 	return [
 		{"padre": muros, "base": 0.0, "alto": alto_m, "suelo": SUELO_Y_M, "ventanas": plano["VENTANAS"]},
 		{"padre": piso_alto, "base": alto_m, "alto": alto_muros(plano) - alto_m, "suelo": alto_m, "ventanas": plano.get("VENTANAS_ARRIBA", [])},

@@ -35,7 +35,6 @@ const DOOR_POS: Vector2 = Vector2(454.0, -132.0)
 
 ## Alturas 3D de la posada de 2 pisos
 const FLOOR_1_H: float = 34.0
-const TOTAL_WALL_H: float = 68.0
 
 ## Planta 0: 4 salas comunicadas por arcos anchos
 const ROOMS_FLOOR_0: Dictionary = {
@@ -136,12 +135,10 @@ static func _mueble(vm, marca: String, sz: Vector2) -> void:
 static func _pared_alta(vm, p_plano: Vector2, sz: Vector2) -> StaticBody2D:
 	return vm.add_choque_mundo(al_mundo(p_plano), sz, Edificio.giro_plano(BUILDING_ID), "choques_piso_1")
 
-const BAR_COUNTER_SIZE: Vector2 = Vector2(108.0, 10.0)
 
 ## Escalera real entre Planta 0 y Planta +1 y Trampilla al Sótano (-1)
 const STAIRS_BOTTOM_POS: Vector2 = Vector2(576.0, -284.0)  # Pie de la escalera en Planta 0 (sala noreste)
 const STAIRS_TOP_POS: Vector2 = Vector2(576.0, -202.0)     # Desembarco de la escalera en Planta +1 (galería alta)
-const STAIRS_PROP_POS: Vector2 = Vector2(576.0, -244.0)    # Punto medio de la rampa de la escalera
 const STAIRS_RAMP_RECT: Rect2 = Rect2(Vector2(563.0, -292.0), Vector2(28.0, 96.0))
 ## Paso a 3D, paso 4a: un vecino cambia de planta solo al pisar el último peldaño (antes a 10 px: daba un escalón de golpe).
 const STAIRS_END_TOL: float = 3.0

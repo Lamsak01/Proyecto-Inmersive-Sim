@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Código ordenado tras las casas grandes (Claude Code)
+- No se nota al jugar: la altura del piso de arriba se calcula en un solo sitio (antes en cuatro) y fuera seis valores
+  apuntados que nada usaba (posada y casas). Probado: la casona sale idéntica y la prueba de física pasa.
+
 ## 2026-11-13 — La Comisaría y Cárcel, de tamaño real (Claude Code)
 - De 8 × 5,4 m a 14 × 9,8 m (nivel 4, de piedra, con la puerta al norte como siempre): sala de guardia con el
   mostrador junto a la puerta (donde se entrega el informe del Caso I); al fondo el calabozo con su reja corredera de

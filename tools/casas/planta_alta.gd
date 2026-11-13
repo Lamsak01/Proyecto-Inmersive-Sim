@@ -24,11 +24,6 @@ static func tiene(plano: Dictionary) -> bool:
 	return plano.has("ESCALERA")
 
 
-## Altura del suelo de la planta alta sobre la calle (la de la posada: así sus paredes se levantan igual en 3D).
-static func alto_m() -> float:
-	return Mapa3D.alto_a_3d(Mapa3D.PISO_ALTO_PX)
-
-
 ## El hueco de la escalera (rectángulo en el plano, metros).
 static func hueco(plano: Dictionary) -> Rect2:
 	var pie: Vector2 = plano["ESCALERA"]["pie"]
@@ -45,18 +40,18 @@ static func armar(interior: Node3D, piso_alto: Node3D, plano: Dictionary) -> Arr
 		var tam: Vector2 = cuarto["tam"]
 		var r := Rect2((cuarto["centro"] as Vector2) - tam * 0.5, tam)
 		for trozo: Rect2 in _menos(r, h):
-			Piezas.caja(piso_alto, Vector3(trozo.get_center().x, alto_m() - LOSA_GROSOR_M, trozo.get_center().y), Vector3(trozo.size.x, LOSA_GROSOR_M, trozo.size.y), Piezas.material(cuarto["suelo"], TINTE))
+			Piezas.caja(piso_alto, Vector3(trozo.get_center().x, Mapa3D.piso_alto_m() - LOSA_GROSOR_M, trozo.get_center().y), Vector3(trozo.size.x, LOSA_GROSOR_M, trozo.size.y), Piezas.material(cuarto["suelo"], TINTE))
 	_peldanos(interior, plano)
 	var pie: Vector2 = plano["ESCALERA"]["pie"]
 	var lados: Dictionary = _lados(h, pie)
 	var choques: Array = []
 	var pared: Material = Piezas.material(plano["TABIQUE"], TINTE)
 	for tramo: Array in lados["abajo"]: # bajo la escalera no se pasa: muros hasta el techo
-		Piezas.muro(interior, tramo[0], tramo[1], Cascaron.SUELO_Y_M, alto_m() - Cascaron.SUELO_Y_M, Cascaron.MURO_GROSOR_M * 0.5, [], pared)
+		Piezas.muro(interior, tramo[0], tramo[1], Cascaron.SUELO_Y_M, Mapa3D.piso_alto_m() - Cascaron.SUELO_Y_M, Cascaron.MURO_GROSOR_M * 0.5, [], pared)
 		if tramo != lados["cima"]: # el de la cima, sin choque: quien sube ya va por encima y en 3D lo pararía
 			choques.append([tramo[0], tramo[1], 0])
 	for tramo: Array in lados["arriba"]: # arriba no se cae por el hueco: barandilla
-		Piezas.muro(piso_alto, tramo[0], tramo[1], alto_m(), BARANDILLA_ALTO_M, BARANDILLA_GROSOR_M, [], Piezas.material("", MADERA_ESCALERA))
+		Piezas.muro(piso_alto, tramo[0], tramo[1], Mapa3D.piso_alto_m(), BARANDILLA_ALTO_M, BARANDILLA_GROSOR_M, [], Piezas.material("", MADERA_ESCALERA))
 		choques.append([tramo[0], tramo[1], 1])
 	return choques
 
@@ -65,7 +60,7 @@ static func armar(interior: Node3D, piso_alto: Node3D, plano: Dictionary) -> Arr
 static func _peldanos(interior: Node3D, plano: Dictionary) -> void:
 	var pie: Vector2 = plano["ESCALERA"]["pie"]
 	var cima: Vector2 = plano["ESCALERA"]["cima"]
-	var subida: float = alto_m() - Cascaron.SUELO_Y_M
+	var subida: float = Mapa3D.piso_alto_m() - Cascaron.SUELO_Y_M
 	var n: int = ceili(subida / PELDANO_ALTO_M)
 	var paso: Vector2 = (cima - pie) / float(n)
 	var ancho: float = PisosCasas.ESCALERA_ANCHO_PX * Mapa3D.ESCALA

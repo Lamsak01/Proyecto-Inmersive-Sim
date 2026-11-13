@@ -24,16 +24,13 @@ const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const LivestockAnimalScript = preload("res://scripts/obstacles/LivestockAnimal.gd")
 
-const HOUSE_CASH_COST: int = 100 # Precio de una casa mediana; cada solar cobra lo suyo con VillageLots.house_cost
 const FORECLOSED_COST: int = 80
 const UPGRADE_COSTS: Dictionary = {"bookshelf": 35, "workbench": 40, "oak_bed": 30, "strong_lock": 25, "hidden_cellar": 45, "hearth": 25, "upper_floor": 50}
 const STASH_BUILD_COST: int = 30
-const DINNER_COST: int = 10
 const COMMERCIAL_DEED_COST: int = 120
 const FOUND_SHOP_COST: int = 65
 const ADVERTISE_COST: int = 12
 const ADVERTISE_COOLDOWN_DAYS: int = 3
-const SHOP_SALE_PRICE: int = 10
 const SHOP_STOCK_PER_PRESS: int = 6
 ## Precio de venta en tu bazar según lo que pongas en el mostrador (una madera no vale lo mismo que una prenda)
 const SHOP_ITEM_PRICES: Dictionary = {"bread": 6, "cooked_meat": 7, "herbal_poultice": 9, "repair_kit": 12, "clothes": 14, "wood": 3, "iron_ore": 6, "fish": 5, "masterwork_piece": 40}

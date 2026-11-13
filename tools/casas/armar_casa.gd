@@ -7,6 +7,7 @@ extends RefCounted
 
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const Cascaron = preload("res://tools/casas/cascaron_casa.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const Oficio = preload("res://tools/casas/cosas_oficio.gd")
 const DibujarCosa = preload("res://tools/casas/dibujar_cosa.gd")
 const Juntar = preload("res://tools/casas/juntar_casa.gd")
@@ -47,16 +48,16 @@ static func armar(plano: Dictionary, centro_original: Vector2) -> Node3D:
 		var planta: String = LeerPlano.PLANTAS[piso]
 		if not plano.has("CUARTOS" + planta):
 			continue
-		var y: float = PlantaAlta.alto_m() if piso > 0 else 0.0 # lo de arriba, a la altura de la planta alta
+		var y: float = Mapa3D.piso_alto_m() if piso > 0 else 0.0 # lo de arriba, a la altura de la planta alta
 		_tabiques(grupos[PARTES.PISO_ALTO if piso > 0 else PARTES.INTERIOR], grupos[TABIQUE_GD.CARPETA], plano, planta, y)
 		_muebles(grupos[PARTES.MUEBLES], plano, planta, piso, cuenta_muebles)
 		_marcas(grupos[PARTES.MARCAS], plano["MARCAS" + planta], y)
 		_cuartos(grupos[CUARTO_GD.CARPETA], plano["CUARTOS" + planta], y)
 	if PlantaAlta.tiene(plano):
 		for choque: Array in PlantaAlta.armar(grupos[PARTES.INTERIOR], grupos[PARTES.PISO_ALTO], plano):
-			_trozos_que_chocan(grupos[TABIQUE_GD.CARPETA], choque[0], choque[1], [], PlantaAlta.alto_m() if int(choque[2]) > 0 else 0.0)
+			_trozos_que_chocan(grupos[TABIQUE_GD.CARPETA], choque[0], choque[1], [], Mapa3D.piso_alto_m() if int(choque[2]) > 0 else 0.0)
 		_marcas(grupos[PARTES.MARCAS], {PisosCasas.PIE: plano["ESCALERA"]["pie"]}, 0.0)
-		_marcas(grupos[PARTES.MARCAS], {PisosCasas.CIMA: plano["ESCALERA"]["cima"]}, PlantaAlta.alto_m())
+		_marcas(grupos[PARTES.MARCAS], {PisosCasas.CIMA: plano["ESCALERA"]["cima"]}, Mapa3D.piso_alto_m())
 	for quieto: String in [PARTES.MUROS, PARTES.INTERIOR, PARTES.TEJADO, PARTES.PISO_ALTO]:
 		Juntar.juntar(grupos[quieto], plano["ID"])
 	var cartel := _hijo(raiz, Node3D.new(), "Cartel", CARTEL_GD)
@@ -75,7 +76,7 @@ static func _tabiques(visto: Node3D, chocan: Node3D, plano: Dictionary, planta: 
 	var pared: Material = Piezas.material(plano["TABIQUE"], TINTE)
 	var hoja: Material = Piezas.material("door_wood.png", TINTE)
 	var suelo: float = y if y > 0.0 else Cascaron.SUELO_Y_M
-	var alto: float = PlantaAlta.alto_m() - Cascaron.SUELO_Y_M if (y <= 0.0 and PlantaAlta.tiene(plano)) else Cascaron.MURO_ALTO_M - Cascaron.SUELO_Y_M
+	var alto: float = Mapa3D.piso_alto_m() - Cascaron.SUELO_Y_M if (y <= 0.0 and PlantaAlta.tiene(plano)) else Cascaron.MURO_ALTO_M - Cascaron.SUELO_Y_M
 	for t: Array in plano["TABIQUES" + planta]:
 		var a: Vector2 = t[0]
 		var b: Vector2 = t[1]
@@ -118,7 +119,7 @@ static func _muebles(grupo: Node3D, plano: Dictionary, planta: String, piso: int
 		cuenta[base] = int(cuenta.get(base, 0)) + 1
 		var nombre: String = base if int(cuenta[base]) == 1 else "%s%d" % [base, cuenta[base]]
 		var pieza := _hijo(grupo, Node3D.new(), nombre, MUEBLE_GD)
-		pieza.position = _en_suelo(m["pos"], PlantaAlta.alto_m() if piso > 0 else (0.0 if bool(m.get("fuera", false)) else Cascaron.SUELO_Y_M))
+		pieza.position = _en_suelo(m["pos"], Mapa3D.piso_alto_m() if piso > 0 else (0.0 if bool(m.get("fuera", false)) else Cascaron.SUELO_Y_M))
 		pieza.set("piso", piso)
 		pieza.rotation_degrees.y = float(m.get("giro", 0.0))
 		pieza.set("clave", "%s_%s" % [plano["ID"], nombre.to_lower()])

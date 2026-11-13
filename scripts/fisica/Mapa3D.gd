@@ -36,9 +36,14 @@ const TARIMA_PX: float = 2.65
 const PISO_ALTO_PX: float = 34.55
 
 
+## Altura del suelo de la planta alta sobre la calle, en metros (lo usan el constructor de casas y los pisos).
+static func piso_alto_m() -> float:
+	return alto_a_3d(PISO_ALTO_PX)
+
+
 ## Planta (0 baja, 1 alta) de una pieza de un edificio según la altura a la que está, en metros sobre la calle.
 static func piso_de_altura(y_m: float) -> int:
-	return 1 if y_m > alto_a_3d(PISO_ALTO_PX) * 0.5 else 0
+	return 1 if y_m > piso_alto_m() * 0.5 else 0
 
 
 ## Mapa (x, y) + altura en píxeles → mundo 3D. No suma el relieve del suelo (eso lo hace el escenario).
