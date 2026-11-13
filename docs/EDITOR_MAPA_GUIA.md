@@ -59,7 +59,7 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   edificio** para dejar sitio a campos. Todavía **no** se añaden solares duplicando uno (llegará en el paso final).
   El Puesto del Paso lleva dentro sus **Marcas** (centro, puerta y los tres sitios de trabajo de los colonos): muévelas
   dentro del solar y el puesto las seguirá. **No cambies «Id marca».**
-- **Sitios (229):** cruces con nombre, sin dibujo: por dónde pasean los vecinos sin oficio (`paseo_…`), dónde esperan
+- **Sitios (232):** cruces con nombre, sin dibujo: por dónde pasean los vecinos sin oficio (`paseo_…`), dónde esperan
   los recién llegados (`espera_…`), a dónde sale cada artesano por la mañana (`expedicion_…`), dónde trabajan los
   jornaleros (`jornal_…`), por dónde entran los asaltantes, el carro, el mirador y el contrabandista; los sitios de ocio (`ocio_…`), la ronda
   nocturna (`ronda_noche_…`), los puestos del mercado (`mercado_…`), el lavadero, la caravana, la puerta del este, el
@@ -73,9 +73,9 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
 - **Zonas (3):** la plaza, el lago y la ciénaga (losas azules translúcidas con su nombre). Mueve una y van con ella su
   suelo o su agua, la hondonada del terreno, el muelle y dónde se nada y se pesca. No se giran ni cambian de forma. Los
   bancos, árboles y adornos de encima son piezas aparte: selecciónalos a la vez para moverlos juntos.
-- **Objetos (16):** pozos, farolas, tablón y las «anclas» (cuadrados o cilindros tenues): marcan dónde el juego pone cosas
-  sin dibujo propio (zonas de uso, letreros, pistas del Caso I…). Las setas, hierbas y madrigueras del bosque ya no
-  están aquí: son cruces de **Sitios**. Muévelos y lo suyo va detrás. **No cambies «Clave»**.
+- **Objetos (10):** los 3 pozos, las 6 farolas de la plaza y el tablón de encargos. Muévelos o gíralos y el juego los
+  pone ahí con todo su uso (sacar agua, luz, encargos). Lo demás sin dibujo propio son cruces de **Sitios**.
+  **No cambies «Clave»**.
 - **Caminos (32):** cada tramo recto es una losa que puedes mover, girar y **estirar con R**: el eje **X** es el largo y el
   **Z** el ancho. Para una calle nueva: Ctrl+D en un tramo y colócalo. Si hay tramos, el juego solo dibuja estos.
 - **Vegetacion:** árboles, rocas, plantas, troncos, vetas de mineral. Son piezas sueltas: mueve, gira, borra o copia.

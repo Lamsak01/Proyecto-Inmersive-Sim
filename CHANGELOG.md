@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: zonas de uso al aire libre y barandillas de los puentes (Claude Code)
+- Puerta del cementerio, barro rojo del molino y pozo de la ronda son cruces de «Sitios» (`puerta_cementerio`,
+  `barro_rojo_molino`, `pozo_ronda`); el claro del Caso I y el zapato del puente ya no se traducen. Borradas las 5
+  últimas anclas de zonas de «Objetos» (quedan solo los 10 objetos con uso: farolas, pozos y tablón).
+- Arreglado: las barandillas invisibles de los 3 puentes se traducían dos veces y estaban lejos del puente (paredes
+  invisibles sueltas por el mapa, y el puente sin pretil). Ahora están a los lados de cada puente.
+
 ## 2026-11-12 — Mudanza al editor: 17 anclas de letreros viejos borradas (Claude Code)
 - Las anclas de «Objetos» de los letreros flotantes que ya no existen (cementerio, puente, claro, molino, solares
   libres, campos, mirador, lavadero), las de 4 vetas de hierro y una cama suelta no movían nada: borradas.

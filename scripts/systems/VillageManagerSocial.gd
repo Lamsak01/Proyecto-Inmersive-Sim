@@ -292,7 +292,7 @@ func get_grave_pos_for_victim(victim_name_str: String) -> Vector2:
 			if g_idx >= 0 and g_idx < _cemetery_grave_positions.size():
 				return sitio(_cemetery_grave_positions[g_idx] + Vector2(0, 10))
 			return sitio(_cemetery_burial_pos)
-	return sitio(_cemetery_gate_pos)
+	return _cemetery_gate_pos
 
 func _refresh_morgue_table_sprites() -> void:
 	for i in range(morgue_active_corpses.size()):

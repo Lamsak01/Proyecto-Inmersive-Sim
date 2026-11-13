@@ -15536,6 +15536,24 @@ gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "poste_6"
 
+[node name="puerta_cementerio" type="Marker3D" parent="Sitios" unique_id=1735845241]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 248.64, 0, 72.912)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "puerta_cementerio"
+
+[node name="barro_rojo_molino" type="Marker3D" parent="Sitios" unique_id=789335640]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.952, 0, -293.776)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "barro_rojo_molino"
+
+[node name="pozo_ronda" type="Marker3D" parent="Sitios" unique_id=1767017073]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 170.8, 0, -205.8)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "pozo_ronda"
+
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 
 [node name="Zona_3_0" type="Node3D" parent="Decorado" unique_id=1449909008]
@@ -23433,57 +23451,6 @@ clave = "tablon_plaza"
 pos_original = Vector2(476, 14)
 alto = 14.0
 nombre_visible = "Tablón de encargos"
-
-[node name="CemeteryGateArea_(14)" type="Node3D" parent="Objetos" unique_id=1953066334]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 248.64, 0.33816472, 73.36)
-script = ExtResource("29_bojho")
-clave = "ancla_14"
-pos_original = Vector2(888, 262)
-alto = 10.0
-nombre_visible = "CemeteryGateArea (14)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="OldBridgeVictimShoeArea_(22)" type="Node3D" parent="Objetos" unique_id=1168934359]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.62601, -0.19021766, 10.64)
-script = ExtResource("29_bojho")
-clave = "ancla_22"
-pos_original = Vector2(116.52147, 38)
-alto = 10.0
-nombre_visible = "OldBridgeVictimShoeArea (22)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="Case1ClearingArea_(24)" type="Node3D" parent="Objetos" unique_id=51330799]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.64, 0.99335885, -240.8)
-script = ExtResource("29_bojho")
-clave = "ancla_24"
-pos_original = Vector2(138, -860)
-alto = 10.0
-nombre_visible = "Case1ClearingArea (24)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="MillRedClayArea_(25)" type="Node3D" parent="Objetos" unique_id=1386231543]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.952, 0.98746914, -293.776)
-script = ExtResource("29_bojho")
-clave = "ancla_25"
-pos_original = Vector2(140, -1006)
-alto = 10.0
-nombre_visible = "MillRedClayArea (25)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="RondaWaterWellArea_(28)" type="Node3D" parent="Objetos" unique_id=1814565116]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 170.8, 0.99335885, -205.8)
-script = ExtResource("29_bojho")
-clave = "ancla_28"
-pos_original = Vector2(610, -735)
-modelo = "exterior/Well.obj"
-alto = 8.0
-nombre_visible = "RondaWaterWellArea (28)"
-es_ancla = true
-radio_ancla = 12.0
 
 [node name="BajoTierra" type="Node3D" parent="." unique_id=1845255703]
 visible = false

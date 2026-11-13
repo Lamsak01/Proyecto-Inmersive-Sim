@@ -2,6 +2,7 @@
 extends "res://scripts/systems/VillageManagerEconomy.gd"
 class_name VillageManager
 const ObjetoEditor = preload("res://mapa/objeto.gd")
+const Sitio = preload("res://mapa/sitio.gd")
 
 
 func setup_village(target_entities_root: Node) -> void:
@@ -33,6 +34,7 @@ func setup_village(target_entities_root: Node) -> void:
 	_tavern_well_pos = ObjetoEditor.mundo(OBJETO_POZO_TABERNA)
 	_plaza_well_pos = ObjetoEditor.mundo(OBJETO_POZO_PLAZA)
 	_well_positions = [_well_pos, _tavern_well_pos, _plaza_well_pos]
+	_cemetery_gate_pos = Sitio.mundo(SITIO_PUERTA_CEMENTERIO)
 	VillageWorldBuilder._spawn_signposts(self)
 	VillageWorldBuilder._spawn_tavern_and_rooms(self)
 	VillageWorldBuilder._spawn_five_family_houses_and_trades(self)
@@ -591,7 +593,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 3b. Capilla del Alba y Cementerio Parroquial
-	if pos.distance_squared_to(sitio(_church_altar_pos)) <= 34.0 * 34.0 or pos.distance_squared_to(sitio(_cemetery_gate_pos)) <= 34.0 * 34.0 or Rect2(Vector2(822, 260), Vector2(268, 168)).has_point(_AN_SITIOS.desmover(pos)):
+	if pos.distance_squared_to(sitio(_church_altar_pos)) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Rect2(Vector2(822, 260), Vector2(268, 168)).has_point(_AN_SITIOS.desmover(pos)):
 		_open_church_registry_ui()
 		return
 

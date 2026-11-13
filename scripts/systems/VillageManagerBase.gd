@@ -184,7 +184,8 @@ var corpse_records: Array[Dictionary] = []        # Archivo histórico forense c
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._church_center)
 var _church_center := Vector2(745, 312)
 var _church_altar_pos: Vector2 = Marca.sitio(ID_CAPILLA, Marca.ALTAR)
-var _cemetery_gate_pos := Vector2(888, 262)
+const SITIO_PUERTA_CEMENTERIO := "puerta_cementerio"
+var _cemetery_gate_pos := Vector2.ZERO ## en el mundo: cruz de «Sitios», se lee al montar el pueblo
 var _cemetery_burial_pos := Vector2(888, 305)
 var _cemetery_grave_positions: Array[Vector2] = []
 

@@ -6,6 +6,7 @@ const Sitio = preload("res://mapa/sitio.gd")
 ## Farolas de las calles (2026-11-12): cruces «farola_calle_N» del mapa (Sitios), ya en el mundo y movibles en el editor.
 const SERIE_FAROLAS_CALLE := "farola_calle"
 const ObjetoEditor = preload("res://mapa/objeto.gd")
+const SITIO_BARRO_ROJO := "barro_rojo_molino" ## orilla de arcilla roja junto al molino viejo (pista del Caso I)
 const OBJETO_FAROLA := "farola_%d"  ## las 6 farolas de la plaza que son piezas de «Objetos» (Farola_1…6)
 const FAROLAS_OBJETO: int = 6
 ## Postes indicadores: cruces «poste_N» del mapa (Sitios), con su giro; el texto de cada tabla, en el mismo orden.
@@ -279,7 +280,7 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	# Suelo, caminos, verja y tumbas se ven en 3D (piezas de «Decorado»); aquí van los choques y las tumbas para la lógica
 	# La verja (con la puerta norte libre) y las tumbas chocan desde sus piezas de «Decorado»
 
-	vm._add_station_area("CemeteryGateArea", vm._cemetery_gate_pos, 24.0, "cemetery_gate")
+	vm.add_zona_uso_mundo("CemeteryGateArea", vm._cemetery_gate_pos, 24.0, "cemetery_gate")
 
 	# 4 filas × 6 columnas = 24 tumbas: sitio de cada una (entierros)
 	vm._cemetery_grave_positions.clear()
@@ -342,24 +343,17 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 		var deck_w: float = water_span + 18.0
 		var deck_cx: float = (b_at.x + b_at.y) * 0.5
 		var c_id: String = String(cr["id"])
+		# El cruce viene del editor, ya en el mundo: pretiles a los dos lados del tablero, sobre el agua
+		if c_id == "old_bridge" or c_id == "bridge_north" or c_id == "south_fields_bridge":
+			vm.add_choque_mundo(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(water_span, 3.0), 0.0)
+			vm.add_choque_mundo(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(water_span, 3.0), 0.0)
 		if c_id == "old_bridge":
-			# Puente Viejo de piedra y madera en el centro del pueblo (Calle Mayor)
-			vm._add_prop_collider(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(water_span, 3.0))
-			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(water_span, 3.0))
-			# Punto 6 (Caso I): Zapato izquierdo de la víctima en el Puente Viejo (`Vector2(deck_cx - 10, 38)`)
-			# El cruce viene del editor (ya en el mundo actual): se crea con las anclas en pausa para que no lo muevan otra vez
-			var shoe_pos := Vector2(deck_cx - 10.0, c_pos.y - 12.0)
-			var AN_z = load("res://mapa/anclas.gd")
-			AN_z.pausa += 1
-			vm._add_station_area("OldBridgeVictimShoeArea", shoe_pos, 24.0, "old_bridge_left_shoe")
-			AN_z.pausa -= 1
-		elif c_id == "bridge_north" or c_id == "south_fields_bridge":
-			vm._add_prop_collider(Vector2(deck_cx, c_pos.y - c_hy - 1.5), Vector2(water_span, 3.0))
-			vm._add_prop_collider(Vector2(deck_cx, c_pos.y + c_hy + 1.5), Vector2(water_span, 3.0))
+			# Punto 6 (Caso I): zapato izquierdo de la víctima en el Puente Viejo, junto al pretil norte
+			vm.add_zona_uso_mundo("OldBridgeVictimShoeArea", Vector2(deck_cx - 10.0, c_pos.y - 12.0), 24.0, "old_bridge_left_shoe")
 		# Vados (Claro del Arroyo y Bosque del Sur): sus piedras se ven en 3D y se cruzan sin pretiles
 
 	# 6. Claro del Arroyo (Caso I) — área de inspección del lugar
-	vm._add_station_area("Case1ClearingArea", vm.VillageCase1.Sitio.original(vm.VillageCase1.SITIO_CLARO), 22.0, "case1_clearing") # aún se traduce: va el original
+	vm.add_zona_uso_mundo("Case1ClearingArea", Sitio.mundo(vm.VillageCase1.SITIO_CLARO), 22.0, "case1_clearing")
 
 	# 7. Molino Viejo Abandonado río arriba del claro (`Vector2(188, -1060)`, tamaño `Vector2(124, 92)`)
 	var mill_center: Vector2 = RioLago.ABANDONED_MILL_CENTER
@@ -391,7 +385,7 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda (oeste)
 	var cellar_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.SOTANO)
 	vm._add_station_area("MillCellarGrateArea", cellar_pos, 26.0, "mill_cellar_grate")
-	vm._add_station_area("MillRedClayArea", Vector2(140.0, -1006.0), 28.0, "mill_red_clay")
+	vm.add_zona_uso_mundo("MillRedClayArea", Sitio.mundo(SITIO_BARRO_ROJO), 28.0, "mill_red_clay")
 
 # ==============================================================================
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)

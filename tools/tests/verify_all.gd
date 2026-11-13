@@ -803,7 +803,7 @@ func _initialize() -> void:
 	na3.current_activity = 3  # ActivityState.SOCIALIZING
 	assert(na3.is_visiting_grave(), "B3.4: Widowed NPC in bereavement during socializing hours must visit the grave")
 	var grave_target: Vector2 = na3._get_social_target_pos()
-	assert(grave_target.distance_to(M(vm._cemetery_gate_pos)) <= 120.0, "B3.4: Social target during bereavement must point to the cemetery")
+	assert(grave_target.distance_to(vm._cemetery_gate_pos) <= 120.0, "B3.4: Social target during bereavement must point to the cemetery")
 	na3.global_position = grave_target
 	assert(na3.get_activity_description().begins_with("🪦 Visitando la tumba de"), "B3.4: Activity at grave must show '🪦 Visitando la tumba de...'")
 	vm._advance_live_romances(day33 + 1)

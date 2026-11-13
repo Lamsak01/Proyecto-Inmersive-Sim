@@ -13,6 +13,7 @@ extends RefCounted
 const Marca = preload("res://mapa/marca.gd")
 const Solar = preload("res://mapa/solar.gd")
 const CasaModelo = preload("res://mapa/casa_modelo.gd")
+const Sitio = preload("res://mapa/sitio.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const WORK_STATE: int = 0 # ActivityState.WORKING
@@ -107,7 +108,7 @@ static func curved_road_points(road: Dictionary) -> PackedVector2Array:
 ## Bloque AB: pozo vecinal en la ronda alta (sirve de verdad para coger agua y lavarse).
 ## Paso 2: se retira el "Huerto vecinal" que estaba plantado en mitad del camino del este.
 const GAP_POCKETS: Array = [
-	{"kind": "well", "pos": Vector2(610, -735), "title": "🪣 Pozo de la Ronda [E: Llenar Recipiente / Lavar Heridas y Sangre]"},
+	{"kind": "well", "sitio": "pozo_ronda", "title": "🪣 Pozo de la Ronda [E: Llenar Recipiente / Lavar Heridas y Sangre]"},
 ]
 
 ## Bloque AA: molino de viento del Molino del Este (base sólida en 2D; en 3D, el modelo de molino).
@@ -182,13 +183,13 @@ static func build_world(vm) -> void:
 
 static func _build_gap_pockets(vm) -> void:
 	for g in GAP_POCKETS:
-		var p: Vector2 = g["pos"]
+		var p: Vector2 = Sitio.mundo(str(g["sitio"]))
 		match str(g["kind"]):
 			"well":
-				vm._add_marca_3d("well", p)
-				vm._add_station_area("RondaWaterWellArea", p, 24.0, "well")
-				if not vm.sitio(p) in vm._well_positions:
-					vm._well_positions.append(vm.sitio(p))
+				vm.add_marca_3d_mundo("well", p, Sitio.giro(str(g["sitio"])))
+				vm.add_zona_uso_mundo("RondaWaterWellArea", p, 24.0, "well")
+				if not p in vm._well_positions:
+					vm._well_positions.append(p)
 
 ## Dibuja lo que toque según el estado: cartel de solar libre, obra o edificio terminado. Lo creado se apunta para
 ## poder quitarlo al cargar otra partida.
