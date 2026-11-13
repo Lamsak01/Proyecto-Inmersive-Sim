@@ -8,6 +8,7 @@ El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `do
 - De 6,3 × 4,4 m a 11,2 × 8,4 m (pobre): comedor con lumbre, caldero de gachas y mesa larga; dormitorios de hombres y
   de mujeres con dos camas cada uno; aseo con tina, despensa de sacos y letrina fuera; tejado de chapa. Probado: 29
   puertas y los trayectos de la puerta a las cuatro camas sin chocar.
+- El camino que pasaba por debajo del albergue hasta la calle del sur ahora acaba en su puerta.
 
 ## 2026-11-13 — La casa-taller del Arreglador, de tamaño real (Claude Code)
 - Primera casa acomodada (nivel 3): 14 × 10 m con sala, dos dormitorios, baño con retrete, lavabo y bañera, cocina con

@@ -23760,7 +23760,7 @@ transform = Transform3D(-6.303182e-06, 0, 2.24, 0, 1, 0, -144.2, 0, -9.791351e-0
 script = ExtResource("31_cyb43")
 
 [node name="Tramo_14" type="Node3D" parent="Caminos" unique_id=1815602945]
-transform = Transform3D(-5.8748105e-06, 0, 2.24, 0, 1, 0, -134.4, 0, -9.791351e-08, 304.64, 0.5495177, 2.8)
+transform = Transform3D(-5.8748105e-06, 0, 2.24, 0, 1, 0, -99.4, 0, -9.791351e-08, 304.64, 0.5495177, -14.7)
 script = ExtResource("31_cyb43")
 
 [node name="Tramo_15" type="Node3D" parent="Caminos" unique_id=2087383213]
