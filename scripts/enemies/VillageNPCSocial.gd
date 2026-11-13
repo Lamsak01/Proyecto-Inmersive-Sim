@@ -863,6 +863,29 @@ func _apply_player_and_doorway_yield(delta: float) -> void:
 		if _cached_sep_vec.length_squared() > 0.25:
 			velocity += _cached_sep_vec.limit_length(42.0)
 
+const COLA_UMBRAL_PX: float = 22.0 ## umbral de una puerta (el mismo radio que mira check_npc_overlaps)
+const COLA_ESPERA_PX: float = 34.0 ## a esta distancia del paso por la puerta se espera turno
+
+
+## Cola en las puertas (2026-11-13): quien va a cruzar un umbral espera fuera si otro vecino ya lo cruza en su mismo
+## sentido (cada sentido tiene su carril). Antes se metían varios a la vez y quedaban encimados en la puerta.
+func _esperar_turno_en_puerta(vm, en_umbral: bool, nav_target: Vector2) -> bool:
+	if en_umbral or vm == null or not vm.has_method("get_doorway_clearance_nudge"):
+		return false
+	if global_position.distance_to(nav_target) > COLA_ESPERA_PX or (vm.call("get_doorway_clearance_nudge", nav_target, COLA_UMBRAL_PX) as Vector2).length_squared() <= 0.01:
+		return false
+	var mi_sentido: Vector2 = nav_target - global_position
+	for n in _near_npcs(nav_target, COLA_UMBRAL_PX):
+		if n == self or not (n is VillageNPCBase):
+			continue
+		var otro := n as VillageNPCBase
+		if not otro.is_conscious() or int(otro.elevation_level) != int(elevation_level) or otro.velocity.dot(mi_sentido) <= 0.0:
+			continue
+		if (vm.call("get_doorway_clearance_nudge", otro.global_position, COLA_UMBRAL_PX) as Vector2).length_squared() > 0.01:
+			return true
+	return false
+
+
 func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016) -> void:
 	var vm = _get_vm()
 	var is_escorting_player: bool = vm != null and bool(vm.get("player_being_escorted_to_jail")) and vm.get("escorting_officer") == self
@@ -903,6 +926,11 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 			return
 
 	if perf_on: _pt = _perf_add("a_nav_waypoint", _pt)
+	if _esperar_turno_en_puerta(vm, in_doorway_now, nav_target):
+		velocity = Vector2.ZERO
+		_stuck_timer = 0.0
+		_last_frame_pos = global_position
+		return
 	var _door_ok: bool = not (vm and vm.has_method("npc_interact_with_door")) or bool(vm.call("npc_interact_with_door", self, delta, target_pos, nav_target))
 	if perf_on: _pt = _perf_add("a_doors", _pt)
 	if not _door_ok:

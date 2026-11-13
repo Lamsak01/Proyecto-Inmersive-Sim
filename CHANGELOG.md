@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Vecinos que se encimaban en la puerta del restaurante (Claude Code)
+- Cola en las puertas (`VillageNPCSocial._esperar_turno_en_puerta`): quien va a cruzar un umbral espera fuera si otro
+  ya lo cruza en su mismo sentido.
+- En el umbral, el apartarse de otro vecino ya no mete al vecino 8 px hacia dentro de golpe (`sanitize_npc_separation_pos`,
+  nuevo `_cruza_muro`).
+- Simulación de 3–6 vecinos entrando o saliendo a la vez: pares encimados de cientos a casi ninguno (con 6, aún algunos).
+  Sin atascos nuevos (2 h de comida y de cena); verify_all en verde.
+
 ## 2026-11-13 — Detención sin atajos (Claude Code)
 - Nueva `scripts/systems/EscoltaPolicial.gd`: el guardia viene andando y esposa; el preso pisa sus pasos (velocidad y
   choques de verdad, nada de colocarlo); ante la reja el guardia se aparta y el preso entra andando.

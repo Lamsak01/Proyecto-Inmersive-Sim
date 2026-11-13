@@ -930,6 +930,19 @@ func _slide_or_stay(prev_pos: Vector2, candidate_pos: Vector2, elev: int, allow_
 			return o
 	return prev_pos
 
+const UMBRAL_PUERTA_PX: float = 22.0 ## a esta distancia de una puerta un vecino está en su umbral (como check_npc_overlaps)
+
+
+## ¿El paso de `a` a `b` atraviesa una pared?
+func _cruza_muro(a: Vector2, b: Vector2) -> bool:
+	var seg_box := Rect2(a, Vector2.ZERO).expand(b)
+	for w_rect in _wall_occluder_rects:
+		var w_g: Rect2 = w_rect.grow(3.0)
+		# Rendimiento (2026-11-09): si las cajas no se tocan, el segmento no puede cruzar el muro
+		if w_g.intersects(seg_box, true) and _segment_intersects_rect(a, b, w_g):
+			return true
+	return false
+
 ## Garantiza que el empuje de separación entre vecinos nunca meta a nadie dentro de un muro, edificio o pozo.
 
 func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0, allow_slide: bool = true) -> Vector2:
@@ -954,6 +967,10 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 			continue
 		var r: Rect2 = _fp_rects[fi]
 		if r.has_point(prev_pos):
+			# En el umbral de una puerta no se mete al vecino hacia dentro de golpe (2026-11-13: saltaba 8 px y dos que
+			# salían juntos del restaurante se quedaban encimados); solo se mira que no cruce una pared.
+			if get_doorway_clearance_nudge(prev_pos, UMBRAL_PUERTA_PX).length_squared() > 0.01:
+				return prev_pos if _cruza_muro(prev_pos, candidate_pos) else candidate_pos
 			var r_safe: Rect2 = r.grow(-12.5)
 			var clamped_in := Vector2(
 				clampf(candidate_pos.x, r_safe.position.x, r_safe.end.x),
@@ -964,13 +981,7 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 				clampf(clamped_in.x, r_safe.position.x, r_safe.end.x),
 				clampf(clamped_in.y, r_safe.position.y, r_safe.end.y)
 			)
-			var seg_box := Rect2(prev_pos, Vector2.ZERO).expand(clamped_in)
-			for w_rect in _wall_occluder_rects:
-				var w_g: Rect2 = w_rect.grow(3.0)
-				# Rendimiento (2026-11-09): si las cajas no se tocan, el segmento no puede cruzar el muro
-				if w_g.intersects(seg_box, true) and _segment_intersects_rect(prev_pos, clamped_in, w_g):
-					return prev_pos
-			return clamped_in
+			return prev_pos if _cruza_muro(prev_pos, clamped_in) else clamped_in
 	for fi2 in range(_fp_rects.size()):
 		var r_avoid: Rect2 = _fp_rects[fi2].grow(9.5)
 		if r_avoid.has_point(candidate_pos):
