@@ -3,6 +3,12 @@ extends "res://scripts/visuals/WorldStageBuildings3D.gd"
 
 ## Terreno 3D, relieve suave (Fases A y B), caminos, plaza, lago, ciénaga, barrios y vegetación.
 
+const Sitio = preload("res://mapa/sitio.gd") ## cruces del mapa (barro rojo del molino y claro del Caso I)
+## Barro del Caso I en las orillas: rojo junto al molino y pardo en el claro del cuerpo (medidas en píxeles del mundo).
+const BARRO_ROJO_MEDIO_LARGO_PX: float = 400.0 ## ~22 m de orilla roja a cada lado de su cruz
+const BARRO_ROJO_ANCHO_PX: float = 60.0        ## la lengua roja llega ~3,4 m tierra adentro junto a la cruz
+const CLARO_MEDIO_LARGO_PX: float = 245.0      ## ~14 m de barro pardo a cada lado del claro
+
 # ==============================================================================
 # SUELO 3D Y NATURALEZA (2026-11-05): sustituyen a la hierba y a los pinos dibujados en 2D
 # ==============================================================================
@@ -553,6 +559,8 @@ func _build_river_and_arroyo_3d() -> void:
 	st_brown_mud.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var st_red_clay := SurfaceTool.new()
 	st_red_clay.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var y_barro_rojo: float = Sitio.mundo("barro_rojo_molino").y
+	var y_claro: float = Sitio.mundo("claro_caso1").y
 
 	var step_y: float = 6.0
 	var y_cur: float = RioLagoScript.river_y_start()
@@ -590,13 +598,15 @@ func _build_river_and_arroyo_3d() -> void:
 		var w_pad_l1: float = (7.2 + sin(y_nxt * 0.057 + 0.3) * 3.4 + cos(y_nxt * 0.119 - 0.8) * 2.1) * town_mud_boost1
 		var w_pad_r0: float = (7.2 + cos(y_cur * 0.051 - 0.5) * 3.4 + sin(y_cur * 0.113 + 1.1) * 2.1) * town_mud_boost0
 		var w_pad_r1: float = (7.2 + cos(y_nxt * 0.051 - 0.5) * 3.4 + sin(y_nxt * 0.113 + 1.1) * 2.1) * town_mud_boost1
-		var in_mill_zone: bool = (y_cur >= -1140.0 and y_cur <= -978.0)
-		var in_clearing_zone: bool = (y_cur >= -910.0 and y_cur <= -812.0)
+		# Barro rojo junto al molino y barro pardo en el claro del Caso I: van con sus cruces de «Sitios» (antes eran
+		# números del mapa original sin estirar ×5 y el barro rojo salía cerca del pueblo, lejos del molino)
+		var in_mill_zone: bool = absf(y_cur - y_barro_rojo) <= BARRO_ROJO_MEDIO_LARGO_PX
+		var in_clearing_zone: bool = absf(y_cur - y_claro) <= CLARO_MEDIO_LARGO_PX
 		if in_mill_zone:
 			w_pad_l0 = 13.0 + sin(y_cur * 0.08) * 3.5
 			w_pad_l1 = 13.0 + sin(y_nxt * 0.08) * 3.5
-			var mill_r_reach0: float = 46.0 if y_cur > -1012.0 else 12.0
-			var mill_r_reach1: float = 46.0 if y_nxt > -1012.0 else 12.0
+			var mill_r_reach0: float = BARRO_ROJO_ANCHO_PX if absf(y_cur - y_barro_rojo) <= BARRO_ROJO_MEDIO_LARGO_PX * 0.5 else 12.0
+			var mill_r_reach1: float = BARRO_ROJO_ANCHO_PX if absf(y_nxt - y_barro_rojo) <= BARRO_ROJO_MEDIO_LARGO_PX * 0.5 else 12.0
 			w_pad_r0 = mill_r_reach0 + cos(y_cur * 0.07) * 3.8
 			w_pad_r1 = mill_r_reach1 + cos(y_nxt * 0.07) * 3.8
 		elif in_clearing_zone:

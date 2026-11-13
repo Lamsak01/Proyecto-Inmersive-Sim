@@ -15546,7 +15546,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "puerta_cementerio"
 
 [node name="barro_rojo_molino" type="Marker3D" parent="Sitios" unique_id=789335640]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.952, 0, -293.776)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.2, 0, -293.776)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "barro_rojo_molino"
