@@ -198,8 +198,6 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	# Camillas y cuerpos se ven en 3D (escena del hospital y WorldStageProps3D); aquí solo su choque
 	for i in range(1, vm.MESAS_MORGUE + 1):
 		vm.choque_en_edificio(id, Marca.sitio(id, Marca.MESA_MORGUE % i), Vector2(13.6, 21.6), true)
-	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, Vector2(723.5, 189.0)), Vector2(11.0, 6.2), EdificioEditor.giro_plano(id))
-	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, Vector2(766.5, 189.0)), Vector2(7.0, 7.0), EdificioEditor.giro_plano(id))
 
 	vm.add_zona_uso_mundo("MorgueAutopsyArea", vm._morgue_table_positions[1], 24.0, "morgue_table")
 

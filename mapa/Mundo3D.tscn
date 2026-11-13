@@ -13588,8 +13588,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 208.6, 0.33816472, 41.44)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_hospital"
 centro_original = Vector2(745, 148)
-planta_m = Vector2(7.728, 5.376)
-puerta_ancho_m = 2.464
+planta_m = Vector2(14.0, 9.8)
+puerta_ancho_m = 1.6
 
 [node name="building_police" type="Node3D" parent="Edificios" unique_id=800107559 instance=ExtResource("15_q0nqd")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 256.2, 0.33816472, 41.44)
@@ -14268,7 +14268,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "paseo_17"
 
 [node name="paseo_18" type="Marker3D" parent="Sitios" unique_id=731443910]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 213.08, 0, 45.752)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 213.08, 0, 47.6)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_18"
@@ -14370,7 +14370,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "espera_16"
 
 [node name="espera_17" type="Marker3D" parent="Sitios" unique_id=590757531]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0, 45.752)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0, 47.6)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_17"
@@ -16951,7 +16951,7 @@ material_override = SubResource("StandardMaterial3D_u7lyt")
 mesh = SubResource("BoxMesh_ebi1r")
 
 [node name="Caja_56" type="Node3D" parent="Decorado/Zona_1_0" unique_id=1321411187]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 203.952, 0.15058897, 36.848)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 203.952, 0.15058897, 35.2)
 metadata/pos_original = Vector2(662, 66)
 metadata/radio = 8.0
 
@@ -23646,7 +23646,7 @@ alto = 29.0
 nombre_visible = "Farola 4"
 
 [node name="Farola_5" type="Node3D" parent="Objetos" unique_id=820692394]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 205.632, 0.33816472, 38.08)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 205.632, 0.33816472, 35.3)
 script = ExtResource("29_bojho")
 clave = "farola_4"
 pos_original = Vector2(692, 88)

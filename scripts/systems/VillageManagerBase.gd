@@ -762,14 +762,8 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 func _route_internal_plano(b_id: String, from_pos: Vector2, target_pos: Vector2) -> Vector2:
 	if RutaCuartos.tiene(b_id):
 		return RutaCuartos.siguiente(b_id, from_pos, target_pos)
-	match b_id:
-		"building_hospital":
-			if from_pos.y < 149.0 and target_pos.y > 155.0:
-				return Vector2(745.0, 138.0 if absf(from_pos.x - 745.0) > 16.0 else 163.0)
-			elif from_pos.y > 155.0 and target_pos.y < 149.0:
-				return Vector2(745.0, 163.0 if absf(from_pos.x - 745.0) > 16.0 else 138.0)
-		"building_restaurant": # R1: varias salas; cruza por los pasos (ver VillageRestaurant.OPENINGS)
-			return VillageRestaurant.route(from_pos, target_pos)
+	if b_id == "building_restaurant": # R1: varias salas; cruza por los pasos (ver VillageRestaurant.OPENINGS)
+		return VillageRestaurant.route(from_pos, target_pos)
 	return target_pos
 
 static func _leer_mesas_morgue() -> Array[Vector2]:
@@ -1261,9 +1255,9 @@ func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 		var opr_pos: Vector2 = VillageRestaurant.al_mundo(op_r.get("pos", Vector2.ZERO))
 		if prop_rect.intersects(Rect2(opr_pos - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
 			return true
-	for p_gap: Vector2 in [EdificioEditor.a_mundo(ID_HOSPITAL, Vector2(745.0, 152.0)), Marca.mundo(ID_COMISARIA, Marca.CELDA_PUERTA)]: # paso de sala del hospital (en su plano) y reja de la comisaría
-		if prop_rect.intersects(Rect2(p_gap - PASO_INTERIOR_TAM * 0.5, PASO_INTERIOR_TAM)):
-			return true
+	var reja: Vector2 = Marca.mundo(ID_COMISARIA, Marca.CELDA_PUERTA) # la reja del calabozo, libre de muebles
+	if prop_rect.intersects(Rect2(reja - PASO_INTERIOR_TAM * 0.5, PASO_INTERIOR_TAM)):
+		return true
 	return false
 
 func _prune_door_blocking_prop_colliders() -> void:
