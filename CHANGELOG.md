@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — El Ayuntamiento, de tamaño real (Claude Code)
+- De 7,2 × 5,4 m a 14 × 9,8 m (nivel 4, de piedra y teja roja, con luz de la red oficial): vestíbulo de punta a punta
+  con alfombra, bancos, urna y el mostrador del fondo con el Libro Mayor de los Gremios; despacho del alcalde con
+  teléfono y su terminal; archivo de legajos; tesorería con las arcas; sala de juntas. Los cables de la fachada los
+  trae ahora la casa. Apartados dos adornos y un punto de paseo. Probado: rutas de los vecinos sin choques, 29
+  puertas y fotos.
+
 ## 2026-11-13 — Casas de dos plantas, vista desde arriba (Claude Code)
 - Desde arriba, estando en la planta baja de la casona, ya se ve entera: el trozo alto de los muros va con la planta
   alta y se esconde con ella. Desde fuera, arriba o en primera persona la casa se ve completa. Probado con fotos.
