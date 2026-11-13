@@ -33,10 +33,10 @@ mapa original: relieve hecho por el juego, forma del lago y la ciénaga, manchas
 No se ve al jugar; quitarlo es mucho trabajo y arriesgado.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
-sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan 6 dibujos planos (caja, barril, muro débil y espada de `World.tscn`, ya con 3D; textos pasajeros).
+sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan 6 dibujos planos, todos ya con su 3D y el plano apagado o pasajero (caja, barril, muro débil y espada de `World.tscn`; 2 textos): al jugar no se ve nada plano.
 **Pesca, huerto, gallinero, campamento, animales de corral del jugador y huerto de casa borrados (usuario, 2026-11-12)**:
 se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd` (lee el río del editor 3D).
-Red eléctrica: generador del Arreglador (lo dibuja su casa); farolas solo de noche. Pendiente: mapa del valle.
+Red eléctrica: generador del Arreglador (lo dibuja su casa); farolas solo de noche. Mapa del valle: ya sale de las piezas del editor.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). «No two conscious villagers may overlap» (puerta del restaurante): mejorado el 2026-11-13 (cola en las puertas); con 6 vecinos a la vez aún se juntan algo.
