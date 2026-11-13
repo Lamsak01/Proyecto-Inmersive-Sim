@@ -1,11 +1,13 @@
 extends RefCounted
 
-## Cosas armadas a mano propias de un oficio (2026-11-13), para lo que no hay modelo comprado: el horno de pan.
+## Cosas armadas a mano propias de un oficio (2026-11-13), para lo que no hay modelo comprado: el horno de pan y la
+## reja corredera del calabozo de la comisaría.
 ## Metros respecto a la pieza (tools/casas/armar_casa.gd las dibuja); el suelo de la pieza es y = 0; la boca del
 ## horno mira al sur (+z) sin giro.
 
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const Cosas = preload("res://tools/casas/cosas_casa.gd")
+const PARTES = preload("res://scripts/visuals/PartesEdificio3D.gd")
 
 const LADRILLO := "wall_brick_small_sand.png"
 const TINTE_LADRILLO := Color(0.85, 0.6, 0.45)
@@ -18,6 +20,11 @@ const BRASAS_TAM := Vector3(0.4, 0.06, 0.06)
 const CHIMENEA_RADIO_M: float = 0.1
 const CHIMENEA_ALTO_M: float = 1.4
 const PALA_LARGO_M: float = 1.6
+const HIERRO := Color(0.2, 0.21, 0.23)
+const BARROTE_GROSOR_M: float = 0.04
+const BARROTE_PASO_M: float = 0.15     ## de barrote a barrote
+const REJA_ALTO_M: float = 2.2
+const TRAVESANO_ALTO_M: float = 0.05
 
 
 ## Horno de leña de ladrillo: base de obra, bóveda redonda, boca con brasas y su chimenea; la pala de pie al lado.
@@ -41,3 +48,22 @@ static func horno(padre: Node3D) -> void:
 	Cosas.cilindro(padre, Vector3(0.0, HORNO_TAM.y + BOVEDA_RADIO_M * 0.6, -0.25), CHIMENEA_RADIO_M, CHIMENEA_ALTO_M, ladrillo)
 	Piezas.caja(padre, Vector3(HORNO_TAM.x * 0.5 + 0.06, 0.0, 0.3), Vector3(0.04, PALA_LARGO_M, 0.04), Cosas.mat(Cosas.MADERA))
 	Piezas.caja(padre, Vector3(HORNO_TAM.x * 0.5 + 0.06, PALA_LARGO_M, 0.3), Vector3(0.03, 0.35, 0.3), Cosas.mat(Cosas.MADERA))
+
+
+## Reja corredera del calabozo («REJA» del plano: centro del hueco y ancho): barrotes de hierro con tres travesaños. Su
+## pivote queda en la punta oeste del hueco; el juego la desliza hacia el oeste al abrirla (rol «reja_celda»).
+static func reja_celda(interior: Node3D, reja: Dictionary, suelo_y: float) -> void:
+	var en: Vector2 = reja["en"]
+	var ancho: float = reja["ancho"]
+	var pivote := Node3D.new()
+	pivote.name = "RejaCelda"
+	pivote.position = Vector3(en.x - ancho * 0.5, suelo_y, en.y)
+	pivote.set_meta(PARTES.ROL, PARTES.REJA_CELDA)
+	interior.add_child(pivote)
+	var hierro: Material = Piezas.material("", HIERRO, 0.7)
+	var x: float = BARROTE_PASO_M * 0.5
+	while x < ancho:
+		Piezas.caja(pivote, Vector3(x, 0.0, 0.0), Vector3(BARROTE_GROSOR_M, REJA_ALTO_M, BARROTE_GROSOR_M), hierro)
+		x += BARROTE_PASO_M
+	for alto: float in [0.0, REJA_ALTO_M * 0.5, REJA_ALTO_M - TRAVESANO_ALTO_M]:
+		Piezas.caja(pivote, Vector3(ancho * 0.5, alto, 0.0), Vector3(ancho, TRAVESANO_ALTO_M, BARROTE_GROSOR_M * 1.5), hierro)

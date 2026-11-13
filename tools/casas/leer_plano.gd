@@ -5,11 +5,12 @@ extends RefCounted
 ## así dos casas vecinas hechas por el mismo albañil no son calcadas. `POR_OFICIO` (opcional) añade los muebles propios
 ## del oficio de cada casa; `girar` da media vuelta a la casa (puerta al norte).
 ## Casas de dos plantas: la alta va en los campos «…_ARRIBA» y la escalera en «ESCALERA» (pie y cima), opcionales.
+## «REJA» (opcional): la reja corredera de un calabozo, con el centro de su hueco («en») y su ancho.
 
 const CAMPOS: Array[String] = [
 	"ID", "PLANTA_M", "PUERTA_X_M", "PUERTA_ANCHO_M", "VENTANA_X_M", "CARTEL_M", "FACHADA", "TABIQUE", "MADERA",
 	"BALDOSA", "TEJADO", "ZOCALO", "TEJADO_CHAPA", "CUARTOS", "TABIQUES", "VENTANAS", "MUEBLES", "MARCAS",
-	"CUARTOS_ARRIBA", "TABIQUES_ARRIBA", "VENTANAS_ARRIBA", "MUEBLES_ARRIBA", "MARCAS_ARRIBA", "ESCALERA",
+	"CUARTOS_ARRIBA", "TABIQUES_ARRIBA", "VENTANAS_ARRIBA", "MUEBLES_ARRIBA", "MARCAS_ARRIBA", "ESCALERA", "REJA",
 ]
 ## Los mismos campos en una y otra planta (la alta solo si la casa la tiene).
 const PLANTAS: Array[String] = ["", "_ARRIBA"]
@@ -64,6 +65,8 @@ static func _mover(plano: Dictionary, punto: Callable, giro: Callable, lados: Ar
 			m["giro"] = giro.call(float(m.get("giro", 0.0)))
 		for marca: String in plano["MARCAS" + planta]:
 			plano["MARCAS" + planta][marca] = punto.call(plano["MARCAS" + planta][marca])
+	if plano.has("REJA"):
+		plano["REJA"]["en"] = punto.call(plano["REJA"]["en"])
 	if plano.has("ESCALERA"):
 		for punta: String in plano["ESCALERA"]:
 			plano["ESCALERA"][punta] = punto.call(plano["ESCALERA"][punta])

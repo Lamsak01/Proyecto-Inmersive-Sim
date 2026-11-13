@@ -7,6 +7,7 @@ extends RefCounted
 
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const Cascaron = preload("res://tools/casas/cascaron_casa.gd")
+const Oficio = preload("res://tools/casas/cosas_oficio.gd")
 const DibujarCosa = preload("res://tools/casas/dibujar_cosa.gd")
 const Juntar = preload("res://tools/casas/juntar_casa.gd")
 const LeerPlano = preload("res://tools/casas/leer_plano.gd")
@@ -39,6 +40,8 @@ static func armar(plano: Dictionary, centro_original: Vector2) -> Node3D:
 	for nombre: String in [PARTES.MUROS, PARTES.INTERIOR, PARTES.PISO_ALTO, PARTES.TEJADO, PARTES.MUEBLES, PARTES.MARCAS, TABIQUE_GD.CARPETA, CUARTO_GD.CARPETA]:
 		grupos[nombre] = _hijo(raiz, Node3D.new(), nombre)
 	Cascaron.armar(grupos[PARTES.MUROS], grupos[PARTES.TEJADO], grupos[PARTES.PISO_ALTO], plano)
+	if plano.has("REJA"): # calabozo: la reja corredera, suelta para que el juego la mueva
+		Oficio.reja_celda(grupos[PARTES.INTERIOR], plano["REJA"], Cascaron.SUELO_Y_M)
 	var cuenta_muebles: Dictionary = {}
 	for piso: int in range(LeerPlano.PLANTAS.size()):
 		var planta: String = LeerPlano.PLANTAS[piso]
