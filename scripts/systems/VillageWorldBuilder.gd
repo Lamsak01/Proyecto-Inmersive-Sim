@@ -201,8 +201,7 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 
 	vm.add_zona_uso_mundo("MorgueAutopsyArea", vm._morgue_table_positions[1], 24.0, "morgue_table")
 
-	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital
-	vm.adorno_en_edificio(id, "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(id, Marca.MESA))
+	# Dr. Valen (Médico Cirujano y Forense); su mesa de comer está en la escena del hospital (tools/casas/plano_hospital.gd)
 	vm._register_authority_npc(
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",

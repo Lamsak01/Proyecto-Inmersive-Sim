@@ -30,7 +30,7 @@ const CUARTOS: Array[Dictionary] = [
 	{"nombre": "Pasillo", "centro": Vector2(0.0, 0.0), "tam": Vector2(4.8, 9.8), "central": true, "suelo": LOSA},
 	{"nombre": "Morgue", "centro": Vector2(-4.7, -2.45), "tam": Vector2(4.6, 4.9), "paso": Vector2(-2.4, -1.0), "ancho": 1.0, "hoja": true, "suelo": LOSA},
 	{"nombre": "Urgencias", "centro": Vector2(-4.7, 2.45), "tam": Vector2(4.6, 4.9), "paso": Vector2(-2.4, 1.6), "ancho": 1.1, "hoja": true, "suelo": BALDOSA},
-	{"nombre": "Consulta", "centro": Vector2(4.7, -3.25), "tam": Vector2(4.6, 3.3), "paso": Vector2(2.4, -2.4), "ancho": 0.9, "hoja": true, "suelo": MADERA},
+	{"nombre": "Consulta", "centro": Vector2(4.7, -3.25), "tam": Vector2(4.6, 3.3), "paso": Vector2(2.4, -2.6), "ancho": 1.0, "hoja": true, "suelo": MADERA},
 	{"nombre": "DormitorioMedico", "centro": Vector2(4.7, 0.0), "tam": Vector2(4.6, 3.2), "paso": Vector2(2.4, 0.0), "ancho": 0.9, "hoja": true, "suelo": MADERA},
 	{"nombre": "Botica", "centro": Vector2(4.7, 3.25), "tam": Vector2(4.6, 3.3), "paso": Vector2(2.4, 3.0), "ancho": 0.9, "hoja": true, "suelo": BALDOSA},
 ]
@@ -82,11 +82,11 @@ const MUEBLES: Array[Dictionary] = [
 	{"modelo": "props/Bookcase_2.gltf", "pos": Vector2(6.75, -3.2), "giro": -90.0, "tam": Vector3(0.9, 1.8, 0.4), "choque": Vector2(16, 7)},
 	{"cosa": "alfombra", "pos": Vector2(5.0, -3.4), "tam2": Vector2(2.4, 2.0), "color": VERDE_HOSPITAL},
 	{"cosa": "bombilla", "pos": Vector2(4.7, -3.25)},
-	# Dormitorio del médico: su cama (choque del juego), mesilla, mesa pequeña donde cena y armario
+	# Dormitorio del médico: su cama (choque del juego), mesilla y la mesa donde cena, contra la pared (paso libre a la cama)
 	{"modelo": "props/Bed_Twin1.gltf", "pos": Vector2(6.3, 0.3), "tam": Vector3(0.95, 0.9, 2.0)},
 	{"modelo": "props/Nightstand_Shelf.gltf", "pos": Vector2(6.55, -1.3), "tam": Vector3(0.5, 0.6, 0.4)},
-	{"modelo": "props/Table_Large.gltf", "pos": Vector2(4.2, 0.9), "tam": Vector3(1.6, 0.78, 0.9), "choque": Vector2(28, 16)},
-	{"modelo": "props/Chair_1.gltf", "pos": Vector2(4.2, 0.15), "tam": Vector3(0.45, 0.95, 0.45)},
+	{"modelo": "props/Table_Large.gltf", "pos": Vector2(4.2, 1.1), "tam": Vector3(1.6, 0.78, 0.9), "choque": Vector2(28, 16)},
+	{"modelo": "props/Chair_1.gltf", "pos": Vector2(3.3, 1.1), "giro": 90.0, "tam": Vector3(0.45, 0.95, 0.45)},
 	{"cosa": "bombilla", "pos": Vector2(4.7, 0.0)},
 	# Botica: estantes de frascos, armario y caja
 	{"modelo": "props/Shelf_Small_Bottles.gltf", "pos": Vector2(6.65, 2.6), "giro": -90.0, "tam": Vector3(1.0, 1.2, 0.35), "choque": Vector2(18, 6)},
@@ -104,7 +104,7 @@ const MARCAS: Dictionary = {
 	"trabajo": Vector2(-1.55, 3.75),
 	"camilla": Vector2(-4.4, 2.6),
 	"cama_1": Vector2(6.3, 0.3),
-	"mesa": Vector2(3.1, 0.9),
+	"mesa": Vector2(4.2, 0.4),
 	"mesa_morgue_1": Vector2(-6.1, -2.4),
 	"mesa_morgue_2": Vector2(-4.7, -2.4),
 	"mesa_morgue_3": Vector2(-3.3, -2.4),
