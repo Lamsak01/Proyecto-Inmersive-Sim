@@ -351,3 +351,6 @@ varias, cama de matrimonio para las parejas; cada casa con baño, cuarto(s), coc
 además cuarto de invitados, patio vallado, segundo piso o sótano. Negocios también más grandes; proporciones realistas.
 Medido por Claude: hoy casi todas las casas miden 6–7 × 4–5 m (~30 m²). Propuesta (pendiente de aprobar): doble de lado
 (×4 de suelo, ~115 m²), constructor de casas por lista de cuartos y nivel de riqueza, prueba con una casa primero.
+Añadido del usuario (2026-11-13): la casa marca la clase. Las más pobres, casi medievales (letrina fuera); las más ricas,
+más tecnológicas, siempre con estética antigua: nada de pantallas salvo las verdes, radios de onda corta. Propuesta de
+escalera por niveles pendiente de aprobar (pobre / artesano / acomodado / señor).
