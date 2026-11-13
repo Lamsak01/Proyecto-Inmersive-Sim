@@ -15,7 +15,6 @@ extends RefCounted
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const Marca = preload("res://mapa/marca.gd")
-const Edificio = preload("res://mapa/edificio.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
@@ -1949,27 +1948,16 @@ static func sync_outpost_visuals(vm) -> void:
 		vm.refresh_world_stage_3d()
 
 static func build(vm, id: String, st: Dictionary) -> void:
-	var d: Dictionary = VillageLots.lot_def(id)
 	var c: Vector2 = VillageLots.building_center(id)
-	var m: float = -1.0 if bool(d["door_south"]) else 1.0
 	vm._construct_solid_building("building_" + str(st["kind"]), str(st["title"]), c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 	match str(st["kind"]):
 		"library":
-			# Estanterías, mesa de lectura y mostrador chocan desde sus muebles (escena de la biblioteca)
-			# Punto 5 (Caso I): Sala oculta tras estantería con libro-palanca en el cuadrante noreste (`c + Vector2(24..62, -46..-4)`)
-			# (en el plano de la biblioteca: `c` es su centro de fábrica)
-			var id_b: String = LIBRARY_ID
-			var giro: float = Edificio.giro_plano(id_b)
-			vm.choque_en_edificio(id_b, c + Vector2(24, 34 * m), Vector2(4.0, 20.0)) # Tabique oeste de la sala oculta
-			vm.choque_en_edificio(id_b, c + Vector2(46, 40 * m), Vector2(24.0, 4.0)) # Mesa y estantería interior prohibida
-			vm.no_pisar_mundo(Edificio.a_mundo(id_b, c + Vector2(42, 28 * m)), Vector2(25.0, 10.5), giro)
-			vm.no_pisar_mundo(Edificio.a_mundo(id_b, c + Vector2(43.5, 40.5 * m)), Vector2(24.0, 7.0), giro)
+			# Estanterías, mesas, mostrador y la sala oculta del Caso I (tras la estantería móvil del archivo) chocan
+			# desde la escena de la biblioteca (tools/casas/plano_biblioteca.gd); aquí solo sus zonas de uso
 			vm.add_zona_uso_mundo("LibraryBookLeverArea", library_site(M_PALANCA), 26.0, "library_book_lever")
 			vm.add_zona_uso_mundo("LibrarySecretLedgerArea", library_site(M_LIBRO_MAYOR), 26.0, "library_secret_ledger")
 			vm.add_zona_uso_mundo("LibraryTornBookArea", library_site(M_LIBRO_ROTO), 26.0, "library_torn_book")
-			vm.choque_en_edificio(id_b, c + Vector2(42, -38 * m), Vector2(14.0, 6.0))
-			vm.no_pisar_mundo(Edificio.a_mundo(id_b, c + Vector2(36, -22 * m)), Vector2(16.0, 9.0), giro)
 			vm.add_zona_uso_mundo("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
 
 # ---------------------------------------------------------------- biblioteca

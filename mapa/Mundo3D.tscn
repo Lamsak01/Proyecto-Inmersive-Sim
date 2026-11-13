@@ -13652,8 +13652,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.4438412, -120.4)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_library"
 centro_original = Vector2(914, -430)
-planta_m = Vector2(7.168, 5.376)
-puerta_ancho_m = 2.352
+planta_m = Vector2(14.0, 9.8)
+puerta_ancho_m = 1.4
 
 [node name="mixed_family_candil" type="Node3D" parent="Edificios" unique_id=1264438924 instance=ExtResource("23_0vvmm")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 344.4, 0.5495177, -10.08)
@@ -13785,7 +13785,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.4438412, -120.4)
 script = ExtResource("33_nou5s")
 id_solar = "n5"
 centro_original = Vector2(914, -430)
-terreno_m = Vector2(7.28, 5.376)
+terreno_m = Vector2(15.2, 11.0)
 zona = "borde"
 
 [node name="solar_n6" type="Node3D" parent="Solares" unique_id=1941638205]
@@ -14250,7 +14250,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "paseo_14"
 
 [node name="paseo_15" type="Marker3D" parent="Sitios" unique_id=1456349766]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 257.376, 0, -116.032)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 257.376, 0, -114.6)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_15"
@@ -14352,7 +14352,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "espera_13"
 
 [node name="espera_14" type="Marker3D" parent="Sitios" unique_id=1201126142]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 254.576, 0, -116.032)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 254.576, 0, -114.6)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_14"
