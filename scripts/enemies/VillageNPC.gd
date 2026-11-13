@@ -319,7 +319,7 @@ func _process_duties(delta: float) -> bool:
 		return true
 	if vm_escort and bool(vm_escort.get("player_being_escorted_to_jail")) and vm_escort.get("escorting_officer") == self:
 		var jail_target: Vector2 = vm_escort.get("_jail_cell_pos")
-		_move_towards_point(jail_target, 64.0, delta)
+		_move_towards_point(jail_target, vm_escort.ESCOLTA_VELOCIDAD, delta)
 		_finish_frame_movement(delta)
 		return true
 

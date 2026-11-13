@@ -5,6 +5,7 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- ✅ (2026-11-12, usuario) **Al detenerte, el guardia andaba un trecho y luego te teletransportaba a la celda**: la escolta tenía un tope de 9,5 s del pueblo pequeño; ahora el tope va según la distancia y el preso camina detrás del guardia (antes, pegado a un lado, lo atascaba al girar dentro de la comisaría). Probado sin ventana: desde la plaza llega andando en ~35 s. Falta que el usuario lo vea jugando.
 - ✅ (2026-11-12, visto por Claude en fotos de noche) **El pueblo de noche casi negro**: solo 6 farolas para todo el mapa ×5,
   ninguna en la plaza, el farol no brillaba y su luz no llegaba al suelo · 22:00, 1.ª persona. *(Ahora 53 farolas por las
   calles y la plaza, movibles en el editor; el farol brilla y deja un charco de luz azulada en el suelo. Las luces lejanas

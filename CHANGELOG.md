@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — La escolta a la celda llega andando (Claude Code)
+- Fallo del usuario: el guardia andaba un trecho y te teletransportaba a la celda. El tope fijo de 9,5 s (pueblo de
+  antes del ×5) pasa a ser según la distancia (`_escort_limite_s`, `ESCOLTA_*`), y el preso va detrás del guardia según
+  hacia dónde anda (pegado a un lado fijo lo atascaba al girar dentro de la comisaría).
+- Sitios de la comisaría que seguían con números del mapa viejo: reja vigilada al escapar, delante de la celda
+  (inquisidor), catre de la celda (detención por el comisario, cenas), pasos de hospital y comisaría que no se tapan.
+
+
 ## 2026-11-12 — Mudanza al editor: los vecinos nacen ya en su sitio (Claude Code)
 - `setup_npc` ya no traduce: todo el que crea un vecino le da casa, mesa y trabajo en el mundo (marcas con
   `Marca.mundo`, fichas de oficio con `VillageLots.shop_house_layout_mundo`, camas de huésped con

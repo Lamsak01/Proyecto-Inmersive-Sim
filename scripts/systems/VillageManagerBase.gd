@@ -206,6 +206,13 @@ var player_in_jail: bool = false
 var player_being_escorted_to_jail: bool = false
 var escorting_officer: VillageNPC = null
 var _escort_elapsed_timer: float = 0.0
+## Tope de la escolta hasta la celda: lo que tarda el guardia en llegar andando, con margen. Pasado el tope (atasco),
+## el jugador entra en la celda de golpe. Con el mapa ×5 un tope fijo de 9,5 s cortaba casi todas las escoltas.
+var _escort_limite_s: float = 0.0
+const ESCOLTA_VELOCIDAD: float = 64.0 ## px/s del guardia que escolta (VillageNPC)
+const ESCOLTA_MARGEN: float = 1.8 ## rodeos por calles y puertas
+const ESCOLTA_TOPE_MIN_S: float = 9.5
+const ESCOLTA_DISTANCIA: float = 12.0 ## px entre el guardia y el preso que lleva detrás
 const JAIL_MANDATORY_STAY_SECONDS: float = 10.0
 var jail_mandatory_stay_timer: float = 0.0
 var _last_confronting_officer: VillageNPC = null
@@ -1266,7 +1273,7 @@ func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 		var opr_pos: Vector2 = op_r.get("pos", Vector2.ZERO)
 		if prop_rect.intersects(Rect2(opr_pos - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
 			return true
-	for p_gap in [Vector2(325.0, 158.0), Vector2(745.0, 152.0), Vector2(902.0, 152.0)]:
+	for p_gap: Vector2 in [EdificioEditor.a_mundo(ID_HOSPITAL, Vector2(745.0, 152.0)), EdificioEditor.a_mundo(ID_COMISARIA, Vector2(902.0, 152.0))]: # pasos de sala y reja, en su plano
 		if prop_rect.intersects(Rect2(p_gap - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
 			return true
 	return false

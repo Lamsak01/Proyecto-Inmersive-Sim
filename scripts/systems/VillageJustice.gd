@@ -2,6 +2,13 @@
 extends RefCounted
 const Edificio = preload("res://mapa/edificio.gd")
 const Marca = preload("res://mapa/marca.gd")
+const ANTE_CELDA_PLANO := Vector2(902, 144) ## delante de la reja, por fuera (plano de la comisaría)
+const CAMA_CELDA_PLANO := Vector2(872, 176) ## catre de la celda (plano de la comisaría)
+
+
+## Delante de la reja de la celda, en el mundo: ahí se planta el inquisidor para hablar con el preso.
+static func _ante_celda(vm) -> Vector2:
+	return Edificio.a_mundo(vm.ID_COMISARIA, ANTE_CELDA_PLANO)
 
 ## Justicia: investigaciones del Comisario y del Inquisidor Real, interrogatorios, veredictos y juicio público.
 ## Extraído de VillageManager.gd: cada función recibe al VillageManager como primer parámetro (`vm`).
@@ -543,7 +550,7 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 			if player == null or not should_inspect_player:
 				vm.active_royal_investigation["stage"] = "VERDICT"
 				return
-			var check_pt: Vector2 = Vector2(902, 144) if vm.player_in_jail else player.global_position
+			var check_pt: Vector2 = _ante_celda(vm) if vm.player_in_jail else player.global_position
 			var dist_chk: float = inv_npc.global_position.distance_to(check_pt)
 			inv_npc._move_towards_point(check_pt, 98.0, delta)
 			s_timer += delta
@@ -733,7 +740,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 				arr_npc._spawn_floating_text("⛓️😱 ¡Alguacil mayor Vane, juro que me han incriminado!", Color.ORANGE_RED, -40.0)
 				sheriff._spawn_floating_text("🚓⛓️ ¡%s, quedas detenido! ¡Camina hacia la Celda Policial!" % arr_npc.npc_name, Color.GOLD, -42.0)
 				return true
-			var cell_dest := Vector2(872, 176)
+			var cell_dest: Vector2 = Edificio.a_mundo(vm.ID_COMISARIA, CAMA_CELDA_PLANO)
 			if sheriff.global_position.distance_to(cell_dest) > 28.0:
 				sheriff._move_towards_point(cell_dest, 74.0, delta)
 				var follow_pt: Vector2 = sheriff.global_position + Vector2(-16, 4)
@@ -874,7 +881,7 @@ static func _process_case_chain_interviews_step(vm: VillageManager, inv_npc: Vil
 			case_dict["current_interview_target"] = ""
 			case_dict["interviews_done"] = done_cnt + 1
 			return
-		var target_pt: Vector2 = Vector2(902, 144) if vm.player_in_jail else player.global_position
+		var target_pt: Vector2 = _ante_celda(vm) if vm.player_in_jail else player.global_position
 		var dist_p: float = inv_npc.global_position.distance_to(target_pt)
 		if dist_p > 36.0:
 			inv_npc._stop_crafting_bar()

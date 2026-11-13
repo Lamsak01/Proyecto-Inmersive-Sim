@@ -1595,12 +1595,18 @@ static func caterer_npc_of(vm):
 	return null
 
 
+## Preso: su cama es el catre de la celda (plano de la comisaría, llevado al mundo).
+const CAMA_CELDA_PLANO := Vector2(872.0, 176.0)
+const CAMA_CELDA_RADIO: float = 24.0
+static func _duerme_en_celda(npc) -> bool:
+	return npc.bed_position.distance_to(VillageLots.EdificioEditor.a_mundo("building_police", CAMA_CELDA_PLANO)) <= CAMA_CELDA_RADIO
+
 static func can_walk_to_gathering(npc) -> bool:
 	if npc == null or not is_instance_valid(npc):
 		return false
 	if npc.is_dead or npc.is_downed or not npc.is_conscious() or npc.is_sleeping or npc.is_hostile or npc.sick_level >= 2:
 		return false
-	if npc.bed_position.distance_to(Vector2(872.0, 176.0)) <= 24.0:
+	if _duerme_en_celda(npc):
 		return false
 	return true
 
@@ -1612,7 +1618,7 @@ static func is_free_for_night_gathering(vm, npc) -> bool:
 		return false
 	if int(npc.trade_role) == int(VillageNPC.TradeRole.CHILD) or VillageNeeds.is_outsider(npc):
 		return false
-	if npc.bed_position.distance_to(Vector2(872.0, 176.0)) <= 24.0:
+	if _duerme_en_celda(npc):
 		return false
 	# Trabajo nocturno: la posadera atiende la taberna hasta las 23:00 y quien ya está en un recado nocturno no está libre
 	if int(npc.trade_role) == int(VillageNPC.TradeRole.INNKEEPER):

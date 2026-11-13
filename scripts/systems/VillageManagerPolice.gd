@@ -289,6 +289,7 @@ func start_police_escort_to_jail(player: Node2D, officer: VillageNPC = null) -> 
 	player_being_escorted_to_jail = true
 	player_in_jail = false
 	_escort_elapsed_timer = 0.0
+	_escort_limite_s = maxf(ESCOLTA_TOPE_MIN_S, player.global_position.distance_to(_jail_cell_pos) / ESCOLTA_VELOCIDAD * ESCOLTA_MARGEN)
 	escorting_officer = chosen_officer
 	clear_police_hostility()
 	set_jail_cell_gate_locked(false)
@@ -471,7 +472,7 @@ func _on_police_jailbreak_or_resist(player: Node2D) -> void:
 		var has_master_pick: bool = player.has_method("has_master_lockpick") and bool(player.call("has_master_lockpick"))
 		var stealth_sk_bonus: float = float(player.call("get_skill_bonus", "stealth")) if player.has_method("get_skill_bonus") else 0.0
 		var detect_jb_rad: float = (58.0 if in_stealth_jb else 135.0) * (0.35 if has_master_pick else 1.0) * clampf(1.0 - stealth_sk_bonus, 0.40, 1.0)
-		var gate_pos := Vector2(902, 152)
+		var gate_pos: Vector2 = EdificioEditor.a_mundo(ID_COMISARIA, Vector2(902, 152)) # reja, en el plano de la comisaría
 		var watching_officer: VillageNPC = null
 		if was_in_cell:
 			for n_off in get_tree().get_nodes_in_group("village_npcs"):
