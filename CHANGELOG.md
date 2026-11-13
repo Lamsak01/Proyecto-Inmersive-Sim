@@ -4,6 +4,17 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Caso I más fácil de seguir: carta, aviso del guardia, escena custodiada, preguntas y barro rojo (Claude Code)
+- La carta es solo tu contrato de detective y se relee desde la mochila (📜 Leer).
+- Al alba del día 2, un guardia viene andando a decirte que Vane te llama; luego vigila el cuerpo hasta la morgue. Vane
+  te cuenta lo del arroyo.
+- El claro del cuerpo está ahora a ~150 m del molino (antes ~60), en un prado junto al arroyo, con una fosa a medio
+  cavar que se examina.
+- Diario › pestaña «🔎 Caso»: 21 preguntas del detective que abren y cierran las pistas (con 3 pistas falsas); ninguna
+  nombra el molino.
+- El barro rojo se ve en la orilla junto al molino (salía cerca del pueblo por los números del mapa viejo).
+- Probado: partida automática del Caso I 25/25; fotos del claro y del barro rojo.
+
 ## 2026-11-13 — Adiós al parón de varios segundos cada hora desde las 12:00 (Claude Code)
 - El restaurante, al buscar sitio a sus clientes, volvía a añadir los asientos de la terraza a su lista guardada cada
   vez que la miraba: tras unas horas tenía casi 4.000 asientos y elegir mesa congelaba el juego 4–15 s cada hora.

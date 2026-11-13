@@ -655,9 +655,8 @@ func interact(player: Node2D) -> void:
 			Color(0.92, 0.82, 0.45)
 		)
 		return
-	# El barro rojo va después de las pistas de dentro: su radio (campo abierto ×5) llega dentro del molino y taparía
-	# la reja, el cordel y el papel (2026-11-13)
-	if pos.distance_squared_to(Sitio.mundo(SITIO_PISTA_CLARO)) <= PISTA_CLARO_RADIO * PISTA_CLARO_RADIO:
+	# El barro rojo va después de las pistas de dentro del molino (por si algún día se acercan a la orilla)
+	if pos.distance_squared_to(Sitio.mundo(SITIO_BARRO_ROJO_PISTA)) <= BARRO_ROJO_RADIO * BARRO_ROJO_RADIO:
 		_record_case_clue(
 			player,
 			"🧱 Orilla de arcilla",

@@ -1,9 +1,12 @@
-# Objetivos del Caso I que nacen de las pistas (borrador para aprobar)
+# Objetivos del Caso I que nacen de las pistas (hecho el 2026-11-13)
 
 > Claude Code, 2026-11-13. Idea del usuario: los objetivos los abren las pistas que encuentras (verdaderas o falsas),
 > son preguntas del detective y **nada apunta directamente al molino**. Todo sale de lo que ya dice el caso
 > (`DetectiveCaseData.gd`); no se inventa historia. Texto provisional.
 > Cada línea: **pregunta que aparece en misiones** · la abre… · se cierra (o avanza) con…
+> En el juego: `scripts/systems/Case1Objetivos.gd` (tabla `PREGUNTAS`, pestaña «🔎 Caso» del diario) y
+> `scripts/systems/Case1Aviso.gd` (guardia que avisa y custodia). Se añadió la pregunta de la fosa (p15) y el recado
+> de Vane (a0).
 
 ## Arranque
 - **La carta (usuario, 2026-11-13):** es tu contrato de detective del pueblo, solo historia de fondo; **no habla del

@@ -15623,12 +15623,6 @@ gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "forrajeo"
 
-[node name="pista_claro" type="Marker3D" parent="Sitios" unique_id=622860321]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.952, 0, -293.776)
-gizmo_extents = 1.0
-script = ExtResource("35_7jlh3")
-id_sitio = "pista_claro"
-
 [node name="tumba_1" type="Marker3D" parent="Sitios" unique_id=1034946354]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 256.704, 0, 93.184)
 gizmo_extents = 1.0

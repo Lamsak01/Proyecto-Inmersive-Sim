@@ -3,10 +3,11 @@
 > Última actualización: 2026-11-13, Claude Code. Historial: `CHANGELOG.md` y `git log`.
 
 ## a) Tarea activa
-**Interiores de tamaño real (usuario, 2026-11-13)**: casas ×4 de suelo, cuarto por cama, sala, cocina y baño; la casa
-marca la clase (niveles 1–4 en `docs/VISION_Y_FUTURO.md`). Hechas las 4 casas de artesano (herrero, carnicero,
-carpintero, pescadero), 6 casas-tienda de artesano (con la posada), 2 pobres, el albergue y la acomodada del Arreglador (se gira con «girar»): `tools/casas/` (planos, id, espejo, POR_OFICIO),
-`mapa/cuarto.gd`, `scripts/systems/RutaCuartos.gd`. Clases en la visión. Casas de solar: 3 casas modelo con cuartos (`plano_casa_modelo_*`), rutas por `VillageLots.house_route`. Nivel 4: mansión, casona, ayuntamiento, comisaría («REJA»), hospital (morgue) y capilla (bancos «banco_N») hechos; escuela (12 pupitres; filas «solo_ruta») biblioteca (sala oculta tras el archivo), las 4 tiendas de artesano (`plano_tienda_artesano`, hueco hondo «margen» en el mostrador) y el molino del Caso I (`plano_molino`, cosas en `cosas_molino.gd`) también. Falta la taberna (pregunta 0b).
+**Caso I jugable de verdad (usuario, 2026-11-13)**: hechos carta en la mochila, guardia que avisa y custodia
+(`Case1Aviso.gd`), claro a ~150 m del molino con fosa, preguntas del diario (`Case1Objetivos.gd`,
+`docs/specs/OBJETIVOS_CASO1.md`) y barro rojo visible. Falta: que el usuario lo juegue desde el día 2; rehacer el
+menú de diálogos (espera su idea); molino con aspecto de molino y junto al río (lo dejó para después).
+**Interiores de tamaño real**: todos hechos salvo la taberna (pregunta 0b), la casa de la cantera y el restaurante.
 **Casas de dos plantas** (2026-11-13): campos «…_ARRIBA» y `ESCALERA` en el plano (`planta_alta.gd`); en el juego
 `scripts/fisica/PisosCasas.gd`; el trozo alto de los muros va en «PisoAlto» (se esconde desde arriba).
 
@@ -28,13 +29,11 @@ carpintero, pescadero), 6 casas-tienda de artesano (con la posada), 2 pobres, el
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
-1. **El usuario está jugando** (2026-11-13): arreglado el parón de cada hora desde las 12:00 (asientos del restaurante,
-   `VillageRestaurant.seats`). Pide **rehacer por completo el menú de diálogos**: falta que diga cómo lo quiere.
+1. **Que el usuario juegue el Caso I desde el día 2** (parón de cada hora arreglado). Pide **rehacer el menú de
+   diálogos**: falta que diga cómo lo quiere.
 2. **Rendimiento** (prioridad 1 en FALLOS_VISIBLES): pendiente las sombras del sol (duplican el dibujo). Medio.
 3. **Vecinos atascados**: simulaciones a 0; abierto hasta que el usuario lo confirme jugando.
-4. **Interiores que faltan**: taberna (pregunta 0b, mucho), casa de la cantera (`mixed_family_quarry`, sin plano) y
-   restaurante (ya detallado, pero sin plano). 5. **Herrero arriba de la herrería** (pregunta 1: ya es poco trabajo).
-6. **Primera beta para amigos**: pensarla juntos (el borrador `docs/PROPUESTA_BETA.md` aún no existe).
+4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
 **Contexto:** ×5 que queda (`Mapa3D.E`: relieve, lago, ciénaga, mapa del valle) no se ve; quitarlo es mucho. Del 2D solo
 quedan 6 dibujos planos ya apagados. Pesca, huerto, corral y campamento borrados: se rehacen en 3D tras el Caso I.
 

@@ -179,8 +179,9 @@ var _church_altar_pos: Vector2 = Marca.mundo(ID_CAPILLA, Marca.ALTAR)
 const SITIO_PUERTA_CEMENTERIO := "puerta_cementerio"
 const SITIO_ENTIERRO := "entierro" ## donde se cava la fosa del siguiente entierro
 const SITIO_PLAZA_ESPERA := "plaza_espera" ## donde espera quien llega a un oficio sin puesto
-const SITIO_PISTA_CLARO := "pista_claro" ## orilla de barro rojo junto al molino (pista del Caso I)
-const PISTA_CLARO_RADIO: float = 150.0 ## 30 px del mapa de antes, estirado ×5 como el campo abierto
+## Orilla de barro rojo junto al molino (pista del Caso I): la misma cruz que su zona de [E] y que el barro dibujado.
+const SITIO_BARRO_ROJO_PISTA := "barro_rojo_molino"
+const BARRO_ROJO_RADIO: float = 60.0 ## ~3,4 m: ya está en la orilla, lejos de las pistas de dentro del molino
 var _cemetery_gate_pos := Vector2.ZERO ## en el mundo: cruz de «Sitios», se lee al montar el pueblo
 var _cemetery_burial_pos := Vector2.ZERO ## en el mundo: cruz «entierro» de «Sitios», se lee al montar el pueblo
 var _cemetery_grave_positions: Array[Vector2] = []
