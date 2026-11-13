@@ -509,7 +509,7 @@ func _initialize() -> void:
 		vm.call("_set_door_state", d_man, true, false, true)
 	var cab: Vector2 = C1.cabinet_pos()
 	var walked_cab: bool = await _walk_to_waypoints(pl, stage, [Vector2(1315.0, -408.0), cab + Vector2(0.0, 26.0)], 5.0)
-	var e_cab: Dictionary = await _aim_and_press_e(pl, stage, cab, -0.20, "gabinete")
+	var e_cab: Dictionary = await _aim_and_press_e(pl, stage, cab, -0.20, "gabinete", true)
 	var note_cab: bool = _has_note_with_source(det_ui, "clue_case1_forced_cabinet")
 	await _save_shot("02_mansion_gabinete_forzado_v2")
 	_record("D3_mansion_gabinete_forzado", walked_mansion and walked_cab and bool(e_cab["ok"]) and note_cab,
@@ -567,7 +567,7 @@ func _initialize() -> void:
 	var walked_in2: bool = await _walk_to_waypoints(pl, stage, [Vector2(915.0, 120.0), Vector2(942.0, 124.0)], 5.0)
 	print("[CASO1] D5 dentro: pos=%s ok=%s puerta=%s" % [str(pl.global_position.round()), str(walked_in2), str(not d_pol2.is_empty())])
 	walked_accuse = walked_accuse and walked_in2
-	var rep_e: Dictionary = await _aim_and_press_e(pl, stage, C1.report_pos(), -0.30, "informe")
+	var rep_e: Dictionary = await _aim_and_press_e(pl, stage, C1.report_pos(), -0.30, "informe", true)
 	var dm = root.find_child("dialogue_manager", true, false)
 	var form_open: bool = dm != null and bool(dm.call("is_active")) and (dm.get("graph") as Dictionary).has("confirm_young")
 	await _save_shot("05_informe_caso_comisaria_1p")

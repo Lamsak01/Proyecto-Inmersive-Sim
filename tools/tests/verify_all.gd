@@ -6652,7 +6652,7 @@ func _initialize() -> void:
 	assert(b2_vj.is_npc_jailed(vm, b2_culprit), "B2.1: Guard catching an NPC on a night job arrests them")
 	assert("calabozo" in b2_culprit.get_activity_description(), "B2.2: Arrested NPC activity description shows jail status")
 	# 2. Al llegar a la celda queda encerrado tras la reja y el diálogo muestra opciones de visita/fuga
-	b2_culprit.global_position = M(b2_vj._celda_original())
+	b2_culprit.global_position = b2_vj.cell_pos()
 	assert(b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1), "B2.3: Jail step takes control of the inmate's routine")
 	assert(str(b2_vj.get_inmate_record(vm, b2_culprit).get("status", "")) == "jailed", "B2.4: Reaching the cell transitions inmate to jailed status")
 	var b2_aff_diag: int = b2_culprit.affinity
@@ -6666,7 +6666,7 @@ func _initialize() -> void:
 	assert(not b2_vj.is_npc_jailed(vm, b2_culprit), "B2.6: Inmate is released automatically when hours_left reaches 0")
 	# 4. Pagar su fianza al comisario o guardia suma el oro a las arcas municipales (suma cero) y lo libera
 	b2_vj.arrest_npc(vm, b2_culprit, b2_sheriff, "robo nocturno", 24, 30)
-	b2_culprit.global_position = M(b2_vj._celda_original())
+	b2_culprit.global_position = b2_vj.cell_pos()
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
 	var b2_diag_sheriff: Dictionary = b2_sheriff._inject_character_lore_into_dialogue(b2_sheriff._build_dialogue())
 	assert(b2_diag_sheriff.has("jail_bail_confirm_" + b2_culprit.get_person_key()), "B2.7: Sheriff dialogue offers jail_bail_confirm while there are inmates")
@@ -6676,7 +6676,7 @@ func _initialize() -> void:
 	assert(not b2_vj.is_npc_jailed(vm, b2_culprit) and int(p70_inv.gold) == 70 and int(vm.VillageTown.state(vm)["treasury"]) == 80 and b2_culprit.affinity > b2_aff0, "B2.9: Bail payment is strictly zero-sum into municipal treasury, frees the inmate and raises affinity")
 	# 5. Forzar la cerradura para sacarlo: si un guardia está cerca y mira, te buscan por complicidad; sin testigos sale agradecido
 	b2_vj.arrest_npc(vm, b2_culprit, b2_guard, "sabotaje nocturno", 24, 30)
-	b2_culprit.global_position = M(b2_vj._celda_original())
+	b2_culprit.global_position = b2_vj.cell_pos()
 	b2_vj.process_npc_jail_step(vm, b2_culprit, 0.1)
 	var b2_pl_pos_bak: Vector2 = p70_pl.global_position
 	p70_pl.global_position = b2_vj.cell_outside_pos()

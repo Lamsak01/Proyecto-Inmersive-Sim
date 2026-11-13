@@ -1,6 +1,6 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
+const Edificio = preload("res://mapa/edificio.gd")
 const Marca = preload("res://mapa/marca.gd")
 
 ## Justicia: investigaciones del Comisario y del Inquisidor Real, interrogatorios, veredictos y juicio público.
@@ -1647,26 +1647,23 @@ static func get_royal_investigation_detailed_suspects_text(vm: VillageManager) -
 # BLOQUE B2: CALABOZO DE VERDAD (Vecinos detenidos en la celda de la comisaría)
 # ==============================================================================
 const POLICE_ID := "building_police"
-const CELL_SIZE: Vector2 = Vector2(44.0, 32.0) ## tamaño del calabozo en el mapa original, centrado en su marca «celda»
+const CELL_SIZE: Vector2 = Vector2(44.0, 32.0) ## tamaño del calabozo en el plano de la comisaría, centrado en su marca «celda»
 
-## Centro del calabozo en el mapa original: es la marca «celda» de la comisaría (mapa/marca.gd).
-static func _celda_original() -> Vector2:
-	return Marca.sitio(POLICE_ID, Marca.CELDA)
-
-## El calabozo en el mapa original: un rectángulo alrededor de la marca «celda».
-static func _celda_rect() -> Rect2:
-	return Rect2(_celda_original() - CELL_SIZE / 2.0, CELL_SIZE)
+## ¿Está ese punto del mundo dentro del calabozo? Un rectángulo alrededor de la marca «celda», en el plano de la comisaría.
+static func en_celda(p_mundo: Vector2) -> bool:
+	var celda: Rect2 = Rect2(Marca.sitio(POLICE_ID, Marca.CELDA) - CELL_SIZE / 2.0, CELL_SIZE)
+	return celda.has_point(Edificio.a_plano(POLICE_ID, p_mundo))
 
 ## Reja del calabozo en el mundo (marca «celda_puerta»): ahí miran los testigos y ahí suena si se fuerza.
 static func cell_gate_pos() -> Vector2:
-	return _AN_SITIOS.mover(Marca.sitio(POLICE_ID, Marca.CELDA_PUERTA))
+	return Marca.mundo(POLICE_ID, Marca.CELDA_PUERTA)
 
-## Celda y su puerta en el mundo (los números fijos de arriba están en el mapa original).
+## Centro del calabozo en el mundo (marca «celda»).
 static func cell_pos() -> Vector2:
-	return _AN_SITIOS.mover(_celda_original())
+	return Marca.mundo(POLICE_ID, Marca.CELDA)
 
 static func cell_outside_pos() -> Vector2:
-	return _AN_SITIOS.mover(Marca.sitio(POLICE_ID, Marca.CELDA_SALIDA))
+	return Marca.mundo(POLICE_ID, Marca.CELDA_SALIDA)
 
 static func _now_total_hours() -> int:
 	if WorldClock == null:
@@ -1762,7 +1759,7 @@ static func process_npc_jail_step(vm: VillageManager, npc: VillageNPC, delta: fl
 				vm.set_jail_cell_gate_locked(true)
 				npc._spawn_floating_text("🔒⛓️ Encerrado en el calabozo (%dh)" % int(rec.get("hours_left", 24)), Color(0.75, 0.85, 1.0), -40.0)
 		else:
-			if not _celda_rect().has_point(_AN_SITIOS.desmover(npc.global_position)):
+			if not en_celda(npc.global_position):
 				npc.global_position = my_cell_pos
 			npc.velocity = Vector2.ZERO
 			vm.set_jail_cell_gate_locked(true)
@@ -1797,7 +1794,7 @@ static func release_npc(vm: VillageManager, key: String, mode: String = "served"
 		vm.set_jail_cell_gate_locked(false)
 	var npc: VillageNPC = vm._get_npcs_by_person_key().get(key, null)
 	if npc != null and is_instance_valid(npc) and not npc.is_dead:
-		if _celda_rect().has_point(_AN_SITIOS.desmover(npc.global_position)) or _AN_SITIOS.desmover(npc.global_position).distance_to(_celda_original()) <= 32.0:
+		if en_celda(npc.global_position) or npc.global_position.distance_to(cell_pos()) <= 32.0:
 			npc.global_position = cell_outside_pos()
 		npc.velocity = Vector2.ZERO
 		match mode:

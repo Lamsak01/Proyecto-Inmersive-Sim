@@ -19,6 +19,7 @@ const MILL_KIDNAPPERS: Dictionary = {
 	"driver": {"label": "Carretero forastero"},
 }
 const Marca = preload("res://mapa/marca.gd")
+const Edificio = preload("res://mapa/edificio.gd")
 const Sitio = preload("res://mapa/sitio.gd")
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
 const SITIO_CUERPO := "cuerpo_caso1" ## cruz de «Sitios»: dónde aparece el cuerpo en el claro del arroyo
@@ -26,6 +27,7 @@ const SITIO_CLARO := "claro_caso1"   ## cruz de «Sitios»: centro del claro (zo
 const CLARO_RADIO_PX: float = 28.0   ## en el mapa original: a esta distancia del centro se examina el claro
 const POLICE_ID: String = "building_police"
 const MILL_ID: String = "building_abandoned_mill"
+const MANSION_ID: String = "building_mansion"
 const ReportDeskScript = preload("res://scripts/systems/Case1ReportDesk.gd")
 ## Pruebas que se pueden adjuntar al informe (clave del cuaderno → nombre corto).
 const REPORT_EVIDENCE: Dictionary = {
@@ -86,9 +88,9 @@ static func _today() -> int:
 const DIA_DE_MARGEN: int = 1
 
 
-## Bandeja de informes de la comisaría, en el mapa original: su cruz «informe» en la escena del edificio.
+## Bandeja de informes de la comisaría, en el mundo: su cruz «informe» en la escena del edificio.
 static func report_pos() -> Vector2:
-	return Marca.sitio(POLICE_ID, Marca.INFORME)
+	return Marca.mundo(POLICE_ID, Marca.INFORME)
 
 
 const AVISO_AMANECER: String = "🔔 Al amanecer, un pastor ha encontrado a una mujer muerta junto al arroyo, al norte del pueblo. El alguacil Vane te espera allí."
@@ -190,9 +192,9 @@ static func relative_page_pos(vm) -> Vector2:
 	return bed + Vector2(0.0, 24.0) # a los pies de la cama, en el suelo (no encima)
 
 
-## Gabinete de los señores: en el rincón del estudio de la mansión.
+## Gabinete de los señores: en el rincón del estudio de la mansión (marca de su escena), en el mundo.
 static func cabinet_pos() -> Vector2:
-	return load("res://mapa/marca.gd").call("sitio", "building_mansion", "gabinete") # marca de la escena de la mansión
+	return Marca.mundo(MANSION_ID, Marca.GABINETE)
 
 
 # ---------------------------------------------------------------- sincronía con el mundo
@@ -211,20 +213,16 @@ static func sync(vm) -> void:
 		_avisar_inicio(vm, st)
 	# Áreas de [E] (se crean una vez por sesión)
 	if vm.get_node_or_null("Case1CabinetArea") == null:
-		vm._add_station_area("Case1CabinetArea", cabinet_pos(), 20.0, "case1_forced_cabinet")
-		vm._add_prop_collider(cabinet_pos(), Vector2(15.0, 8.5))
-		vm.register_no_stand_furniture(cabinet_pos(), Vector2(16.0, 9.0))
+		vm.add_zona_uso_mundo("Case1CabinetArea", cabinet_pos(), 20.0, "case1_forced_cabinet")
+		vm.choque_en_edificio(MANSION_ID, Marca.sitio(MANSION_ID, Marca.GABINETE), Vector2(15.0, 8.5))
+		vm.no_pisar_mundo(cabinet_pos(), Vector2(16.0, 9.0), Edificio.giro_plano(MANSION_ID))
 	var page_pos: Vector2 = relative_page_pos(vm)
 	if page_pos != Vector2.INF and vm.get_node_or_null("Case1RelativePageArea") == null:
-		var AN_h = load("res://mapa/anclas.gd") # page_pos ya es del mundo: anclas en pausa para no moverlo otra vez
-		AN_h.pausa += 1
-		vm._add_station_area("Case1RelativePageArea", page_pos, 18.0, "case1_relative_page")
-		AN_h.pausa -= 1
+		vm.add_zona_uso_mundo("Case1RelativePageArea", page_pos, 18.0, "case1_relative_page") # a los pies de una cama: ya en el mundo
 		st["page_pos"] = [page_pos.x, page_pos.y]
 	if vm.get_node_or_null("Case1ReportArea") == null:
-		vm._add_station_area("Case1ReportArea", report_pos(), 20.0, "case1_report_desk")
-		vm._add_prop_collider(report_pos(), Vector2(7.0, 5.0))
-		vm.register_no_stand_furniture(report_pos(), Vector2(7.0, 5.0))
+		vm.add_zona_uso_mundo("Case1ReportArea", report_pos(), 20.0, "case1_report_desk")
+		vm.choque_en_edificio(POLICE_ID, Marca.sitio(POLICE_ID, Marca.INFORME), Vector2(7.0, 5.0), true)
 	# Los forasteros se van si el jugador tarda demasiado
 	var start_day: int = int(st.get("start_day", _today()))
 	for k in MILL_KIDNAPPERS.keys():
@@ -248,7 +246,7 @@ static func _sync_kidnappers(vm, st: Dictionary) -> void:
 			continue
 		var kd = MillKidnapperScript.new()
 		vm.entities_root.add_child(kd)
-		kd.setup_kidnapper(str(k), str(MILL_KIDNAPPERS[k]["label"]), load("res://mapa/anclas.gd").mover(Marca.sitio(MILL_ID, Marca.SECUESTRADOR % str(k)))) # su cruz del molino
+		kd.setup_kidnapper(str(k), str(MILL_KIDNAPPERS[k]["label"]), Marca.mundo(MILL_ID, Marca.SECUESTRADOR % str(k))) # su cruz del molino
 		kd.name = node_name
 		kd.gone.connect(func(_r, outcome: String): _on_kidnapper_gone(vm, str(k), outcome))
 
@@ -263,11 +261,10 @@ static func _on_kidnapper_gone(vm, k: String, outcome: String) -> void:
 # ---------------------------------------------------------------- pistas con [E]
 static func try_interact(vm, player: Node2D, pos: Vector2, sel_kind: String) -> bool:
 	var st: Dictionary = state(vm)
-	var o: Vector2 = load("res://mapa/anclas.gd").desmover(pos) # la bandeja y el gabinete están escritos en el mapa original (mapa ×E)
-	if sel_kind == "case1_report_desk" or (sel_kind == "" and o.distance_squared_to(report_pos()) <= 14.0 * 14.0):
+	if sel_kind == "case1_report_desk" or (sel_kind == "" and pos.distance_squared_to(report_pos()) <= 14.0 * 14.0):
 		open_report(vm)
 		return true
-	if sel_kind == "case1_forced_cabinet" or (sel_kind == "" and o.distance_squared_to(cabinet_pos()) <= 16.0 * 16.0):
+	if sel_kind == "case1_forced_cabinet" or (sel_kind == "" and pos.distance_squared_to(cabinet_pos()) <= 16.0 * 16.0):
 		vm._record_case_clue(
 			player,
 			"🗄️ Gabinete",

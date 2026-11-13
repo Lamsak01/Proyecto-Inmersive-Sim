@@ -293,10 +293,10 @@ const EXTRA_PUPIL_STEP: float = 8.0 ## si hay más alumnos que pupitres, se apri
 
 static func desk_pos(i: int) -> Vector2:
 	var tanda: int = int(float(i) / float(DESKS))
-	return Marca.sitio(SCHOOL_ID, DESK_MARK % (i % DESKS + 1)) + Vector2(float(tanda) * EXTRA_PUPIL_STEP, 0.0)
+	return Marca.mundo(SCHOOL_ID, DESK_MARK % (i % DESKS + 1), Vector2(float(tanda) * EXTRA_PUPIL_STEP, 0.0))
 
 static func teacher_pos() -> Vector2:
-	return Marca.sitio(SCHOOL_ID, TEACHER_MARK)
+	return Marca.mundo(SCHOOL_ID, TEACHER_MARK)
 
 static func pupils(vm) -> Array:
 	return VillageNeeds.living(vm).filter(func(n): return is_child(n) and n.person_profile != null and int(n.person_profile.age) >= SCHOOL_AGE)
@@ -319,7 +319,7 @@ static func make_teacher(vm, n) -> void:
 	n.trade_role = VillageNPC.TradeRole.TEACHER
 	n.linked_trade = VillageNPC.TradeRole.TEACHER
 	n.npc_role = "Maestra de la Escuela" if n.person_profile != null and str(n.person_profile.gender) == "F" else "Maestro de la Escuela"
-	n.work_position = vm.sitio(teacher_pos())
+	n.work_position = teacher_pos()
 	vm.unemployed_npcs.erase(n)
 	state(vm)["teacher"] = n.get_person_key()
 	n.add_thought("Me han dado la escuela (+10)", 10.0)
@@ -360,8 +360,8 @@ static func update_school(vm, pay: bool = true) -> void:
 			continue
 		var goes: bool = t != null and n.person_profile != null and int(n.person_profile.age) >= SCHOOL_AGE
 		if goes:
-			n.set_meta("school_pos", vm.sitio(desk_pos(i)))
-			n.work_position = vm.sitio(desk_pos(i))
+			n.set_meta("school_pos", desk_pos(i))
+			n.work_position = desk_pos(i)
 			i += 1
 		else:
 			if n.has_meta("school_pos"):

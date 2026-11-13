@@ -2,6 +2,12 @@
 extends "res://scripts/enemies/VillageNPCBase.gd"
 const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 const _MARCA = preload("res://mapa/marca.gd")
+const _EDIFICIO = preload("res://mapa/edificio.gd")
+const _HOSPITAL_ID := "building_hospital"
+const _CAMA_URGENCIAS_PLANO := Vector2(718.0, 136.0) ## cama de urgencias, en el plano del hospital
+const _MORGUE_ENTREGA_PLANO := Vector2(745.0, 174.0) ## donde se dejan los cadáveres, en el plano del hospital
+const _COMISARIA_ID := "building_police"
+const _COMISARIA_PLANO := Rect2(832.0, 92.0, 166.0, 108.0) ## comisaría y calabozo, en su plano
 
 
 func _finish_frame_movement(delta: float, apply_yield: bool = true) -> void:
@@ -1109,7 +1115,7 @@ func get_activity_description() -> String:
 		return "🔍👑 Investigando Asesinato Real" + sick_tag
 	if trade_role == TradeRole.TRAVELING_MERCHANT:
 		return ("🧳👑 Regresando a las Tierras Reales" if _merchant_leaving else "⚖️👑 Comerciando con Salvoconducto Real") + sick_tag
-	if health_comp and (health_comp.fever >= 45.0 or health_comp.food_poisoning >= 50.0 or health_comp.swamp_sickness >= 50.0) and _AN_SITIOS.desmover(global_position).distance_to(Vector2(718, 136)) <= 32.0:
+	if health_comp and (health_comp.fever >= 45.0 or health_comp.food_poisoning >= 50.0 or health_comp.swamp_sickness >= 50.0) and global_position.distance_to(_cama_urgencias()) <= 32.0:
 		return "🏥 Ingresado en el Hospital tratándose la Fiebre/Infección" + sick_tag
 	match current_activity:
 		ActivityState.SLEEPING:
@@ -1350,4 +1356,14 @@ func get_relationship_color() -> Color:
 
 ## Si no hay ningún policía a mano, se va a la comisaría: su escritorio (marca de la escena), llevado al mundo.
 func _comisaria_pos() -> Vector2:
-	return _AN_SITIOS.mover(_MARCA.sitio("building_police", _MARCA.ESCRITORIO))
+	return _MARCA.mundo(_COMISARIA_ID, _MARCA.ESCRITORIO)
+
+
+## Cama de urgencias del hospital, en el mundo (sigue al hospital movido en el editor).
+func _cama_urgencias() -> Vector2:
+	return _EDIFICIO.a_mundo(_HOSPITAL_ID, _CAMA_URGENCIAS_PLANO)
+
+
+## ¿Está ese punto del mundo dentro de la comisaría?
+func _en_comisaria(p_mundo: Vector2) -> bool:
+	return _COMISARIA_PLANO.has_point(_EDIFICIO.a_plano(_COMISARIA_ID, p_mundo))

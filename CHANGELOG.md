@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: celda, urgencias, mansión del Caso I y escuela (Claude Code)
+- La celda (`VillageJustice.en_celda`), la cama de urgencias y la entrega de la morgue, la comisaría como zona, el
+  armario y el informe del Caso I, el secuestrador, el pupitre y la maestra de la escuela y la silla de la biblioteca
+  salen ya del mundo (`Marca.mundo` / `EdificioEditor.a_mundo`), sin pasar por las anclas.
+- Arreglado: los muebles del Caso I en la mansión se dibujaban fuera de su sitio.
+
+
 ## 2026-11-12 — Mudanza al editor: casa de comidas, hospital, comisaría, capilla, molino, biblioteca, taller y ayuntamiento (Claude Code)
 - Lo de dentro de estos edificios se escribe en su plano y va directo a su pieza (`EdificioEditor.a_mundo`), sin la
   capa de anclas: `Marca.mundo(id, marca, desfase)`, y en VillageManagerBase `choque_en_edificio`, `zona_en_edificio`,

@@ -37,13 +37,13 @@ const FRICTION_REL: int = -40 # Por debajo de esto, coincidir es incómodo
 const GOSSIP_CHANCE: float = 0.5
 
 ## Un lugar con su posición ya en el mundo: los de dentro de un edificio salen de una marca de su escena (en el mapa
-## original, se lleva a donde esté el edificio); los de fuera, de su cruz de «Sitios» (ya en el mundo).
+## plano, llevada a donde esté el edificio); los de fuera, de su cruz de «Sitios» (ya en el mundo).
 static func _actual(p: Dictionary) -> Dictionary:
 	if p.is_empty():
 		return p
 	var q: Dictionary = p.duplicate()
 	if p.has("edificio"):
-		q["pos"] = preload("res://mapa/anclas.gd").mover(Marca.sitio(p["edificio"], p["marca"]))
+		q["pos"] = Marca.mundo(p["edificio"], p["marca"])
 	else:
 		q["pos"] = Sitio.mundo(SITIO_OCIO % str(p["id"]))
 	return q
@@ -176,7 +176,7 @@ static func on_hour(vm, hour: int) -> void:
 		var dest_l: Vector2 = (_actual(p)["pos"] as Vector2) + Vector2(randf_range(-18, 18), randf_range(-6, 10))
 		if str(p["id"]) == "library":
 			var silla: int = absi(n.npc_name.hash() + now) % LIBRARY_CHAIRS + 1
-			dest_l = preload("res://mapa/anclas.gd").mover(Marca.sitio(LIBRARY_ID, Marca.SILLA_LECTURA % silla))
+			dest_l = Marca.mundo(LIBRARY_ID, Marca.SILLA_LECTURA % silla)
 		n.start_errand("leisure", dest_l)
 
 static func _leave(n) -> void:

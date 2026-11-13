@@ -174,7 +174,7 @@ func _process_hospital_care(delta: float) -> bool:
 			needs_hospital_care = true
 		elif health_comp.fever >= 35.0 or health_comp.food_poisoning >= 40.0 or health_comp.swamp_sickness >= 40.0 or health_comp.get_max_wound_infection() >= 25.0:
 			needs_hospital_care = true
-		elif health_comp.has_active_sickness_or_infection() and global_position.distance_to(_AN_SITIOS.mover(Vector2(718, 136))) <= 24.0:
+		elif health_comp.has_active_sickness_or_infection() and global_position.distance_to(_cama_urgencias()) <= 24.0:
 			needs_hospital_care = true
 
 	if needs_hospital_care:
@@ -183,7 +183,7 @@ func _process_hospital_care(delta: float) -> bool:
 			if sprite:
 				sprite.rotation_degrees = 0.0
 		_stop_crafting_bar()
-		var hosp_bed_pos: Vector2 = _AN_SITIOS.mover(Vector2(718, 136)) # plan de sitios: sigue al hospital movido
+		var hosp_bed_pos: Vector2 = _cama_urgencias()
 		if global_position.distance_to(hosp_bed_pos) > 18.0:
 			_move_towards_point(hosp_bed_pos, 46.0, delta)
 		else:
@@ -494,7 +494,7 @@ func _process_corpse_morgue_transport(delta: float) -> bool:
 		_carrying_corpse_target = target_corpse
 		_spawn_floating_text("⚰️ %s recoge el cadáver de %s hacia %s" % [npc_name, target_corpse.npc_name, dest_label], Color.AQUA, -42.0)
 
-	var target_drop_pos: Vector2 = _AN_SITIOS.mover(Vector2(745, 174)) # morgue, sigue al hospital movido
+	var target_drop_pos: Vector2 = _EDIFICIO.a_mundo(_HOSPITAL_ID, _MORGUE_ENTREGA_PLANO) # morgue, sigue al hospital movido
 	if not morgue_has_space and vm_carry and vm_carry.has_method("get_cemetery_burial_target_pos"):
 		target_drop_pos = vm_carry.call("get_cemetery_burial_target_pos")
 	target_corpse.global_position = global_position + Vector2(0, -8)
