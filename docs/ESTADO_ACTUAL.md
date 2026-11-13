@@ -14,7 +14,6 @@ del mundo. Pasos 0 a 3 hechos; **paso 4: puntos 1–3 hechos**.
 - Paso 2 (exteriores), cerrado el 2026-11-11:
   - **Solares** (41, `mapa/solar.gd`, con el Puesto del Paso): ancla por solar con prioridad baja; cubre 16 px más al
     norte y al sur para su letrero. Las casas de solar no tienen pieza y heredan sitio y giro de su solar.
-  - **Mostradores**: `_register_shop_business_stall` recibe la marca en el mapa original.
   - **Zonas** (3, `mapa/zona.gd`: plaza, lago, ciénaga): trozos de campo abierto que se estiran ×5 pero van con su
     pieza (`Anclas.estirar`, `estirar_puntos`, `desestirar`); las usan terreno, relieve, `Agua`, `RioLago` y mapa del valle.
 - Paso 3 (2026-11-12): **Sitios** (86, `mapa/sitio.gd`): cruces al aire libre ya en el mundo (`Sitio.mundo(id)`,
