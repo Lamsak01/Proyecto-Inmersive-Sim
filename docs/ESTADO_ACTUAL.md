@@ -5,7 +5,7 @@
 ## a) Tarea activa
 **PRIORIDAD TOTAL (usuario, 2026-11-12): salir del mapa 2D**. Detención sin atajos hecha (2026-11-13,
 `scripts/systems/EscoltaPolicial.gd`, prueba `tools/tests/escolta_organica.gd`); cola en las puertas hecha; cementerio, lavadero, corral, 2 huertos y valla del lago juntados;
-siguiente: revisar los grupos del río (75, 31 y 26 piezas) con `tools/juntar_decorado.py` (FALLOS punto 5).
+siguiente: barandillas y postes de los 3 puentes pegados a su tablero (FALLOS punto 5; no vale juntar_decorado).
 Migración «el mundo sale solo del editor» (`docs/PLAN_MUNDO_DESDE_EDITOR.md`); una sola sesión de Claude toca el código
 del mundo. Pasos 0 a 4 hechos (corte final 2026-11-12: sin capa de anclas). Queda el paso 5 del plan.
 
