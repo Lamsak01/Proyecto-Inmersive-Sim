@@ -1748,17 +1748,22 @@ func _add_rect_poly(pos: Vector2, half_sz: Vector2, col: Color, z_idx: int = -1,
 
 ## Objetos quietos sin dibujo plano (2026-11-12): una marca invisible dice al 3D (WorldStageProps3D/Terrain3D) qué
 ## poner y dónde; si el objeto choca, se le pone su choque. Sustituye a los dibujos planos que hacían de plano del 3D.
+## `pos` en el mapa ORIGINAL: va a su sitio actual y gira con su ancla.
 func _add_marca_3d(tipo: String, pos: Vector2) -> Node2D:
+	return add_marca_3d_mundo(tipo, Anclas.mover(pos, "dibujo", tipo), Anclas.giro(pos))
+
+## La misma marca con su sitio ya en el mundo (una cruz de «Sitios»); `giro` en grados, como en el editor.
+func add_marca_3d_mundo(tipo: String, pos: Vector2, giro: float = 0.0) -> Node2D:
 	var marca := Node2D.new()
 	marca.name = "Marca3D_" + tipo
-	marca.global_position = Anclas.mover(pos, "dibujo", tipo)
+	marca.global_position = pos
 	marca.set_meta(META_TIPO_3D, tipo)
-	var g_ancla: float = Anclas.giro(pos)
-	if absf(g_ancla) > GIRO_MINIMO_GRADOS:
-		marca.set_meta("giro_3d", g_ancla) # el objeto 3D gira con su ancla
+	var girada: bool = absf(giro) > GIRO_MINIMO_GRADOS
+	if girada:
+		marca.set_meta("giro_3d", giro) # el objeto 3D gira con su pieza
 	entities_root.add_child(marca)
-	if COLISOR_MARCA.has(tipo):
-		_add_prop_collider(pos, COLISOR_MARCA[tipo])
+	if COLISOR_MARCA.has(tipo): # en el plano el giro va al revés que en 3D
+		add_choque_mundo(pos, COLISOR_MARCA[tipo], -deg_to_rad(giro) if girada else 0.0)
 	return marca
 
 ## Letreros del mapa sin amontonarse (2026-11-05): solo se ven los que están cerca del jugador (o bajo el ratón), y si

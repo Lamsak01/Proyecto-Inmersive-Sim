@@ -15500,6 +15500,42 @@ gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "linde_bosque_25"
 
+[node name="poste_1" type="Marker3D" parent="Sitios" unique_id=265321872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -183.4, 0, 3.36)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "poste_1"
+
+[node name="poste_2" type="Marker3D" parent="Sitios" unique_id=673023043]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -282.8, 0, 3.36)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "poste_2"
+
+[node name="poste_3" type="Marker3D" parent="Sitios" unique_id=2078136518]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.2, 0, 162.4)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "poste_3"
+
+[node name="poste_4" type="Marker3D" parent="Sitios" unique_id=1551050537]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 168.448, 0, 37.184)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "poste_4"
+
+[node name="poste_5" type="Marker3D" parent="Sitios" unique_id=1920194282]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -319.2, 0, -6.16)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "poste_5"
+
+[node name="poste_6" type="Marker3D" parent="Sitios" unique_id=440236703]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -414.4, 0, 30.24)
+gizmo_extents = 1.0
+script = ExtResource("35_7jlh3")
+id_sitio = "poste_6"
+
 [node name="Decorado" type="Node3D" parent="." unique_id=384341441]
 
 [node name="Zona_3_0" type="Node3D" parent="Decorado" unique_id=1449909008]
@@ -23397,126 +23433,6 @@ clave = "tablon_plaza"
 pos_original = Vector2(476, 14)
 alto = 14.0
 nombre_visible = "Tablón de encargos"
-
-[node name="sign_1_(1)" type="Node3D" parent="Objetos" unique_id=1073764401]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -183.4, 0, 3.36)
-script = ExtResource("29_bojho")
-clave = "ancla_1"
-pos_original = Vector2(-655, 12)
-alto = 10.0
-nombre_visible = "sign_1 (1)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="🏕️_Campamento_y_Lago_del_Oeste_|_➡️_Cami_(2)" type="Node3D" parent="Objetos" unique_id=1932207614]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -183.4, 0, -2.24)
-script = ExtResource("29_bojho")
-clave = "ancla_2"
-pos_original = Vector2(-655, -8)
-alto = 10.0
-nombre_visible = "🏕️ Campamento y Lago del Oeste | ➡️ Cami (2)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(3)" type="Node3D" parent="Objetos" unique_id=1023306364]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -282.8, 0, 3.36)
-script = ExtResource("29_bojho")
-clave = "ancla_3"
-pos_original = Vector2(-1010, 12)
-alto = 10.0
-nombre_visible = "sign_1 (3)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="⬅️_Oeste_Lejano__Llanura_Salvaje_(N)_y_C_(4)" type="Node3D" parent="Objetos" unique_id=1405016078]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -282.8, 0, -2.24)
-script = ExtResource("29_bojho")
-clave = "ancla_4"
-pos_original = Vector2(-1010, -8)
-alto = 10.0
-nombre_visible = "⬅️ Oeste Lejano  Llanura Salvaje (N) y C (4)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(5)" type="Node3D" parent="Objetos" unique_id=174751049]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.2, -0.11535065, 162.4)
-script = ExtResource("29_bojho")
-clave = "ancla_5"
-pos_original = Vector2(465, 580)
-alto = 10.0
-nombre_visible = "sign_1 (5)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="⬇️_Sendero_al_Bosque_Profundo_del_Sur_(6)" type="Node3D" parent="Objetos" unique_id=587761120]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.2, -0.11535065, 156.8)
-script = ExtResource("29_bojho")
-clave = "ancla_6"
-pos_original = Vector2(465, 560)
-alto = 10.0
-nombre_visible = "⬇️ Sendero al Bosque Profundo del Sur (6)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(7)" type="Node3D" parent="Objetos" unique_id=341864428]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 168.448, 0.24288681, 37.184)
-script = ExtResource("29_bojho")
-clave = "ancla_7"
-pos_original = Vector2(668, 72)
-alto = 10.0
-nombre_visible = "sign_1 (7)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="➡️_Este__🏥_Hospital_y_Morgue_Forense_|_🚓_(8)" type="Node3D" parent="Objetos" unique_id=1967747334]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 187.04, 0.24288681, 14.56)
-script = ExtResource("29_bojho")
-clave = "ancla_8"
-pos_original = Vector2(668, 52)
-alto = 10.0
-nombre_visible = "➡️ Este  🏥 Hospital y Morgue Forense | 🚓 (8)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(9)" type="Node3D" parent="Objetos" unique_id=511867888]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -319.2, 0, -6.16)
-script = ExtResource("29_bojho")
-clave = "ancla_9"
-pos_original = Vector2(-1140, -22)
-alto = 10.0
-nombre_visible = "sign_1 (9)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="🌾_Llanura_Salvaje_del_Noroeste_—_⚠️_Ruin_(10)" type="Node3D" parent="Objetos" unique_id=2006560001]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -319.2, 0, -11.76)
-script = ExtResource("29_bojho")
-clave = "ancla_10"
-pos_original = Vector2(-1140, -42)
-alto = 10.0
-nombre_visible = "🌾 Llanura Salvaje del Noroeste — ⚠️ Ruin (10)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="sign_1_(11)" type="Node3D" parent="Objetos" unique_id=2000562241]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -414.4, 0.13721493, 30.24)
-script = ExtResource("29_bojho")
-clave = "ancla_11"
-pos_original = Vector2(-1480, 108)
-alto = 10.0
-nombre_visible = "sign_1 (11)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="🐸_Ciénaga_de_las_Ranas_del_Suroeste_(12)" type="Node3D" parent="Objetos" unique_id=1769282576]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -414.4, 0, 24.64)
-script = ExtResource("29_bojho")
-clave = "ancla_12"
-pos_original = Vector2(-1480, 88)
-alto = 10.0
-nombre_visible = "🐸 Ciénaga de las Ranas del Suroeste (12)"
-es_ancla = true
-radio_ancla = 12.0
 
 [node name="🪦_Cementerio_Parroquial_del_Alba_(13)" type="Node3D" parent="Objetos" unique_id=552623418]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 267.4, 0.33816472, 68.88)

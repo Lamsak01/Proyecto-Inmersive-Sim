@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: postes indicadores (Claude Code)
+- Los 6 postes de los caminos son cruces «poste_N» de «Sitios» (se mueven y se giran en el editor); su texto sigue
+  en el código, en el mismo orden. Borradas sus 12 anclas viejas de «Objetos». Comprobado: 1.662 cosas, idénticas.
+
 ## 2026-11-12 — Mudanza al editor: anclas viejas del bosque borradas (Claude Code)
 - 89 «anclas» de «Objetos» (setas, hierbas, madrigueras, guaridas, claros, hozaderos y letreros del bosque) ya no
   mandaban nada desde que el bosque sale de «Sitios»: borradas. Comprobado: 1.662 cosas del pueblo, idénticas.

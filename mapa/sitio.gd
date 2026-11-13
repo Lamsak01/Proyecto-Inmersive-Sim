@@ -19,6 +19,7 @@ const LETRERO_VISTO_HASTA_M: float = 120.0
 @export var id_sitio: String = ""
 
 static var _sitios: Dictionary = {} ## id del sitio → posición en el mundo (px del mapa)
+static var _giros: Dictionary = {}  ## id del sitio → giro en grados (eje vertical), para lo que se pone mirando a un lado
 static var _leidos: bool = false
 
 
@@ -50,6 +51,12 @@ static func mundo(id: String) -> Vector2:
 		push_error("SITIOS: falta el sitio «%s» en la carpeta «Sitios» del mapa" % id)
 		return Vector2.ZERO
 	return sitios[id]
+
+
+## Giro de la cruz en grados (eje vertical, como en el editor): un poste o un banco miran hacia donde la gires.
+static func giro(id: String) -> float:
+	_todos()
+	return float(_giros.get(id, 0.0))
 
 
 ## Todos los sitios numerados de una lista (paseo_1, paseo_2…), en orden, en el mundo.
@@ -85,4 +92,5 @@ static func _todos() -> Dictionary:
 				"transform": en_escena = estado.get_node_property_value(i, k)
 		if not id.is_empty():
 			_sitios[id] = Mapa3D.a_mapa(en_escena.origin)
+			_giros[id] = rad_to_deg(en_escena.basis.orthonormalized().get_euler().y)
 	return _sitios

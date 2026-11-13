@@ -6,6 +6,16 @@ const Sitio = preload("res://mapa/sitio.gd")
 const Anclas = preload("res://mapa/anclas.gd")
 ## Farolas de las calles (2026-11-12): cruces «farola_calle_N» del mapa (Sitios), ya en el mundo y movibles en el editor.
 const SERIE_FAROLAS_CALLE := "farola_calle"
+## Postes indicadores: cruces «poste_N» del mapa (Sitios), con su giro; el texto de cada tabla, en el mismo orden.
+const SERIE_POSTES := "poste"
+const TEXTOS_POSTES: Array[String] = [
+	"Campamento y Lago del Oeste · Camino a la Aldea",
+	"Oeste Lejano: Llanura al norte, Ciénaga al sur",
+	"Sendero al Bosque Profundo",
+	"Al este: Hospital, Morgue, Comisaría y Cárcel",
+	"Llanura Salvaje · Cuidado: bandidos",
+	"Ciénaga del Suroeste · Cuidado: bandidos",
+]
 
 ## Construcción inicial del pueblo (caminos, edificios y mobiliario). Extraído de VillageManager.gd:
 ## cada función recibe al VillageManager como primer parámetro (`vm`) y solo se ejecuta al montar el mundo.
@@ -13,22 +23,15 @@ const SERIE_FAROLAS_CALLE := "farola_calle"
 # ==============================================================================
 # RED DE CAMINOS Y BIOMAS EXTERIORES
 # ==============================================================================
-static func _spawn_village_roads_and_plaza(vm: VillageManager) -> void:
-	# El suelo de caminos y plaza es 3D (terreno y «Caminos» del editor); aquí solo quedan los postes indicadores
-	_spawn_world_signpost(vm, Vector2(-655, 12), "Campamento y Lago del Oeste · Camino a la Aldea")
-	_spawn_world_signpost(vm, Vector2(-1010, 12), "Oeste Lejano: Llanura al norte, Ciénaga al sur")
-	_spawn_world_signpost(vm, Vector2(465, 580), "Sendero al Bosque Profundo")
-	_spawn_world_signpost(vm, Vector2(668, 72), "Al este: Hospital, Morgue, Comisaría y Cárcel")
-
-## Poste indicador: su dibujo pasa a 3D (WorldStageProps3D, «sign») con el texto escrito en la tabla (mapa/cartel.gd).
-static func _spawn_world_signpost(vm: VillageManager, pos: Vector2, texto: String) -> void:
-	var poste: Node2D = vm._add_marca_3d("sign", pos)
-	poste.set_meta(Cartel.META_TEXTO, texto)
-
-static func _spawn_western_plains_and_frog_marsh(vm: VillageManager) -> void:
-	# Llanura y ciénaga se ven en 3D (terreno y agua del terreno); aquí solo quedan los postes indicadores
-	_spawn_world_signpost(vm, Vector2(-1140, -22), "Llanura Salvaje · Cuidado: bandidos")
-	_spawn_world_signpost(vm, Vector2(-1480, 108), "Ciénaga del Suroeste · Cuidado: bandidos")
+## Postes indicadores de los caminos (el suelo de caminos, plaza, llanura y ciénaga es 3D): su dibujo es 3D
+## (WorldStageProps3D, «sign») con el texto escrito en la tabla (mapa/cartel.gd).
+static func _spawn_signposts(vm: VillageManager) -> void:
+	var sitios: Array[Vector2] = Sitio.serie(SERIE_POSTES)
+	if sitios.size() != TEXTOS_POSTES.size():
+		push_error("POSTES: hay %d cruces «poste_N» y %d textos" % [sitios.size(), TEXTOS_POSTES.size()])
+	for i in range(mini(sitios.size(), TEXTOS_POSTES.size())):
+		var giro: float = Sitio.giro(Sitio.SERIE % [SERIE_POSTES, i + 1])
+		vm.add_marca_3d_mundo("sign", sitios[i], giro).set_meta(Cartel.META_TEXTO, TEXTOS_POSTES[i])
 
 # EDIFICIO MIXTO #1: GRAN POSADA DE 2 PLANTAS, TABERNA, CASINO Y SÓTANO DE PELEAS
 static func _spawn_tavern_and_rooms(vm: VillageManager) -> void:
