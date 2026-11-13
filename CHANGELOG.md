@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — La Comisaría y Cárcel, de tamaño real (Claude Code)
+- De 8 × 5,4 m a 14 × 9,8 m (nivel 4, de piedra, con la puerta al norte como siempre): sala de guardia con el
+  mostrador junto a la puerta (donde se entrega el informe del Caso I); al fondo el calabozo con su reja corredera de
+  hierro, catre, cubo y taburete; despacho del comisario con teléfono y terminal; archivo de pruebas con la denuncia;
+  dormitorio de guardia, comedor y armería. Sacos terreros y foco recolocados ante la fachada nueva; farola apartada.
+- El juego ya no guarda la reja, el catre ni el sitio ante la celda con números fijos: salen de las marcas del edificio.
+- Probado: rutas de los vecinos sin choques, escolta del preso hasta la celda (la reja cerrada lo retiene), 29
+  puertas y fotos (también con la reja cerrada).
+
 ## 2026-11-13 — El Ayuntamiento, de tamaño real (Claude Code)
 - De 7,2 × 5,4 m a 14 × 9,8 m (nivel 4, de piedra y teja roja, con luz de la red oficial): vestíbulo de punta a punta
   con alfombra, bancos, urna y el mostrador del fondo con el Libro Mayor de los Gremios; despacho del alcalde con

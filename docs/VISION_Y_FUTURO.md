@@ -364,4 +364,4 @@ así que la casa va por el oficio): 1 pobre — leñador y cantera (casa-taller 
 albergue y casas de recién llegados (hechos); 2 artesano — herrero, carnicero, carpintero, pescadero, granja, rancho,
 panadería, sastrería, herbolaria y la «Posada Humilde» de los Candil (hechas); 3 acomodado — el Arreglador (hecha;
 tiene el generador del pueblo); 4 señor y autoridades — mansión (hecha, de una planta: lo de arriba va abajo), casona de los rentistas (hecha, la
-primera de dos plantas: cualquier casa puede tener ya planta alta), ayuntamiento (hecho) y comisaría.
+primera de dos plantas: cualquier casa puede tener ya planta alta), ayuntamiento y comisaría (hechos).
