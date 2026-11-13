@@ -27,16 +27,16 @@ carpintero, pescadero), 6 casas-tienda de artesano (con la posada), 2 pobres, el
   Borrados `mapa/anclas.gd`, la copia `Mundo3D.antes-x5.tscn` y las herramientas de estirar. Las pruebas que escriben
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
-## c) Siguiente paso técnico inmediato
-**Partida automática del Caso I** (`tools/tests/partida_caso1.gd`): 25/25 (2026-11-13); dentro de cada edificio anda por la
-ruta de los vecinos hasta las marcas. Falta verla jugada por el usuario.
-**×5 que queda (decidir con el usuario si se quita):** `Mapa3D.E` solo estira lo que aún está escrito en medidas del
-mapa original: relieve, lago, ciénaga, manchas del mapa del valle (`mapa/zona.gd`). No se ve; quitarlo: mucho y arriesgado.
-**Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
-plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
-sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan 6 dibujos planos, todos ya con su 3D y el plano apagado o pasajero (caja, barril, muro débil y espada de `World.tscn`; 2 textos): al jugar no se ve nada plano.
-**Pesca, huerto, gallinero, campamento, corral y huerto de casa borrados (2026-11-12)**: se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd` (lee el río del editor 3D).
-Red eléctrica: generador del Arreglador (lo dibuja su casa); farolas solo de noche. Mapa del valle: ya sale de las piezas del editor.
+## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
+1. **Que el usuario juegue**: Caso I entero (automático `partida_caso1.gd` 25/25), escolta a la celda, restaurante y
+   edificios agrandados. Lo que cuente, a `docs/FALLOS_VISIBLES.md`. Recomendado antes que lo demás.
+2. **Rendimiento** (prioridad 1 en FALLOS_VISIBLES): pendiente las sombras del sol (duplican el dibujo). Medio.
+3. **Vecinos atascados**: simulaciones a 0; abierto hasta que el usuario lo confirme jugando.
+4. **Interiores que faltan**: taberna (pregunta 0b, mucho), casa de la cantera (`mixed_family_quarry`, sin plano) y
+   restaurante (ya detallado, pero sin plano). 5. **Herrero arriba de la herrería** (pregunta 1: ya es poco trabajo).
+6. **Primera beta para amigos**: pensarla juntos (el borrador `docs/PROPUESTA_BETA.md` aún no existe).
+**Contexto:** ×5 que queda (`Mapa3D.E`: relieve, lago, ciénaga, mapa del valle) no se ve; quitarlo es mucho. Del 2D solo
+quedan 6 dibujos planos ya apagados. Pesca, huerto, corral y campamento borrados: se rehacen en 3D tras el Caso I.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). «No two conscious villagers may overlap» (puerta del restaurante): mejorado el 2026-11-13 (cola en las puertas); con 6 vecinos a la vez aún se juntan algo.
