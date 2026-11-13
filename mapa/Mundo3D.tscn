@@ -13676,8 +13676,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 305.2, 0.5495177, 39.2)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_shelter"
 centro_original = Vector2(1090, 140)
-planta_m = Vector2(6.272, 4.368)
-puerta_ancho_m = 2.128
+planta_m = Vector2(11.2, 8.4)
+puerta_ancho_m = 1.4
 
 [node name="mixed_family_tinker" type="Node3D" parent="Edificios" unique_id=273594131 instance=ExtResource("26_62f8m")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 344.4, 0.5495177, 39.2)
