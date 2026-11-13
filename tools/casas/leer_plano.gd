@@ -2,7 +2,8 @@ extends RefCounted
 
 ## Lee un plano de casa (tools/casas/plano_*.gd) como diccionario para el constructor (2026-11-13). Un mismo plano
 ## sirve para varias casas: `id` pone otro dueño y `espejo` da la vuelta este-oeste (los dormitorios al otro lado),
-## así dos casas vecinas hechas por el mismo albañil no son calcadas.
+## así dos casas vecinas hechas por el mismo albañil no son calcadas. `POR_OFICIO` (opcional) añade los muebles propios
+## del oficio de cada casa.
 
 const CAMPOS: Array[String] = [
 	"ID", "PLANTA_M", "PUERTA_X_M", "PUERTA_ANCHO_M", "VENTANA_X_M", "CARTEL_M", "FACHADA", "TABIQUE", "MADERA",
@@ -21,6 +22,9 @@ static func leer(guion: GDScript, id: String = "", espejo: bool = false) -> Dict
 		plano[campo] = valor.duplicate(true) if valor is Array or valor is Dictionary else valor # el plano no se toca
 	if not id.is_empty():
 		plano["ID"] = id
+	var por_oficio: Dictionary = constantes.get("POR_OFICIO", {})
+	for extra: Dictionary in por_oficio.get(plano["ID"], []):
+		(plano["MUEBLES"] as Array).append(extra.duplicate(true)) # lo propio del oficio de esta casa (horno, maniquí…)
 	if espejo:
 		_dar_la_vuelta(plano)
 	return plano

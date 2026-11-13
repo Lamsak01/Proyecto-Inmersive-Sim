@@ -8,6 +8,7 @@ const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const Cascaron = preload("res://tools/casas/cascaron_casa.gd")
 const Cosas = preload("res://tools/casas/cosas_casa.gd")
 const Pobre = preload("res://tools/casas/cosas_casa_pobre.gd")
+const Oficio = preload("res://tools/casas/cosas_oficio.gd")
 const Juntar = preload("res://tools/casas/juntar_casa.gd")
 const PARTES = preload("res://scripts/visuals/PartesEdificio3D.gd")
 const EDIFICIO_GD = preload("res://mapa/edificio.gd")
@@ -141,6 +142,8 @@ static func _dibujar_cosa(pieza: Node3D, m: Dictionary) -> void:
 			Pobre.tina(pieza)
 		"tajo":
 			Pobre.tajo(pieza)
+		"horno":
+			Oficio.horno(pieza)
 		"radio_galena":
 			Pobre.radio_galena(pieza)
 		"linterna":

@@ -749,11 +749,6 @@ func _route_internal_plano(b_id: String, from_pos: Vector2, target_pos: Vector2)
 	if RutaCuartos.tiene(b_id):
 		return RutaCuartos.siguiente(b_id, from_pos, target_pos)
 	match b_id:
-		"mixed_family_herbalist":
-			if from_pos.y > 156.0 and target_pos.y < 162.0:
-				return Vector2(325.0, 171.0 if absf(from_pos.x - 325.0) > 9.0 else 145.0)
-			elif from_pos.y < 162.0 and target_pos.y > 156.0:
-				return Vector2(325.0, 145.0 if absf(from_pos.x - 325.0) > 9.0 else 171.0)
 		"building_hospital":
 			if from_pos.y < 149.0 and target_pos.y > 155.0:
 				return Vector2(745.0, 138.0 if absf(from_pos.x - 745.0) > 16.0 else 163.0)

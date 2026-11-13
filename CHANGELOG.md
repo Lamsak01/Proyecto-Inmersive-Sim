@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Casas-tienda de artesano: panadería, sastrería, herbolaria, granja y rancho (Claude Code)
+- Las cinco pasan a 12,6 × 9 m: sala-cocina con estufa, bomba de agua, mesa, radio y el mostrador junto a la puerta;
+  dos dormitorios con quinqué; taller con bombilla y lo de cada oficio (horno de pan, maniquí, caldero de hierbas,
+  cajas de verdura, cubos); aseo con bañera de cinc; letrina fuera. Dos de ellas al revés.
+- Apartados adornos, cajas y sitios de paseo que caían dentro; el árbol de la herbolaria deja libre la puerta.
+  Probado: 29 puertas y 210 trayectos dentro de las 5 casas sin chocar ni atascarse.
+
 ## 2026-11-13 — Casas pobres de tamaño real: el leñador y la cantera (Claude Code)
 - Casa-taller de 11,2 × 8,4 m: sala con lumbre de piedra, mesa con vela y barril de agua; dos dormitorios con vela;
   taller con banco, tajo y leña; aseo con tina de madera; letrina fuera. Su poco de técnica: linterna de dinamo,
