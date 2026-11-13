@@ -51,38 +51,40 @@ func _ready() -> void:
 	add_child(l)
 
 
-## Posición del objeto en el mapa 2D: la de siempre, o la nueva si el usuario lo movió en el editor.
-static var _cache: Dictionary = {}
+## Sitio y giro de cada objeto con clave, ya en el mundo: donde lo dejó el usuario en el editor. Nadie los traduce.
+static var _sitios: Dictionary = {} ## clave → posición en el mundo (px del mapa)
+static var _giros: Dictionary = {}  ## clave → giro en grados (eje vertical)
 static var _leido: bool = false
 
-static func pos(clave_obj: String, por_defecto: Vector2) -> Vector2:
-	if not _leido:
-		_leido = true
-		_cache = _leer()
-	if not _cache.has(clave_obj) or Mapa3D.E != 1.0:
-		return por_defecto # mapa estirado: el ancla del objeto (mapa/anclas.gd) lo lleva a su sitio
-	return por_defecto + (_cache[clave_obj] as Vector2)
+static func mundo(clave_obj: String) -> Vector2:
+	_leer()
+	if not _sitios.has(clave_obj):
+		push_error("OBJETOS: falta la pieza con clave «%s» en la carpeta «Objetos» del mapa" % clave_obj)
+		return Vector2.ZERO
+	return _sitios[clave_obj]
 
 
-static func _leer() -> Dictionary:
-	var out := {}
+static func giro(clave_obj: String) -> float:
+	_leer()
+	return float(_giros.get(clave_obj, 0.0))
+
+
+static func _leer() -> void:
+	if _leido:
+		return
+	_leido = true
 	if not ResourceLoader.exists(ESCENA):
-		return out
+		return
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
 	for i in range(st.get_node_count()):
 		if not str(st.get_node_path(i)).begins_with("./Objetos/"):
 			continue
 		var k := ""
-		var orig := Vector2.ZERO
 		var xf := Transform3D.IDENTITY
 		for j in range(st.get_node_property_count(i)):
 			match st.get_node_property_name(i, j):
 				"clave": k = String(st.get_node_property_value(i, j))
-				"pos_original": orig = st.get_node_property_value(i, j)
 				"transform": xf = st.get_node_property_value(i, j)
-		if k.is_empty():
-			continue
-		var d := Mapa3D.a_mapa(xf.origin) - orig
-		if d.length() > 0.5:
-			out[k] = d
-	return out
+		if not k.is_empty():
+			_sitios[k] = Mapa3D.a_mapa(xf.origin)
+			_giros[k] = rad_to_deg(xf.basis.orthonormalized().get_euler().y)

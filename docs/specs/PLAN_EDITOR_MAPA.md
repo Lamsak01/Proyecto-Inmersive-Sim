@@ -68,10 +68,10 @@ ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles,
 
 ## Hecho (paso 6, 2026-11-10: objetos con uso — primera tanda)
 - `Mundo3D.tscn` → «Objetos»: piezas `mapa/objeto.gd` (clave, pos_original, modelo de muestra). En el código, cada objeto pide
-  su sitio con `ObjetoEditor.pos(clave, posición_de_siempre)` y se crea donde esté la pieza, con todo su uso: así se movió
+  su sitio con `ObjetoEditor.mundo(clave)` (desde 2026-11-12) y se crea donde esté la pieza, con todo su uso: así se movió
   el objeto de verdad (2D + 3D), no solo su dibujo. Probado moviendo una farola y un pozo 100 px.
 - Pasados: 6 farolas (`farola_0..5`), pozos de la granja, taberna y plaza, tablón de encargos de la plaza.
-- Para pasar más: usar `ObjetoEditor.pos()` donde se crea el objeto y añadir su clave a `tools/hornear_objetos.gd`
+- Para pasar más: añadir la pieza a «Objetos» con su `clave` y leerla con `ObjetoEditor.mundo(clave)` (ya en el mundo).
   (solo añade las que falten; luego ejecutarlo).
 - Quedan por pasar: el pozo de las afueras (610, -735), cofres, puestos, campamento, compostador, objetos de los barrios, alcantarillas.
 

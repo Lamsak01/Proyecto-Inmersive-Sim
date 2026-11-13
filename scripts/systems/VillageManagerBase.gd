@@ -223,7 +223,12 @@ var building_windows: Array[Dictionary] = []
 var recent_breakins_count: int = 0
 
 # Paso 5: Tablón de Encargos en la Plaza Central
-var _notice_board_pos := Vector2(476, 14)
+## Tablón y pozos: sitio en el mundo de su pieza de «Objetos» (mapa/objeto.gd), leído al montar el pueblo.
+const OBJETO_TABLON := "tablon_plaza"
+const OBJETO_POZO_GRANJA := "pozo_granja"
+const OBJETO_POZO_TABERNA := "pozo_taberna"
+const OBJETO_POZO_PLAZA := "pozo_plaza"
+var _notice_board_pos := Vector2.ZERO
 var completed_contracts_today: Dictionary = {}
 
 # Paso 10: Farolas Eléctricas del Pueblo
@@ -236,12 +241,10 @@ var _tavern_bed_pos := VillageTavern.sitio(VillageTavern.M_CAMA_JUGADOR)
 var _tavern_social_pos := VillageTavern.sitio(VillageTavern.M_MESA_CENTRAL)
 var _tavern_games_pos := VillageTavern.sitio(VillageTavern.M_POKER)
 var _tavern_pool_pos := VillageTavern.sitio(VillageTavern.M_BILLAR)
-var _well_pos := Vector2(184, 82)
-var _tavern_well_pos := VillageTavern.WELL_POS
-var _plaza_well_pos := Vector2(416, 62)
-var _well_positions: Array[Vector2] = [Vector2(184, 82), VillageTavern.WELL_POS, Vector2(416, 62)] # en el mundo tras construir
-var _tablon_mundo_cache := Vector2.ZERO
-var _tablon_mundo_de := Vector2.ZERO
+var _well_pos := Vector2.ZERO
+var _tavern_well_pos := Vector2.ZERO
+var _plaza_well_pos := Vector2.ZERO
+var _well_positions: Array[Vector2] = [] # en el mundo: los tres de arriba y los de las rondas
 var _compost_pos := Vector2(-706, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
@@ -931,13 +934,6 @@ func _slide_or_stay(prev_pos: Vector2, candidate_pos: Vector2, elev: int, allow_
 	return prev_pos
 
 ## Garantiza que el empuje de separación entre vecinos nunca meta a nadie dentro de un muro, edificio o pozo.
-## Tablón de la plaza en el mundo, cacheado: se consulta cada cuadro por cada vecino que anda.
-func _tablon_mundo() -> Vector2:
-	if _tablon_mundo_de != _notice_board_pos:
-		_tablon_mundo_de = _notice_board_pos
-		_tablon_mundo_cache = sitio(_notice_board_pos)
-	return _tablon_mundo_cache
-
 
 func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0, allow_slide: bool = true) -> Vector2:
 	if elev == 1:
@@ -1006,10 +1002,10 @@ func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev
 			if away_w.length_squared() > 0.01:
 				return w_pos + away_w.normalized() * 18.0
 			return prev_pos
-	if _notice_board_pos != Vector2.ZERO and candidate_pos.distance_squared_to(_tablon_mundo()) < 14.0 * 14.0:
-		var away_nb: Vector2 = candidate_pos - _tablon_mundo()
+	if _notice_board_pos != Vector2.ZERO and candidate_pos.distance_squared_to(_notice_board_pos) < 14.0 * 14.0:
+		var away_nb: Vector2 = candidate_pos - _notice_board_pos
 		if away_nb.length_squared() > 0.01:
-			return _tablon_mundo() + away_nb.normalized() * 14.0
+			return _notice_board_pos + away_nb.normalized() * 14.0
 		return prev_pos
 	return candidate_pos
 
@@ -1353,8 +1349,12 @@ func marcar_bajo_el_agua(area: Area2D) -> Area2D:
 	area.set_meta("bajo_el_agua", true)
 	return area
 
+## Zona de uso pedida en el mapa ORIGINAL: va a su sitio actual.
 func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
-	pos = Anclas.mover(pos, "zona", area_name)
+	return add_zona_uso_mundo(area_name, Anclas.mover(pos), radius, meta_tag)
+
+## Zona de uso (donde se pulsa [E]) con su sitio ya en el mundo (sale de una pieza del editor).
+func add_zona_uso_mundo(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
 	var area := Area2D.new()
 	if area_name != "":
 		area.name = area_name
@@ -1750,7 +1750,7 @@ func _add_rect_poly(pos: Vector2, half_sz: Vector2, col: Color, z_idx: int = -1,
 ## poner y dónde; si el objeto choca, se le pone su choque. Sustituye a los dibujos planos que hacían de plano del 3D.
 ## `pos` en el mapa ORIGINAL: va a su sitio actual y gira con su ancla.
 func _add_marca_3d(tipo: String, pos: Vector2) -> Node2D:
-	return add_marca_3d_mundo(tipo, Anclas.mover(pos, "dibujo", tipo), Anclas.giro(pos))
+	return add_marca_3d_mundo(tipo, Anclas.mover(pos), Anclas.giro(pos))
 
 ## La misma marca con su sitio ya en el mundo (una cruz de «Sitios»); `giro` en grados, como en el editor.
 func add_marca_3d_mundo(tipo: String, pos: Vector2, giro: float = 0.0) -> Node2D:

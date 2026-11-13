@@ -27,11 +27,12 @@ func setup_village(target_entities_root: Node) -> void:
 		"family_herbalist": 4, "family_hospital": 3, "family_police": 4, "family_tavern": 5
 	}
 
-	# Editor del mapa 3D (2026-11-10): objetos con uso que el usuario puede mover en mapa/Mundo3D.tscn → «Objetos»
-	_notice_board_pos = ObjetoEditor.pos("tablon_plaza", _notice_board_pos)
-	_well_pos = ObjetoEditor.pos("pozo_granja", _well_pos)
-	_tavern_well_pos = ObjetoEditor.pos("pozo_taberna", _tavern_well_pos)
-	_plaza_well_pos = ObjetoEditor.pos("pozo_plaza", _plaza_well_pos)
+	# Objetos con uso que el usuario mueve en mapa/Mundo3D.tscn → «Objetos»: su sitio ya es el del mundo
+	_notice_board_pos = ObjetoEditor.mundo(OBJETO_TABLON)
+	_well_pos = ObjetoEditor.mundo(OBJETO_POZO_GRANJA)
+	_tavern_well_pos = ObjetoEditor.mundo(OBJETO_POZO_TABERNA)
+	_plaza_well_pos = ObjetoEditor.mundo(OBJETO_POZO_PLAZA)
+	_well_positions = [_well_pos, _tavern_well_pos, _plaza_well_pos]
 	VillageWorldBuilder._spawn_signposts(self)
 	VillageWorldBuilder._spawn_tavern_and_rooms(self)
 	VillageWorldBuilder._spawn_five_family_houses_and_trades(self)
@@ -580,7 +581,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 2. Tablón de Encargos de la Plaza
-	if pos.distance_squared_to(sitio(_notice_board_pos)) <= 28.0 * 28.0:
+	if pos.distance_squared_to(_notice_board_pos) <= 28.0 * 28.0:
 		_open_notice_board_ui()
 		return
 
@@ -1508,11 +1509,6 @@ func _sitios_repaso(AN) -> void:
 	_sitios_cfg(AN)
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		sitios_traducir_npc(n)
-	# Pozos: la lista de pozos es del mundo (se compara con posiciones reales); los tres fijos van por las anclas
-	if _well_positions.size() >= 3:
-		_well_positions[0] = sitio(_well_pos)
-		_well_positions[1] = sitio(_tavern_well_pos)
-		_well_positions[2] = sitio(_plaza_well_pos)
 
 
 ## Traduce una vez los sitios de un vecino creado con coordenadas del mapa original.
@@ -1541,7 +1537,7 @@ func _anclas_repaso_final() -> void:
 			continue # bajo tierra y sus trampillas ya se colocan solos (VillageClub / VillageUnderworld)
 		var p0: Vector2 = (c as Node2D).global_position
 		var a_obj: Dictionary = AN.buscar(p0)
-		var p1: Vector2 = AN.mover(p0, "objeto", f.get_basename() + ":" + String(c.name))
+		var p1: Vector2 = AN.mover(p0)
 		var d := p1 - p0
 		if d == Vector2.ZERO:
 			continue

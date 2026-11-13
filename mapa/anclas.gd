@@ -30,8 +30,6 @@ const GRUPOS: Dictionary = {
 static var _anclas: Array = [] # {"rect": Rect2} o {"centro": Vector2, "radio": float}, con "c", "d": Vector2, "g": grados, "m": Transform2D
 static var _leidas: bool = false
 static var pausa: int = 0 # mientras se construye un edificio (ya se desplaza solo) no se aplican
-static var grabar: bool = false # tools/hornear_objetos.gd: anota lo que se crea para hacer piezas
-static var grabado: Array = [] # [tipo, nombre, pos]
 
 static var _muebles: Array = [] # muebles movidos dentro de su edificio (mapa/mueble.gd), en coordenadas originales
 static var _zonas: Array = []      # zonas de terreno (mapa/zona.gd): se estiran E veces y van con su pieza
@@ -306,9 +304,7 @@ static func desplazamiento(p: Vector2) -> Vector2:
 	return aplicar(buscar(p), p) - p
 
 
-static func mover(p: Vector2, tipo: String = "", nombre: String = "") -> Vector2:
-	if grabar and pausa == 0 and not tipo.is_empty():
-		grabado.append([tipo, nombre, p])
+static func mover(p: Vector2) -> Vector2:
 	return p + desplazamiento(p)
 
 

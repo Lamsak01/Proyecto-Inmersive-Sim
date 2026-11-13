@@ -176,7 +176,7 @@ func _initialize() -> void:
 	assert(not bool(p_hc_w.wounds[0].get("clean", false)), "Fresh wound starts uncleaned")
 
 	# Move player within 1.5m (24 px) of the Tavern Back Well (`M(Vector2(440, -306))`)
-	player.global_position = M(vm._tavern_well_pos) + Vector2(0, 20)
+	player.global_position = vm._tavern_well_pos + Vector2(0, 20)
 	assert(player.is_near_water_source(2.0), "Player at 20px (~1.25m) from Tavern Well must be detected as <=2m from water source")
 	var water_before: int = p_inv.get_count("clean_water")
 	var med_ui = root.find_child("MedicalPanel", true, false)
@@ -212,7 +212,7 @@ func _initialize() -> void:
 	assert(not bool(p_hc_w.wounds[0].get("clean", false)), "Cannot wash wound without clean_water when >2m from water source")
 
 	# Refill empty_flasks at the Plaza Well (`_plaza_well_pos`)
-	player.global_position = M(vm._plaza_well_pos)
+	player.global_position = vm._plaza_well_pos
 	vm._use_water_well(player)
 	assert(p_inv.get_count("empty_flask") == 0 and p_inv.get_count("clean_water") >= 2, "Interacting with Plaza Well must fill all empty_flasks into clean_water!")
 

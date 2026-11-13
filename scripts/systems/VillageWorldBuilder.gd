@@ -3,9 +3,11 @@ extends RefCounted
 const Marca = preload("res://mapa/marca.gd")
 const Cartel = preload("res://mapa/cartel.gd")
 const Sitio = preload("res://mapa/sitio.gd")
-const Anclas = preload("res://mapa/anclas.gd")
 ## Farolas de las calles (2026-11-12): cruces «farola_calle_N» del mapa (Sitios), ya en el mundo y movibles en el editor.
 const SERIE_FAROLAS_CALLE := "farola_calle"
+const ObjetoEditor = preload("res://mapa/objeto.gd")
+const OBJETO_FAROLA := "farola_%d"  ## las 6 farolas de la plaza que son piezas de «Objetos» (Farola_1…6)
+const FAROLAS_OBJETO: int = 6
 ## Postes indicadores: cruces «poste_N» del mapa (Sitios), con su giro; el texto de cada tabla, en el mismo orden.
 const SERIE_POSTES := "poste"
 const TEXTOS_POSTES: Array[String] = [
@@ -395,35 +397,27 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 # PASO 5: 📋 TABLÓN DE ENCARGOS EN LA PLAZA CENTRAL (`Vector2(465, 24)`)
 # ==============================================================================
 static func _spawn_notice_board_in_plaza(vm: VillageManager) -> void:
-	vm._add_prop_collider(vm._notice_board_pos, vm.COLISOR_TABLON) # el tablón se ve en 3D
-	vm._add_station_area("PlazaNoticeBoardArea", vm._notice_board_pos, 14.0, "notice_board")
+	vm.add_choque_mundo(vm._notice_board_pos, vm.COLISOR_TABLON, 0.0) # el tablón se ve en 3D
+	vm.add_zona_uso_mundo("PlazaNoticeBoardArea", vm._notice_board_pos, 14.0, "notice_board")
 
 # ==============================================================================
 # PASO 10: ⚡ FAROLAS ELÉCTRICAS EN LAS CALLES DEL PUEBLO (`lamp-post1.png`)
 # ==============================================================================
 static func _spawn_electric_streetlights(vm: VillageManager) -> void:
-	var lamp_positions: Array[Vector2] = [Vector2(215, 36), Vector2(392, 10), Vector2(534, 10), Vector2(396, -118), Vector2(692, 88), Vector2(862, 88)]
-	for li in range(lamp_positions.size()):
-		var l_pos: Vector2 = load("res://mapa/objeto.gd").pos("farola_%d" % li, lamp_positions[li])
-		vm._add_prop_collider(l_pos, vm.COLISOR_TABLON)
-		vm.streetlights.append({"pos": vm.sitio(l_pos)}) # sitio en el mundo; la farola 3D sale de aquí
-	for f_pos in Sitio.serie(SERIE_FAROLAS_CALLE):
-		vm._add_prop_collider(Anclas.desmover(f_pos), vm.COLISOR_TABLON) # el choque aún se pide en el mapa original
+	# Las 6 primeras son piezas «Farola» de «Objetos»; las demás, cruces de «Sitios». La farola 3D sale de aquí
+	var sitios: Array[Vector2] = []
+	for li in range(FAROLAS_OBJETO):
+		sitios.append(ObjetoEditor.mundo(OBJETO_FAROLA % li))
+	for f_pos in sitios + Sitio.serie(SERIE_FAROLAS_CALLE):
+		vm.add_choque_mundo(f_pos, vm.COLISOR_TABLON, 0.0)
 		vm.streetlights.append({"pos": f_pos})
 
 static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
-	vm._well_positions = [vm.sitio(vm._well_pos), vm.sitio(vm._tavern_well_pos), vm.sitio(vm._plaza_well_pos)] # del mundo: se compara con posiciones reales
-
-	vm._add_marca_3d("well", vm._well_pos)
-	vm._add_station_area("WaterWellArea", vm._well_pos, 24.0, "well")
-
-	# Pozo en el Patio Lateral de la Gran Posada ('El Jabalí Dorado')
-	vm._add_marca_3d("well", vm._tavern_well_pos)
-	vm._add_station_area("TavernWaterWellArea", vm._tavern_well_pos, 24.0, "well")
-
-	# Pozo en la Plaza Central del Pueblo
-	vm._add_marca_3d("well", vm._plaza_well_pos)
-	vm._add_station_area("PlazaWaterWellArea", vm._plaza_well_pos, 24.0, "well")
+	# Pozos de la granja, del patio de la posada y de la plaza: su sitio y su giro, de su pieza de «Objetos»
+	for pozo: Array in [[vm.OBJETO_POZO_GRANJA, "WaterWellArea"], [vm.OBJETO_POZO_TABERNA, "TavernWaterWellArea"], [vm.OBJETO_POZO_PLAZA, "PlazaWaterWellArea"]]:
+		var w_pos: Vector2 = ObjetoEditor.mundo(pozo[0])
+		vm.add_marca_3d_mundo("well", w_pos, ObjetoEditor.giro(pozo[0]))
+		vm.add_zona_uso_mundo(pozo[1], w_pos, 24.0, "well")
 
 	vm._compost_marca = vm._add_marca_3d("compost", vm._compost_pos)
 	vm._compost_area = vm._add_station_area("CompostBinArea", vm._compost_pos, 16.0, "compost")

@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: pozos, tablón y farolas leen su pieza (Claude Code)
+- Los 3 pozos, el tablón de encargos y las 6 farolas de la plaza toman su sitio (y giro) directamente de su pieza de
+  «Objetos», ya en el mundo; sin traducir. Borrada la herramienta vieja que creaba esas piezas.
+- Arreglado: el choque de las 47 farolas de las calles no caía bajo la farola (se traducía dos veces); ahora sí.
+- Arreglado: la pieza del tablón estaba a 2 m de su dibujo; puesta encima. Los vecinos que charlan junto a los pozos y
+  el tablón se ponen a su lado (antes, a unos 6 m).
+
 ## 2026-11-12 — Mudanza al editor: postes indicadores (Claude Code)
 - Los 6 postes de los caminos son cruces «poste_N» de «Sitios» (se mueven y se giran en el editor); su texto sigue
   en el código, en el mismo orden. Borradas sus 12 anclas viejas de «Objetos». Comprobado: 1.662 cosas, idénticas.

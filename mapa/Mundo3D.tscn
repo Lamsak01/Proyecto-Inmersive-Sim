@@ -23427,7 +23427,7 @@ modelo = "exterior/Well.obj"
 nombre_visible = "Pozo de la plaza"
 
 [node name="Tablón_de_encargos" type="Node3D" parent="Objetos" unique_id=1219725082]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 133.28, 0.25362355, 3.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.48, 0.25362355, 3.92)
 script = ExtResource("29_bojho")
 clave = "tablon_plaza"
 pos_original = Vector2(476, 14)

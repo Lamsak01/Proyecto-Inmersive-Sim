@@ -104,7 +104,6 @@ static func _lista(marca: String, cuantas: int) -> Array:
 	return _listas[marca]
 
 const BAR_COUNTER_SIZE: Vector2 = Vector2(108.0, 10.0)
-const WELL_POS: Vector2 = Vector2(228.0, -230.0)           # Pozo en el patio lateral oeste
 
 ## Escalera real entre Planta 0 y Planta +1 y Trampilla al Sótano (-1)
 const STAIRS_BOTTOM_POS: Vector2 = Vector2(576.0, -284.0)  # Pie de la escalera en Planta 0 (sala noreste)
@@ -155,7 +154,6 @@ static func setup_world(vm) -> void:
 	vm._tavern_games_pos = sitio(M_POKER)
 	vm._tavern_pool_pos = sitio(M_BILLAR)
 	vm._tavern_bed_pos = sitio(M_CAMA_JUGADOR)
-	vm._tavern_well_pos = preload("res://mapa/objeto.gd").pos("pozo_taberna", WELL_POS) # editor del mapa: el pozo movido manda
 
 	var tex_innkeeper: Texture2D = vm._load_tex("res://assests/world/village/villager_innkeeper.png")
 
