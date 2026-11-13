@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — La Capilla del Alba, de tamaño real (Claude Code)
+- De 7,4 × 5,2 m a 14 × 9,8 m (de piedra, sin luz eléctrica, puerta al norte como siempre): un atrio junto a la puerta
+  y, por un arco, la nave con seis filas de bancos a cada lado del pasillo, alfombra, altar con candelabros y atril; a
+  un lado la sacristía y al otro la casa del sacerdote (su cama, la del niño expósito si lo hay, y su mesa).
+- Los fieles del Oficio se colocan junto a su banco y el expósito duerme y come en casa del sacerdote, sin números fijos
+  del plano viejo. Un árbol que quedaba dentro, apartado.
+- Probado: rutas de los vecinos sin choques, 29 puertas y fotos. Sin ver: un Oficio de domingo con todos sentados.
+
 ## 2026-11-13 — El Hospital y Morgue, de tamaño real (Claude Code)
 - De 7,7 × 5,4 m a 14 × 9,8 m (nivel 4, de piedra, puerta al norte como siempre): pasillo con el mostrador de entrada;
   morgue con tres mesas de autopsias de acero (los cuerpos bajo la sábana aparecen cuando hay muertos); urgencias con
