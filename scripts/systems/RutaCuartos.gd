@@ -15,6 +15,7 @@ const ALINEADO_PX: float = 4.0     ## a esta distancia de la línea del hueco ya
 const CERCA_PASO_PX: float = 14.0  ## y a esta del centro del hueco
 
 static var _por_edificio: Dictionary = {} ## id del edificio → Array[Dictionary] de cuartos
+static var _por_escena: Dictionary = {}   ## ruta de una escena sin pieza (casa modelo) → sus cuartos
 
 
 ## ¿Tiene ese edificio cuartos (y por tanto rutas por sus huecos)?
@@ -24,7 +25,18 @@ static func tiene(id_edificio: String) -> bool:
 
 ## Siguiente punto para ir de `desde` a `hasta` (ambos en el plano del edificio).
 static func siguiente(id_edificio: String, desde: Vector2, hasta: Vector2) -> Vector2:
-	var cuartos: Array[Dictionary] = _cuartos(id_edificio)
+	return _siguiente(_cuartos(id_edificio), desde, hasta)
+
+
+## Lo mismo en una escena sin pieza en el mapa (las casas modelo de los solares, mapa/casa_modelo.gd): puntos
+## respecto al centro de la casa, con la puerta al sur.
+static func siguiente_en_escena(escena: PackedScene, desde: Vector2, hasta: Vector2) -> Vector2:
+	if not _por_escena.has(escena.resource_path):
+		_por_escena[escena.resource_path] = _leer(escena)
+	return _siguiente(_por_escena[escena.resource_path], desde, hasta)
+
+
+static func _siguiente(cuartos: Array[Dictionary], desde: Vector2, hasta: Vector2) -> Vector2:
 	var origen: int = _cuarto_con(cuartos, desde)
 	var destino: int = _cuarto_con(cuartos, hasta)
 	if origen == destino:

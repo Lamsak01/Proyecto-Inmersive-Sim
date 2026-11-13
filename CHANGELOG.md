@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Casas de los recién llegados, de tamaño real (Claude Code)
+- Las tres casas que se levantan en los solares crecen y se hacen por cuartos (nivel pobre): casita de 9,2 × 6,4 m,
+  casa de 11,2 × 8,4 m y casona de 12,6 × 9 m, con sala-cocina con lumbre, dormitorio por cama, aseo con tina,
+  despensa y letrina. Los vecinos cruzan por las puertas de los cuartos; los muebles de tu casa (mesa, escalera,
+  escondite, banco, mostrador) van a sitios de la sala; altillo y sótano miden lo que la casa. Terreno de 25 solares
+  agrandado; apartados un punto de paseo y un cartel. Probado: 5 casas levantadas (los 3 tamaños, puerta al sur y al
+  norte) sin choques de la calle a camas y mesa, y 29 puertas.
+
 ## 2026-11-13 — El Albergue del Alba, de tamaño real (Claude Code)
 - De 6,3 × 4,4 m a 11,2 × 8,4 m (pobre): comedor con lumbre, caldero de gachas y mesa larga; dormitorios de hombres y
   de mujeres con dos camas cada uno; aseo con tina, despensa de sacos y letrina fuera; tejado de chapa. Probado: 29

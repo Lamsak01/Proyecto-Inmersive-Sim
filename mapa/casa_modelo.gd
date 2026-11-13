@@ -1,6 +1,7 @@
 extends RefCounted
 const Marca = preload("res://mapa/marca.gd")
 const Planta = preload("res://mapa/planta.gd")
+const RutaCuartos = preload("res://scripts/systems/RutaCuartos.gd")
 
 ## Casas modelo de los recién llegados (2026-11-11, paso 1 de docs/PLAN_MUNDO_DESDE_EDITOR.md): hay tres escenas
 ## (casita, casa y casona) y cada casa que se levanta en un solar es una copia de la de su tamaño. Lo que cambies en
@@ -36,6 +37,18 @@ static func escena(tamano: String) -> PackedScene:
 static func planta(tamano: String, puerta_sur: bool) -> Dictionary:
 	var de_fabrica: Dictionary = Planta.de_escena(escena(tamano))
 	return de_fabrica if puerta_sur else Planta.con_media_vuelta(de_fabrica)
+
+
+## Tamaño de la casa de ese tamaño (en píxeles del mapa, sin girar): lo que ocupan su altillo y su sótano.
+static func tamano_px(tamano: String) -> Vector2:
+	return Planta.de_escena(escena(tamano))["size"]
+
+
+## Siguiente punto para cruzar la casa por los huecos de sus cuartos (mapa/cuarto.gd): `desde` y `hasta`, lo que se
+## apartan del centro de la casa en el solar; devuelve lo mismo. En los solares que miran al norte, media vuelta.
+static func ruta(tamano: String, puerta_sur: bool, desde: Vector2, hasta: Vector2) -> Vector2:
+	var signo: float = 1.0 if puerta_sur else -1.0
+	return RutaCuartos.siguiente_en_escena(escena(tamano), desde * signo, hasta * signo) * signo
 
 
 ## Lo que hay que girar la casa modelo para que su puerta mire a donde mira la del solar.

@@ -737,8 +737,10 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
 	if b_id == "building_tavern":
 		return VillageTavern.route(from_pos, target_pos, agent, self) # trabaja en el mundo
+	if VillageLots.CasaModelo.es_casa_de_solar(b_id): # casa de solar: los cuartos de su casa modelo
+		return VillageLots.house_route(VillageLots.CasaModelo.solar_de(b_id), from_pos, target_pos)
 	if not EdificioEditor.tiene_pieza(b_id):
-		return target_pos # las casas de solar no tienen tabiques
+		return target_pos
 	var o_from: Vector2 = EdificioEditor.a_plano(b_id, from_pos)
 	var o_to: Vector2 = EdificioEditor.a_plano(b_id, target_pos)
 	var r: Vector2 = _route_internal_plano(b_id, o_from, o_to)

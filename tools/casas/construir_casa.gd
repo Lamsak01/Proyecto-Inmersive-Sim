@@ -10,6 +10,7 @@ extends SceneTree
 const Armar = preload("res://tools/casas/armar_casa.gd")
 const LeerPlano = preload("res://tools/casas/leer_plano.gd")
 const Marca = preload("res://mapa/marca.gd")
+const CasaModelo = preload("res://mapa/casa_modelo.gd")
 
 const MAPA := "res://mapa/Mundo3D.tscn"
 const EDIFICIOS := "res://mapa/edificios/%s.tscn"
@@ -35,7 +36,8 @@ func _init() -> void:
 		push_error("CASA: no se pudo guardar %s (error %d)" % [ruta, error])
 		quit(1)
 		return
-	_planta_en_el_mapa(plano["ID"], plano["PLANTA_M"], plano["PUERTA_ANCHO_M"])
+	if not CasaModelo.ESCENAS.values().has(ruta): # las casas modelo no tienen pieza en el mapa: se copian en los solares
+		_planta_en_el_mapa(plano["ID"], plano["PLANTA_M"], plano["PUERTA_ANCHO_M"])
 	print("CASA: %s rehecha (%s m)" % [ruta, plano["PLANTA_M"]])
 	quit()
 

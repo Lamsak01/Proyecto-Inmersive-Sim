@@ -361,6 +361,6 @@ tecnológico (propuesto: 1 linterna de dinamo, chapa ondulada y radio de galena;
 radio de válvulas; 3 además ventilador, plancha eléctrica y tocadiscos).
 Reparto por familias (decidido por Claude a petición del usuario, 2026-11-13; el oro de cada vecino cambia al jugar,
 así que la casa va por el oficio): 1 pobre — leñador y cantera (casa-taller con lumbre, velas, tina y letrina; hechas),
-albergue (hecho) y casas de recién llegados; 2 artesano — herrero, carnicero, carpintero, pescadero, granja, rancho,
+albergue y casas de recién llegados (hechos); 2 artesano — herrero, carnicero, carpintero, pescadero, granja, rancho,
 panadería, sastrería, herbolaria y la «Posada Humilde» de los Candil (hechas); 3 acomodado — el Arreglador (hecha;
 tiene el generador del pueblo); 4 señor y autoridades — mansión, casona, ayuntamiento y comisaría.

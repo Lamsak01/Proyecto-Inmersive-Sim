@@ -27,12 +27,12 @@ const CARPENTER_SHARE: float = 0.4 # Lo que cobra el carpintero; el resto son ma
 static func lots() -> Array[Dictionary]:
 	return Solar.lista()
 
-## Tamaño de la casa que se levanta en cada solar (campo «casa» de la pieza del solar). El terreno del solar no cambia:
-## la casita deja más patio alrededor. Quien tiene poco dinero busca casita; quien tiene mucho, casona.
+## Tamaño de la casa que se levanta en cada solar (campo «casa» de la pieza del solar); lo que mide cada una lo dice su
+## casa modelo (mapa/casa_modelo.gd). El terreno del solar no cambia: la casita deja más patio alrededor. Quien tiene poco dinero busca casita; quien tiene mucho, casona.
 const HOUSE_PLOTS: Dictionary = {
-	"small": {"word": "Casita", "size": Vector2(84, 62), "beds": 2, "cost": 80},
-	"medium": {"word": "Casa", "size": Vector2(112, 78), "beds": 2, "cost": 100},
-	"large": {"word": "Casona", "size": Vector2(124, 90), "beds": 3, "cost": 140},
+	"small": {"word": "Casita", "beds": 2, "cost": 80},
+	"medium": {"word": "Casa", "beds": 2, "cost": 100},
+	"large": {"word": "Casona", "beds": 3, "cost": 140},
 }
 
 ## Lo que cuesta levantar la casa de ese solar (casita más barata, casona más cara).
@@ -234,7 +234,7 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			# La casa es una copia de la casa modelo de su tamaño (con la puerta al norte, con media vuelta): de ella sale su planta
 			vm._construct_solid_building(CasaModelo.PREFIJO + id, str(st["title"]), c,
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png", CasaModelo.planta(plot_of(id), bool(d["door_south"])))
-			vm.adorno_mundo("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", house_mundo(id, Marca.MESA), Solar.giro_plano(id))
+			# La mesa choca desde su mueble de la casa modelo; la marca «mesa» es el sitio donde se sienta a comer
 			vm.cofre_mundo(house_mundo(id, Marca.COFRE), "Cofre Familiar (" + str(st["title"]) + ")", fam, Solar.giro_plano(id))
 		"shop_house":
 			_build_shop_house(vm, id, st)
@@ -296,6 +296,18 @@ static func house_site(id: String, marca: String) -> Vector2:
 ## La misma marca, en el mundo: donde está ahora la pieza del solar en el editor.
 static func house_mundo(id: String, marca: String) -> Vector2:
 	return Solar.a_mundo(id, house_site(id, marca))
+
+## Lo que mide la casa de ese solar (píxeles del mapa, sin girar): su altillo y su sótano ocupan eso.
+static func house_size(id: String) -> Vector2:
+	return CasaModelo.tamano_px(plot_of(id))
+
+## Siguiente punto (en el mundo) para cruzar la casa de ese solar por los huecos de sus cuartos.
+static func house_route(id: String, desde: Vector2, hasta: Vector2) -> Vector2:
+	var d: Dictionary = lot_def(id)
+	var c: Vector2 = d["center"]
+	var hasta_rel: Vector2 = Solar.a_plano(id, hasta) - c
+	var paso: Vector2 = CasaModelo.ruta(plot_of(id), bool(d["door_south"]), Solar.a_plano(id, desde) - c, hasta_rel)
+	return hasta if paso.is_equal_approx(hasta_rel) else Solar.a_mundo(id, c + paso)
 
 # Lo que crean las funciones de dibujo de VillageManager va a entities_root, al propio vm y a varias listas.
 static func _capture_begin(vm) -> Dictionary:

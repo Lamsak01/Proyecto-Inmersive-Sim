@@ -509,7 +509,7 @@ static func toby_pos_for_lot(_vm, lot_id: String) -> Vector2:
 	if d.is_empty():
 		return Vector2(128.0, 126.0)
 	var c: Vector2 = d.get("center", Vector2.ZERO)
-	var half_sz: Vector2 = (VillageLots.HOUSE_PLOTS[VillageLots.plot_of(lot_id)]["size"] as Vector2) * 0.5
+	var half_sz: Vector2 = VillageLots.house_size(lot_id) * 0.5
 	var m: float = 1.0 if d.get("door_south") == true else -1.0
 	return c + Vector2(half_sz.x * 0.55, (half_sz.y + 10.0) * m)
 
@@ -1295,24 +1295,16 @@ static func _notify_player(vm, npc, text: String, col: Color = Color.SPRING_GREE
 # ==============================================================================
 # FIS-P1: Interior físico de tu propia casa (huerto, banco de trabajo, escondite bajo tablas y escaleras +1/-1)
 # ==============================================================================
+## Muebles de la casa del jugador → marca de su casa modelo (en la sala: mapa/casa_modelo.gd).
+const MARCA_MUEBLE_CASA: Dictionary = {
+	"home_table": "mesa_comedor", "home_workbench": "banco_casa", "home_stash": "escondite",
+	"home_stairs": "escalera", "player_shop_counter": "mostrador_casa",
+}
+
 static func home_prop_pos(_vm, lot_id: String, kind: String) -> Vector2:
-	var d: Dictionary = VillageLots.lot_def(lot_id)
-	if d.is_empty():
+	if VillageLots.lot_def(lot_id).is_empty():
 		return Vector2.ZERO
-	var c: Vector2 = d.get("center", Vector2.ZERO)
-	var m: float = -1.0 if bool(d.get("door_south", true)) else 1.0
-	match kind:
-		"home_workbench":
-			return c + Vector2(-26.0, -14.0 * m)
-		"home_stash":
-			return c + Vector2(26.0, -14.0 * m)
-		"home_stairs":
-			return c + Vector2(32.0, 2.0 * m)
-		"player_shop_counter":
-			return c + Vector2(-16.0, -4.0 * m)
-		"home_table":
-			return c + Vector2(0.0, -2.0 * m)
-	return c
+	return VillageLots.house_site(lot_id, String(MARCA_MUEBLE_CASA.get(kind, MARCA_MUEBLE_CASA["home_table"])))
 
 
 static func sync_home_props(vm) -> void:

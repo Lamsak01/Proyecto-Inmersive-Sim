@@ -102,6 +102,16 @@ static func a_mundo(id_solar: String, p_plano: Vector2) -> Vector2:
 	return (pieza[1] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(pieza[2])))
 
 
+## Lo contrario de `a_mundo`: de un punto del mundo al plano del solar (para lo que se calcula en el plano de la casa).
+static func a_plano(id_solar: String, p_mundo: Vector2) -> Vector2:
+	_leer()
+	if not _piezas.has(id_solar):
+		push_error("SOLARES: no hay pieza del solar «%s»" % id_solar)
+		return p_mundo / Mapa3D.E
+	var pieza: Array = _piezas[id_solar]
+	return (pieza[0] as Vector2) + (p_mundo - (pieza[1] as Vector2)).rotated(deg_to_rad(float(pieza[2])))
+
+
 ## Solar en cuyo terreno (mapa original, con la franja de su letrero) cae el punto p ("" si ninguno): el de una casa
 ## levantada en él, que no tiene pieza propia.
 static func con_punto(p: Vector2) -> String:
