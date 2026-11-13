@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — El Hospital y Morgue, de tamaño real (Claude Code)
+- De 7,7 × 5,4 m a 14 × 9,8 m (nivel 4, de piedra, puerta al norte como siempre): pasillo con el mostrador de entrada;
+  morgue con tres mesas de autopsias de acero (los cuerpos bajo la sábana aparecen cuando hay muertos); urgencias con
+  la camilla y una segunda cama; consulta del médico con teléfono; su dormitorio con la mesa donde cena; botica de
+  frascos. Farola, una caja y dos sitios de espera apartados.
+- Fuera los números fijos del hospital viejo (ruta a mano, zonas sin pisar y una mesa invisible que estorbaba).
+- Probado: rutas de los vecinos sin choques, 29 puertas y fotos. Sin ver: los cuerpos de la morgue (solo salen con
+  muertos de verdad).
+
 ## 2026-11-13 — Código ordenado tras las casas grandes (Claude Code)
 - No se nota al jugar: la altura del piso de arriba se calcula en un solo sitio (antes en cuatro) y fuera seis valores
   apuntados que nada usaba (posada y casas). Probado: la casona sale idéntica y la prueba de física pasa.
