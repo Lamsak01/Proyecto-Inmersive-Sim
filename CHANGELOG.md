@@ -5,9 +5,11 @@ El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `do
 
 
 ## 2026-11-13 — La Escuela, de tamaño real (Claude Code)
-- De 7,2 × 5,4 m a 11,2 × 9,8 m (ladrillo arenisca y teja gris, puerta al sur como siempre): aula con seis filas de
-  pupitres y banquetas a cada lado del pasillo, pizarra, mesa del maestro, estufa, librería y colgador junto a la
-  puerta; detrás de la pizarra, el despacho del maestro. Caben doce alumnos sentados (antes seis). Solar ensanchado.
+- De 7,2 × 5,4 m a 14 × 12,6 m (ladrillo arenisca y teja gris, puerta al sur como siempre): aula con seis filas de
+  pupitres a cada lado del pasillo, pizarra, mesa del maestro, estufa, librerías y colgador junto a la puerta; detrás,
+  el despacho del maestro y un baño con tres retretes y dos lavabos. Caben doce alumnos (antes seis). Solar ensanchado.
+- Los niños se atascaban de pie en el pasillo, pegados a los pupitres: ahora cada uno entra de lado por su fila y se
+  sienta en su banqueta (cada fila es un trozo de cuarto solo para las rutas).
 - Probado: rutas de los niños y del maestro sin choques, 29 puertas y fotos. Sin ver: una clase con niños de verdad.
 
 ## 2026-11-13 — La Capilla del Alba, de tamaño real (Claude Code)
