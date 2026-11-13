@@ -801,7 +801,7 @@ func _sync_heist_target_3d() -> void:
 
 
 # ==============================================================================
-# OBJETOS QUIETOS 2D -> 3D (pozos, farolas, tablón, campamento, huertos, compostador)
+# OBJETOS QUIETOS 2D -> 3D (pozos, farolas, tablón…)
 # ==============================================================================
 ## Qué versión 3D lleva cada dibujo 2D, según el nombre de su imagen. "hide" = ya tiene 3D propio, solo se esconde.
 const PROP_KIND_BY_TEXTURE := {
@@ -957,9 +957,6 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
 		"well":
 			if _add_model_2d(root, "exterior/Well.obj", pos, 0.0, Vector2.ZERO, 24.0) == null:
 				_add_cyl_2d(root, pos, 8.5, 0.0, 7.5, _mat("well_stone", Color(0.58, 0.57, 0.54), 0.9, 0.02), 8.5, 14)
-		"compost":
-			_add_box_2d(root, pos, Vector2(18, 13), 0.0, 9.0, m_wood)
-			_add_box_2d(root, pos, Vector2(15, 10), 8.6, 1.2, _mat("compost_soil", Color(0.25, 0.18, 0.11), 0.98, 0.0))
 		"tent":
 			var m_canvas := _mat("tent_canvas", Color(0.84, 0.74, 0.54), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "town_textures/T_Trim_Cloth_Normal.png", 0.55)
 			var m_flap := _mat("tent_flap", Color(0.72, 0.60, 0.42), 0.90, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.65)

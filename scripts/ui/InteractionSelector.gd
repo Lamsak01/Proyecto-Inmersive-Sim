@@ -27,7 +27,6 @@ const STATION_LABELS: Dictionary = {
 	"cemetery_gate": "Puerta del cementerio",
 	"notice_board": "Tablón de encargos",
 	"library_reading": "Leer un rato en la biblioteca",
-	"compost": "Compostador",
 	"building_window": "Abrir o cerrar el postigo",
 	"house_chest": "Abrir el cofre",
 	"shop_business_stall": "Gestionar el negocio",
@@ -202,7 +201,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 			"building_door", "building_window":
 				max_reach_px = 24.0
 				max_lat_px = 7.0
-			"house_chest", "tavern_bed", "hospital_bed", "compost":
+			"house_chest", "tavern_bed", "hospital_bed":
 				is_low_obj = true
 				max_reach_px = 25.0
 				max_lat_px = 7.5
@@ -544,9 +543,6 @@ func get_prompt_card_data() -> Dictionary:
 			"library_reading":
 				target_name = "Mesa de lectura"
 				target_state = "Biblioteca"
-			"compost":
-				target_name = "Compostador"
-				target_state = "Huerto"
 			"case1_clearing":
 				target_name = "Orilla del arroyo"
 				target_state = ""

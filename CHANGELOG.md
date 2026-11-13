@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Compostador del campamento borrado (Claude Code)
+- Era del huerto del campamento (borrado por el usuario): ya estaba apagado pero dejaba una pared invisible en el sitio
+  del campamento. Borrados el compostador, su [E], su dibujo 3D y su ancla del editor. El abono sigue en recetas y oficios.
+
 ## 2026-11-12 — Mudanza al editor: pozos, tablón y farolas leen su pieza (Claude Code)
 - Los 3 pozos, el tablón de encargos y las 6 farolas de la plaza toman su sitio (y giro) directamente de su pieza de
   «Objetos», ya en el mundo; sin traducir. Borrada la herramienta vieja que creaba esas piezas.

@@ -43,7 +43,7 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageWorldBuilder._spawn_electric_streetlights(self)
 	_spawn_unemployed_tavern_guests()
 	_spawn_case1_clearing_corpse()
-	VillageWorldBuilder._spawn_farm_well_and_compost(self)
+	VillageWorldBuilder._spawn_wells(self)
 	VillageTrades.setup_world(self) # V5: panadería y sastrería (puestos vacantes al empezar)
 	VillageTown.state(self) # J3: arcas iniciales (1000) en partida nueva
 	VillageCivic.setup_world(self) # V5b: ayuntamiento, albergue y El Candil
@@ -708,19 +708,15 @@ func interact(player: Node2D) -> void:
 	var d_games: float = pos.distance_squared_to(sitio(_tavern_games_pos))
 	var d_pool: float = pos.distance_squared_to(sitio(_tavern_pool_pos))
 	var d_well: float = _get_nearest_well_dist_sq(pos)
-	var comp_on: bool = _compost_marca == null or _compost_marca.visible
-	var d_comp: float = pos.distance_squared_to(sitio(_compost_pos)) if comp_on else INF
 
 	if d_pool <= d_games and d_pool <= d_bed and d_pool <= 32.0 * 32.0:
 		_use_tavern_games_table(3)
-	elif d_games <= d_bed and d_games <= d_well and d_games <= d_comp and d_games <= 32.0 * 32.0:
+	elif d_games <= d_bed and d_games <= d_well and d_games <= 32.0 * 32.0:
 		_use_tavern_games_table(0)
-	elif d_bed <= d_well and d_bed <= d_comp and d_bed <= 26.0 * 26.0:
+	elif d_bed <= d_well and d_bed <= 26.0 * 26.0:
 		_use_tavern_bed(player)
-	elif d_well <= d_comp and d_well <= 26.0 * 26.0:
+	elif d_well <= 26.0 * 26.0:
 		_use_water_well(player)
-	elif d_comp <= 26.0 * 26.0:
-		_use_compost_bin(player)
 
 
 ## Punto 6 del Caso I: el zapato izquierdo de la víctima en el Puente Viejo.

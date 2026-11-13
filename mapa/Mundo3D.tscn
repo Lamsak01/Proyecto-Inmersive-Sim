@@ -23504,16 +23504,6 @@ nombre_visible = "MillRedClayArea (25)"
 es_ancla = true
 radio_ancla = 12.0
 
-[node name="CompostBinArea_(26)" type="Node3D" parent="Objetos" unique_id=797500933]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -197.68, 0, -1.68)
-script = ExtResource("29_bojho")
-clave = "ancla_26"
-pos_original = Vector2(-706, -6)
-alto = 10.0
-nombre_visible = "CompostBinArea (26)"
-es_ancla = true
-radio_ancla = 12.0
-
 [node name="RondaWaterWellArea_(28)" type="Node3D" parent="Objetos" unique_id=1814565116]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 170.8, 0.99335885, -205.8)
 script = ExtResource("29_bojho")

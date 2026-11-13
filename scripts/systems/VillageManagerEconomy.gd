@@ -383,17 +383,6 @@ func _use_water_well(player: Node2D) -> void:
 	else:
 		_msg_player(player, "💧 Agua fresca del pozo", Color.AQUA, -40.0)
 
-func _use_compost_bin(player: Node2D) -> void:
-	var inv: SimpleInventory = player.get("inventory")
-	if not inv:
-		return
-	for org_id in ["mushroom", "herbs", "carrot", "cabbage"]:
-		if inv.remove_item(org_id, 1):
-			inv.add_item("fertilizer", 2)
-			_msg_player(player, "♻️ Compostador: +2 Abono Orgánico", Color.SPRING_GREEN, -42.0)
-			return
-	_hint_player("♻️ Necesitas 1 Hongo, Hierba o Verdura para fermentar 2 bolsas de Abono Orgánico.", player)
-
 # ==============================================================================
 # B2.2: QUEDADAS FÍSICAS (Pasar tiempo juntos) — el SocialDirector decide, aquí se ejecuta en el mundo
 # ==============================================================================

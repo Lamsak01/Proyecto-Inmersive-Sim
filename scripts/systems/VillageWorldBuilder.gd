@@ -412,13 +412,9 @@ static func _spawn_electric_streetlights(vm: VillageManager) -> void:
 		vm.add_choque_mundo(f_pos, vm.COLISOR_TABLON, 0.0)
 		vm.streetlights.append({"pos": f_pos})
 
-static func _spawn_farm_well_and_compost(vm: VillageManager) -> void:
+static func _spawn_wells(vm: VillageManager) -> void:
 	# Pozos de la granja, del patio de la posada y de la plaza: su sitio y su giro, de su pieza de «Objetos»
 	for pozo: Array in [[vm.OBJETO_POZO_GRANJA, "WaterWellArea"], [vm.OBJETO_POZO_TABERNA, "TavernWaterWellArea"], [vm.OBJETO_POZO_PLAZA, "PlazaWaterWellArea"]]:
 		var w_pos: Vector2 = ObjetoEditor.mundo(pozo[0])
 		vm.add_marca_3d_mundo("well", w_pos, ObjetoEditor.giro(pozo[0]))
 		vm.add_zona_uso_mundo(pozo[1], w_pos, 24.0, "well")
-
-	vm._compost_marca = vm._add_marca_3d("compost", vm._compost_pos)
-	vm._compost_area = vm._add_station_area("CompostBinArea", vm._compost_pos, 16.0, "compost")
-	vm.set_camp_farm_enabled(false)

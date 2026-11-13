@@ -6,7 +6,7 @@ const Anclas = preload("res://mapa/anclas.gd")
 const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D
 const GIRO_MINIMO_GRADOS: float = 0.5
 ## Choque de cada objeto quieto con marca 3D (tamaño en el mapa plano).
-const COLISOR_MARCA: Dictionary = {"well": Vector2(14.0, 14.0), "compost": Vector2(10.0, 9.0), "sign": Vector2(7.0, 6.0)}
+const COLISOR_MARCA: Dictionary = {"well": Vector2(14.0, 14.0), "sign": Vector2(7.0, 6.0)}
 const GRUPO_CHOQUE_MUEBLE := "choque_mueble"
 const COLISOR_PUESTO := Vector2(16.0, 9.0)   ## mostrador o puesto de trabajo
 const COLISOR_TABLON := Vector2(7.0, 6.0)    ## tablón de encargos y farolas
@@ -234,8 +234,6 @@ var completed_contracts_today: Dictionary = {}
 # Paso 10: Farolas Eléctricas del Pueblo
 var streetlights: Array[Dictionary] = []
 
-var _compost_marca: Node2D = null
-var _compost_area: Area2D = null
 
 var _tavern_bed_pos := VillageTavern.sitio(VillageTavern.M_CAMA_JUGADOR)
 var _tavern_social_pos := VillageTavern.sitio(VillageTavern.M_MESA_CENTRAL)
@@ -245,7 +243,6 @@ var _well_pos := Vector2.ZERO
 var _tavern_well_pos := Vector2.ZERO
 var _plaza_well_pos := Vector2.ZERO
 var _well_positions: Array[Vector2] = [] # en el mundo: los tres de arriba y los de las rondas
-var _compost_pos := Vector2(-706, -6)
 
 # Capas de Interfaz para Morgue Forense, Arresto/Cárcel, Tablón de Encargos y Gestión de Negocios/Escrituras
 var ui_layer: CanvasLayer = null
@@ -312,13 +309,6 @@ const ROMANCE_STAGE_NAMES: Dictionary = {"interest": "sienten interés mutuo", "
 
 func get_poker_chair_positions() -> Array[Vector2]:
 	return VillageTavern.poker_chairs()
-
-func set_camp_farm_enabled(en: bool) -> void:
-	if is_instance_valid(_compost_marca):
-		_compost_marca.visible = en
-	if is_instance_valid(_compost_area):
-		_compost_area.monitoring = en
-		_compost_area.monitorable = en
 
 func _is_near(player: Node2D, mouse_pos: Vector2, target_pos: Vector2, p_rad: float, m_rad: float) -> bool:
 	return (player != null and player.global_position.distance_squared_to(target_pos) <= p_rad * p_rad) or (target_pos.distance_squared_to(mouse_pos) <= m_rad * m_rad)
