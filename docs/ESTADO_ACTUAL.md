@@ -3,8 +3,9 @@
 > Última actualización: 2026-11-12, Claude Code. Historial: `CHANGELOG.md` y `git log`.
 
 ## a) Tarea activa
-**Migración «el mundo sale solo del editor»** (`docs/PLAN_MUNDO_DESDE_EDITOR.md`, aprobado). **Una sola sesión de Claude
-toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0 a 3 hechos; **paso 4: puntos 1–3 hechos**.
+**PRIORIDAD TOTAL (usuario, 2026-11-12): salir del mapa 2D**; lo demás espera (detención orgánica: `docs/FALLOS_VISIBLES.md`).
+Migración «el mundo sale solo del editor» (`docs/PLAN_MUNDO_DESDE_EDITOR.md`); una sola sesión de Claude toca el código
+del mundo. Pasos 0 a 3 hechos; **paso 4: puntos 1–3 hechos**.
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;
