@@ -7,6 +7,7 @@ extends RefCounted
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const Cascaron = preload("res://tools/casas/cascaron_casa.gd")
 const Cosas = preload("res://tools/casas/cosas_casa.gd")
+const Pobre = preload("res://tools/casas/cosas_casa_pobre.gd")
 const Juntar = preload("res://tools/casas/juntar_casa.gd")
 const PARTES = preload("res://scripts/visuals/PartesEdificio3D.gd")
 const EDIFICIO_GD = preload("res://mapa/edificio.gd")
@@ -130,6 +131,20 @@ static func _dibujar_cosa(pieza: Node3D, m: Dictionary) -> void:
 			Cosas.palangana(pieza)
 		"letrina":
 			Cosas.letrina(pieza)
+		"hogar":
+			Pobre.hogar(pieza)
+		"lena":
+			Pobre.lena(pieza)
+		"vela":
+			Pobre.vela(pieza, float(m.get("alto", 0.0)))
+		"tina":
+			Pobre.tina(pieza)
+		"tajo":
+			Pobre.tajo(pieza)
+		"radio_galena":
+			Pobre.radio_galena(pieza)
+		"linterna":
+			Pobre.linterna(pieza)
 		var otra:
 			push_error("CASA: no sé armar «%s»" % otra)
 

@@ -359,3 +359,8 @@ agua), 3 acomodado (bombillas y cables, agua corriente, retrete dentro, radio), 
 teléfono de baquelita, nevera, terminales verdes). Corrección del usuario: los niveles 1, 2 y 3 también llevan algo
 tecnológico (propuesto: 1 linterna de dinamo, chapa ondulada y radio de galena; 2 una bombilla de la red del pueblo y
 radio de válvulas; 3 además ventilador, plancha eléctrica y tocadiscos).
+Reparto por familias (decidido por Claude a petición del usuario, 2026-11-13; el oro de cada vecino cambia al jugar,
+así que la casa va por el oficio): 1 pobre — leñador y cantera (casa-taller con lumbre, velas, tina y letrina; hechas),
+albergue y casas de recién llegados; 2 artesano — herrero, carnicero, carpintero, pescadero (hechas), granja, rancho,
+panadería, sastrería y herbolaria; 3 acomodado — el Arreglador (tiene el generador del pueblo) y la familia Candil
+(posada); 4 señor y autoridades — mansión, casona, ayuntamiento y comisaría.

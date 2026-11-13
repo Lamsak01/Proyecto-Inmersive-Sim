@@ -6,7 +6,7 @@ extends RefCounted
 
 const CAMPOS: Array[String] = [
 	"ID", "PLANTA_M", "PUERTA_X_M", "PUERTA_ANCHO_M", "VENTANA_X_M", "CARTEL_M", "FACHADA", "TABIQUE", "MADERA",
-	"BALDOSA", "TEJADO", "ZOCALO", "CUARTOS", "TABIQUES", "VENTANAS", "MUEBLES", "MARCAS",
+	"BALDOSA", "TEJADO", "ZOCALO", "TEJADO_CHAPA", "CUARTOS", "TABIQUES", "VENTANAS", "MUEBLES", "MARCAS",
 ]
 const LADO_CONTRARIO: Dictionary = {"este": "oeste", "oeste": "este"}
 
@@ -15,6 +15,8 @@ static func leer(guion: GDScript, id: String = "", espejo: bool = false) -> Dict
 	var constantes: Dictionary = guion.get_script_constant_map()
 	var plano: Dictionary = {}
 	for campo: String in CAMPOS:
+		if not constantes.has(campo):
+			continue # campo opcional que este plano no usa (p. ej. TEJADO_CHAPA)
 		var valor: Variant = constantes[campo]
 		plano[campo] = valor.duplicate(true) if valor is Array or valor is Dictionary else valor # el plano no se toca
 	if not id.is_empty():

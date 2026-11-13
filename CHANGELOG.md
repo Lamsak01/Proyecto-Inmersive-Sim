@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Casas pobres de tamaño real: el leñador y la cantera (Claude Code)
+- Casa-taller de 11,2 × 8,4 m: sala con lumbre de piedra, mesa con vela y barril de agua; dos dormitorios con vela;
+  taller con banco, tajo y leña; aseo con tina de madera; letrina fuera. Su poco de técnica: linterna de dinamo,
+  radio de galena y tejado de chapa ondulada. Probado: 29 puertas y 112 trayectos dentro sin chocar ni atascarse.
+- Reparto de clases por familia apuntado en la visión (pobres, artesanos, acomodados, señores).
+
 ## 2026-11-13 — Las cuatro casas de artesano, ya de tamaño real (Claude Code)
 - Carnicero, carpintero y pescadero estrenan la misma casa que el herrero; dos de ellas al revés (dormitorios al otro
   lado) para que las vecinas no sean calcadas. Probado: 29 puertas sin atascos y 80 trayectos dentro de las 4 casas.

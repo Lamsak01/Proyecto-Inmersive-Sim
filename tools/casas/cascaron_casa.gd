@@ -23,6 +23,11 @@ const CANDADO_TAM := Vector3(0.15, 0.3, 0.18)
 const PIEDRA := Color(0.75, 0.73, 0.7)
 const TINTE := Color(0.88, 0.84, 0.8)
 const HIERRO := Color(0.22, 0.24, 0.28)
+const CHAPA := Color(0.36, 0.33, 0.31)  ## chapa ondulada algo oxidada (tejado de las casas pobres)
+const CHAPA_ONDA := Color(0.24, 0.22, 0.21) ## el lomo de cada onda, más oscuro para que se lean desde arriba
+const CHAPA_METAL: float = 0.45
+const ONDA_PASO_M: float = 0.3          ## distancia entre las ondas de la chapa
+const ONDA_TAM := Vector2(0.1, 0.05)    ## ancho y alto de cada onda
 
 
 static func armar(muros: Node3D, tejado: Node3D, plano: Dictionary) -> void:
@@ -84,7 +89,8 @@ static func _puerta(muros: Node3D, plano: Dictionary, medio: Vector2) -> void:
 
 ## Tejado a dos aguas con la cumbrera de este a oeste, y los dos hastiales (triángulos de pared bajo él).
 static func _tejado(tejado: Node3D, plano: Dictionary, medio: Vector2) -> void:
-	var tejas: Material = Piezas.material(plano["TEJADO"], TINTE)
+	var chapa: bool = bool(plano.get("TEJADO_CHAPA", false))
+	var tejas: Material = Piezas.material("", CHAPA, CHAPA_METAL) if chapa else Piezas.material(plano["TEJADO"], TINTE)
 	var vuelo: float = medio.y + ALERO_M
 	var largo: float = sqrt(vuelo * vuelo + TEJADO_ALTO_M * TEJADO_ALTO_M)
 	var pendiente: float = atan(TEJADO_ALTO_M / vuelo)
@@ -97,6 +103,8 @@ static func _tejado(tejado: Node3D, plano: Dictionary, medio: Vector2) -> void:
 		faldon.position = Vector3(0.0, MURO_ALTO_M + TEJADO_ALTO_M * 0.5, lado * vuelo * 0.5)
 		faldon.rotation.x = pendiente * lado
 		tejado.add_child(faldon)
+		if chapa:
+			_ondas(faldon, forma.size, Piezas.material("", CHAPA_ONDA, CHAPA_METAL))
 		var hastial := PrismMesh.new()
 		hastial.size = Vector3(medio.y * 2.0, TEJADO_ALTO_M, MURO_GROSOR_M)
 		var pared := MeshInstance3D.new()
@@ -105,3 +113,11 @@ static func _tejado(tejado: Node3D, plano: Dictionary, medio: Vector2) -> void:
 		pared.position = Vector3(lado * medio.x, MURO_ALTO_M + TEJADO_ALTO_M * 0.5, 0.0)
 		pared.rotation_degrees.y = 90.0
 		tejado.add_child(pared)
+
+
+## Las ondas de la chapa: listones finos a favor de la pendiente, sobre el faldón (se juntan en una malla después).
+static func _ondas(faldon: MeshInstance3D, tam: Vector3, chapa: Material) -> void:
+	var x: float = -tam.x * 0.5 + ONDA_PASO_M * 0.5
+	while x < tam.x * 0.5:
+		Piezas.caja(faldon, Vector3(x, tam.y * 0.5, 0.0), Vector3(ONDA_TAM.x, ONDA_TAM.y, tam.z), chapa)
+		x += ONDA_PASO_M

@@ -21,6 +21,8 @@ static func juntar(grupo: Node3D, id_edificio: String) -> void:
 		if not por_material.has(mat):
 			por_material[mat] = SurfaceTool.new()
 		(por_material[mat] as SurfaceTool).append_from(mi.mesh, 0, _relativa(mi, grupo))
+	sueltas.reverse() # se borran de las hojas a la raíz: una pieza puede colgar de otra (las ondas de la chapa)
+	for mi: MeshInstance3D in sueltas:
 		mi.get_parent().remove_child(mi)
 		mi.free()
 	var malla := ArrayMesh.new()
