@@ -5,6 +5,11 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] (2026-11-13, usuario) **El Caso I no se entiende jugando**: el primer día no encuentra el cuerpo (está en el claro del
+  arroyo, ~260 m al norte de la plaza, sin nada que lleve allí); misiones no marca ningún objetivo; la carta de
+  contratación no se puede volver a leer; el Comisario Vane no dice nada del caso aunque la carta manda ir a verlo.
+- [ ] (2026-11-13, usuario) **El Molino Viejo no parece un molino**: parece una casa grande y no está a la orilla del río,
+  sino algo apartado. **El barro rojo de la orilla no se ve** (pista del caso).
 - ✅ (2026-11-13, usuario, 2 capturas, ambos ordenadores; falta que lo veas jugando) **El juego se congela varios segundos
   cada hora desde las 12:00** · 1.ª persona. *(La lista de asientos del restaurante crecía sin parar y buscar mesa a los
   clientes tardaba cada vez más. Arreglado; con ventana de 11:00 a 19:00 ningún parón.)*

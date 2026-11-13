@@ -365,3 +365,13 @@ albergue y casas de recién llegados (hechos); 2 artesano — herrero, carnicero
 panadería, sastrería, herbolaria y la «Posada Humilde» de los Candil (hechas); 3 acomodado — el Arreglador (hecha;
 tiene el generador del pueblo); 4 señor y autoridades — mansión (hecha, de una planta: lo de arriba va abajo), casona de los rentistas (hecha, la
 primera de dos plantas: cualquier casa puede tener ya planta alta), ayuntamiento y comisaría (hechos).
+
+## Idea del usuario (2026-11-13): objetivos del Caso I que nacen de las pistas
+- Los objetivos de misiones aparecen **según las pistas que encuentres**, sean verdaderas o falsas (pistas falsas que
+  abren objetivos falsos). Distintas pistas → distintos objetivos.
+- Objetivos **indirectos**, como preguntas del detective: «averigua de qué está hecha la poción», «parece que murió
+  asfixiada». Nunca «ve al sitio X».
+- **Nada debe apuntarte directamente al molino abandonado**: se llega atando cabos.
+- Además: la carta de contratación como objeto de la mochila que se puede releer; el caso tiene que arrancar de forma
+  que el jugador sepa por dónde empezar (hoy no encuentra el cuerpo el primer día).
+

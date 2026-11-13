@@ -14,6 +14,10 @@
 
 ## Abiertas
 
+0c. **(2026-11-13) Arranque del Caso I:** ¿el cuerpo está en el claro desde el primer día y el Comisario Vane te manda
+   allí al día siguiente (como dice la carta), o lo encuentra un vecino y da la voz de alarma? Sin respuesta: se propone
+   lo primero porque encaja con la carta.
+
 0b. **(2026-11-13, noche) Pisos de la taberna con el sistema de las casas de dos plantas:** no se ha tocado. La posada
    tiene su propio sistema (~800 líneas en `VillageTavern.gd`: escalera, galería, losa, alturas, sótano del club; lo
    usan 16 llamadas). Unificar = rehacer la posada como plano de dos plantas (`…_ARRIBA` y `ESCALERA`), pasar sus marcas
