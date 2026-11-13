@@ -13684,8 +13684,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 344.4, 0.5495177, 39.2)
 script = ExtResource("3_jgq7j")
 id_edificio = "mixed_family_tinker"
 centro_original = Vector2(1230, 140)
-planta_m = Vector2(7.168, 5.376)
-puerta_ancho_m = 2.352
+planta_m = Vector2(14.0, 10.0)
+puerta_ancho_m = 1.6
 
 [node name="mixed_family_farm" type="Node3D" parent="Edificios" unique_id=1210431115 instance=ExtResource("27_hissi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75.6, -0.19021766, 131.6)

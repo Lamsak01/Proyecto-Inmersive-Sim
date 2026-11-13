@@ -766,18 +766,6 @@ func _route_internal_plano(b_id: String, from_pos: Vector2, target_pos: Vector2)
 			elif from_pos.y > 155.0 and target_pos.y < 149.0:
 				var pass_x2: float = 902.0 if from_pos.x < 915.0 else 928.0
 				return Vector2(pass_x2, 165.0 if absf(from_pos.x - pass_x2) > 8.0 else 138.0)
-	if b_id.begins_with("mixed_"):
-		for b in building_footprints:
-			if str(b.get("id", "")) == b_id:
-				var br: Rect2 = b["rect"]
-				var c: Vector2 = EdificioEditor.a_plano(b_id, br.get_center()) # (2026-11-12: antes mezclaba plano y mundo)
-				var d_south: bool = bool(b.get("door_south", false))
-				var y_wall: float = c.y + (-4.0 if d_south else 4.0)
-				if from_pos.y < y_wall - 2.0 and target_pos.y > y_wall + 2.0:
-					return Vector2(c.x, (y_wall - 11.0) if absf(from_pos.x - c.x) > 9.0 else (y_wall + 12.0))
-				elif from_pos.y > y_wall + 2.0 and target_pos.y < y_wall - 2.0:
-					return Vector2(c.x, (y_wall + 11.0) if absf(from_pos.x - c.x) > 9.0 else (y_wall - 12.0))
-				break
 	return target_pos
 
 static func _leer_mesas_morgue() -> Array[Vector2]:

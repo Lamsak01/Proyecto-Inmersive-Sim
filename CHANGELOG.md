@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — La casa-taller del Arreglador, de tamaño real (Claude Code)
+- Primera casa acomodada (nivel 3): 14 × 10 m con sala, dos dormitorios, baño con retrete, lavabo y bañera, cocina con
+  fregadero de grifo y taller con la terminal verde; bombilla en cada cuarto, ventilador, gramola y radio. El generador
+  diésel y su cable por la fachada hasta el cuadro van con la casa (se quitó un cable suelto que cruzaba el interior y un
+  segundo generador). Probado: 29 puertas y los trayectos de dentro sin chocar.
+
 ## 2026-11-13 — La posada de los Candil, de tamaño real (Claude Code)
 - Misma casa-taller de artesano, con el cuarto del fondo hecho alcoba de huéspedes (dos camas, mesilla y arcón). Los
   Candil pasan a artesanos («Posada Humilde»). Probado: 29 puertas y 72 trayectos dentro sin chocar.

@@ -2,7 +2,6 @@
 extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
-const Marca = preload("res://mapa/marca.gd") # sitios de los edificios (el generador del taller)
 const ID_COMISARIA := "building_police"
 const ID_AYUNTAMIENTO := "building_town_hall"
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
@@ -298,32 +297,9 @@ func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector
 func _build_epoch_props_3d(m_bulb: Material) -> void:
 	var m_cable := _mat("epoch_thick_cable", Color(0.08, 0.09, 0.11), 0.72, 0.25)
 	var m_insul := _mat("epoch_insulator", Color(0.76, 0.78, 0.74), 0.35, 0.10)
-	var m_gen_iron := _mat("epoch_gen_iron", Color(0.18, 0.21, 0.22), 0.48, 0.78)
-	var m_gen_rust := _mat("epoch_gen_rust", Color(0.38, 0.24, 0.16), 0.75, 0.45)
-	var m_brass := _mat("epoch_gen_brass", Color(0.82, 0.64, 0.22), 0.35, 0.85)
-	var m_pad := _mat("epoch_gen_pad", Color(0.44, 0.43, 0.40), 0.92, 0.0)
 
-	# 1. Generador diésel junto al muro este del Taller de Reparaciones (marca «generador» de su escena)
-	colocar_plano = _en_edificio(VillageCulture.TINKER_ID) # generador y cables del taller, en su plano
-	var gp: Vector2 = Marca.sitio(VillageCulture.TINKER_ID, Marca.GENERADOR)
-	_add_box_2d(streetlights_root_3d, gp, Vector2(18.0, 24.0), 0.0, 2.2, m_pad) # Losa de hormigón
-	_add_box_2d(streetlights_root_3d, gp, Vector2(13.5, 18.0), 2.2, 11.5, m_gen_iron) # Bloque motor diésel
-	_add_box_2d(streetlights_root_3d, gp + Vector2(0.0, -3.5), Vector2(11.0, 9.0), 13.7, 3.8, m_gen_rust) # Culata con aletas
-	_add_cyl_2d(streetlights_root_3d, gp + Vector2(0.0, 5.2), 4.2, 13.5, 6.2, m_gen_rust, 4.2, 10) # Depósito de gasóleo
-	_add_cyl_2d(streetlights_root_3d, gp + Vector2(-5.5, -2.0), 4.4, 5.5, 3.0, m_brass, 4.4, 12) # Volante de inercia / alternador
-	_add_cyl_2d(streetlights_root_3d, gp + Vector2(5.2, -6.5), 1.1, 13.0, 17.5, m_gen_iron, 1.1, 8) # Tubo de escape vertical
-	_add_cyl_2d(streetlights_root_3d, gp + Vector2(5.2, -6.5), 2.0, 21.0, 5.5, m_gen_rust, 2.0, 8) # Silenciador
-
-	# 2. Cables gruesos por las fachadas del Taller (e5), Comisaría y Ayuntamiento hasta el generador
-	# Taller (e5: rect x=1166..1304, y=90..194): desde el generador (1316, 126) por el muro este y fachada norte hasta el cuadro eléctrico (1270, 90)
-	_add_box_2d(streetlights_root_3d, Vector2(1310.0, 122.0), Vector2(12.0, 1.8), 11.0, 1.8, m_cable)
-	_add_box_2d(streetlights_root_3d, Vector2(1304.8, 106.0), Vector2(1.8, 34.0), 11.0, 1.8, m_cable)
-	_add_box_2d(streetlights_root_3d, Vector2(1304.8, 90.0), Vector2(1.8, 2.2), 11.0, 14.5, m_cable)
-	_add_box_2d(streetlights_root_3d, Vector2(1240.0, 89.2), Vector2(130.0, 1.8), 24.0, 1.6, m_cable)
-	_add_box_2d(streetlights_root_3d, Vector2(1240.0, 89.2), Vector2(130.0, 1.5), 21.2, 1.4, m_cable)
-	for ix_t in [1182.0, 1212.0, 1270.0, 1300.0]:
-		_add_cyl_2d(streetlights_root_3d, Vector2(ix_t, 88.5), 1.1, 23.5, 2.6, m_insul, 1.1, 6)
-
+	# Cables gruesos por las fachadas de la Comisaría y el Ayuntamiento (el generador del Arreglador y su cable los trae
+	# ya su casa, tools/casas/plano_casa_acomodada_taller.gd, 2026-11-13)
 	# Comisaría (building_police: rect x=844..986, y=100..196): cables gruesos por la fachada norte y esquina este hasta el poste del foco
 	colocar_plano = _en_edificio(ID_COMISARIA)
 	_add_box_2d(streetlights_root_3d, Vector2(915.0, 99.2), Vector2(140.0, 1.8), 24.5, 1.6, m_cable)

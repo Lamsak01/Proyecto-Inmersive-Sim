@@ -2,7 +2,8 @@ extends RefCounted
 
 ## Cascarón de una casa del constructor (tools/casas/construir_casa.gd), 2026-11-13: zócalo, suelos de cada cuarto,
 ## los cuatro muros con su puerta y ventanas, y el tejado a dos aguas con sus hastiales.
-## Metros respecto al centro de la casa; x al este, z al sur; la puerta de la calle en el muro sur.
+## Metros respecto al centro de la casa; x al este, z al sur; la puerta de la calle en el muro sur (o el norte si la
+## casa va girada: «PUERTA_LADO»).
 
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const PARTES = preload("res://scripts/visuals/PartesEdificio3D.gd")
@@ -55,7 +56,7 @@ static func _muros(muros: Node3D, plano: Dictionary, medio: Vector2) -> void:
 	}
 	for lado: String in lados:
 		var huecos: Array = []
-		if lado == "sur":
+		if lado == plano.get("PUERTA_LADO", "sur"):
 			huecos.append({"en": plano["PUERTA_X_M"] + lados[lado][2], "ancho": plano["PUERTA_ANCHO_M"], "alto": SUELO_Y_M + PUERTA_HUECO_ALTO_M})
 		for v: Dictionary in plano["VENTANAS"]:
 			if v["lado"] != lado:
@@ -75,14 +76,16 @@ static func _ventana(muros: Node3D, plano: Dictionary, lado: String, v: Dictiona
 	Piezas.ventana(muros, sitios[lado], float(v["ancho"]), VENTANA_ALTO_M, giro, marco, vidrio, bool(v.get("abre", false)))
 
 
-## Puerta de la calle: hoja que gira sobre su bisagra (la mueve el juego) y el candado, que solo se ve con llave.
+## Puerta de la calle: hoja que gira sobre su bisagra (la mueve el juego) y el candado, por fuera, que solo se ve con
+## llave.
 static func _puerta(muros: Node3D, plano: Dictionary, medio: Vector2) -> void:
 	var ancho: float = plano["PUERTA_ANCHO_M"]
-	var bisagra := Vector3(float(plano["PUERTA_X_M"]) - ancho * 0.5, SUELO_Y_M, medio.y)
+	var muro_z: float = -medio.y if plano.get("PUERTA_LADO", "sur") == "norte" else medio.y
+	var bisagra := Vector3(float(plano["PUERTA_X_M"]) - ancho * 0.5, SUELO_Y_M, muro_z)
 	var pivote: Node3D = Piezas.hoja(muros, bisagra, ancho, false, Piezas.material("door_wood.png", TINTE))
 	pivote.name = "Puerta"
 	pivote.set_meta(PARTES.ROL, PARTES.PUERTA)
-	var candado: MeshInstance3D = Piezas.caja(pivote, Vector3(ancho * 0.8, 1.0, 0.05), CANDADO_TAM, Piezas.material("", HIERRO, 0.75))
+	var candado: MeshInstance3D = Piezas.caja(pivote, Vector3(ancho * 0.8, 1.0, 0.05 * signf(muro_z)), CANDADO_TAM, Piezas.material("", HIERRO, 0.75))
 	candado.visible = false
 	candado.set_meta(PARTES.ROL, PARTES.CANDADO)
 

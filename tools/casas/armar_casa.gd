@@ -6,9 +6,7 @@ extends RefCounted
 
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const Cascaron = preload("res://tools/casas/cascaron_casa.gd")
-const Cosas = preload("res://tools/casas/cosas_casa.gd")
-const Pobre = preload("res://tools/casas/cosas_casa_pobre.gd")
-const Oficio = preload("res://tools/casas/cosas_oficio.gd")
+const DibujarCosa = preload("res://tools/casas/dibujar_cosa.gd")
 const Juntar = preload("res://tools/casas/juntar_casa.gd")
 const PARTES = preload("res://scripts/visuals/PartesEdificio3D.gd")
 const EDIFICIO_GD = preload("res://mapa/edificio.gd")
@@ -53,6 +51,8 @@ static func armar(plano: Dictionary, centro_original: Vector2) -> Node3D:
 		cuarto.set("paso_m", _en_suelo(c.get("paso", c["centro"]) - (c["centro"] as Vector2), 0.0))
 	var cartel := _hijo(raiz, Node3D.new(), "Cartel", CARTEL_GD)
 	cartel.position = plano["CARTEL_M"]
+	if plano.get("PUERTA_LADO", "sur") == "norte":
+		cartel.rotation_degrees.y = 180.0 # de cara a la calle del norte
 	cartel.set("ancho_m", CARTEL_ANCHO_M)
 	_dar_dueno(raiz, raiz)
 	return raiz
@@ -111,45 +111,7 @@ static func _muebles(grupo: Node3D, plano: Dictionary) -> void:
 		pieza.set("tam3", m.get("tam", Vector3.ZERO))
 		pieza.set("choque", m.get("choque", Vector2.ZERO))
 		if m.has("cosa"):
-			_dibujar_cosa(pieza, m)
-
-
-static func _dibujar_cosa(pieza: Node3D, m: Dictionary) -> void:
-	match String(m["cosa"]):
-		"alfombra":
-			Cosas.alfombra(pieza, m["tam2"], m["color"])
-		"bombilla":
-			Cosas.bombilla(pieza, Cascaron.MURO_ALTO_M - Cascaron.SUELO_Y_M)
-		"estufa":
-			Cosas.estufa(pieza)
-		"pila_con_bomba":
-			Cosas.pila_con_bomba(pieza)
-		"banera":
-			Cosas.banera(pieza)
-		"radio":
-			Cosas.radio(pieza)
-		"palangana":
-			Cosas.palangana(pieza)
-		"letrina":
-			Cosas.letrina(pieza)
-		"hogar":
-			Pobre.hogar(pieza)
-		"lena":
-			Pobre.lena(pieza)
-		"vela":
-			Pobre.vela(pieza, float(m.get("alto", 0.0)))
-		"tina":
-			Pobre.tina(pieza)
-		"tajo":
-			Pobre.tajo(pieza)
-		"horno":
-			Oficio.horno(pieza)
-		"radio_galena":
-			Pobre.radio_galena(pieza)
-		"linterna":
-			Pobre.linterna(pieza)
-		var otra:
-			push_error("CASA: no sé armar «%s»" % otra)
+			DibujarCosa.dibujar(pieza, m)
 
 
 static func _hijo(padre: Node3D, hijo: Node3D, nombre: String, guion: Script = null) -> Node3D:
