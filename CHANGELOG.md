@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Línea blanca del molino y altar de la capilla en el prado (Claude Code)
+- Al mover los edificios con el ×5, algunos vértices de sus mallas horneadas se quedaron en el sitio viejo: 2 del molino
+  (un triángulo finísimo hasta el cielo: la «línea blanca») y 6.242 del interior de la capilla (altar, velas y cálices
+  junto al puente central), más una luz. Devueltos a su edificio; las 84 mallas revisadas.
+
 ## 2026-11-13 — Puentes del río recompuestos y editor del mapa más fiel (Claude Code)
 - Los 3 puentes del río (centro, norte y sur): barandillas, postes y estribos estaban separados metros del tablero; juntados
   con su forma original (`tools/juntar_decorado.py`).

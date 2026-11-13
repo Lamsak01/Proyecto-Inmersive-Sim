@@ -206,7 +206,7 @@ light_energy = 1.05
 omni_range = 7.0
 
 [node name="@OmniLight3D@7271" type="OmniLight3D" parent="Interior" unique_id=1535197257]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -166.88, 1.2998207, -68.768005)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2998207, 1.12)
 light_color = Color(1, 0.82, 0.44, 1)
 light_energy = 1.15
 omni_range = 6.72

@@ -5,7 +5,7 @@
 ## a) Tarea activa
 **PRIORIDAD TOTAL (usuario, 2026-11-12): salir del mapa 2D**. Detención sin atajos hecha (2026-11-13,
 `scripts/systems/EscoltaPolicial.gd`, prueba `tools/tests/escolta_organica.gd`); cola en las puertas hecha; cementerio, lavadero, corral, 2 huertos, valla del lago y 3 puentes juntados;
-siguiente: foto de la capilla (¿muebles aún en su sitio viejo?) y de la línea blanca del molino (FALLOS puntos 1 y 2).
+siguiente: terraza del restaurante (piezas de su escena a ~39 m) y conos de la taberna (FALLOS punto 9).
 Migración «el mundo sale solo del editor» (`docs/PLAN_MUNDO_DESDE_EDITOR.md`); una sola sesión de Claude toca el código
 del mundo. Pasos 0 a 4 hechos (corte final 2026-11-12: sin capa de anclas). Queda el paso 5 del plan.
 
