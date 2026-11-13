@@ -16,6 +16,8 @@ const VISTA_ALTO_M: float = 0.1
 const LETRERO_ALTURA_M: float = 3.0
 const LETRERO_TAM_PIXEL: float = 0.02
 const LETRERO_VISTO_HASTA_M: float = 400.0
+const GIRO_RECTO: float = 90.0 ## lo construido en un solar gira de 90 en 90 grados (paredes rectas)
+const VUELTA: float = 360.0
 
 ## Nombre interno del solar en el juego (no lo cambies).
 @export var id_solar: String = ""
@@ -38,6 +40,7 @@ const LETRERO_VISTO_HASTA_M: float = 400.0
 
 static var _lista: Array[Dictionary] = []
 static var _marcas: Dictionary = {} ## id del solar → {id de la marca → sitio en el mapa original}
+static var _piezas: Dictionary = {} ## id del solar → [centro original, desplazamiento en el mundo, giro en grados]
 static var _leida: bool = false
 
 
@@ -85,6 +88,24 @@ static func marca(id_solar: String, id_marca: String) -> Vector2:
 	return marcas[id_marca]
 
 
+## Del plano del solar (mapa original, sin girar) al mundo, donde está su pieza ahora: lo construido en él gira
+## con ella de 90 en 90 grados. Es la misma cuenta que la capa de anclas hacía para cada solar.
+static func a_mundo(id_solar: String, p_plano: Vector2) -> Vector2:
+	_leer()
+	if not _piezas.has(id_solar):
+		push_error("SOLARES: no hay pieza del solar «%s»" % id_solar)
+		return p_plano * Mapa3D.E
+	var pieza: Array = _piezas[id_solar]
+	var centro: Vector2 = pieza[0]
+	return centro * Mapa3D.E + (pieza[1] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(pieza[2])))
+
+
+## Giro del solar como lo usa el mapa plano (radianes): el de las paredes invisibles de lo construido en él.
+static func giro_plano(id_solar: String) -> float:
+	_leer()
+	return -deg_to_rad(float((_piezas.get(id_solar, [Vector2.ZERO, Vector2.ZERO, 0.0]) as Array)[2]))
+
+
 static func _leer() -> void:
 	if _leida:
 		return
@@ -99,6 +120,7 @@ static func _leer() -> void:
 		if ruta.count("/") == 2:
 			centros[ruta] = [String(p.get("id_solar", "")), p.get("centro_original", Vector2.ZERO)]
 			_anadir(p)
+			_anadir_pieza(p)
 		elif p.has("id_marca") and centros.has(ruta.get_base_dir().get_base_dir()):
 			_anadir_marca(centros[ruta.get_base_dir().get_base_dir()], p)
 
@@ -110,6 +132,15 @@ static func _anadir_marca(solar: Array, p: Dictionary) -> void:
 		_marcas[id] = {}
 	var en_solar: Transform3D = p.get("transform", Transform3D.IDENTITY)
 	(_marcas[id] as Dictionary)[String(p["id_marca"])] = (solar[1] as Vector2) + Mapa3D.a_mapa(en_solar.origin)
+
+
+## Dónde quedó la pieza del solar: lo que se movió desde su centro original y su giro redondeado a 90 grados.
+static func _anadir_pieza(p: Dictionary) -> void:
+	var centro: Vector2 = p.get("centro_original", Vector2.ZERO)
+	var xf: Transform3D = p.get("transform", Transform3D.IDENTITY)
+	var giro: float = rad_to_deg(xf.basis.orthonormalized().get_euler().y)
+	var giro_recto: float = fposmod(roundf(giro / GIRO_RECTO) * GIRO_RECTO, VUELTA)
+	_piezas[String(p.get("id_solar", ""))] = [centro, Mapa3D.a_mapa(xf.origin) - centro * Mapa3D.E, giro_recto]
 
 
 static func _anadir(p: Dictionary) -> void:

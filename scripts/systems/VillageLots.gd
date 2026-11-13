@@ -12,6 +12,7 @@ extends RefCounted
 
 const Marca = preload("res://mapa/marca.gd")
 const Solar = preload("res://mapa/solar.gd")
+const EdificioEditor = preload("res://mapa/edificio.gd")
 const CasaModelo = preload("res://mapa/casa_modelo.gd")
 const Sitio = preload("res://mapa/sitio.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
@@ -158,10 +159,13 @@ static func building_center(id: String) -> Vector2:
 	return (d["center"] as Vector2) + (d.get("offset", Vector2.ZERO) as Vector2)
 
 ## Un anexo del solar (campo, corral, cantera, troncos) va pegado a su edificio: su sitio en el mundo es el del
-## edificio más el desplazamiento original (mapa ×E: el campo abierto se estira, el anexo no).
-static func anexo(vm, id: String, p: Vector2) -> Vector2:
+## edificio más el desplazamiento original (mapa ×E: el campo abierto se estira, el anexo no). El edificio manda
+## (su pieza puede estar movida aparte del solar); un solar de solo campos va con su solar.
+static func anexo(id: String, p: Vector2) -> Vector2:
 	var c: Vector2 = building_center(id)
-	return vm.sitio(c) + (p - c)
+	var edificio: String = EdificioEditor.con_centro(c)
+	var c_mundo: Vector2 = Solar.a_mundo(id, c) if edificio.is_empty() else EdificioEditor.a_mundo(edificio, c)
+	return c_mundo + (p - c)
 
 
 static func site_work_pos(id: String) -> Vector2:
@@ -209,10 +213,10 @@ static func _draw_lot(vm, id: String, st: Dictionary) -> void:
 	var snap: Dictionary = _capture_begin(vm)
 	match str(st["status"]):
 		"empty":
-			vm._add_marca_3d("sign", site_work_pos(id))
+			vm.add_marca_3d_mundo("sign", Solar.a_mundo(id, site_work_pos(id)), rad_to_deg(-Solar.giro_plano(id)))
 		"building":
 			for off in [Vector2(-30, -10), Vector2(24, 8), Vector2(-6, 18)]:
-				vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/crates_0.png", c + off)
+				vm.adorno_mundo("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/crates_0.png", Solar.a_mundo(id, c + off), Solar.giro_plano(id))
 		"built":
 			_build_kind(vm, id, st)
 	var rec: Array = _capture_end(vm, snap)
@@ -235,8 +239,8 @@ static func _build_kind(vm, id: String, st: Dictionary) -> void:
 			# La casa es una copia de la casa modelo de su tamaño (con la puerta al norte, con media vuelta): de ella sale su planta
 			vm._construct_solid_building(CasaModelo.PREFIJO + id, str(st["title"]), c,
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png", CasaModelo.planta(plot_of(id), bool(d["door_south"])))
-			vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", house_site(id, Marca.MESA))
-			vm._spawn_house_chest(house_site(id, Marca.COFRE), "Cofre Familiar (" + str(st["title"]) + ")", fam)
+			vm.adorno_mundo("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", house_mundo(id, Marca.MESA), Solar.giro_plano(id))
+			vm.cofre_mundo(house_mundo(id, Marca.COFRE), "Cofre Familiar (" + str(st["title"]) + ")", fam, Solar.giro_plano(id))
 		"shop_house":
 			_build_shop_house(vm, id, st)
 		"fields":
@@ -272,7 +276,7 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"]) # mostrador y mesa chocan desde sus muebles
-	vm._spawn_house_chest(lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
+	vm.cofre_en_edificio(shop_house_id(fam), lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
 	load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id) # V5d: campos, corrales, cantera…
 
 ## Camas de la casa de ese solar: las que marca su casa modelo (mapa/casa_modelo.gd). Con altillo (`upper_floor`),
@@ -285,6 +289,11 @@ static func _house_beds(id: String, has_upper: bool = false) -> Array:
 static func house_site(id: String, marca: String) -> Vector2:
 	var d: Dictionary = lot_def(id)
 	return CasaModelo.sitio(plot_of(id), d["center"], bool(d["door_south"]), marca)
+
+
+## La misma marca, en el mundo: donde está ahora la pieza del solar en el editor.
+static func house_mundo(id: String, marca: String) -> Vector2:
+	return Solar.a_mundo(id, house_site(id, marca))
 
 # Lo que crean las funciones de dibujo de VillageManager va a entities_root, al propio vm y a varias listas.
 static func _capture_begin(vm) -> Dictionary:
@@ -383,7 +392,7 @@ static func on_hour(vm, _hour: int) -> void:
 	var carp = _carpenter(vm)
 	if id == "" or carp == null:
 		return
-	var wp: Vector2 = vm.sitio(site_work_pos(id))
+	var wp: Vector2 = Solar.a_mundo(id, site_work_pos(id))
 	if carp.work_position != wp:
 		carp.work_position = wp
 	if carp.is_downed or carp.is_sleeping or int(carp.current_activity) != WORK_STATE or carp.global_position.distance_to(wp) > SITE_RADIUS:

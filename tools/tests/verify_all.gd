@@ -3084,7 +3084,7 @@ func _initialize() -> void:
 		vk_q = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
 		vm.trade_npcs[vt.role_of("quarry")] = vk_q
 	vt.fix_quarry_post(vm)
-	assert(vk_q.work_position.distance_to(vl.anexo(vm, "w1", vt.yard_pos("w1"))) < 1.0 and vt.yard_pos("w1").x > vl.building_center("w1").x, "K1: The quarryman works out on the rock")
+	assert(vk_q.work_position.distance_to(vl.anexo("w1", vt.yard_pos("w1"))) < 1.0 and vt.yard_pos("w1").x > vl.building_center("w1").x, "K1: The quarryman works out on the rock")
 	var vk_stock: Dictionary = vk_q.shop_stock.duplicate()
 	var vk_g: int = vk_q.personal_gold
 	vk_q.shop_stock["stone"] = 5
@@ -4573,9 +4573,9 @@ func _initialize() -> void:
 	var fis2_rects: Dictionary = {}
 	for bf_fis2 in vm.building_footprints:
 		fis2_rects[str(bf_fis2.get("id", ""))] = bf_fis2.get("rect", Rect2())
-	assert((fis2_rects.get("building_mansion", Rect2()) as Rect2).has_point(M(vun.heist_target_pos(vun.HEIST_TARGETS[0]))), "FIS2.3a: Sello de Lacre Noble is inside the Mansion")
-	assert((fis2_rects.get("building_church", Rect2()) as Rect2).has_point(M(vun.heist_target_pos(vun.HEIST_TARGETS[1]))), "FIS2.3b: Cáliz de Plata de la Capilla is inside the Chapel")
-	assert((fis2_rects.get("building_town_hall", Rect2()) as Rect2).has_point(M(vun.heist_target_pos(vun.HEIST_TARGETS[2]))), "FIS2.3c: Libro Mayor de los Gremios is inside the Town Hall")
+	assert((fis2_rects.get("building_mansion", Rect2()) as Rect2).has_point(vun.heist_target_pos(vun.HEIST_TARGETS[0])), "FIS2.3a: Sello de Lacre Noble is inside the Mansion")
+	assert((fis2_rects.get("building_church", Rect2()) as Rect2).has_point(vun.heist_target_pos(vun.HEIST_TARGETS[1])), "FIS2.3b: Cáliz de Plata de la Capilla is inside the Chapel")
+	assert((fis2_rects.get("building_town_hall", Rect2()) as Rect2).has_point(vun.heist_target_pos(vun.HEIST_TARGETS[2])), "FIS2.3c: Libro Mayor de los Gremios is inside the Town Hall")
 	var fis2_uw_bak: Dictionary = vun.state(vm).duplicate(true)
 	var fis2_hr_bak: int = int(t5_wc.current_hour)
 	vun.state(vm)["active_heist"] = {}
@@ -4589,7 +4589,7 @@ func _initialize() -> void:
 	assert(str(fis2_heist_node.call("get_interact_label", p70_pl)).begins_with("Robar "), "FIS2.3f: Heist target prop has [E] Robar ... label")
 	t5_wc.current_hour = 23
 	p70_pl.global_position = M(Vector2(-5000.0, -5000.0))
-	var fis2_caliz_pos: Vector2 = M(vun.heist_target_pos(vun.HEIST_TARGETS[1]))
+	var fis2_caliz_pos: Vector2 = vun.heist_target_pos(vun.HEIST_TARGETS[1])
 	var fis2_stole: bool = vun.try_interact(vm, p70_pl, fis2_caliz_pos)
 	assert(fis2_stole and bool(vun.state(vm)["active_heist"].get("stolen", false)), "FIS2.3g: Interacting with heist target at night steals the object")
 	assert(root.get_tree().get_nodes_in_group("heist_target_prop").size() == 0, "FIS2.3h: Stolen heist target prop disappears from the world")

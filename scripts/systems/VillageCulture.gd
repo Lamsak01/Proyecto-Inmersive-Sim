@@ -603,6 +603,15 @@ static func town_hall_terminal_pos() -> Vector2:
 	return Marca.mundo("building_town_hall", M_TERMINAL)
 
 const TINKER_ID := "mixed_family_tinker"
+## [sitio en el plano, tamaño] de los sacos terreros con alambre y los postes de foco (época tecnofeudal): unos en la
+## puerta de la comisaría y otros en el puesto del paso (su solar).
+const EPOCH_PROPS_COMISARIA: Array[Array] = [
+	[Vector2(864.0, 92.0), Vector2(22.0, 8.0)], [Vector2(966.0, 92.0), Vector2(22.0, 8.0)], [Vector2(994.0, 96.0), Vector2(6.0, 6.0)],
+]
+const EPOCH_PROPS_PUESTO: Array[Array] = [
+	[Vector2(1528.0, 22.0), Vector2(22.0, 8.0)], [Vector2(1528.0, 78.0), Vector2(22.0, 8.0)], [Vector2(1538.0, 18.0), Vector2(6.0, 6.0)],
+]
+const COMISARIA_ID := "building_police"
 const GENERADOR_TAM := Vector2(16.0, 22.0) ## choque del generador diésel
 
 ## Cuadro eléctrico y generador del Taller de Reparaciones: marcas de su escena, ya en el mundo.
@@ -655,18 +664,11 @@ static func build_tinker_stations(vm) -> void:
 
 	# §3b.3: Colisionadores 2D para elementos de la época (generador, sacos terreros con alambre y postes de foco) sin tapar puertas ni caminos
 	vm.choque_en_edificio(TINKER_ID, Marca.sitio(TINKER_ID, Marca.GENERADOR), GENERADOR_TAM, false, "epoch_prop_collider")
-	if vm.has_method("_add_prop_collider"):
-		for ep in [
-			[Vector2(864.0, 92.0), Vector2(22.0, 8.0)],
-			[Vector2(966.0, 92.0), Vector2(22.0, 8.0)],
-			[Vector2(994.0, 96.0), Vector2(6.0, 6.0)],
-			[Vector2(1528.0, 22.0), Vector2(22.0, 8.0)],
-			[Vector2(1528.0, 78.0), Vector2(22.0, 8.0)],
-			[Vector2(1538.0, 18.0), Vector2(6.0, 6.0)],
-		]:
-			var sb = vm._add_prop_collider(ep[0], ep[1], "epoch_prop_collider")
-			if sb != null:
-				sb.add_to_group("epoch_prop_collider")
+	# Sacos terreros y postes de foco: en la puerta de la comisaría y en el puesto del paso
+	for ep: Array in EPOCH_PROPS_COMISARIA:
+		vm.choque_en_edificio(COMISARIA_ID, ep[0], ep[1], false, "epoch_prop_collider")
+	for ep: Array in EPOCH_PROPS_PUESTO:
+		vm.add_choque_mundo(Solar.a_mundo(OUTPOST_SOLAR, ep[0]), ep[1], Solar.giro_plano(OUTPOST_SOLAR), "epoch_prop_collider")
 
 static func open_terminal_menu(vm, speaker: Node, _player: Node2D = null) -> void:
 	if vm == null:
@@ -2150,7 +2152,7 @@ static func _outpost_on_hour(vm, hour: int) -> void:
 			continue
 		if hour >= 8 and hour < 17:
 			if sn.errand_kind == "" and VillageNeeds.is_free(sn):
-				var spot: Vector2 = _AN_SITIOS.mover(outpost_work_spot(i))
+				var spot: Vector2 = Solar.a_mundo(OUTPOST_SOLAR, outpost_work_spot(i))
 				sn.start_errand("outpost_work", spot)
 		elif sn.errand_kind == "outpost_work":
 			sn.end_errand()

@@ -128,6 +128,17 @@ static func a_mundo(id: String, p_plano: Vector2) -> Vector2:
 	return centro * Mapa3D.E + (datos[0] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(datos[1])))
 
 
+## Edificio cuya pieza tiene ese centro de fábrica ("" si ninguno): el de un solar (tienda-vivienda, taller…), que
+## no sabe su id pero sí su centro.
+const _MISMO_CENTRO_PX: float = 0.5
+static func con_centro(centro: Vector2) -> String:
+	_datos("")
+	for id: String in _cache:
+		if ((_cache[id] as Array)[2] as Vector2).distance_to(centro) < _MISMO_CENTRO_PX:
+			return id
+	return ""
+
+
 ## Giro del edificio como lo usa el mapa plano (radianes, sentido del plano): el de sus paredes invisibles.
 static func giro_plano(id: String) -> float:
 	return -deg_to_rad(giro(id))

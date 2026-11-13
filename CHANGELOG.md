@@ -4,6 +4,16 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: casas de los solares, anexos, alcantarillas y mirador (Claude Code)
+- Los solares saben ir solos al mundo (`Solar.a_mundo`, `Solar.giro_plano`); con eso salen ya en su sitio la mesa y el
+  cofre de cada casa, el cartel de solar libre, las cajas de obra, la tienda del jugador, camas y mesa de quien se muda,
+  el puesto del carpintero y del puesto del paso. Los anexos (cantera, heno, troncos) siguen a su edificio
+  (`EdificioEditor.con_centro`); el terreno, a su solar. Red de alcantarillas, objetivo del golpe del perista, cofre de
+  la taberna, sacos terreros y mirador del lago, también directos.
+- Arreglado: tres carteles de solar libre estaban en el solar de al lado; dos cofres de tienda (granja y leñador) y dos
+  rocas de la cantera estaban fuera de su terreno; la barandilla del mirador no estaba delante de su banco.
+
+
 ## 2026-11-12 — Mudanza al editor: celda, urgencias, mansión del Caso I y escuela (Claude Code)
 - La celda (`VillageJustice.en_celda`), la cama de urgencias y la entrega de la morgue, la comisaría como zona, el
   armario y el informe del Caso I, el secuestrador, el pupitre y la maestra de la escuela y la silla de la biblioteca

@@ -1498,7 +1498,7 @@ func _sitios_cfg(AN) -> void:
 		for campo in SITIOS_CAMPOS_CFG:
 			if cfg.get(campo) is Vector2 and cfg[campo] != Vector2.ZERO:
 				if campo == "work_pos" and cfg.has("anexo_lot"):
-					cfg[campo] = VillageLots.anexo(self, str(cfg["anexo_lot"]), cfg[campo]) # puesto pegado a su edificio
+					cfg[campo] = VillageLots.anexo(str(cfg["anexo_lot"]), cfg[campo]) # puesto pegado a su edificio
 				else:
 					cfg[campo] = AN.mover(cfg[campo])
 

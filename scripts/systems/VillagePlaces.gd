@@ -74,13 +74,19 @@ static func state(vm) -> Dictionary:
 	return vm.places_state
 
 # ---------------------------------------------------------------- mapa
+const MIRADOR_BARANDILLA: Vector2 = Vector2(0, -12) ## desde la cruz del mirador, hacia el lago
+const MIRADOR_BARANDILLA_TAM: Vector2 = Vector2(72.0, 5.0)
+const MIRADOR_BANCO: Vector2 = Vector2(0, -2)
 static func build_world(vm) -> void:
 	var bench: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/bench_0.png"
 	# Los árboles y bancos del parque y los bancos de la plaza son piezas de «Decorado» con su choque
 	# Mirador del lago: barandilla de madera y un banco
-	var lv: Vector2 = Sitio.original(SITIO_OCIO % "lake_view") # lo que se dibuja aún se traduce: se le da el mapa original
-	vm._add_prop_collider(lv + Vector2(0, -12), Vector2(72.0, 5.0))
-	vm._spawn_decor_prop(bench, lv + Vector2(0, -2))
+	# La barandilla y el banco giran con la cruz del mirador
+	var id_mirador: String = SITIO_OCIO % "lake_view"
+	var lv: Vector2 = Sitio.mundo(id_mirador)
+	var giro: float = -deg_to_rad(Sitio.giro(id_mirador))
+	vm.add_choque_mundo(lv + MIRADOR_BARANDILLA.rotated(giro), MIRADOR_BARANDILLA_TAM, giro)
+	vm.adorno_mundo(bench, lv + MIRADOR_BANCO.rotated(giro), giro)
 
 ## Para las quedadas del SocialDirector.
 static func hangout_spots() -> Array:

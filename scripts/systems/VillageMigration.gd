@@ -139,10 +139,10 @@ static func move_into_house(vm, n, id: String = "") -> bool:
 	var lid: String = str(b["lot"])
 	var res_idx: int = (VillageLots.lot(vm, lid).get("residents", []) as Array).size()
 	VillageLots.add_resident(vm, lid, n.get_person_key())
-	n.bed_position = vm.sitio(b["bed"])
-	n.home_table_pos = vm.sitio(b["table"])
+	n.bed_position = VillageLots.Solar.a_mundo(lid, b["bed"])
+	n.home_table_pos = VillageLots.Solar.a_mundo(lid, b["table"])
 	if is_unemployed(n):
-		var door_street: Vector2 = vm.sitio(VillageLots.site_work_pos(lid))
+		var door_street: Vector2 = VillageLots.Solar.a_mundo(lid, VillageLots.site_work_pos(lid))
 		n.work_position = door_street + Vector2(float((res_idx % 3) - 1) * 18.0 + float((absi(n.npc_name.hash()) % 9) - 4) * 2.0, float(res_idx % 2) * 8.0)
 	n.family_id = str(b["family_id"])
 	n.family_name = str(VillageLots.lot(vm, lid)["title"]).replace("🏠 ", "")

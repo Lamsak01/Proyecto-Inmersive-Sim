@@ -17,6 +17,7 @@ extends RefCounted
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
+const Solar = preload("res://mapa/solar.gd")
 const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
@@ -151,7 +152,7 @@ static func casa_del_jugador_con(vm, pos: Vector2, upg: String) -> bool:
 	for id in player_lots(vm, true):
 		if bool((VillageLots.lot(vm, id).get("upgrades", {}) as Dictionary).get(upg, false)):
 			var d: Dictionary = VillageLots.lot_def(id)
-			if Rect2(vm.sitio(d["center"] as Vector2) - (d["size"] as Vector2) * 0.5, d["size"]).grow(6.0).has_point(pos): # la casa está en su sitio del mundo
+			if Rect2(Solar.a_mundo(id, d["center"] as Vector2) - (d["size"] as Vector2) * 0.5, d["size"]).grow(6.0).has_point(pos): # la casa está en su sitio del mundo
 				return true
 	return false
 
@@ -162,7 +163,7 @@ static func player_near_home(vm) -> bool:
 	if pl == null:
 		return true
 	for id in player_lots(vm, true):
-		if pl.global_position.distance_to(vm.sitio(VillageLots.lot_def(id)["center"])) <= HOME_LEVEL_RADIUS:
+		if pl.global_position.distance_to(Solar.a_mundo(id, VillageLots.lot_def(id)["center"])) <= HOME_LEVEL_RADIUS:
 			return true
 	return false
 
@@ -283,6 +284,12 @@ static func player_shop_lot(vm) -> String:
 	var lid: String = str(state(vm)["player_shop"].get("lot", ""))
 	return lid if not lid.is_empty() else primary_player_lot(vm)
 
+## Un sitio de la tienda del jugador (plano de su solar) llevado al mundo, donde está ahora la pieza del solar.
+static func _en_tienda(vm, p_plano: Vector2) -> Vector2:
+	var lid: String = player_shop_lot(vm)
+	return p_plano if lid.is_empty() else Solar.a_mundo(lid, p_plano) # sin tienda no hay sitio que llevar
+
+
 static func player_shop_counter_pos(vm) -> Vector2:
 	var lid: String = player_shop_lot(vm)
 	return home_prop_pos(vm, lid, "player_shop_counter") if not lid.is_empty() else Vector2.ZERO
@@ -321,7 +328,7 @@ static func is_player_shop_clerk_present(vm) -> bool:
 	var clerk = get_player_shop_clerk(vm)
 	if clerk == null or clerk.is_downed or clerk.is_sleeping or not clerk.is_conscious():
 		return false
-	return clerk.global_position.distance_to(vm.sitio(player_shop_counter_pos(vm))) <= SHOP_CLERK_RADIUS
+	return clerk.global_position.distance_to(_en_tienda(vm, player_shop_counter_pos(vm))) <= SHOP_CLERK_RADIUS
 
 static func pay_player_shop_clerk(vm) -> bool:
 	if not has_player_shop(vm):
@@ -375,7 +382,7 @@ static func on_hour(vm, hour: int) -> void:
 	if clerk != null and not clerk.is_downed and not clerk.is_sleeping and clerk.is_conscious() and clerk.rite_pos == Vector2.ZERO and not clerk.is_in_live_fight() and not clerk.is_busy_with_player():
 		if "VillageWork" in vm and vm.VillageWork != null:
 			vm.VillageWork._release(clerk)
-		var c_spot: Vector2 = vm.sitio(player_shop_clerk_pos(vm)) # destino en el mundo
+		var c_spot: Vector2 = _en_tienda(vm, player_shop_clerk_pos(vm)) # destino en el mundo
 		if clerk.errand_kind != "player_shop_clerk":
 			clerk.start_errand("player_shop_clerk", c_spot)
 		else:
@@ -401,7 +408,7 @@ static func on_hour(vm, hour: int) -> void:
 	var max_this_hour: int = mini(slots_left, 2 if int(ps.get("ad_days", 0)) > 0 else 1)
 	var sent: int = 0
 	var ck: String = clerk.get_person_key()
-	var cust_spot: Vector2 = vm.sitio(player_shop_customer_pos(vm)) # destino real de los clientes
+	var cust_spot: Vector2 = _en_tienda(vm, player_shop_customer_pos(vm)) # destino real de los clientes
 	for pass_idx in range(2):
 		if sent >= max_this_hour:
 			break
@@ -426,7 +433,7 @@ static func on_customer_arrived(vm, customer) -> bool:
 	# Sin el dependiente físicamente detrás del mostrador, la tienda no vende
 	if not is_player_shop_clerk_present(vm):
 		return false
-	if customer.global_position.distance_to(vm.sitio(player_shop_counter_pos(vm))) > SHOP_CLERK_RADIUS:
+	if customer.global_position.distance_to(_en_tienda(vm, player_shop_counter_pos(vm))) > SHOP_CLERK_RADIUS:
 		return false
 	var ps: Dictionary = state(vm)["player_shop"]
 	if int(ps.get("stock", 0)) <= 0:
@@ -511,7 +518,7 @@ static func sync_relocated_camp_assets(vm, teleport_toby: bool = false) -> void:
 	var hs: Dictionary = state(vm)
 	var t_lot: String = str(hs.get("toby_lot", ""))
 	if t_lot != "" and str(VillageLots.lot(vm, t_lot).get("payer", "")) == "player" and str(VillageLots.lot(vm, t_lot).get("status", "")) == "built":
-		var t_pos: Vector2 = vm.sitio(toby_pos_for_lot(vm, t_lot))
+		var t_pos: Vector2 = Solar.a_mundo(t_lot, toby_pos_for_lot(vm, t_lot))
 		if "entities_root" in vm and is_instance_valid(vm.entities_root):
 			var bed: Node2D = vm.entities_root.get_node_or_null("PetBed_Toby") as Node2D
 			if bed != null:
@@ -658,8 +665,8 @@ static func move_into_player_home(vm, npc, bed_i: int) -> bool:
 	npc.lodging = "house:" + p_lot
 	var beds: Array = VillageLots._house_beds(p_lot)
 	if not beds.is_empty():
-		npc.bed_position = vm.sitio(beds[clampi(bed_i, 0, beds.size() - 1)])
-	npc.home_table_pos = vm.sitio(VillageLots.lot_def(p_lot)["center"] + Vector2(0, -2))
+		npc.bed_position = Solar.a_mundo(p_lot, beds[clampi(bed_i, 0, beds.size() - 1)])
+	npc.home_table_pos = Solar.a_mundo(p_lot, VillageLots.lot_def(p_lot)["center"] + Vector2(0, -2))
 	VillageLots.add_resident(vm, p_lot, key)
 	return true
 
@@ -679,7 +686,7 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 		var id: String = str(l["id"])
 		var st: Dictionary = VillageLots.lot(vm, id)
 		# 1. Cartel de solar libre de vivienda: encargar casa si tienes oro
-		if str(st.get("status", "")) == "empty" and str(l.get("zone", "")) in ["borde", "barrio"] and pos.distance_to(vm.sitio(VillageLots.site_work_pos(id))) <= 32.0:
+		if str(st.get("status", "")) == "empty" and str(l.get("zone", "")) in ["borde", "barrio"] and pos.distance_to(Solar.a_mundo(id, VillageLots.site_work_pos(id))) <= 32.0:
 			if VillageLots.active_site(vm) != "":
 				if player.has_method("show_hint"):
 					player.show_hint("🚧 El carpintero ya está ocupado en otra obra. Espera a que termine.")
@@ -708,7 +715,7 @@ static func try_interact(vm, player: Node2D, pos: Vector2) -> bool:
 				return true
 		# 2. Dentro de una casa construida tuya: dormir en tu cama o estudiar en tu estantería
 		if str(st.get("status", "")) == "built" and str(st.get("payer", "")) == "player":
-			var c: Vector2 = vm.sitio(VillageLots.lot_def(id)["center"])
+			var c: Vector2 = Solar.a_mundo(id, VillageLots.lot_def(id)["center"])
 			if pos.distance_to(c) <= 46.0:
 				var hs: Dictionary = state(vm)
 				var up: Dictionary = st.get("upgrades", {})
@@ -1199,8 +1206,8 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			buyer.lodging = "house:" + arg
 			var beds_s: Array = VillageLots._house_beds(arg)
 			if not beds_s.is_empty():
-				buyer.bed_position = vm.sitio(beds_s[0])
-			buyer.home_table_pos = vm.sitio(VillageLots.lot_def(arg)["center"] + Vector2(0, -2))
+				buyer.bed_position = Solar.a_mundo(arg, beds_s[0])
+			buyer.home_table_pos = Solar.a_mundo(arg, VillageLots.lot_def(arg)["center"] + Vector2(0, -2))
 			VillageLots.add_resident(vm, arg, buyer.get_person_key())
 		else:
 			st_sell["payer"] = "town"
@@ -1267,7 +1274,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 			vm.VillageWork._release(npc)
 		var cur_h: int = int(WorldClock.current_hour) if WorldClock != null else 10
 		if is_player_shop_open_hour(cur_h) and not npc.is_dead and not npc.is_downed and not npc.is_sleeping:
-			npc.start_errand("player_shop_clerk", vm.sitio(player_shop_clerk_pos(vm)))
+			npc.start_errand("player_shop_clerk", _en_tienda(vm, player_shop_clerk_pos(vm)))
 		npc.modify_affinity(12)
 		npc.add_thought("Tengo trabajo atendiendo el mostrador del Bazar del Forastero (+8)", 8.0)
 		VillageChronicle.add(vm, "player_shop_clerk", "Contrataste a %s como dependiente de tu negocio" % npc.npc_name, true)
@@ -1715,7 +1722,7 @@ static func schedule_dinner(vm, npc) -> bool:
 	var cur_h: int = int(WorldClock.current_hour) if WorldClock else 12
 	var s_day: int = today() if cur_h <= 20 else today() + 1
 	hs["last_dinner_day"] = today()
-	var t_pos: Vector2 = vm.sitio(home_prop_pos(vm, p_lot, "home_table"))
+	var t_pos: Vector2 = Solar.a_mundo(p_lot, home_prop_pos(vm, p_lot, "home_table"))
 	hs["gathering"] = {
 		"kind": "dinner",
 		"place": "home",
@@ -1757,7 +1764,7 @@ static func convoke_house_party(vm) -> bool:
 	var cur_h: int = int(WorldClock.current_hour) if WorldClock else 12
 	var s_day: int = today() if cur_h <= 21 else today() + 1
 	hs["last_party_day"] = today()
-	var t_pos: Vector2 = vm.sitio(home_prop_pos(vm, p_lot, "home_table"))
+	var t_pos: Vector2 = Solar.a_mundo(p_lot, home_prop_pos(vm, p_lot, "home_table"))
 	hs["gathering"] = {
 		"kind": "party",
 		"place": "home",

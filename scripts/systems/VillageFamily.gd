@@ -386,7 +386,7 @@ static func on_hour(vm, hour: int) -> void:
 	var st: Dictionary = state(vm)
 	var cur_d: int = today()
 	var line_idx: int = 0
-	var school_door: Vector2 = vm.sitio(VillageLots.site_work_pos("e3"))
+	var school_door: Vector2 = VillageLots.Solar.a_mundo("e3", VillageLots.site_work_pos("e3"))
 	for n in pupils(vm):
 		if not n.has_meta("school_pos") or n.is_dead or n.is_downed:
 			continue

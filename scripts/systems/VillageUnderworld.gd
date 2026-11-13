@@ -119,8 +119,9 @@ const HEIST_TARGETS: Array[Dictionary] = [
 ]
 
 ## Dónde está el objeto de un encargo, en el mapa original: su marca en la escena del edificio.
+## Sitio del objetivo en el mundo: la marca de su edificio, donde esté ahora su pieza.
 static func heist_target_pos(objetivo: Dictionary) -> Vector2:
-	return load("res://mapa/marca.gd").call("sitio", objetivo["edificio"], objetivo["marca"])
+	return load("res://mapa/marca.gd").call("mundo", objetivo["edificio"], objetivo["marca"])
 
 ## Lo que el perista acepta como «mercancía caliente» y cuánto paga (de su bolsillo). Antes daba 25 sin pedir nada.
 const FENCE_PRICES: Dictionary = {"royal_safe_conduct": 25, "master_lockpick": 20, "surgical_kit": 18, "golden_egg": 15, "bandit_scrap": 12, "fox_pelt": 10, "steel_ingot": 10, "copper_coil": 9}
@@ -153,6 +154,7 @@ const FENCE_RUMORS: Array[String] = [
 ## - `ladder_pos`: Escalerilla física para subir de vuelta a esa trampilla de la calle.
 ## - `chest_pos`: Cofre de contrabando físico (1 vez al día por cámara).
 const SEWER_Y: float = 63.0
+const ID_RED := "bajo_alcantarillas" ## pieza de «BajoTierra» con la red de túneles
 const SEWER_LOCATIONS_BASE: Dictionary = {
 	"cistern": {
 		"title": "Cisterna Vieja bajo la Plaza",
@@ -476,7 +478,9 @@ static func build_sewers_world(vm) -> void:
 					old_n.queue_free()
 
 	var AN = load("res://mapa/anclas.gd")
-	desp_red = AN.mover(Vector2(420.0, SEWER_Y)) - Vector2(420.0, SEWER_Y) # ancla de la red (mapa/anclas.gd): movido + estirado
+	# La red va entera con su pieza «bajo_alcantarillas» (movido + estirado); sus números siguen siendo los de siempre
+	var centro_red: Vector2 = Vector2(420.0, SEWER_Y)
+	desp_red = load("res://mapa/edificio.gd").call("a_mundo", ID_RED, centro_red) - centro_red
 	SEWER_LOCATIONS = SEWER_LOCATIONS_BASE.duplicate(true)
 	for k in SEWER_LOCATIONS.keys():
 		var dl: Dictionary = SEWER_LOCATIONS[k]
@@ -1416,7 +1420,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 	elif action_id == "underworld_take_heist":
 		var idx: int = int(st.get("heists_done", 0)) % HEIST_TARGETS.size()
 		var t: Dictionary = HEIST_TARGETS[idx]
-		var p: Vector2 = _AN_SITIOS.mover(heist_target_pos(t)) # se guarda ya en el mundo (mapa ×E, edificio movido)
+		var p: Vector2 = heist_target_pos(t) # se guarda ya en el mundo
 		st["active_heist"] = {"id": str(t["id"]), "label": str(t["label"]), "pos_x": p.x, "pos_y": p.y, "reward": int(t["reward"]), "stolen": false}
 		sync_heist_visuals(vm)
 		npc._spawn_floating_text("🕶️💎 «Un coleccionista paga 55 de oro por %s. Tráemelo tú: ve allí de noche y que nadie te vea.»" % str(t["label"]), Color.GOLD, -46.0)

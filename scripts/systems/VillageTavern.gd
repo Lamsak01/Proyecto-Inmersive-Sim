@@ -232,7 +232,7 @@ static func setup_world(vm) -> void:
 
 	vm.add_zona_uso_mundo("TavernPlayerBedArea", mundo(M_CAMA_JUGADOR), 20.0, "tavern_bed")
 
-	vm._spawn_house_chest(Vector2(365.0, -300.0), "Cofre de la Posada El Jabalí", FAMILY_ID) # rincón del cuarto de los dueños (2026-11-11: chocaba con la cama de Marta)
+	vm.cofre_en_edificio(BUILDING_ID, Vector2(365.0, -300.0), "Cofre de la Posada El Jabalí", FAMILY_ID) # rincón del cuarto de los dueños (2026-11-11: chocaba con la cama de Marta)
 
 	# 5. Marta, la Tabernera y Chef, detrás del mostrador
 	var marta := VillageNPC.new()
