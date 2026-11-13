@@ -22,20 +22,13 @@ func _on_hour_passed(_day: int, _new_hour: int = 0) -> void:
 	if is_dead and corpse_on_ground and not corpse_in_morgue:
 		corpse_rot_hours += 1.0
 
-## Las posiciones que recibe están en coordenadas del mapa ORIGINAL: aquí se traducen a su sitio actual (plan de sitios,
-## docs/PLAN_SITIOS.md). Con p_ya_actuales = true vienen ya traducidas (copiadas de otro vecino o de trade_configs) y no
-## se tocan. tavern_social_pos viene siempre de vm._tavern_social_pos (original) y se traduce siempre.
-## Al cargar partida, from_save_dict pone después los sitios guardados.
-func setup_npc(tex: Texture2D, p_work_pos: Vector2, p_bed_pos: Vector2, initial_stock: Dictionary = {}, p_home_table_pos: Vector2 = Vector2.ZERO, p_family_id: String = "none", p_family_name: String = "Independiente", p_ya_actuales: bool = false) -> void:
-	var AN = load("res://mapa/anclas.gd")
-	var tr := func(q: Vector2) -> Vector2: return q if q == Vector2.ZERO else AN.mover(q)
-	var tr_in: Callable = (func(q: Vector2) -> Vector2: return q) if p_ya_actuales else tr
-	work_position = tr_in.call(p_work_pos)
-	bed_position = tr_in.call(p_bed_pos)
-	home_table_pos = tr_in.call(p_home_table_pos) if p_home_table_pos != Vector2.ZERO else bed_position + Vector2(0, 18)
-	if not has_meta("sitios_ok"):
-		tavern_social_pos = tr.call(tavern_social_pos)
-	set_meta("sitios_ok", true)
+## Las posiciones que recibe (y tavern_social_pos) ya están en el mundo, donde estén ahora los edificios y las cruces
+## del editor (2026-11-12: se acabó la traducción del mapa original). Al cargar partida, from_save_dict pone después
+## los sitios guardados.
+func setup_npc(tex: Texture2D, p_work_pos: Vector2, p_bed_pos: Vector2, initial_stock: Dictionary = {}, p_home_table_pos: Vector2 = Vector2.ZERO, p_family_id: String = "none", p_family_name: String = "Independiente") -> void:
+	work_position = p_work_pos
+	bed_position = p_bed_pos
+	home_table_pos = p_home_table_pos if p_home_table_pos != Vector2.ZERO else bed_position + Vector2(0, 18)
 	family_id = p_family_id
 	family_name = p_family_name
 	global_position = work_position

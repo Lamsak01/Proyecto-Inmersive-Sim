@@ -261,6 +261,13 @@ const SHOP_HOUSE_MARKS: Dictionary = {"work_pos": Marca.TRABAJO, "kin_work_pos":
 static func shop_house_id(family_id: String) -> String:
 	return "mixed_" + family_id
 
+## Los mismos sitios en el mundo, donde está ahora la pieza del edificio: lo que reciben los vecinos y su ficha de oficio.
+static func shop_house_layout_mundo(building_id: String) -> Dictionary:
+	var lay: Dictionary = {}
+	for campo: String in SHOP_HOUSE_MARKS:
+		lay[campo] = Marca.mundo(building_id, SHOP_HOUSE_MARKS[campo])
+	return lay
+
 static func shop_house_layout(building_id: String) -> Dictionary:
 	var lay: Dictionary = {}
 	for campo: String in SHOP_HOUSE_MARKS:

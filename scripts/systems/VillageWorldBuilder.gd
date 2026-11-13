@@ -108,11 +108,11 @@ static func _spawn_five_family_houses_and_trades(vm: VillageManager) -> void:
 		# Dónde trabaja, duerme y come la familia lo dicen las marcas de sus edificios (mapa/marca.gd), no números aquí
 		var shop_id: String = ("mixed_" if is_mixed else "shop_") + fam_id
 		var house_id: String = ("mixed_" if is_mixed else "house_") + fam_id
-		var work_pos: Vector2 = Marca.sitio(shop_id, Marca.TRABAJO)
-		var kin_work_pos: Vector2 = Marca.sitio(shop_id, Marca.TRABAJO_FAMILIAR)
-		var bed1_pos: Vector2 = Marca.sitio(house_id, Marca.CAMA_1)
-		var bed2_pos: Vector2 = Marca.sitio(house_id, Marca.CAMA_2)
-		var table_pos: Vector2 = Marca.sitio(house_id, Marca.MESA)
+		var work_pos: Vector2 = Marca.mundo(shop_id, Marca.TRABAJO)
+		var kin_work_pos: Vector2 = Marca.mundo(shop_id, Marca.TRABAJO_FAMILIAR)
+		var bed1_pos: Vector2 = Marca.mundo(house_id, Marca.CAMA_1)
+		var bed2_pos: Vector2 = Marca.mundo(house_id, Marca.CAMA_2)
+		var table_pos: Vector2 = Marca.mundo(house_id, Marca.MESA)
 
 		if is_mixed:
 			_build_mixed_shop_house_visuals(vm, sc, str(cfg["shop_title"]), fam_id, int(role_key))
@@ -207,7 +207,7 @@ static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm._register_authority_npc(
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",
-		Marca.sitio(vm.ID_HOSPITAL, Marca.TRABAJO), Marca.sitio(vm.ID_HOSPITAL, Marca.CAMA_1), Marca.sitio(vm.ID_HOSPITAL, Marca.MESA),
+		Marca.mundo(vm.ID_HOSPITAL, Marca.TRABAJO), Marca.mundo(vm.ID_HOSPITAL, Marca.CAMA_1), Marca.mundo(vm.ID_HOSPITAL, Marca.MESA),
 		{"bandage": 4, "surgical_kit": 4, "herbal_poultice": 6},
 		"family_hospital", "Cuerpo Médico del Valle",
 		["Dr. Silvano", "Dra. Valeria", "Dr. Aurelio", "Dra. Caelia", "Dr. Mirko"]
@@ -250,14 +250,14 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._register_authority_npc(
 		"NPC_Sheriff_Vane", "Comisario Vane", "Alguacil mayor", VillageNPC.TradeRole.SHERIFF,
 		"res://assests/world/village/villager_sheriff.png",
-		Marca.sitio(vm.ID_COMISARIA, Marca.TRABAJO), Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_1), Marca.sitio(vm.ID_COMISARIA, Marca.MESA), {},
+		Marca.mundo(vm.ID_COMISARIA, Marca.TRABAJO), Marca.mundo(vm.ID_COMISARIA, Marca.CAMA_1), Marca.mundo(vm.ID_COMISARIA, Marca.MESA), {},
 		"family_police", "Guardia del Valle",
 		["Alguacil Thorne", "Alguacil Vance", "Alguacil Haldor", "Alguacil Lyra", "Alguacil Rourke"]
 	)
 	vm._register_authority_npc(
 		"NPC_Guard_Rodric", "Guardia Rodric", "Oficial de Patrulla", VillageNPC.TradeRole.GUARD,
 		"res://assests/world/village/villager_guard.png",
-		Vector2(510, 48), Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_1), Marca.sitio(vm.ID_COMISARIA, Marca.MESA), {},
+		vm.sitio(Vector2(510, 48)), Marca.mundo(vm.ID_COMISARIA, Marca.CAMA_1), Marca.mundo(vm.ID_COMISARIA, Marca.MESA), {},
 		"family_police", "Guardia del Valle",
 		["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
 	)
@@ -273,7 +273,7 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm._register_authority_npc(
 		"NPC_Priest_Anselmo", "Hermano Anselmo", "Sacerdote del Alba", VillageNPC.TradeRole.PRIEST,
 		"res://assests/world/village/villager_traveler.png",
-		Marca.sitio(vm.ID_CAPILLA, Marca.ALTAR) + Vector2(0, -18), Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Marca.sitio(vm.ID_CAPILLA, Marca.MESA), {},
+		Marca.mundo(vm.ID_CAPILLA, Marca.ALTAR, Vector2(0, -18)), Marca.mundo(vm.ID_CAPILLA, Marca.CAMA_1), Marca.mundo(vm.ID_CAPILLA, Marca.MESA), {},
 		"family_chapel", "Capilla del Alba",
 		["Hermano Teodoro", "Hermana Clara", "Hermano Bastián", "Hermana Inés", "Hermano Lucio"]
 	)

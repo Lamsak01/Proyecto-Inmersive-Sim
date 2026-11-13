@@ -69,7 +69,7 @@ static func ensure_lots(vm) -> void:
 static func _m(id: String) -> float:
 	return -1.0 if bool(VillageLots.lot_def(id)["door_south"]) else 1.0
 
-## Camas, despacho, mesa y cofre: marcas de la escena de cada casa (mapa/marca.gd), en el mapa original.
+## Camas, despacho, mesa y cofre: marcas de la escena de cada casa (mapa/marca.gd), en el mundo.
 const BUILDING_IDS: Dictionary = {MANSION_LOT: "building_mansion", MANOR_LOT: "building_manor"}
 const BED_COUNT: Dictionary = {MANSION_LOT: 3, MANOR_LOT: 2}
 const BED_MARK: String = "cama_%d"
@@ -77,14 +77,14 @@ const BED_MARK: String = "cama_%d"
 static func beds(id: String) -> Array:
 	var out: Array = []
 	for i in range(1, int(BED_COUNT[id]) + 1):
-		out.append(Marca.sitio(BUILDING_IDS[id], BED_MARK % i))
+		out.append(Marca.mundo(BUILDING_IDS[id], BED_MARK % i))
 	return out
 
 static func study_pos(id: String) -> Vector2:
-	return Marca.sitio(BUILDING_IDS[id], Marca.DESPACHO)
+	return Marca.mundo(BUILDING_IDS[id], Marca.DESPACHO)
 
 static func table_pos(id: String) -> Vector2:
-	return Marca.sitio(BUILDING_IDS[id], Marca.MESA)
+	return Marca.mundo(BUILDING_IDS[id], Marca.MESA)
 
 static func build(vm, id: String, st: Dictionary) -> void:
 	var d: Dictionary = VillageLots.lot_def(id)
@@ -93,7 +93,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 	var big: bool = str(st["kind"]) == "mansion"
 	vm._construct_solid_building(BUILDING_IDS[id], str(st["title"]), c,
 		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
-	vm.adorno_en_edificio(BUILDING_IDS[id], props + "table_chairs_1.png", table_pos(id))
+	vm.adorno_en_edificio(BUILDING_IDS[id], props + "table_chairs_1.png", Marca.sitio(BUILDING_IDS[id], Marca.MESA))
 	var fam: String = MANSION_FAMILY if big else MANOR_FAMILY
 	vm.cofre_en_edificio(BUILDING_IDS[id], Marca.sitio(BUILDING_IDS[id], Marca.COFRE), "Cofre de " + str(HOUSEHOLDS[id]["name"]), fam)
 	if not vm.house_pantry.has(fam):
@@ -116,7 +116,7 @@ static func spawn_households(vm) -> Array:
 			var spec: Dictionary = h["members"][i]
 			var n = vm._spawn_generated_newcomer("NPC_Noble_", noble_role(), noble_role(), str(spec["label"]), tex,
 				study_pos(id), bl[i % bl.size()], {}, table_pos(id), str(h["family"]), str(h["name"]))
-			n.global_position = vm.sitio(bl[i % bl.size()] - Vector2(0, 14 * _m(id))) # Ya viven aquí: aparecen en casa
+			n.global_position = bl[i % bl.size()] - Vector2(0, 14 * _m(id)) # Ya viven aquí: aparecen en casa
 			n.personal_gold = randi_range(int(spec["gold"].x), int(spec["gold"].y))
 			if n.person_profile != null:
 				n.person_profile.age = randi_range(int(spec["age"].x), int(spec["age"].y))

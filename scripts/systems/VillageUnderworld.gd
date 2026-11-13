@@ -753,7 +753,7 @@ static func spawn_smuggler_caravan(vm, at_camp: bool = true):
 	smuggler.days_in_role = 7
 	smuggler.tavern_social_pos = vm._tavern_social_pos
 	parent_node.add_child(smuggler)
-	smuggler.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), Sitio.original(SITIO_CAMPAMENTO) + SMUGGLER_STAND_OFFSET, Sitio.original(SITIO_FRONTERA), {}, vm._tavern_social_pos, "none", "Caravana de Contrabando")
+	smuggler.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), Sitio.mundo(SITIO_CAMPAMENTO) + SMUGGLER_STAND_OFFSET, Sitio.mundo(SITIO_FRONTERA), {}, vm._tavern_social_pos, "none", "Caravana de Contrabando")
 	smuggler.global_position = start_pos
 	smuggler.modulate = Color(0.55, 0.52, 0.62)
 	smuggler.set_meta("smuggler_state", "camped" if at_camp else "arriving")
@@ -1015,7 +1015,7 @@ static func tavern_rumor(vm, npc, force: bool = false) -> String:
 	if not force and not (h >= 19 or h < 1):
 		return ""
 	var pl = VillageNeeds.player_of(vm)
-	if pl == null or pl.global_position.distance_to(vm.sitio(vm._tavern_social_pos)) > 140.0:
+	if pl == null or pl.global_position.distance_to(vm._tavern_social_pos) > 140.0:
 		return ""
 	if is_fence(vm, npc) or int(npc.trade_role) in [int(VillageNPC.TradeRole.SHERIFF), int(VillageNPC.TradeRole.GUARD), int(VillageNPC.TradeRole.PRIEST), int(VillageNPC.TradeRole.CHILD)]:
 		return ""

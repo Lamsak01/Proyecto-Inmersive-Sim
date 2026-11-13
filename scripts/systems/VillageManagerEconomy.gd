@@ -989,12 +989,11 @@ func _on_business_action_3(player: Node2D) -> void:
 			str(cfg.get("title", "Encargado")) + " (Contratado)",
 			cfg.get("tex", null),
 			cfg.get("work_pos", biz.get("stall_pos", Vector2.ZERO)),
-			cfg.get("bed1_pos", sitio(_tavern_bed_pos)),
+			cfg.get("bed1_pos", _tavern_bed_pos),
 			get_trade_stock_dict(_active_business_role),
-			cfg.get("table_pos", sitio(_tavern_social_pos)),
+			cfg.get("table_pos", _tavern_social_pos),
 			str(cfg.get("family_id", "none")),
-			str(cfg.get("family_name", "Gremio")),
-			true # trade_configs ya está traducido (plan de sitios)
+			str(cfg.get("family_name", "Gremio"))
 		)
 		trade_npcs[_active_business_role] = hired_npc
 		_msg_player(player, "🤝🚶 ¡Contrataste a %s (Novato 35%%)! Ya viene caminando desde el borde del mapa (-30 Oro)" % hired_npc.npc_name, Color.SPRING_GREEN, -46.0)
@@ -1216,7 +1215,7 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 		m_npc.set_meta("route_Bought_smith", false)
 		m_npc.set_meta("route_Bought_carp", false)
 		entities_root.add_child(m_npc)
-		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), Vector2(335, 12), Vector2(-900, 48), {"royal_ration": 3, "steel_ingot": 3, "copper_coil": 2, "repair_kit": 3}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
+		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), sitio(Vector2(335, 12)), sitio(Vector2(-900, 48)), {"royal_ration": 3, "steel_ingot": 3, "copper_coil": 2, "repair_kit": 3}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
 	else:
 		m_npc.name = "NPC_Merchant_Valeria"
 		m_npc.npc_name = "Valeria la Tratante"
@@ -1227,7 +1226,7 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 		m_npc.set_meta("route_Bought_fish", false)
 		m_npc.set_meta("route_Bought_herb", false)
 		entities_root.add_child(m_npc)
-		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_valeria.png"), Vector2(585, 12), Vector2(990, 48), {"royal_ration": 4, "surgical_kit": 2, "sleeping_draught": 2}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
+		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_valeria.png"), sitio(Vector2(585, 12)), sitio(Vector2(990, 48)), {"royal_ration": 4, "surgical_kit": 2, "sleeping_draught": 2}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
 
 	m_npc.global_position = Vector2(-900, 48) if m_id == "casimir" else Vector2(990, 48)
 	_active_traveling_merchant = m_npc

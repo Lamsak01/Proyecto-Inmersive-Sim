@@ -18,9 +18,13 @@ const VillageWork = preload("res://scripts/systems/VillageWork.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
 const POP_CAP: int = 100
-## Camas de huéspedes de la taberna (marcas de su escena), en el mapa original.
+## Camas de huéspedes de la taberna (marcas de su escena), en el mundo.
 static func tavern_guest_beds() -> Array:
-	return preload("res://scripts/systems/VillageTavern.gd").guest_beds()
+	var taberna = preload("res://scripts/systems/VillageTavern.gd")
+	var out: Array = []
+	for cama: Vector2 in taberna.guest_beds():
+		out.append(taberna.al_mundo(cama))
+	return out
 const Sitio = preload("res://mapa/sitio.gd")
 const SITIOS_ESPERA := "espera" ## cruces espera_1, espera_2… de «Sitios»: dónde pasa el día quien aún no tiene casa
 const ARRIVE_MIN_SCORE: float = 0.05
@@ -90,7 +94,7 @@ static func free_house_beds(vm) -> int:
 
 static func free_tavern_bed(vm):
 	var used: Array = []
-	var camas: Array = vm.sitios(tavern_guest_beds()) # plan de sitios: camas en su sitio actual
+	var camas: Array = tavern_guest_beds()
 	for n in residents(vm):
 		# E3: cuenta cualquier vecino que duerma ahí (también un maestro que ya tiene oficio), no solo los parados
 		if house_of(n) == "" and n.bed_position in camas:
@@ -102,7 +106,7 @@ static func free_tavern_bed(vm):
 
 static func free_tavern_beds_count(vm) -> int:
 	var used: Array = []
-	var camas: Array = vm.sitios(tavern_guest_beds())
+	var camas: Array = tavern_guest_beds()
 	for n in residents(vm):
 		if house_of(n) == "" and n.bed_position in camas:
 			used.append(n.bed_position)
@@ -272,7 +276,7 @@ static func _pick_kind(couple_ok: bool) -> Dictionary:
 static func _spawn_one(vm, kind: Dictionary, idx: int):
 	var tex: Texture2D = vm._load_tex("res://assests/world/village/villager_traveler.png")
 	var esperas: Array[Vector2] = Sitio.serie(SITIOS_ESPERA)
-	var base_spot: Vector2 = load("res://mapa/anclas.gd").desmover(esperas[idx % esperas.size()]) # quien crea al vecino aún traduce
+	var base_spot: Vector2 = esperas[idx % esperas.size()]
 	var jitter := Vector2(float(((idx * 7) % 11) - 5) * 4.5, float(((idx * 5) % 7) - 3) * 3.5)
 	var n = vm._spawn_generated_newcomer("NPC_Traveler_", VillageNPC.TradeRole.UNEMPLOYED, VillageNPC.TradeRole.UNEMPLOYED,
 		str(kind["label"]), tex, base_spot + jitter, tavern_guest_beds()[idx % tavern_guest_beds().size()],
@@ -365,7 +369,7 @@ static func seed_start_population(vm, target: int = START_POPULATION) -> int:
 			outsider = vm._pop_living_unemployed()
 		if outsider != null:
 			var inh_stock: Dictionary = (biz.get("stock_override", cfg.get("stock", {})) as Dictionary).duplicate()
-			outsider.promote_to_trade(role_key, str(cfg.get("title", "Artesano")), cfg.get("work_pos", vm.sitio(Vector2(440, 44))), inh_stock, cfg.get("tex", null), cfg.get("bed1_pos", vm.sitio(vm._tavern_bed_pos)), cfg.get("table_pos", vm.sitio(vm._tavern_social_pos)), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
+			outsider.promote_to_trade(role_key, str(cfg.get("title", "Artesano")), cfg.get("work_pos", vm.sitio(Vector2(440, 44))), inh_stock, cfg.get("tex", null), cfg.get("bed1_pos", vm._tavern_bed_pos), cfg.get("table_pos", vm._tavern_social_pos), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
 			outsider.global_position = outsider.work_position
 			vm.trade_npcs[role_key] = outsider
 	prune_residents(vm)

@@ -107,8 +107,7 @@ func _spawn_generated_newcomer(
 	stock: Dictionary,
 	table_pos: Vector2,
 	fam_id: String,
-	fam_name: String,
-	ya_actuales: bool = false # plan de sitios: true si los sitios ya están traducidos (hijos, trade_configs)
+	fam_name: String
 ) -> VillageNPC:
 	_rehire_counter += 1
 	var counts: Vector2i = _count_living_genders()
@@ -127,7 +126,7 @@ func _spawn_generated_newcomer(
 	new_npc.tavern_social_pos = _tavern_social_pos
 	new_npc.person_profile = prof
 	entities_root.add_child(new_npc)
-	new_npc.setup_npc(tex, work_pos, bed_pos, stock, table_pos, fam_id, fam_name, ya_actuales)
+	new_npc.setup_npc(tex, work_pos, bed_pos, stock, table_pos, fam_id, fam_name)
 	new_npc.global_position = _get_map_edge_arrival_pos(_rehire_counter)
 	record_social_event("arrival", new_npc, null, "%s llegó al valle (%s)" % [new_npc.npc_name, role_label])
 	return new_npc
@@ -352,9 +351,9 @@ func modify_family_reputation(fam_id: String, delta_amount: int, reason: String 
 func _spawn_unemployed_tavern_guests() -> void:
 	var tex_traveler := _load_tex("res://assests/world/village/villager_traveler.png")
 	var guest_defs: Array[Dictionary] = [
-		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": VillageWork.Sitio.original("espera_1"), "bed_pos": VillageTavern.guest_beds()[0]},
-		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": VillageWork.Sitio.original("espera_2"), "bed_pos": VillageTavern.guest_beds()[1]},
-		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": VillageWork.Sitio.original("espera_3"), "bed_pos": VillageTavern.guest_beds()[2]}
+		{"name": "Aldric", "role": "Viajero sin Oficio", "day_pos": VillageWork.Sitio.mundo("espera_1"), "bed_pos": VillageTavern.al_mundo(VillageTavern.guest_beds()[0])},
+		{"name": "Sora", "role": "Forastera sin Oficio", "day_pos": VillageWork.Sitio.mundo("espera_2"), "bed_pos": VillageTavern.al_mundo(VillageTavern.guest_beds()[1])},
+		{"name": "Darío", "role": "Jornalero sin Oficio", "day_pos": VillageWork.Sitio.mundo("espera_3"), "bed_pos": VillageTavern.al_mundo(VillageTavern.guest_beds()[2])}
 	]
 	for g in guest_defs:
 		var npc := VillageNPC.new()
@@ -379,7 +378,7 @@ func _spawn_case1_clearing_corpse() -> void:
 	npc.set_meta("scripted_case_id", DetectiveCaseData.CASE_01_ID)
 	npc.set_meta("scripted_case_zones", true)
 	entities_root.add_child(npc)
-	npc.setup_npc(tex_victim, victim_pos, victim_pos, {}, sitio(_tavern_social_pos), "none", "Vecina del Valle", true) # victim_pos ya va traducido
+	npc.setup_npc(tex_victim, victim_pos, victim_pos, {}, _tavern_social_pos, "none", "Vecina del Valle")
 	if npc.person_profile != null:
 		npc.person_profile.gender = "F"
 		npc.person_profile.age = 26
@@ -497,7 +496,7 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 func get_hangout_spots() -> Array:
 	var spots: Array = []
 	if not is_building_door_blocked("tavern"):
-		spots.append({"id": "tavern", "pos": sitio(_tavern_social_pos + Vector2(0, 14)), "kind": "tavern", "label": "la Taberna"})
+		spots.append({"id": "tavern", "pos": _tavern_social_pos + Vector2(0, 14), "kind": "tavern", "label": "la Taberna"})
 	spots.append({"id": "plaza_well", "pos": _plaza_well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Plaza"})
 	spots.append({"id": "plaza_bench", "pos": sitio(Vector2(468, 54)), "kind": "bench", "label": "el Rincón de la Plaza"})
 	spots.append({"id": "plaza_board", "pos": _notice_board_pos + Vector2(0, 26), "kind": "plaza", "label": "la Plaza Central"})

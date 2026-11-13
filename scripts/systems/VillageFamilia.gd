@@ -163,10 +163,10 @@ static func spawn_initial_boss(vm):
 	vm.entities_root.add_child(boss)
 	boss.setup_npc(
 		vm._load_tex("res://assests/world/village/villager_traveler.png"),
-		VillageRestaurant.dining_tables()[VillageRestaurant.MESA_JEFE],
-		VillageRestaurant.sitio(VillageRestaurant.M_CAMA_2),
+		VillageRestaurant.al_mundo(VillageRestaurant.dining_tables()[VillageRestaurant.MESA_JEFE]),
+		VillageRestaurant.mundo(VillageRestaurant.M_CAMA_2),
 		{},
-		VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO),
+		VillageRestaurant.mundo(VillageRestaurant.M_RESERVADO),
 		VillageRestaurant.FAMILY_ID,
 		VillageRestaurant.FAMILY_NAME
 	)

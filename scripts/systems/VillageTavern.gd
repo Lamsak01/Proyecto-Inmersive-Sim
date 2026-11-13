@@ -240,9 +240,9 @@ static func setup_world(vm) -> void:
 	marta.npc_name = "Marta"
 	marta.npc_role = "Chef y Posadera"
 	marta.trade_role = VillageNPC.TradeRole.INNKEEPER
-	marta.tavern_social_pos = sitio(M_MESA_CENTRAL)
+	marta.tavern_social_pos = mundo(M_MESA_CENTRAL)
 	vm.entities_root.add_child(marta)
-	marta.setup_npc(tex_innkeeper, sitio(M_TRABAJO), sitio(M_CAMA_MARTA), {"country_stew": 6, "bread": 8, "roasted_chicken": 4}, sitio(M_MESA_CENTRAL), FAMILY_ID, "Posada El Jabalí")
+	marta.setup_npc(tex_innkeeper, mundo(M_TRABAJO), mundo(M_CAMA_MARTA), {"country_stew": 6, "bread": 8, "roasted_chicken": 4}, mundo(M_MESA_CENTRAL), FAMILY_ID, "Posada El Jabalí")
 	vm._innkeeper_npc = marta
 
 	# 6. Oficio nuevo: Camarero (`TradeRole.WAITER`), registrado en `trade_configs` para cubrirse como cualquier vacante
@@ -259,10 +259,10 @@ static func setup_world(vm) -> void:
 		"title": "Camarero de Posada",
 		"tex": vm._load_tex("res://assests/world/village/villager_traveler.png"),
 		"stock": {"country_stew": 3, "bread": 4},
-		"work_pos": sitio(M_PASAPLATOS),
-		"bed1_pos": guest_beds()[1],
-		"bed2_pos": guest_beds()[2],
-		"table_pos": sitio(M_MESA_CENTRAL),
+		"work_pos": mundo(M_PASAPLATOS),
+		"bed1_pos": al_mundo(guest_beds()[1]),
+		"bed2_pos": al_mundo(guest_beds()[2]),
+		"table_pos": mundo(M_MESA_CENTRAL),
 	}
 	vm.add_choque_mundo(mundo(M_PASAPLATOS), vm.COLISOR_PUESTO, Edificio.giro_plano(BUILDING_ID))
 	vm._register_shop_business_stall(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, sitio(M_PASAPLATOS))

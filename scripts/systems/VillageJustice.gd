@@ -331,7 +331,7 @@ static func _spawn_royal_investigator(vm: VillageManager) -> void:
 	inv_npc.tavern_social_pos = vm._tavern_social_pos
 	vm.entities_root.add_child(inv_npc)
 	# Alistair duerme en su propia cama de huéspedes en la Posada (`Vector2(400, -252)`), nunca en la cama del Comisario Vane
-	inv_npc.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"), Vector2(465, 44), Vector2(400, -252), {}, vm._tavern_social_pos, "family_police", "Inquisición Real de la Corona")
+	inv_npc.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"), vm.sitio(Vector2(465, 44)), vm.VillageTavern.mundo(vm.VillageTavern.M_CAMA_ALISTAIR), {}, vm._tavern_social_pos, "family_police", "Inquisición Real de la Corona")
 	inv_npc.global_position = vm._get_map_edge_arrival_pos(1)
 	vm._royal_investigator_npc = inv_npc
 

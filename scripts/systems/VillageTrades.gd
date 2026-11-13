@@ -63,7 +63,7 @@ static func role_of(key: String) -> int:
 static func setup_world(vm) -> void:
 	for key in CONFIG.keys():
 		var c: Dictionary = CONFIG[key]
-		var lay: Dictionary = VillageLots.shop_house_layout(VillageLots.shop_house_id(str(c["family_id"])))
+		var lay: Dictionary = VillageLots.shop_house_layout_mundo(VillageLots.shop_house_id(str(c["family_id"])))
 		vm.trade_configs[role_of(key)] = {
 			"family_id": c["family_id"], "family_name": c["family_name"], "shop_title": c["shop_title"],
 			"shop_center": VillageLots.lot_def(str(c["lot"]))["center"], "is_mixed_building": true,
@@ -72,11 +72,9 @@ static func setup_world(vm) -> void:
 			"work_pos": lay["work_pos"], "bed1_pos": lay["bed1_pos"], "bed2_pos": lay["bed2_pos"], "table_pos": lay["table_pos"],
 		}
 		if str(c.get("extras", "")) in ["quarry", "farm", "ranch"]: # K1: el cantero, granjero y ganadero trabajan (y venden) en la roca, campo o corral, a la vista
-			vm.trade_configs[role_of(key)]["work_pos"] = yard_pos(str(c["lot"]))
-			vm.trade_configs[role_of(key)]["anexo_lot"] = str(c["lot"]) # el puesto va pegado al edificio, no se estira con el campo
+			vm.trade_configs[role_of(key)]["work_pos"] = VillageLots.anexo(str(c["lot"]), yard_pos(str(c["lot"]))) # pegado al edificio
 		elif str(c.get("extras", "")) == "woods":
-			vm.trade_configs[role_of(key)]["work_pos"] = VillageLots.building_center(str(c["lot"])) + Vector2(82, 14)
-			vm.trade_configs[role_of(key)]["anexo_lot"] = str(c["lot"])
+			vm.trade_configs[role_of(key)]["work_pos"] = VillageLots.anexo(str(c["lot"]), VillageLots.building_center(str(c["lot"])) + Vector2(82, 14))
 		vm.trade_configs[role_of(key)]["shop_center"] = VillageLots.building_center(str(c["lot"]))
 		vm.trade_configs[role_of(key)]["house_center"] = VillageLots.building_center(str(c["lot"]))
 		if not vm.house_pantry.has(str(c["family_id"])):

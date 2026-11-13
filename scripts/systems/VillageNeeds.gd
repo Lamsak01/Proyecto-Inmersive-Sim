@@ -388,13 +388,13 @@ static func on_hour(vm, hour: int) -> void:
 			var key: String = n.get_person_key()
 			if randf() < vice_chance(vm, n, "drink"):
 				if n.personal_gold >= DRINK_COST:
-					var seat_d: Vector2 = vm.VillageTavern.pick_seat_for(vm, n) if "VillageTavern" in vm else vm.sitio(vm._tavern_social_pos + Vector2(randf_range(-14, 14), randf_range(-8, 8)))
+					var seat_d: Vector2 = vm.VillageTavern.pick_seat_for(vm, n) if "VillageTavern" in vm else (vm._tavern_social_pos + Vector2(randf_range(-14, 14), randf_range(-8, 8)))
 					n.start_errand("drink", seat_d)
 				elif is_addicted(vm, key, "drink"):
 					_crave(vm, n, "bebida")
 			elif not vm.is_demo_mode() and randf() < vice_chance(vm, n, "gamble"):
 				if n.personal_gold >= 2:
-					var seat_g: Vector2 = vm.VillageTavern.pick_poker_seat_for(vm, n) if "VillageTavern" in vm else vm.sitio(vm._tavern_games_pos + Vector2(randf_range(-10, 10), 10))
+					var seat_g: Vector2 = vm.VillageTavern.pick_poker_seat_for(vm, n) if "VillageTavern" in vm else (vm._tavern_games_pos + Vector2(randf_range(-10, 10), 10))
 					n.start_errand("gamble", seat_g)
 				elif is_addicted(vm, key, "gamble"):
 					_crave(vm, n, "juego")
@@ -463,7 +463,7 @@ static func add_dialogue_choices(vm, npc, _diag: Dictionary, ch_arr: Array) -> v
 		ch_arr.insert(pos, {"label": "🪙 Darle limosna (%d de oro)" % ALMS_GOLD, "next": "END", "action": "needs_alms"})
 	elif cl == "pobre":
 		ch_arr.insert(pos, {"label": "🪙 Regalarle %d de oro" % GIFT_GOLD, "next": "END", "action": "needs_gift"})
-	if npc.global_position.distance_to(vm.sitio(vm._tavern_social_pos)) <= 140.0 and not is_outsider(npc):
+	if npc.global_position.distance_to(vm._tavern_social_pos) <= 140.0 and not is_outsider(npc):
 		ch_arr.insert(pos, {"label": "🍺 Invitarle a una ronda (%d de oro)" % ROUND_COST, "next": "END", "action": "needs_round"})
 
 ## Devuelve true si la acción salió bien (para que el diálogo dispare lo que cuenta un borracho).

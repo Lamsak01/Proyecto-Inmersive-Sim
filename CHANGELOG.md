@@ -4,6 +4,16 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: los vecinos nacen ya en su sitio (Claude Code)
+- `setup_npc` ya no traduce: todo el que crea un vecino le da casa, mesa y trabajo en el mundo (marcas con
+  `Marca.mundo`, fichas de oficio con `VillageLots.shop_house_layout_mundo`, camas de huésped con
+  `VillageTavern.al_mundo`, cruces con `Sitio.mundo`). `vm._tavern_*_pos` y las camas, despacho y mesa de los nobles,
+  en el mundo. Borrados `_sitios_cfg`, `sitios_traducir_npc`, `SITIOS_CAMPOS_*` y el parámetro «ya traducido».
+- Volcado del pueblo idéntico antes y después. Arreglado: Alistair dormía en la cama del huésped Aldric; al cargar
+  partida, maestra, jefe de La Familia, posadera y nobles recibían sitios del mapa viejo; la cena de paz en la posada
+  y la vigilancia nocturna del inquisidor usaban la mesa del mapa viejo.
+
+
 ## 2026-11-12 — Mudanza al editor: casas de los solares, anexos, alcantarillas y mirador (Claude Code)
 - Los solares saben ir solos al mundo (`Solar.a_mundo`, `Solar.giro_plano`); con eso salen ya en su sitio la mesa y el
   cofre de cada casa, el cartel de solar libre, las cajas de obra, la tienda del jugador, camas y mesa de quien se muda,

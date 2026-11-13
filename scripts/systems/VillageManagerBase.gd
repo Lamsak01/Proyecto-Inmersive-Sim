@@ -238,10 +238,10 @@ var completed_contracts_today: Dictionary = {}
 var streetlights: Array[Dictionary] = []
 
 
-var _tavern_bed_pos := VillageTavern.sitio(VillageTavern.M_CAMA_JUGADOR)
-var _tavern_social_pos := VillageTavern.sitio(VillageTavern.M_MESA_CENTRAL)
-var _tavern_games_pos := VillageTavern.sitio(VillageTavern.M_POKER)
-var _tavern_pool_pos := VillageTavern.sitio(VillageTavern.M_BILLAR)
+var _tavern_bed_pos := VillageTavern.mundo(VillageTavern.M_CAMA_JUGADOR)
+var _tavern_social_pos := VillageTavern.mundo(VillageTavern.M_MESA_CENTRAL)
+var _tavern_games_pos := VillageTavern.mundo(VillageTavern.M_POKER)
+var _tavern_pool_pos := VillageTavern.mundo(VillageTavern.M_BILLAR)
 var _well_pos := Vector2.ZERO
 var _tavern_well_pos := Vector2.ZERO
 var _plaza_well_pos := Vector2.ZERO

@@ -1168,7 +1168,7 @@ static func on_dialogue_action(npc: VillageNPC, action_id: String) -> void:
 		inv.add_gold(-8)
 		npc.personal_gold = maxi(0, npc.personal_gold) + 8
 		if vm != null:
-			player.global_position = vm.sitio(vm._tavern_bed_pos)
+			player.global_position = vm._tavern_bed_pos
 			if vm.has_method("set_player_elevation_level"):
 				vm.set_player_elevation_level(1)
 		var surv: SurvivalComponent = player.get_node_or_null("SurvivalComponent")

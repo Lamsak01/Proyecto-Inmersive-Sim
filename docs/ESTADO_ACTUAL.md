@@ -4,7 +4,7 @@
 
 ## a) Tarea activa
 **Migración «el mundo sale solo del editor»** (`docs/PLAN_MUNDO_DESDE_EDITOR.md`, aprobado). **Una sola sesión de Claude
-toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0 a 3 hechos; **paso 4 en curso** por trozos.
+toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0 a 3 hechos; **paso 4: puntos 1–3 hechos**.
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;
@@ -18,18 +18,18 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
     pieza (`Anclas.estirar`, `estirar_puntos`, `desestirar`); las usan terreno, relieve, `Agua`, `RioLago` y mapa del valle.
 - Paso 3 (2026-11-12): **Sitios** (86, `mapa/sitio.gd`): cruces al aire libre ya en el mundo (`Sitio.mundo(id)`,
   `Sitio.serie(nombre)`; `Sitio.original(id)` solo para funciones que aún traducen). Caso I: 3 marcas de edificio.
-- Método de cada tanda: pasar a piezas → cambiar código y borrar números → volcado antes/después → `verify_all` → fotos.
 
 ## c) Siguiente paso técnico inmediato
-Paso 4 por tandas, comparando con `tools/tests/volcado_mundo.gd` (choques, zonas, marcas, plantas y
-vecinos antes/después). Hechos: terreno, constructor, taberna, restaurante, solares, bosque, choques de 69 muebles
-(`mueble.gd` `choque`) y 41 piezas de «Decorado» (metadatos `choque…`), árboles de adorno, postes (`poste_N`), pozos,
-tablón y farolas (`ObjetoEditor.mundo/giro`), zonas de fuera. «Objetos» = 10 piezas con uso; ya sin anclas sueltas.
-API en el mundo: `add_choque_mundo`, `add_zona_uso_mundo`, `add_marca_3d_mundo`, `no_pisar_mundo`, `Sitio.giro`,
-`EdificioEditor.a_mundo/a_plano`. **Posada hecha** (`VillageTavern.al_mundo/al_plano/dentro/mundo`): solo `sitio()` y
-`guest_beds()` siguen en el plano para crear vecinos. **Siguiente:** los demás edificios igual (constructor 54,
-VillageManagerBase 43, Culture 33, Restaurant 29…); luego `Marca.sitio` → mundo y quitar la traducción de vecinos
-(`setup_npc`, `sitios_traducir_npc`, `_sitios_cfg`); luego Grupos de `anclas.gd`, Zonas, ×5 y borrar `anclas.gd`.
+Paso 4 por tandas, comparando con `tools/tests/volcado_mundo.gd` (choques, zonas, marcas, vecinos antes/después).
+**Hecho (2026-11-12):** todos los edificios, casas de solar (`Solar.a_mundo/giro_plano`), anexos
+(`EdificioEditor.con_centro`), alcantarillas y mirador escriben en su plano y van directos a su pieza
+(`Marca.mundo`, `EdificioEditor.a_mundo`, `choque_en_edificio`, `cofre_mundo`…). **Los vecinos nacen ya en el mundo**:
+`setup_npc` no traduce; `_tavern_*_pos`, fichas de oficio (`shop_house_layout_mundo`) y camas de huésped en el mundo;
+borrados `_sitios_cfg`, `sitios_traducir_npc`. Muebles de la taberna (barra, chimenea, póker…) sin pieza propia en el
+editor: chocan desde el código pero siguen al edificio (pasarlos a pieza = añadir muebles 3D, cambio visible).
+**Siguiente:** puntos 4–6: cementerio, claro del Caso I y corral (piezas); plaza/lago/ciénaga, río y mapa del valle;
+sitios al aire libre aún con `vm.sitio(Vector2(…))` (guardia, caravanas, plaza); trampillas de alcantarilla;
+`_construct_solid_building` y tabiques (aún registran anclas); al final quitar `anclas.gd` y el ×5.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.

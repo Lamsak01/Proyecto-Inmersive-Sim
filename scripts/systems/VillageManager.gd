@@ -62,7 +62,6 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageHousing.sync_home_props(self) # FIS-P1 y P1: objetos físicos en tu casa y mostrador de tu tienda
 	_spawn_domestic_pets()
 	VillageSecrets.seed_founder_history(self) # B6: rasgos con variante, red de amistades/rencores y 2–3 secretos por fundador
-	_sitios_cfg(load("res://mapa/anclas.gd")) # las fichas de oficio ya en el mundo ANTES de repartir oficios a los recién llegados (su cama y su puesto)
 	if not in_editor and DisplayServer.get_name() != "headless":
 		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
 		VillageTavern.seed_initial_patrons(self) # Paso 3: clientes sentados en el salón y partida de póker en curso al abrir la taberna
@@ -706,9 +705,9 @@ func interact(player: Node2D) -> void:
 		_anotar_zapato_puente(player)
 		return
 
-	var d_bed: float = pos.distance_squared_to(sitio(_tavern_bed_pos))
-	var d_games: float = pos.distance_squared_to(sitio(_tavern_games_pos))
-	var d_pool: float = pos.distance_squared_to(sitio(_tavern_pool_pos))
+	var d_bed: float = pos.distance_squared_to(_tavern_bed_pos)
+	var d_games: float = pos.distance_squared_to(_tavern_games_pos)
+	var d_pool: float = pos.distance_squared_to(_tavern_pool_pos)
 	var d_well: float = _get_nearest_well_dist_sq(pos)
 
 	if d_pool <= d_games and d_pool <= d_bed and d_pool <= 32.0 * 32.0:
@@ -980,8 +979,8 @@ func _process_daily_map_edge_arrivals() -> void:
 			VillageNPC.TradeRole.INNKEEPER,
 			"Chef y Posadera (Novata)",
 			_load_tex("res://assests/world/village/villager_innkeeper.png"),
-			VillageTavern.sitio(VillageTavern.M_TRABAJO),
-			VillageTavern.sitio(VillageTavern.M_CAMA_MARTA),
+			VillageTavern.mundo(VillageTavern.M_TRABAJO),
+			VillageTavern.mundo(VillageTavern.M_CAMA_MARTA),
 			{"country_stew": 2, "bread": 3, "roasted_chicken": 1},
 			_tavern_social_pos,
 			"family_tavern",
@@ -1011,12 +1010,11 @@ func _process_daily_map_edge_arrivals() -> void:
 			str(cfg.get("title", "Artesano")) + " (Recién Llegado)",
 			cfg.get("tex", null),
 			cfg.get("work_pos", sitio(Vector2(440, 44))),
-			cfg.get("bed1_pos", sitio(_tavern_bed_pos)),
+			cfg.get("bed1_pos", _tavern_bed_pos),
 			inh_st,
-			cfg.get("table_pos", sitio(_tavern_social_pos)),
+			cfg.get("table_pos", _tavern_social_pos),
 			str(cfg.get("family_id", "none")),
-			str(cfg.get("family_name", "Gremio")),
-			true # trade_configs ya está traducido (plan de sitios)
+			str(cfg.get("family_name", "Gremio"))
 		)
 		trade_npcs[role_key] = new_art
 		arrivals_today_count += 1
@@ -1401,9 +1399,10 @@ func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> Vil
 		dyn_npc.person_profile = PersonProfile.from_dict(npc_data["person_profile"])
 	entities_root.add_child(dyn_npc)
 	var default_tex := _load_tex("res://assests/world/village/villager_traveler.png")
-	var def_bed: Vector2 = VillageTavern.guest_beds()[0]
+	var def_bed: Vector2 = VillageTavern.al_mundo(VillageTavern.guest_beds()[0])
+	var def_work: Vector2 = sitio(Vector2(440.0, 44.0)) # la plaza, si la partida no lo guardó
 	dyn_npc.setup_npc(
-		default_tex, Vector2(float(npc_data.get("work_x", 440.0)), float(npc_data.get("work_y", 44.0))),
+		default_tex, Vector2(float(npc_data.get("work_x", def_work.x)), float(npc_data.get("work_y", def_work.y))),
 		Vector2(float(npc_data.get("bed_x", def_bed.x)), float(npc_data.get("bed_y", def_bed.y))), {},
 		Vector2(float(npc_data.get("table_x", _tavern_social_pos.x)), float(npc_data.get("table_y", _tavern_social_pos.y))),
 		str(npc_data.get("family_id", "none")), str(npc_data.get("family_name", "Independiente"))
@@ -1433,9 +1432,9 @@ func reconcile_npc_registries_after_load() -> void:
 	for n in get_tree().get_nodes_in_group("village_npcs"):
 		if n is VillageNPC:
 			var v := n as VillageNPC
-			v.tavern_social_pos = sitio(_tavern_social_pos) # los vecinos guardan sitios del mundo
+			v.tavern_social_pos = _tavern_social_pos # los vecinos guardan sitios del mundo
 			if v.home_table_pos.distance_to(sitio(Vector2(376.0, -184.0))) < 2.0:
-				v.home_table_pos = sitio(_tavern_social_pos)
+				v.home_table_pos = _tavern_social_pos
 			if v.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and not v.is_dead and not str(v.name).begins_with("NPC_Royal_Investigator_Corpse_"):
 				_royal_investigator_npc = v
 			elif v.trade_role == VillageNPC.TradeRole.TRAVELING_MERCHANT and not v.is_dead and not str(v.name).begins_with("NPC_Merchant_Corpse_"):
@@ -1448,25 +1447,25 @@ func reconcile_npc_registries_after_load() -> void:
 			elif v.trade_role == VillageNPC.TradeRole.FAMILY_MEMBER and not v.is_dead:
 				family_npcs[int(v.linked_trade)] = v
 				if v.npc_name == VillageFamilia.INITIAL_BOSS_NAME:
-					v.work_position = VillageRestaurant.dining_tables()[VillageRestaurant.MESA_JEFE]
-					v.bed_position = VillageRestaurant.sitio(VillageRestaurant.M_CAMA_2)
-					v.home_table_pos = VillageRestaurant.sitio(VillageRestaurant.M_RESERVADO)
+					v.work_position = VillageRestaurant.al_mundo(VillageRestaurant.dining_tables()[VillageRestaurant.MESA_JEFE])
+					v.bed_position = VillageRestaurant.mundo(VillageRestaurant.M_CAMA_2)
+					v.home_table_pos = VillageRestaurant.mundo(VillageRestaurant.M_RESERVADO)
 				elif trade_configs.has(int(v.linked_trade)):
 					var l_cfg: Dictionary = trade_configs[int(v.linked_trade)]
 					v.work_position = l_cfg.get("kin_work_pos", l_cfg.get("work_pos", v.work_position))
 			elif v.trade_role == VillageNPC.TradeRole.TEACHER and not v.is_dead:
-				v.work_position = VillageLots.building_center("e3") + Vector2(0, -16)
+				v.work_position = EdificioEditor.a_mundo(VillageFamily.SCHOOL_ID, VillageLots.building_center("e3") + Vector2(0, -16))
 			elif v.trade_role == VillageNPC.TradeRole.NOBLE and not v.is_dead:
 				var n_lot: String = "f1" if v.family_id == "family_vane" else ("f2" if v.family_id == "family_solis" else "")
 				if n_lot != "":
-					v.work_position = sitio(VillageNobility.study_pos(n_lot))
+					v.work_position = VillageNobility.study_pos(n_lot)
 			elif v.trade_role == VillageNPC.TradeRole.UNEMPLOYED and not v.is_dead:
 				unemployed_npcs.append(v)
 			elif v.trade_role == VillageNPC.TradeRole.INNKEEPER and not v.is_dead:
 				_innkeeper_npc = v
-				v.work_position = VillageTavern.sitio(VillageTavern.M_TRABAJO)
-				v.bed_position = VillageTavern.sitio(VillageTavern.M_CAMA_MARTA)
-				v.home_table_pos = VillageTavern.sitio(VillageTavern.M_MESA_CENTRAL)
+				v.work_position = VillageTavern.mundo(VillageTavern.M_TRABAJO)
+				v.bed_position = VillageTavern.mundo(VillageTavern.M_CAMA_MARTA)
+				v.home_table_pos = VillageTavern.mundo(VillageTavern.M_MESA_CENTRAL)
 			elif v.trade_role in [VillageNPC.TradeRole.DOCTOR, VillageNPC.TradeRole.SHERIFF, VillageNPC.TradeRole.GUARD, VillageNPC.TradeRole.PRIEST] and not v.is_dead:
 				authority_npcs.append(v)
 				trade_npcs[r_int] = v
@@ -1483,47 +1482,8 @@ func reconcile_npc_registries_after_load() -> void:
 ## Editor del mapa 3D (2026-11-10): los objetos que el juego crea sin pasar por las funciones _add_* (huertos, gallinero,
 ## animales de granja con su corral, campamento, muro débil, cajas y carteles con uso, carro y caballo) también siguen
 ## a las anclas del editor (mapa/anclas.gd).
-## Plan de sitios, paso 1 (docs/PLAN_SITIOS.md, 2026-11-10): cama, mesa y puesto de trabajo de los vecinos y de los
-## oficios (trade_configs) se escriben en coordenadas del mapa original; aquí se traducen UNA vez a su sitio actual
-## (edificio movido o girado, mueble movido). Las marcas evitan traducir dos veces.
-const SITIOS_CAMPOS_CFG: Array[String] = ["work_pos", "kin_work_pos", "bed1_pos", "bed2_pos", "table_pos", "stall_pos"]
-const SITIOS_CAMPOS_NPC: Array[String] = ["bed_position", "home_table_pos", "work_position", "tavern_social_pos"]
-
-func _sitios_cfg(AN) -> void:
-	for k in trade_configs.keys():
-		var cfg: Dictionary = trade_configs[k]
-		if cfg.get("_sitios", false):
-			continue
-		cfg["_sitios"] = true
-		for campo in SITIOS_CAMPOS_CFG:
-			if cfg.get(campo) is Vector2 and cfg[campo] != Vector2.ZERO:
-				if campo == "work_pos" and cfg.has("anexo_lot"):
-					cfg[campo] = VillageLots.anexo(str(cfg["anexo_lot"]), cfg[campo]) # puesto pegado a su edificio
-				else:
-					cfg[campo] = AN.mover(cfg[campo])
-
-
-func _sitios_repaso(AN) -> void:
-	_sitios_cfg(AN)
-	for n in get_tree().get_nodes_in_group("village_npcs"):
-		sitios_traducir_npc(n)
-
-
-## Traduce una vez los sitios de un vecino creado con coordenadas del mapa original.
-func sitios_traducir_npc(n: Node) -> void:
-	if n == null or n.has_meta("sitios_ok"):
-		return
-	n.set_meta("sitios_ok", true)
-	var AN = load("res://mapa/anclas.gd")
-	for campo in SITIOS_CAMPOS_NPC:
-		var v = n.get(campo)
-		if v is Vector2 and v != Vector2.ZERO:
-			n.set(campo, AN.mover(v))
-
-
 func _anclas_repaso_final() -> void:
 	var AN = load("res://mapa/anclas.gd")
-	_sitios_repaso(AN)
 	var clases := ["LivestockAnimal.gd", "DestructibleObject.gd", "WorldInteractableProp.gd", "PlayerCart.gd", "PlayerHorse.gd"]
 	for c in entities_root.get_children():
 		if not (c is Node2D) or c is HarvestableNode or c.get_script() == null:

@@ -126,8 +126,8 @@ static func setup_world(vm) -> void:
 		"shop_center": RECT.get_center(), "is_mixed_building": true,
 		"house_title": TITLE, "house_center": RECT.get_center(),
 		"title": "Cocinero", "tex": vm._load_tex("res://assests/world/village/villager_innkeeper.png"),
-		"stock": {"pasta_dish": 3, "braised_meat": 1}, "work_pos": sitio(M_FOGONES), "bed1_pos": sitio(M_CAMA_DUENO),
-		"bed2_pos": sitio(M_CAMA_2), "table_pos": dining_tables()[MESA_FAMILIA],
+		"stock": {"pasta_dish": 3, "braised_meat": 1}, "work_pos": mundo(M_FOGONES), "bed1_pos": mundo(M_CAMA_DUENO),
+		"bed2_pos": mundo(M_CAMA_2), "table_pos": al_mundo(dining_tables()[MESA_FAMILIA]),
 	}
 	if not vm.house_pantry.has(FAMILY_ID):
 		vm.house_pantry[FAMILY_ID] = 2

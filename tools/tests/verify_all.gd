@@ -83,7 +83,7 @@ func _initialize() -> void:
 	# 3. Test Inquisitor Alistair's Own Bed & Witness-Chain Investigation
 	vm._spawn_royal_investigator()
 	assert(vm._royal_investigator_npc != null, "Royal Investigator should spawn")
-	assert(vm._royal_investigator_npc.bed_position == M(Vector2(400, -252)), "Alistair must sleep in his own Inn bed M(Vector2(400, -252)), not Sheriff Vane's bed!")
+	assert(vm._royal_investigator_npc.bed_position == vm.VillageTavern.mundo(vm.VillageTavern.M_CAMA_ALISTAIR), "Alistair must sleep in his own Inn bed (mark cama_alistair), not Sheriff Vane's bed nor a guest bed!")
 
 	# 4. Test Sequential Doctor Wound-by-Wound Treatment
 	var doc_npc = null
@@ -2735,7 +2735,7 @@ func _initialize() -> void:
 	vno.spawn_households(vm)
 	assert(vno.nobles(vm).size() == 5 and vno.lord_of(vm) != null, "V6: The lord's family and the rentiers live in the valley")
 	var v6_lord = vno.lord_of(vm)
-	assert(vno.is_noble(v6_lord) and v6_lord.family_id == vno.MANSION_FAMILY and v6_lord.bed_position in vm.sitios(vno.beds("f1")), "V6: The lord lives and sleeps in the mansion (fam=%s bed=%s)" % [v6_lord.family_id, str(v6_lord.bed_position)])
+	assert(vno.is_noble(v6_lord) and v6_lord.family_id == vno.MANSION_FAMILY and v6_lord.bed_position in vno.beds("f1"), "V6: The lord lives and sleeps in the mansion (fam=%s bed=%s)" % [v6_lord.family_id, str(v6_lord.bed_position)])
 	assert(v6_lord.person_profile != null and str(v6_lord.person_profile.partner_id) != "", "V6: The lord is married")
 	# Rentas
 	var v6_fr: int = vt.role_of("farmer")
@@ -5228,7 +5228,7 @@ func _initialize() -> void:
 	# 3. Un vecino honrado nunca suelta un rumor, aunque se fuerce
 	var b5b_pl = vm.VillageNeeds.player_of(vm)
 	var b5b_pl_bak: Vector2 = b5b_pl.global_position
-	b5b_pl.global_position = M(vm._tavern_social_pos)
+	b5b_pl.global_position = vm._tavern_social_pos
 	var b5b_tc = load("res://scripts/data/TraitCatalog.gd")
 	var b5b_honest = null
 	for b5b_n in vm.VillageNeeds.living(vm):
@@ -5732,7 +5732,7 @@ func _initialize() -> void:
 		if gn_p2 != null and is_instance_valid(gn_p2) and gn_p2.errand_kind == "gathering":
 			gn_p2.global_position = gn_p2.errand_pos
 	bp4_vn.tick(vm)
-	p70_pl.global_position = M(vm._tavern_social_pos) + Vector2(16.0, 0.0)
+	p70_pl.global_position = vm._tavern_social_pos + Vector2(16.0, 0.0)
 	t5_wc.current_hour = 22
 	vho.on_hour(vm, 22)
 	assert((bp4_vcl.state(vm)["feuds"] as Dictionary).has(bp4_fk), "P4.4d: When peace dinner ends in a brawl (prob = 1.0), the blood feud still exists")

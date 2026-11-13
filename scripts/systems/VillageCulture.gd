@@ -1670,7 +1670,7 @@ static func spawn_trade_caravan(vm, route_id: String, at_plaza: bool = false, si
 	m_npc.tavern_social_pos = vm._tavern_social_pos
 	parent.add_child(m_npc)
 	var tex_path: String = "res://assests/world/village/npcs_64/sprite_casimir.png" if route_id != "sun_plain" else "res://assests/world/village/npcs_64/sprite_valeria.png"
-	m_npc.setup_npc(vm._load_tex(tex_path), Sitio.original(SITIO_CARAVANA), Sitio.original(SITIO_PUERTA_ESTE), {}, vm._tavern_social_pos, "none", "Ruta de " + str(r.get("name", route_id)))
+	m_npc.setup_npc(vm._load_tex(tex_path), Sitio.mundo(SITIO_CARAVANA), Sitio.mundo(SITIO_PUERTA_ESTE), {}, vm._tavern_social_pos, "none", "Ruta de " + str(r.get("name", route_id)))
 	m_npc.global_position = start_pos
 	m_npc.set_meta("at_plaza", at_plaza)
 	m_npc._merchant_leaving = false
