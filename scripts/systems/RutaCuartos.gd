@@ -23,9 +23,10 @@ static func tiene(id_edificio: String) -> bool:
 	return not _cuartos(id_edificio).is_empty()
 
 
-## Siguiente punto para ir de `desde` a `hasta` (ambos en el plano del edificio).
-static func siguiente(id_edificio: String, desde: Vector2, hasta: Vector2) -> Vector2:
-	return _siguiente(_cuartos(id_edificio), desde, hasta)
+## Siguiente punto para ir de `desde` a `hasta` (ambos en el plano del edificio y en la planta `piso`: en las casas de
+## dos plantas los cuartos de arriba están encima de los de abajo; scripts/fisica/PisosCasas.gd).
+static func siguiente(id_edificio: String, desde: Vector2, hasta: Vector2, piso: int = 0) -> Vector2:
+	return _siguiente(_cuartos(id_edificio), desde, hasta, piso)
 
 
 ## Lo mismo en una escena sin pieza en el mapa (las casas modelo de los solares, mapa/casa_modelo.gd): puntos
@@ -36,9 +37,9 @@ static func siguiente_en_escena(escena: PackedScene, desde: Vector2, hasta: Vect
 	return _siguiente(_por_escena[escena.resource_path], desde, hasta)
 
 
-static func _siguiente(cuartos: Array[Dictionary], desde: Vector2, hasta: Vector2) -> Vector2:
-	var origen: int = _cuarto_con(cuartos, desde)
-	var destino: int = _cuarto_con(cuartos, hasta)
+static func _siguiente(cuartos: Array[Dictionary], desde: Vector2, hasta: Vector2, piso: int = 0) -> Vector2:
+	var origen: int = _cuarto_con(cuartos, desde, piso)
+	var destino: int = _cuarto_con(cuartos, hasta, piso)
 	if origen == destino:
 		return hasta
 	# Primero se sale del cuarto en que se está (si no es la sala) y luego se entra en el de destino
@@ -59,9 +60,9 @@ static func _cruzar(cuarto: Dictionary, desde: Vector2, saliendo: bool) -> Vecto
 	return despues if alineado else antes
 
 
-static func _cuarto_con(cuartos: Array[Dictionary], p: Vector2) -> int:
+static func _cuarto_con(cuartos: Array[Dictionary], p: Vector2, piso: int) -> int:
 	for i in range(cuartos.size()):
-		if (cuartos[i]["rect"] as Rect2).has_point(p):
+		if int(cuartos[i]["piso"]) == piso and (cuartos[i]["rect"] as Rect2).has_point(p):
 			return i
 	return -1
 
@@ -94,6 +95,7 @@ static func _leer(escena: PackedScene) -> Array[Dictionary]:
 		out.append({
 			"rect": Rect2(c - tam * 0.5, tam), "central": bool(pieza.get("central", false)), "paso": paso,
 			"normal": normal, "dentro": paso - normal * MARGEN_PASO_PX, "fuera": paso + normal * MARGEN_PASO_PX,
+			"piso": Mapa3D.piso_de_altura(en_edificio.origin.y),
 		})
 	return out
 

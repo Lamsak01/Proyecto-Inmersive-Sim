@@ -3,10 +3,12 @@ extends RefCounted
 ## Cascarón de una casa del constructor (tools/casas/construir_casa.gd), 2026-11-13: zócalo, suelos de cada cuarto,
 ## los cuatro muros con su puerta y ventanas, y el tejado a dos aguas con sus hastiales.
 ## Metros respecto al centro de la casa; x al este, z al sur; la puerta de la calle en el muro sur (o el norte si la
-## casa va girada: «PUERTA_LADO»).
+## casa va girada: «PUERTA_LADO»). En una casa de dos plantas («ESCALERA» en el plano) los muros suben una planta
+## más, con las ventanas de arriba («VENTANAS_ARRIBA»), y el tejado va encima.
 
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const PARTES = preload("res://scripts/visuals/PartesEdificio3D.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 const SUELO_Y_M: float = 0.27          ## tarima de dentro de los edificios (Suelo.TARIMA_EDIFICIO_PX)
 const MURO_ALTO_M: float = 3.3         ## de la calle al alero
@@ -58,16 +60,32 @@ static func _muros(muros: Node3D, plano: Dictionary, medio: Vector2) -> void:
 		var huecos: Array = []
 		if lado == plano.get("PUERTA_LADO", "sur"):
 			huecos.append({"en": plano["PUERTA_X_M"] + lados[lado][2], "ancho": plano["PUERTA_ANCHO_M"], "alto": SUELO_Y_M + PUERTA_HUECO_ALTO_M})
-		for v: Dictionary in plano["VENTANAS"]:
-			if v["lado"] != lado:
-				continue
-			huecos.append({"en": float(v["en"]) + float(lados[lado][2]), "ancho": v["ancho"], "base": SUELO_Y_M + VENTANA_BASE_M, "alto": VENTANA_ALTO_M})
-			_ventana(muros, plano, lado, v, medio)
-		Piezas.muro(muros, lados[lado][0], lados[lado][1], 0.0, MURO_ALTO_M, MURO_GROSOR_M, huecos, fachada)
+		for planta: Array in _plantas_con_ventanas(plano):
+			for v: Dictionary in planta[0]:
+				if v["lado"] != lado:
+					continue
+				huecos.append({"en": float(v["en"]) + float(lados[lado][2]), "ancho": v["ancho"], "base": float(planta[1]) + VENTANA_BASE_M, "alto": VENTANA_ALTO_M})
+				_ventana(muros, lado, v, medio, float(planta[1]))
+		Piezas.muro(muros, lados[lado][0], lados[lado][1], 0.0, alto_muros(plano), MURO_GROSOR_M, huecos, fachada)
 
 
-static func _ventana(muros: Node3D, plano: Dictionary, lado: String, v: Dictionary, medio: Vector2) -> void:
-	var y: float = SUELO_Y_M + VENTANA_BASE_M + VENTANA_ALTO_M * 0.5
+## Altura de los muros (de la calle al alero): una planta más en las casas de dos plantas.
+static func alto_muros(plano: Dictionary) -> float:
+	if not plano.has("ESCALERA"):
+		return MURO_ALTO_M
+	return MURO_ALTO_M - SUELO_Y_M + Mapa3D.alto_a_3d(Mapa3D.PISO_ALTO_PX)
+
+
+## Las ventanas de cada planta con la altura de su suelo: [[ventanas, suelo], …].
+static func _plantas_con_ventanas(plano: Dictionary) -> Array:
+	var out: Array = [[plano["VENTANAS"], SUELO_Y_M]]
+	if plano.has("VENTANAS_ARRIBA"):
+		out.append([plano["VENTANAS_ARRIBA"], Mapa3D.alto_a_3d(Mapa3D.PISO_ALTO_PX)])
+	return out
+
+
+static func _ventana(muros: Node3D, lado: String, v: Dictionary, medio: Vector2, suelo: float) -> void:
+	var y: float = suelo + VENTANA_BASE_M + VENTANA_ALTO_M * 0.5
 	var en: float = float(v["en"])
 	var sitios: Dictionary = {"sur": Vector3(en, y, medio.y), "norte": Vector3(en, y, -medio.y), "oeste": Vector3(-medio.x, y, en), "este": Vector3(medio.x, y, en)}
 	var giro: float = 0.0 if lado in ["sur", "norte"] else 90.0
@@ -103,7 +121,7 @@ static func _tejado(tejado: Node3D, plano: Dictionary, medio: Vector2) -> void:
 		var faldon := MeshInstance3D.new()
 		faldon.mesh = forma
 		faldon.material_override = tejas
-		faldon.position = Vector3(0.0, MURO_ALTO_M + TEJADO_ALTO_M * 0.5, lado * vuelo * 0.5)
+		faldon.position = Vector3(0.0, alto_muros(plano) + TEJADO_ALTO_M * 0.5, lado * vuelo * 0.5)
 		faldon.rotation.x = pendiente * lado
 		tejado.add_child(faldon)
 		if chapa:
@@ -113,7 +131,7 @@ static func _tejado(tejado: Node3D, plano: Dictionary, medio: Vector2) -> void:
 		var pared := MeshInstance3D.new()
 		pared.mesh = hastial
 		pared.material_override = Piezas.material(plano["FACHADA"], TINTE)
-		pared.position = Vector3(lado * medio.x, MURO_ALTO_M + TEJADO_ALTO_M * 0.5, 0.0)
+		pared.position = Vector3(lado * medio.x, alto_muros(plano) + TEJADO_ALTO_M * 0.5, 0.0)
 		pared.rotation_degrees.y = 90.0
 		tejado.add_child(pared)
 

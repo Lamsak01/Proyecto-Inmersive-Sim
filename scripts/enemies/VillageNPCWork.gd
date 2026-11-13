@@ -1,6 +1,7 @@
 @tool
 extends "res://scripts/enemies/VillageNPCDuties.gd"
 const Zona = preload("res://mapa/zona.gd")
+const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd") # casas de dos plantas: camas de arriba
 const ZONA_CIENAGA := "cienaga"
 
 
@@ -294,7 +295,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 			var vm_slp = _get_vm()
 			if trade_role == TradeRole.UNEMPLOYED and not is_vagrant_camper and vm_slp and vm_slp.has_method("is_building_door_blocked") and bool(vm_slp.call("is_building_door_blocked", "tavern")) and vm_slp.has_method("evict_npc_to_vagrant_camp"):
 				vm_slp.call("evict_npc_to_vagrant_camp", self, "Puerta de la Taberna bloqueada")
-			var bed_target_elev: int = 1 if _VillageTavern.is_upper_floor_target(bed_position) else 0
+			var bed_target_elev: int = 1 if _es_de_arriba(bed_position) else 0
 			if global_position.distance_to(bed_position) <= 20.0 and int(elevation_level) == bed_target_elev:
 				is_sleeping = true
 				if is_vagrant_camper and not in_shelter:
@@ -429,8 +430,12 @@ func _check_npc_environmental_sickness() -> void:
 				health_comp.add_swamp_or_miasma_exposure(2.5, "Miasma de cadáver putrefacto")
 				break
 
+## ¿Está ese sitio en una planta alta (la de la posada o la de una casa de dos plantas)?
+func _es_de_arriba(pos: Vector2) -> bool:
+	return _VillageTavern.is_upper_floor_target(pos) or PisosCasas.es_arriba(pos)
+
 func _approach_or_stop(target_pos: Vector2, tol: float, spd: float, delta: float) -> void:
-	var target_elev: int = 1 if _VillageTavern.is_upper_floor_target(target_pos) else (-1 if errand_kind == "club_watch" else 0)
+	var target_elev: int = 1 if _es_de_arriba(target_pos) else (-1 if errand_kind == "club_watch" else 0)
 	if global_position.distance_to(target_pos) > tol or int(elevation_level) != target_elev:
 		_move_towards_point(target_pos, spd, delta)
 	else:

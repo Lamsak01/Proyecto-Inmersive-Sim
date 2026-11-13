@@ -89,12 +89,12 @@ static func hoja(padre: Node3D, bisagra: Vector3, ancho: float, a_lo_largo_z: bo
 
 
 ## Puerta de un cuarto: se abre sola al acercarse alguien (scripts/visuals/PuertasInteriores3D.gd).
-static func puerta_de_cuarto(padre: Node3D, centro: Vector3, ancho: float, a_lo_largo_z: bool, mat: Material) -> void:
+static func puerta_de_cuarto(padre: Node3D, centro: Vector3, ancho: float, a_lo_largo_z: bool, mat: Material, nivel: int = 0) -> void:
 	var bisagra: Vector3 = centro - (Vector3(0.0, 0.0, ancho * 0.5) if a_lo_largo_z else Vector3(ancho * 0.5, 0.0, 0.0))
 	var pivote: Node3D = hoja(padre, bisagra, ancho, a_lo_largo_z, mat)
 	pivote.set_meta(PARTES.ROL, PARTES.PUERTA_CUARTO)
 	pivote.set_meta(PARTES.HUECO, centro)
-	pivote.set_meta(PARTES.NIVEL, 0)
+	pivote.set_meta(PARTES.NIVEL, nivel) # la planta en que está (las de arriba se abren para quien está arriba)
 
 
 ## Ventana: marco, cristal (luz) y postigo cerrado escondido. `giro`: 0 en muros este-oeste, 90 en norte-sur.

@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Casas de dos plantas: la Casa Grande de los Rentistas (Claude Code)
+- Primera casa con piso de arriba de verdad: de 8,4 × 5,8 m a 11,2 × 8,4 m por planta, de arenisca y teja roja, con
+  generador propio. Abajo: recibidor con la escalera, cuarto de cobro de rentas (mesa con teléfono, archivo y cofre),
+  comedor con vitrina, cocina con nevera y despensa. Arriba: las alcobas de los dos rentistas, salita con gramola y
+  radio, baño completo y vestidor. Los rentistas suben andando a dormir y bajan por la mañana; el protagonista sube y
+  baja igual y arriba los ojos van a su altura. Sirve para cualquier casa: basta poner la planta alta en su plano.
+- Probado: trayectos de la calle y de cada cuarto a las dos camas de arriba (y vuelta) sin chocar, subida y bajada del
+  protagonista (prueba de física), 29 puertas y fotos de las dos plantas.
+
 ## 2026-11-13 — La mansión del Señor del Valle, de tamaño real (Claude Code)
 - Primera casa de nivel 4: de 10,1 × 6,7 m a 19,6 × 14 m, de piedra y teja roja, con generador diésel propio y su
   cable hasta el cuadro de la puerta. Gran salón de punta a punta (recibidor con teléfono y, al fondo, chimenea, retratos

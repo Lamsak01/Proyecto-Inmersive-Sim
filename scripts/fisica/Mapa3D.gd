@@ -29,6 +29,17 @@ const K: float = ESCALA / ESCALA_ANTIGUA
 const INCLINACION_GRADOS: float = 62.08002
 const ESTIRA_VERTICAL: float = 1.1317307 ## 1 / sin(62,08°)
 
+## Pisos de los edificios (2026-11-13): la tarima de dentro y el suelo de la planta alta, en píxeles de altura sobre la
+## calle. La planta alta es la misma en la posada y en las casas de dos plantas (scripts/fisica/PisosCasas.gd): así las
+## paredes de cada planta se levantan igual en 3D (scripts/fisica/ChoquesCercanos3D.gd).
+const TARIMA_PX: float = 2.65
+const PISO_ALTO_PX: float = 34.55
+
+
+## Planta (0 baja, 1 alta) de una pieza de un edificio según la altura a la que está, en metros sobre la calle.
+static func piso_de_altura(y_m: float) -> int:
+	return 1 if y_m > alto_a_3d(PISO_ALTO_PX) * 0.5 else 0
+
 
 ## Mapa (x, y) + altura en píxeles → mundo 3D. No suma el relieve del suelo (eso lo hace el escenario).
 static func a_3d(p: Vector2, alto_px: float = 0.0) -> Vector3:

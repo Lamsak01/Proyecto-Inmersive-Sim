@@ -6,8 +6,9 @@
 **Interiores de tamaño real (usuario, 2026-11-13)**: casas ×4 de suelo, cuarto por cama, sala, cocina y baño; la casa
 marca la clase (niveles 1–4 en `docs/VISION_Y_FUTURO.md`). Hechas las 4 casas de artesano (herrero, carnicero,
 carpintero, pescadero), 6 casas-tienda de artesano (con la posada), 2 pobres, el albergue y la acomodada del Arreglador (se gira con «girar»): `tools/casas/` (planos, id, espejo, POR_OFICIO),
-`mapa/cuarto.gd`, `scripts/systems/RutaCuartos.gd`. Clases en la visión. Casas de solar: 3 casas modelo con cuartos (`plano_casa_modelo_*`), rutas por `VillageLots.house_route`. Nivel 4: mansión hecha (`plano_mansion.gd`, cosas en `cosas_casa_senorial.gd`); siguiente: casona de los rentistas, ayuntamiento y comisaría.
-Mundo desde el editor (`docs/PLAN_MUNDO_DESDE_EDITOR.md`): pasos 0–4 hechos, queda el 5; una sola sesión toca el mundo.
+`mapa/cuarto.gd`, `scripts/systems/RutaCuartos.gd`. Clases en la visión. Casas de solar: 3 casas modelo con cuartos (`plano_casa_modelo_*`), rutas por `VillageLots.house_route`. Nivel 4: mansión y casona de los rentistas hechas; siguiente: ayuntamiento y comisaría.
+**Casas de dos plantas** (2026-11-13): campos «…_ARRIBA» y `ESCALERA` en el plano (`planta_alta.gd`); en el juego
+`scripts/fisica/PisosCasas.gd`. Limitación: desde arriba, el muro sur alto tapa el sur de la planta baja.
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;
@@ -35,8 +36,7 @@ plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marc
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan 6 dibujos planos (caja, barril, muro débil y espada de `World.tscn`, ya con 3D; textos pasajeros).
 **Pesca, huerto, gallinero, campamento, animales de corral del jugador y huerto de casa borrados (usuario, 2026-11-12)**:
 se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd` (lee el río del editor 3D).
-Red eléctrica: generador del Arreglador (lo dibuja su casa); farolas solo de noche.
-Pendiente: mapa del valle.
+Red eléctrica: generador del Arreglador (lo dibuja su casa); farolas solo de noche. Pendiente: mapa del valle.
 
 ## d) Bloqueos activos
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). «No two conscious villagers may overlap» (puerta del restaurante): mejorado el 2026-11-13 (cola en las puertas); con 6 vecinos a la vez aún se juntan algo.

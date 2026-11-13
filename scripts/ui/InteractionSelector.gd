@@ -2,6 +2,7 @@ extends Node2D
 
 const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
+const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd")
 
 ## Selector de la tecla [E] (2026-11-05). Antes, con varias cosas cerca (puerta, mostrador, vecino, cofre, caballo…),
 ## el juego elegía una por su cuenta. Ahora:
@@ -255,13 +256,15 @@ func _buceando() -> bool:
 	return mc != null and mc.get("buceando") == true
 
 
-## Piso de un objeto interactuable: el suyo si lo tiene (vecinos); los sitios fijos de la posada, según estén en la galería o
-## en el salón; lo demás, el del protagonista (está donde estás tú).
+## Piso de un objeto interactuable: el suyo si lo tiene (vecinos); los sitios fijos de la posada y de las casas de dos
+## plantas, según estén arriba o abajo; lo demás, el del protagonista (está donde estás tú).
 func _nivel_de(a: Area2D, tgt: Node, nivel_prota: int) -> int:
 	if "elevation_level" in tgt:
 		return int(tgt.get("elevation_level"))
 	if a.has_meta("village_station") and VillageTavern.dentro(a.global_position):
 		return 1 if VillageTavern.is_upper_floor_target(a.global_position) else 0
+	if a.has_meta("village_station") and not PisosCasas.de(a.global_position).is_empty(): # casa de dos plantas
+		return 1 if PisosCasas.es_arriba(a.global_position) else 0
 	return nivel_prota
 
 

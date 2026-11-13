@@ -18,3 +18,5 @@
    para cualquier edificio (hoy solo la posada y tu casa tienen piso alto, con código propio en ~20 archivos). Coste:
    mucho. Mientras, la casa de prueba del herrero es su vivienda de siempre, de una planta y por cuartos. ¿Hacemos el
    sistema de pisos ya, o seguimos con casas de una planta y lo dejamos para las casas ricas más adelante?
+   *(2026-11-13: el sistema ya existe y lo estrena la casona de los rentistas; poner arriba al herrero es ahora poco
+   trabajo si el usuario lo quiere.)*

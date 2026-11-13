@@ -16,7 +16,11 @@ Conversión terminada el 2026-11-12 (etiqueta `fin-paso-a-3d`). Plan, manuscrito
   si un vecino lleva 5 s atascado, se le quita el cuerpo 10 s. `CuerposCercanos3D.gd`: cápsulas de contacto para los que
   no tienen cuerpo completo (los sentados no tienen). `AndarMapa.paso(actor, delta)`: el paso de animales y bandidos.
 - `Suelo.gd`: altura del suelo en cada punto (tarimas, plaza, puentes), losas de pisos altos (posada: planta +1 solo
-  dentro de su rectángulo; altillo y sótano de tu casa), de qué piso es cada choque. `Agua.gd`: dónde hay agua y cuánto
+  dentro de su rectángulo; altillo y sótano de tu casa; casas de dos plantas), de qué piso es cada choque (grupos
+  `choques_piso_0` / `choques_piso_1`). `PisosCasas.gd`: casas con escalera (marcas `escalera_pie` y `escalera_cima`
+  en su escena; las hace `tools/casas/planta_alta.gd` desde los campos «…_ARRIBA» del plano): suelos, losa, qué marcas
+  son de arriba y la ruta de los vecinos, que cambian de piso a media escalera. El muro bajo la cima no choca (en 3D
+  pararía al que sube). `Agua.gd`: dónde hay agua y cuánto
   cubre (río hondo 2,2 m). `Vista.gd`: ¿ve, cuánto oye, llega a golpear? (paredes y puertas del mapa + losas; bajo tierra
   nunca se ve desde la calle; a través de un suelo se oye a un tercio).
 - Relieve del suelo (`WorldStageBase3D.terrain_height_px`) cacheado por celdas de 4 px; olvidar la caché al cambiar el río.

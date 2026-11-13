@@ -25,6 +25,7 @@ func _initialize() -> void:
 	await _paso2c_caidas()
 	await _paso3_nadar()
 	await _paso2e_casa()
+	await _paso2f_casa_dos_plantas()
 	await _paso4_vecino_sube()
 	await _paso4b_contacto()
 	await _paso4c_animales()
@@ -391,6 +392,34 @@ func _paso2e_casa() -> void:
 			st.erase(k)
 
 
+## Paso 2f: en la casona de los rentistas (casa de dos plantas) se sube andando por su escalera hasta la planta alta,
+## se anda por el rellano sin caerse por el hueco y se baja otra vez.
+func _paso2f_casa_dos_plantas() -> void:
+	var pl = get_first_node_in_group("player")
+	var vm = get_first_node_in_group("village_manager")
+	var mc = pl.get_node("PlayerMovementController")
+	var Marca = load("res://mapa/marca.gd")
+	var id := "building_manor"
+	var pie: Vector2 = Marca.mundo(id, "escalera_pie")
+	var cima: Vector2 = Marca.mundo(id, "escalera_cima")
+	var sube: Vector2 = (cima - pie).normalized()
+	var arriba_px: float = Mapa3D.PISO_ALTO_PX
+	mc.set_physics_process(false)
+	vm.set_player_elevation_level(0)
+	pl.global_position = pie - sube * 4.0
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+	_ok(absf(mc.altura_pies_px() - Mapa3D.TARIMA_PX) < 0.5, "2f: al pie de la escalera de la casona pisa la planta baja (%.1f px)" % mc.altura_pies_px())
+	await _andar(pl, mc, sube, 100.0, 0.8)
+	_ok(int(vm.player_elevation_level) == 1 and absf(mc.altura_pies_px() - arriba_px) < 0.5, "2f: subiendo andando llega a la planta alta (piso %d, %.1f px)" % [int(vm.player_elevation_level), mc.altura_pies_px()])
+	await _andar(pl, mc, sube.orthogonal(), 100.0, 0.4) # por el rellano, de lado
+	_ok(int(vm.player_elevation_level) == 1 and absf(mc.altura_pies_px() - arriba_px) < 0.5, "2f: anda por el rellano sin caerse (" + str(pl.global_position.round()) + ")")
+	pl.global_position = cima + sube * 4.0
+	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.2)
+	await _andar(pl, mc, -sube, 100.0, 1.0)
+	_ok(int(vm.player_elevation_level) == 0 and absf(mc.altura_pies_px() - Mapa3D.TARIMA_PX) < 0.5, "2f: bajando vuelve a la planta baja (piso %d, %.1f px)" % [int(vm.player_elevation_level), mc.altura_pies_px()])
+	mc.set_physics_process(true)
+
+
 ## Paso 4a: un vecino que va a una cama de arriba sube la escalera de la posada andando y su altura crece poco a poco.
 func _paso4_vecino_sube() -> void:
 	var vm = get_first_node_in_group("village_manager")
@@ -738,7 +767,7 @@ func _hueco_bajo_barandilla(pl, VillageTavern) -> Vector2:
 		q.transform = Transform2D(0.0, p)
 		var solo_arriba := true
 		for h in pl.get_world_2d().direct_space_state.intersect_shape(q, 16):
-			if not (h["collider"] as Node).is_in_group("tavern_upper_walls"):
+			if not (h["collider"] as Node).is_in_group("choques_piso_1"):
 				solo_arriba = false
 		if solo_arriba:
 			return p

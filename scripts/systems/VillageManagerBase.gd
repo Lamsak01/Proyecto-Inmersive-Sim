@@ -18,6 +18,7 @@ const Vista = preload("res://scripts/fisica/Vista.gd")
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
 const Solar = preload("res://mapa/solar.gd")
 const RutaCuartos = preload("res://scripts/systems/RutaCuartos.gd") # casas por cuartos: se cruza por sus huecos
+const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd") # casas de dos plantas: escalera y planta alta
 
 var VillageJustice = load("res://scripts/systems/VillageJustice.gd")
 
@@ -495,8 +496,17 @@ func _construct_solid_building(
 	for tabique: Dictionary in planta["partitions"]:
 		var tam: Vector2 = tabique["size"]
 		var p_tabique: Vector2 = colocar.call(center_orig + (tabique["offset"] as Vector2))
-		tabiques.append(_add_solid_wall_segment(p_tabique, tam, tex_h if tam.x >= tam.y else tex_v, bool(tabique["blocks_vision"]), -deg_to_rad(g_edif)))
+		var pared: StaticBody2D = _add_solid_wall_segment(p_tabique, tam, tex_h if tam.x >= tam.y else tex_v, bool(tabique["blocks_vision"]), -deg_to_rad(g_edif))
+		if PisosCasas.tiene(b_id): # casa de dos plantas: cada tabique choca solo en la suya
+			_de_un_piso(pared, int(tabique["piso"]))
+		tabiques.append(pared)
 	interior_walls[b_id] = tabiques
+
+## Choque que solo cuenta en su planta (0 o 1): para el mapa, encendido si el protagonista está en ella; el cuerpo 3D lo
+## levanta a la altura de esa planta (Suelo.piso_de_choque).
+func _de_un_piso(sb: StaticBody2D, piso: int) -> void:
+	sb.add_to_group(Suelo.GRUPO_PISO_1 if piso > 0 else Suelo.GRUPO_PISO_0)
+	sb.collision_layer = Suelo.capa(int(player_elevation_level) == piso)
 
 ## Del plano de un edificio al mundo: su pieza del editor o, si es una casa levantada en un solar, la de su solar.
 func _colocador(b_id: String, solar: String) -> Callable:
@@ -737,6 +747,8 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
 	if b_id == "building_tavern":
 		return VillageTavern.route(from_pos, target_pos, agent, self) # trabaja en el mundo
+	if PisosCasas.tiene(b_id): # dos plantas: sube o baja por su escalera si hace falta
+		return PisosCasas.ruta(b_id, from_pos, target_pos, agent, self)
 	if VillageLots.CasaModelo.es_casa_de_solar(b_id): # casa de solar: los cuartos de su casa modelo
 		return VillageLots.house_route(VillageLots.CasaModelo.solar_de(b_id), from_pos, target_pos)
 	if not EdificioEditor.tiene_pieza(b_id):
@@ -785,7 +797,7 @@ func no_pisar_mundo(pos: Vector2, sz: Vector2, giro: float) -> void:
 ## Choque de un mueble del editor (mapa/mueble.gd), ya en el mundo: su pared invisible y, en la planta baja, el sitio
 ## donde ningún vecino puede quedarse de pie. Lo pone el escenario 3D al colocar cada edificio.
 func choque_de_mueble(pos: Vector2, sz: Vector2, giro: float, piso: int) -> void:
-	var sb: StaticBody2D = add_choque_mundo(pos, sz, giro, "tavern_upper_walls" if piso > 0 else "")
+	var sb: StaticBody2D = add_choque_mundo(pos, sz, giro, Suelo.GRUPO_PISO_1 if piso > 0 else "")
 	if sb == null:
 		return
 	sb.add_to_group(GRUPO_CHOQUE_MUEBLE)
@@ -1055,7 +1067,7 @@ func check_all_building_doors_and_lanes() -> Array:
 		for n in get_tree().get_nodes_in_group("prop_collider"):
 			if n is StaticBody2D and is_instance_valid(n):
 				var sb := n as StaticBody2D
-				if sb.is_in_group("tavern_upper_walls"):
+				if sb.is_in_group(Suelo.GRUPO_PISO_1):
 					continue
 				var sz := Vector2(10.0, 10.0)
 				for ch in sb.get_children():
@@ -1270,7 +1282,7 @@ func _prune_door_blocking_prop_colliders() -> void:
 	for n in get_tree().get_nodes_in_group("prop_collider"):
 		if n is StaticBody2D and is_instance_valid(n):
 			var sb := n as StaticBody2D
-			if sb.is_in_group("tavern_upper_walls"):
+			if sb.is_in_group(Suelo.GRUPO_PISO_1):
 				continue
 			var sz := Vector2(10.0, 10.0)
 			for ch in sb.get_children():
@@ -1302,22 +1314,22 @@ func adorno_en_edificio(id: String, tex_path: String, p_plano: Vector2) -> void:
 	adorno_mundo(tex_path, EdificioEditor.a_mundo(id, p_plano), EdificioEditor.giro_plano(id))
 
 ## Pared invisible con su sitio ya en el mundo (sale de una pieza del editor): `giro` en radianes del mapa plano.
-## La de la taberna solo choca en su planta («tavern_floor0_walls» / «tavern_upper_walls»).
+## La de la taberna solo choca en su planta («choques_piso_0» / «choques_piso_1»).
 func add_choque_mundo(pos: Vector2, sz: Vector2, giro: float, group_tag: String = "") -> StaticBody2D:
 	if not is_instance_valid(entities_root) or sz.x <= 0.0 or sz.y <= 0.0:
 		return null
-	if group_tag != "tavern_upper_walls" and _is_prop_collider_blocking_passage(pos, sz):
+	if group_tag != Suelo.GRUPO_PISO_1 and _is_prop_collider_blocking_passage(pos, sz):
 		return null
 	var tag: String = group_tag
-	if tag == "" and VillageTavern.dentro(pos):
-		tag = "tavern_floor0_walls"
+	if tag == "" and (VillageTavern.dentro(pos) or not PisosCasas.de(pos).is_empty()): # dentro de un edificio de dos plantas
+		tag = Suelo.GRUPO_PISO_0
 	var sb := StaticBody2D.new()
 	sb.name = "PropCollider"
 	sb.global_position = pos
 	sb.rotation = giro
 	sb.collision_layer = 1
-	if tag == "tavern_upper_walls" or tag == "tavern_floor0_walls": # de un solo piso (paso a 3D, paso 2)
-		sb.collision_layer = Suelo.capa(int(player_elevation_level) == (1 if tag == "tavern_upper_walls" else 0))
+	if tag == Suelo.GRUPO_PISO_1 or tag == Suelo.GRUPO_PISO_0: # de un solo piso (paso a 3D, paso 2)
+		sb.collision_layer = Suelo.capa(int(player_elevation_level) == (1 if tag == Suelo.GRUPO_PISO_1 else 0))
 	sb.collision_mask = 0
 	sb.add_to_group("prop_collider")
 	if tag != "":
@@ -1460,7 +1472,7 @@ func set_player_elevation_level(new_level: int) -> void:
 func check_elevation_exit(player: Node2D) -> void:
 	if VillageUnderworld.is_player_in_sewers(self) or VillageClub.is_player_in_club(self):
 		return
-	if player != null and player_elevation_level == 1 and VillageTavern.dentro(player.global_position, 14.0):
+	if player != null and player_elevation_level == 1 and (VillageTavern.dentro(player.global_position, 14.0) or not PisosCasas.de(player.global_position).is_empty()):
 		return
 	if player_elevation_level != 0 and player != null and _elevation_anchor != Vector2.INF and player.global_position.distance_to(_elevation_anchor) > ELEVATION_LEAVE_DIST:
 		set_player_elevation_level(0)

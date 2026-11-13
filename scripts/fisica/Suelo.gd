@@ -13,19 +13,25 @@ extends RefCounted
 ##   PROFUNDIDAD_SOTANO_PX; se sigue subiendo y bajando con [E] en la escalera.
 ## - Paso 2b: el club de peleas (bajo la posada) y las alcantarillas (bajo el centro) están de verdad bajo tierra, a
 ##   PROFUNDIDAD_SOTANO_PX. Se sigue llegando por la trampilla o la reja con [E]. El sótano de tu casa aún no (paso 2e).
+## - 2026-11-13: las casas de dos plantas (PisosCasas.gd) tienen planta alta, escalera y losa como la posada; los choques
+##   de un solo piso de cualquier edificio van en los grupos GRUPO_PISO_0 y GRUPO_PISO_1.
 
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
 const VillageHousing = preload("res://scripts/systems/VillageHousing.gd")
 const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd")
 
-const TARIMA_EDIFICIO_PX: float = 2.65 ## suelo de madera dentro de los edificios
+const TARIMA_EDIFICIO_PX: float = Mapa3D.TARIMA_PX ## suelo de madera dentro de los edificios
 const TARIMA_TERRAZA_PX: float = 1.8  ## terraza del restaurante
 
 ## Capa 20 del mapa: la llevan siempre los choques de un solo piso, aunque estén «apagados» para el mapa (capa 1) porque
 ## el protagonista está en otro piso. Solo la mira el cuerpo 3D, que los levanta a la altura de su piso.
 const CAPA_PISOS: int = 1 << 19
 const PISO_TODOS: int = -99 ## choque normal: de arriba abajo
+const GRUPO_PISO_0 := "choques_piso_0" ## choques de la planta baja de un edificio de dos plantas
+const GRUPO_PISO_1 := "choques_piso_1" ## choques de su planta alta
 const PROFUNDIDAD_SOTANO_PX: float = -30.0 ## suelo del club, de las alcantarillas y del sótano de tu casa: ~3,2 m bajo la calle
 const ALTILLO_CASA_PX: float = 26.0        ## piso alto de tu casa: ~2,75 m sobre la calle
 
@@ -37,6 +43,9 @@ static func altura_px(pos: Vector2, nivel: int, vm: Node) -> float:
 	var h_taberna: float = VillageTavern.elevation_height_for(pos, nivel)
 	if h_taberna > 0.0:
 		return h_taberna
+	var h_casa: float = PisosCasas.altura_px(pos, nivel)
+	if h_casa > 0.0:
+		return h_casa
 	if nivel == 1 and VillageHousing.casa_del_jugador_con(vm, pos, "upper_floor"):
 		return ALTILLO_CASA_PX
 	if nivel != 0:
@@ -60,16 +69,21 @@ static func es_bajo_tierra(pos: Vector2, vm: Node) -> bool:
 
 ## Suelos que hay en `pos` uno encima de otro (px sobre el relieve, de abajo arriba). Vacío si ahí solo hay uno.
 static func pisos_en(pos: Vector2) -> Array[float]:
-	return VillageTavern.floor_heights_at(pos)
+	var en_posada: Array[float] = VillageTavern.floor_heights_at(pos)
+	return en_posada if not en_posada.is_empty() else PisosCasas.pisos_en(pos)
 
 
 ## Losas: suelos altos que tapan la vista (Vista.gd). Cada una: `rect` y `hueco` (plano de la posada) y `h` (px de altura).
 static func losas() -> Array[Dictionary]:
-	return [VillageTavern.losa_planta_1()]
+	var out: Array[Dictionary] = [VillageTavern.losa_planta_1()]
+	out.append_array(PisosCasas.losas())
+	return out
 
 
-## ¿Cae ese punto del mundo sobre la losa (y no en su hueco)? Solo la posada tiene losas.
+## ¿Cae ese punto del mundo sobre la losa (y no en su hueco)? La posada y las casas de dos plantas tienen losas.
 static func en_losa(losa: Dictionary, p_mundo: Vector2) -> bool:
+	if losa.has("edificio"): # la de una casa de dos plantas
+		return PisosCasas.en_losa(losa, p_mundo)
 	var en_plano: Vector2 = VillageTavern.al_plano(p_mundo)
 	return (losa["rect"] as Rect2).has_point(en_plano) and not (losa["hueco"] as Rect2).has_point(en_plano)
 
@@ -102,8 +116,13 @@ static func es_barandilla(n: Object) -> bool:
 ## De qué piso es un choque del mapa (0, +1 o PISO_TODOS).
 static func piso_de_choque(n: Object) -> int:
 	if n is Node:
-		if (n as Node).is_in_group("tavern_upper_walls"):
+		if (n as Node).is_in_group(GRUPO_PISO_1):
 			return 1
-		if (n as Node).is_in_group("tavern_floor0_walls"):
+		if (n as Node).is_in_group(GRUPO_PISO_0):
 			return 0
 	return PISO_TODOS
+
+
+## ¿Es ese sitio (una cama, una mesa…) de una planta alta, la de la posada o la de una casa de dos plantas?
+static func es_arriba(pos: Vector2) -> bool:
+	return VillageTavern.is_upper_floor_target(pos) or PisosCasas.es_arriba(pos)

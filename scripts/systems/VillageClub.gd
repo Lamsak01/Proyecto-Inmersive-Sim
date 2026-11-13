@@ -605,11 +605,11 @@ static func sync_club_visibility(vm) -> void:
 			if n0 is CanvasItem and is_instance_valid(n0):
 				(n0 as CanvasItem).visible = false
 		var on_floor0: bool = (int(vm.player_elevation_level) == 0)
-		for w0 in vm.get_tree().get_nodes_in_group("tavern_floor0_walls"):
+		for w0 in vm.get_tree().get_nodes_in_group(Suelo.GRUPO_PISO_0):
 			if w0 is StaticBody2D and is_instance_valid(w0):
 				(w0 as StaticBody2D).collision_layer = Suelo.capa(on_floor0)
 		var on_floor1: bool = (int(vm.player_elevation_level) == 1)
-		for w1 in vm.get_tree().get_nodes_in_group("tavern_upper_walls"):
+		for w1 in vm.get_tree().get_nodes_in_group(Suelo.GRUPO_PISO_1):
 			if w1 is StaticBody2D and is_instance_valid(w1):
 				(w1 as StaticBody2D).collision_layer = Suelo.capa(on_floor1)
 

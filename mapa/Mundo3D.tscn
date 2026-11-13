@@ -13732,8 +13732,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.2, 0.7397353, -156.8)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_manor"
 centro_original = Vector2(40, -560)
-planta_m = Vector2(8.4, 5.824)
-puerta_ancho_m = 2.688
+planta_m = Vector2(11.2, 8.4)
+puerta_ancho_m = 1.6
 
 [node name="Solares" type="Node3D" parent="." unique_id=544133439]
 
@@ -14098,7 +14098,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.2, 0.7397353, -156.8)
 script = ExtResource("33_nou5s")
 id_solar = "f2"
 centro_original = Vector2(40, -560)
-terreno_m = Vector2(14, 10.08)
+terreno_m = Vector2(16, 12)
 zona = "apartado"
 
 [node name="solar_puesto_del_paso" type="Node3D" parent="Solares" unique_id=815861718]
@@ -16275,7 +16275,7 @@ material_override = SubResource("StandardMaterial3D_hlqdu")
 mesh = SubResource("CylinderMesh_ocai3")
 
 [node name="Cilindro_226" type="Node3D" parent="Decorado/Zona_0_-2" unique_id=1443219331]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.96721, 1.1085845, -157.8752)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.85, 1.1085845, -157.8752)
 metadata/pos_original = Vector2(142.98587, -579.2)
 metadata/radio = 12.874916553497314
 
@@ -16305,7 +16305,7 @@ material_override = SubResource("StandardMaterial3D_uqy7y")
 mesh = SubResource("CylinderMesh_8w7kv")
 
 [node name="Caja_227" type="Node3D" parent="Decorado/Zona_0_-2" unique_id=50720029]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.848454, 0.81899273, -156.2288)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.6, 0.81899273, -156.2288)
 metadata/pos_original = Vector2(140.86525, -549.8)
 metadata/radio = 8.0
 
@@ -16345,7 +16345,7 @@ material_override = SubResource("StandardMaterial3D_hlqdu")
 mesh = SubResource("CylinderMesh_2o07a")
 
 [node name="Cilindro_229" type="Node3D" parent="Decorado/Zona_0_-2" unique_id=1027055816]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.11852, 1.0607059, -154.9632)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.9, 1.0607059, -154.9632)
 metadata/pos_original = Vector2(145.68787, -527.2)
 metadata/radio = 13.145007610321043
 
@@ -16410,7 +16410,7 @@ material_override = SubResource("StandardMaterial3D_hlqdu")
 mesh = SubResource("CylinderMesh_skrep")
 
 [node name="Cilindro_232" type="Node3D" parent="Decorado/Zona_0_-2" unique_id=1630886532]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.288257, 0.606827, -152.0512)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.288257, 0.606827, -151.3)
 metadata/pos_original = Vector2(113.00459, -475.2)
 metadata/radio = 11.469101428985596
 

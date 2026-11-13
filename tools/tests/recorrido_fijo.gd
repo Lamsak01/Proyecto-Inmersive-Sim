@@ -299,7 +299,7 @@ func _check_point_in_walls(vm: Node, pos: Vector2, elev: int, who: String, is_sl
 			if outer_r.has_point(pos) and not inner_r.has_point(pos) and not near_door:
 				return "%s está metido en la pared perimetral de %s en %s" % [who, str(b.get("id", "?")), str(pos.round())]
 	elif elev == 1:
-		for n in get_nodes_in_group("tavern_upper_walls"):
+		for n in get_nodes_in_group("choques_piso_1"):
 			if n is StaticBody2D and is_instance_valid(n):
 				var sb := n as StaticBody2D
 				for ch in sb.get_children():

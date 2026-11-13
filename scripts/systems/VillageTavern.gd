@@ -18,6 +18,7 @@ extends RefCounted
 const VillageNPC = preload("res://scripts/enemies/VillageNPC.gd")
 const Marca = preload("res://mapa/marca.gd")
 const Edificio = preload("res://mapa/edificio.gd")
+const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd")
 const SimpleInventory = preload("res://scripts/systems/SimpleInventory.gd")
 const WorldInteractableProp = preload("res://scripts/obstacles/WorldInteractableProp.gd")
 
@@ -128,12 +129,12 @@ static func _en_mundo(clave: String, plano: Array) -> Array:
 
 ## Mueble sólido en una marca: su pared invisible de la planta baja y el sitio donde nadie se queda de pie.
 static func _mueble(vm, marca: String, sz: Vector2) -> void:
-	vm.add_choque_mundo(mundo(marca), sz, Edificio.giro_plano(BUILDING_ID), "tavern_floor0_walls")
+	vm.add_choque_mundo(mundo(marca), sz, Edificio.giro_plano(BUILDING_ID), "choques_piso_0")
 	vm.no_pisar_mundo(mundo(marca), sz, Edificio.giro_plano(BUILDING_ID))
 
 ## Tabique o barandilla de la Planta +1, escrito en el plano.
 static func _pared_alta(vm, p_plano: Vector2, sz: Vector2) -> StaticBody2D:
-	return vm.add_choque_mundo(al_mundo(p_plano), sz, Edificio.giro_plano(BUILDING_ID), "tavern_upper_walls")
+	return vm.add_choque_mundo(al_mundo(p_plano), sz, Edificio.giro_plano(BUILDING_ID), "choques_piso_1")
 
 const BAR_COUNTER_SIZE: Vector2 = Vector2(108.0, 10.0)
 
@@ -190,7 +191,7 @@ static func setup_world(vm) -> void:
 	# Tabiques de la planta baja (piezas «Tabiques» de la escena): dejan de chocar cuando el protagonista está arriba
 	for sb_w: StaticBody2D in vm.interior_walls[BUILDING_ID]:
 		sb_w.add_to_group("tavern_floor0_2d")
-		sb_w.add_to_group("tavern_floor0_walls")
+		sb_w.add_to_group("choques_piso_0")
 		sb_w.collision_layer = load("res://scripts/fisica/Suelo.gd").capa(int(vm.player_elevation_level) == 0)
 
 	# Mostrador largo de Marta y pasa-platos del camarero
@@ -210,7 +211,7 @@ static func setup_world(vm) -> void:
 	_mueble(vm, M_BILLAR, Vector2(26.0, 16.0))
 	vm.add_zona_uso_mundo("TavernPoolTableArea", mundo(M_BILLAR), 24.0, "tavern_pool")
 
-	# 3b. Barandillas sólidas y tabiques de los 3 cuartos en Planta +1 ("tavern_upper_walls")
+	# 3b. Barandillas sólidas y tabiques de los 3 cuartos en Planta +1 ("choques_piso_1")
 	# Paso a 3D, paso 2c: las barandillas son bajas (grupo «barandilla»): se pueden saltar… y caer al salón.
 	for bar in [[Vector2(434.0, -168.0), Vector2(348.0, 6.0)], # Barandilla sur de la galería alta
 			[Vector2(558.0, -261.0), Vector2(6.0, 110.0)],     # Barandilla oeste del hueco de escalera
@@ -764,8 +765,8 @@ static func tick(vm, delta: float) -> void:
 		if n.is_sleeping and is_upper_floor_target(n.global_position) and int(n.elevation_level) != 1:
 			vm.set_npc_elevation_level(n, 1)
 		elif not n.is_sleeping and not dentro(n.global_position, 10.0) and int(n.elevation_level) == 1:
-			# Si salió de la posada y no está en una casa con altillo, asegurar nivel 0
-			if str(n.lodging) == "":
+			# Si salió de la posada y no está en una casa con altillo ni en una de dos plantas, asegurar nivel 0
+			if str(n.lodging) == "" and PisosCasas.de(n.global_position).is_empty():
 				vm.set_npc_elevation_level(n, 0)
 		if int(n.elevation_level) == 0 and n.velocity.length_squared() < 4.0:
 			if is_at_seat(n.global_position):

@@ -18,7 +18,7 @@ static var _por_escena: Dictionary = {} ## ruta de la escena → planta
 
 ## Planta del edificio con ese id: {"size", "door_dir", "door_width", "door_offset", "window_offset", "partitions"}, en
 ## píxeles del mapa original y con el edificio sin girar. Los dos «offset» se miden a lo largo del muro, desde su
-## centro. "partitions": un {"offset" (desde el centro de la planta), "size", "blocks_vision"} por tabique.
+## centro. "partitions": un {"offset" (desde el centro de la planta), "size", "blocks_vision", "piso"} por tabique.
 static func de_edificio(id_edificio: String) -> Dictionary:
 	return de_escena(load(EDIFICIO).call("escena", id_edificio) as PackedScene)
 
@@ -84,6 +84,7 @@ static func _tabiques(estado: SceneState) -> Array[Dictionary]:
 			"offset": _redondo(Mapa3D.a_mapa(sitio.origin)),
 			"size": _redondo(Mapa3D.a_mapa(Vector3(metros.x, 0.0, metros.y))),
 			"blocks_vision": bool(pieza.get("tapa_vista", true)),
+			"piso": Mapa3D.piso_de_altura(sitio.origin.y), # en las casas de dos plantas, los de arriba están a su altura
 		})
 	return out
 

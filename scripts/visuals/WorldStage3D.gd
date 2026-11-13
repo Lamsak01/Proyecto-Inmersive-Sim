@@ -1,6 +1,7 @@
 @tool
 extends "res://scripts/visuals/WorldStageTerrain3D.gd"
 const AguaScript = preload("res://scripts/fisica/Agua.gd") # paso 3b: ¿los ojos bajo el agua?
+const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd") # casas de dos plantas: ¿se ve su planta alta?
 var _fp_ojos_bajo_agua: bool = false
 
 ## Escenario 3D principal: ciclo de vida, cámara en 1.ª persona y vista superior, brazos/armas 3D, HUD y cutaway.
@@ -636,7 +637,8 @@ func _spawn_3d_hit_effect(pos_2d: Vector2, dir_2d: Vector2, power: float = 1.0) 
 		return
 	var elev_h: float = 8.5
 	if vm != null:
-		elev_h += VillageTavern.elevation_height_for(pos_2d, int(vm.player_elevation_level))
+		var h_casa: float = PisosCasas.altura_px(pos_2d, int(vm.player_elevation_level)) # en una casa de dos plantas, su suelo
+		elev_h += h_casa if h_casa > 0.0 else VillageTavern.elevation_height_for(pos_2d, int(vm.player_elevation_level))
 	var hit_3d: Vector3 = to_3d(pos_2d - dir_2d.normalized() * 3.0, elev_h)
 	var fx_root := Node3D.new()
 	fx_root.name = "HitSpark3D"
@@ -899,7 +901,7 @@ func _update_fp_camera_transform() -> void:
 		if vm != null and VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level)) > 3.0:
 			eye_h += VillageTavern.elevation_height_for(pl_pos, int(vm.player_elevation_level)) - VillageTavern.FLOOR_0_SURFACE_H
 	if vm != null:
-		if VillageTavern.dentro(pl_pos, 8.0): # posada: dos plantas y escalera
+		if VillageTavern.dentro(pl_pos, 8.0) or not PisosCasas.de(pl_pos).is_empty(): # posada o casa de dos plantas
 			eye_h = minf(eye_h, 54.5)
 		elif vm.has_method("_is_pos_inside_any_building") and bool(vm.call("_is_pos_inside_any_building", pl_pos)):
 			eye_h = minf(eye_h, 23.5)
@@ -1137,7 +1139,9 @@ func _update_roof_cutaways_and_lighting() -> void:
 		if is_instance_valid(loft_root):
 			var is_tav: bool = str(rec.get("id", "")) == "building_tavern"
 			var on_tavern_stairs: bool = is_tav and VillageTavern.elevation_height_for(pl_pos, elev) > 6.0
-			loft_root.visible = is_tav and (first_person_active or elev == 1 or on_tavern_stairs)
+			# Casa de dos plantas: su planta alta se ve si estás arriba o en su escalera (desde arriba, si no, tapa la baja)
+			var arriba_en_casa: bool = is_finite(pl_pos.x) and PisosCasas.de(pl_pos) == str(rec.get("id", "")) and PisosCasas.altura_px(pl_pos, elev) > 0.0
+			loft_root.visible = (is_tav and (first_person_active or elev == 1 or on_tavern_stairs)) or arriba_en_casa or (first_person_active and PisosCasas.tiene(str(rec.get("id", ""))))
 	for altillo in get_tree().get_nodes_in_group("altillo_casa_3d"): # paso 2e: el piso alto de tu casa, igual que el de la posada
 		(altillo as Node3D).visible = first_person_active or elev == 1
 
