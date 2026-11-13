@@ -5,6 +5,12 @@ const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escri
 ## Uso:
 ##   timeout 180 flatpak run org.godotengine.Godot --path . -s tools/tests/partida_caso1.gd
 
+const Marca = preload("res://mapa/marca.gd")
+const Sitio = preload("res://mapa/sitio.gd")
+const Zona = preload("res://mapa/zona.gd")
+const MOLINO_ID: String = "building_abandoned_mill"
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const PX_POR_M: float = 1.0 / Mapa3D.ESCALA ## píxeles del mapa por metro (el molino: 14 m = 250 px)
 const OUT_DIR: String = "docs/capturas_arreglos/caso1/partida"
 
 var _results: Array[String] = []
@@ -74,6 +80,11 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 	await physics_frame
 	await physics_frame
 	return true
+
+## Una marca del molino (ya en el mundo), con un desfase en metros (x al este, z al sur, como en su plano).
+func _molino(marca: String, desfase_m: Vector2 = Vector2.ZERO) -> Vector2:
+	return Marca.mundo(MOLINO_ID, marca, desfase_m * PX_POR_M)
+
 
 func _aim_and_press_e(pl: CharacterBody2D, stage: Node, look_target: Vector2, pitch: float = -0.24, want_substr: String = "", ya_mundo: bool = false) -> Dictionary:
 	if not ya_mundo:
@@ -259,51 +270,50 @@ func _initialize() -> void:
 	# =========================================================================
 	# BLOQUE B: Molino Viejo (barro rojo, sótano/reja, 4 pistas interiores) y Puente Viejo (zapato)
 	# =========================================================================
-	var path_to_mill_clay: Array[Vector2] = [
-		Vector2(142.0, -945.0),
-		Vector2(140.0, -988.0),
-	]
-	var walked_clay: bool = await _walk_to_waypoints(pl, stage, path_to_mill_clay, 4.0)
-	var e_clay: Dictionary = await _aim_and_press_e(pl, stage, Vector2(140.0, -1006.0), -0.22, "arcilla")
+	# Molino a tamaño real (2026-11-13): se anda y se apunta con sus marcas y su sitio (puntos ya del mundo); `_molino`
+	# da una marca con un desfase en metros (a menos de ~1 m: cada pista se ofrece dentro de su zona, de ~1,5 m de radio). El primer punto, en el campo abierto, sigue en el mapa original estirado.
+	var a_la_ribera: Vector2 = Zona.estirar(Vector2(142.0, -945.0))
+	var barro: Vector2 = Sitio.mundo("barro_rojo_molino")
+	var walked_clay: bool = await _walk_to_waypoints(pl, stage, [a_la_ribera, barro + Vector2(0.0, 0.8) * PX_POR_M], 4.0, 6000, true)
+	var e_clay: Dictionary = await _aim_and_press_e(pl, stage, barro, -0.22, "arcilla", true)
 	var note_clay: bool = _has_note_with_source(det_ui, "clue_mill_red_clay")
 	_record("B1_molino_barro_rojo", walked_clay and bool(e_clay["ok"]) and note_clay,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_clay), str(e_clay["label"]), str(note_clay)])
 
-	# Entrar al Molino Viejo por la puerta sur (188, -1014)
-	await _walk_to_waypoints(pl, stage, [Vector2(188.0, -996.0)], 4.0)
-	var d_mill: Dictionary = vm.call("_find_nearest_door", MapaViejo.a_mundo(Vector2(188.0, -1014.0)), 20.0)
+	# Entrar al Molino Viejo por su portón (al sur) y bajar junto al foso del sótano, al lado del muro de la rueda
+	await _walk_to_waypoints(pl, stage, [_molino("puerta", Vector2(0.0, 1.6))], 4.0, 6000, true)
+	var d_mill: Dictionary = vm.call("_find_nearest_door", _molino("puerta"), 20.0)
 	if not bool(d_mill.get("is_open", false)):
-		await _aim_and_press_e(pl, stage, Vector2(188.0, -1014.0), -0.05, "puerta")
-	var walked_mill_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1035.0), Vector2(154.0, -1061.0)], 5.0)
-	var e_grate: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "sotano"), -0.22, "reja")
+		await _aim_and_press_e(pl, stage, _molino("puerta"), -0.05, "puerta", true)
+	var walked_mill_in: bool = await _walk_to_waypoints(pl, stage, [_molino("puerta", Vector2(0.0, -1.2)), _molino("sotano", Vector2(1.0, 0.0))], 5.0, 6000, true)
+	var e_grate: Dictionary = await _aim_and_press_e(pl, stage, _molino("sotano"), -0.5, "reja", true)
 	var note_grate: bool = _has_note_with_source(det_ui, "clue_mill_cellar_grate")
 	_record("B2_molino_sotano_reja", walked_mill_in and bool(e_grate["ok"]) and note_grate,
 		"walk=%s prompt='%s' anotada=%s" % [str(walked_mill_in), str(e_grate["label"]), str(note_grate)])
 
-	# Pajar (152, -1084)
-	var w_hay: bool = await _walk_to_waypoints(pl, stage, [Vector2(168.0, -1072.0)], 5.0)
-	var e_hay: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "pajar"), -0.22, "pajar")
+	# Al granero por el hueco del tabique: el pajar (noroeste) y el hogar frío (norte)
+	var al_granero: Vector2 = _molino("puerta", Vector2(0.0, -6.5))
+	var w_hay: bool = await _walk_to_waypoints(pl, stage, [_molino("puerta", Vector2(0.0, -5.0)), al_granero, _molino("pajar", Vector2(0.0, 0.9))], 5.0, 6000, true)
+	var e_hay: Dictionary = await _aim_and_press_e(pl, stage, _molino("pajar"), -0.22, "pajar", true)
 	var note_hay: bool = _has_note_with_source(det_ui, "clue_mill_hayloft")
 	_record("B3_molino_pajar", w_hay and bool(e_hay["ok"]) and note_hay,
 		"prompt='%s' anotada=%s" % [str(e_hay["label"]), str(note_hay)])
 
-	# Hogar de piedra (224, -1086)
-	var w_hearth: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1066.0), Vector2(208.0, -1075.0)], 4.0)
-	var e_hearth: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "hogar"), -0.22, "hogar")
+	var w_hearth: bool = await _walk_to_waypoints(pl, stage, [_molino("hogar", Vector2(0.0, 1.0))], 4.0, 6000, true)
+	var e_hearth: Dictionary = await _aim_and_press_e(pl, stage, _molino("hogar"), -0.22, "hogar", true)
 	var note_hearth: bool = _has_note_with_source(det_ui, "clue_mill_hearth")
 	_record("B4_molino_hogar_ceniza", w_hearth and bool(e_hearth["ok"]) and note_hearth,
 		"prompt='%s' anotada=%s" % [str(e_hearth["label"]), str(note_hearth)])
 
-	# Cordel de cáñamo encerado (150, -1040)
-	var w_cord: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1056.0), Vector2(168.0, -1044.0)], 4.0)
-	var e_cord: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "cordel"), -0.22, "cordel")
+	# De vuelta a la sala: el banco del cordel (suroeste) y la mesa del papel
+	var w_cord: bool = await _walk_to_waypoints(pl, stage, [al_granero, _molino("puerta", Vector2(0.0, -3.0)), _molino("cordel", Vector2(1.1, 0.0))], 4.0, 6000, true)
+	var e_cord: Dictionary = await _aim_and_press_e(pl, stage, _molino("cordel"), -0.3, "cordel", true)
 	var note_cord: bool = _has_note_with_source(det_ui, "clue_mill_hemp_cord")
 	_record("B5_molino_cordel", w_cord and bool(e_cord["ok"]) and note_cord,
 		"prompt='%s' anotada=%s" % [str(e_cord["label"]), str(note_cord)])
 
-	# Papel sobre la mesa (218, -1050)
-	var w_paper: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1050.0), Vector2(200.0, -1050.0)], 4.0)
-	var e_paper: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/marca.gd").call("sitio", "building_abandoned_mill", "mesa_papel"), -0.22, "papel")
+	var w_paper: bool = await _walk_to_waypoints(pl, stage, [_molino("mesa_papel", Vector2(-1.4, 0.0))], 4.0, 6000, true)
+	var e_paper: Dictionary = await _aim_and_press_e(pl, stage, _molino("mesa_papel"), -0.3, "papel", true)
 	var note_paper: bool = _has_note_with_source(det_ui, "clue_mill_table_paper")
 	_record("B6_molino_mesa_papel", w_paper and bool(e_paper["ok"]) and note_paper,
 		"prompt='%s' anotada=%s" % [str(e_paper["label"]), str(note_paper)])
@@ -312,10 +322,8 @@ func _initialize() -> void:
 	# Mapa ×E: el zapato lo coloca el juego junto al cruce del río del editor; se apunta a donde esté de verdad (en el mapa original)
 	var shoe_area: Node2D = root.find_child("OldBridgeVictimShoeArea", true, false) as Node2D
 	var shoe_mundo: Vector2 = shoe_area.global_position if shoe_area != null else MapaViejo.a_mundo(Vector2(95.0, 38.0))
+	await _walk_to_waypoints(pl, stage, [_molino("puerta", Vector2(0.0, -1.2)), _molino("puerta", Vector2(0.0, 1.8)), a_la_ribera], 8.0, 6000, true)
 	var path_to_bridge: Array[Vector2] = [
-		Vector2(188.0, -1028.0),
-		Vector2(188.0, -996.0),
-		Vector2(142.0, -945.0),
 		Vector2(138.0, -860.0),
 		Vector2(138.0, -815.0),
 		Vector2(682.0, -815.0),

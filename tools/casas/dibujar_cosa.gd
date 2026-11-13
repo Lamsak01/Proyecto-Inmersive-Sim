@@ -1,7 +1,7 @@
 extends RefCounted
 
 ## Dibuja dentro de su pieza cada cosa armada a mano de un plano de casa («cosa» en MUEBLES), 2026-11-13: busca quién
-## la sabe hacer según el nivel de la casa (de todas, pobre, de oficio, acomodada o señorial). Lo usa tools/casas/armar_casa.gd.
+## la sabe hacer según el nivel de la casa (de todas, pobre, de oficio, acomodada, señorial o del molino). Lo usa tools/casas/armar_casa.gd.
 
 const Cascaron = preload("res://tools/casas/cascaron_casa.gd")
 const Cosas = preload("res://tools/casas/cosas_casa.gd")
@@ -9,6 +9,7 @@ const Pobre = preload("res://tools/casas/cosas_casa_pobre.gd")
 const Oficio = preload("res://tools/casas/cosas_oficio.gd")
 const Acomodada = preload("res://tools/casas/cosas_casa_acomodada.gd")
 const Senorial = preload("res://tools/casas/cosas_casa_senorial.gd")
+const Molino = preload("res://tools/casas/cosas_molino.gd")
 
 
 static func dibujar(pieza: Node3D, m: Dictionary) -> void:
@@ -31,6 +32,16 @@ static func dibujar(pieza: Node3D, m: Dictionary) -> void:
 			Cosas.letrina(pieza)
 		"hogar":
 			Pobre.hogar(pieza)
+		"hogar_frio":
+			Pobre.hogar(pieza, false)
+		"foso_reja":
+			Molino.foso_reja(pieza)
+		"muela_rota":
+			Molino.muela_rota(pieza)
+		"cordel":
+			Molino.cordel(pieza, float(m.get("alto", 0.0)))
+		"papel":
+			Molino.papel(pieza, float(m.get("alto", 0.0)))
 		"lena":
 			Pobre.lena(pieza)
 		"vela":

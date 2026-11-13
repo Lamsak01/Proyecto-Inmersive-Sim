@@ -24,7 +24,8 @@ const TRONCO_LARGO_M: float = 0.6
 
 
 ## Lumbre de piedra contra la pared, con su olla y la campana de humos hasta el techo: cocina y calefacción a la vez.
-static func hogar(padre: Node3D) -> void:
+## `encendido` falso: la lumbre fría de una ruina (el molino abandonado), solo con su ceniza.
+static func hogar(padre: Node3D, encendido: bool = true) -> void:
 	var piedra: Material = Piezas.material("wall_stone.png", PIEDRA)
 	Piezas.caja(padre, Vector3.ZERO, Vector3(1.4, 0.25, 0.8), piedra)
 	Piezas.caja(padre, Vector3(0.0, 0.25, -0.35), Vector3(1.4, 1.2, 0.1), Cosas.mat(HOLLIN))
@@ -33,6 +34,8 @@ static func hogar(padre: Node3D) -> void:
 	Piezas.caja(padre, Vector3(0.0, 1.45, -0.05), Vector3(1.5, 0.3, 0.9), piedra)
 	Piezas.caja(padre, Vector3(0.0, 1.75, -0.15), Vector3(0.8, TECHO_M - 1.75, 0.6), piedra)
 	Cosas.cilindro(padre, Vector3(0.0, 0.25, 0.0), 0.22, 0.3, Cosas.mat(HOLLIN, 0.5))
+	if not encendido:
+		return
 	Cosas.luz(padre, Vector3(0.0, 0.3, 0.15), LLAMA, 0.12, LUMBRE_ALCANCE_M, LUMBRE_ENERGIA)
 
 

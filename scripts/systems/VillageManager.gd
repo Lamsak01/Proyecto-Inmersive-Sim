@@ -599,17 +599,6 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 5b. Pistas del Caso I en el Molino Viejo Abandonado y Claro del Arroyo
-	if pos.distance_squared_to(Sitio.mundo(SITIO_PISTA_CLARO)) <= PISTA_CLARO_RADIO * PISTA_CLARO_RADIO:
-		_record_case_clue(
-			player,
-			"🧱 Orilla de arcilla",
-			"🧱 La ribera junto al molino es de barro rojo vivo y arcilla plástica, con pisadas recientes hundidas en el fango.",
-			"Exterior del molino: la orilla del arroyo junto al molino es de barro rojo de arcilla con pisadas hundidas.",
-			"Pista: Barro rojo del molino",
-			"clue_mill_red_clay",
-			Color(0.92, 0.52, 0.42)
-		)
-		return
 	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.SOTANO)) <= 28.0 * 28.0:
 		_record_case_clue(
 			player,
@@ -663,6 +652,19 @@ func interact(player: Node2D) -> void:
 			"Pista: Pajar del molino",
 			"clue_mill_hayloft",
 			Color(0.92, 0.82, 0.45)
+		)
+		return
+	# El barro rojo va después de las pistas de dentro: su radio (campo abierto ×5) llega dentro del molino y taparía
+	# la reja, el cordel y el papel (2026-11-13)
+	if pos.distance_squared_to(Sitio.mundo(SITIO_PISTA_CLARO)) <= PISTA_CLARO_RADIO * PISTA_CLARO_RADIO:
+		_record_case_clue(
+			player,
+			"🧱 Orilla de arcilla",
+			"🧱 La ribera junto al molino es de barro rojo vivo y arcilla plástica, con pisadas recientes hundidas en el fango.",
+			"Exterior del molino: la orilla del arroyo junto al molino es de barro rojo de arcilla con pisadas hundidas.",
+			"Pista: Barro rojo del molino",
+			"clue_mill_red_clay",
+			Color(0.92, 0.52, 0.42)
 		)
 		return
 	if pos.distance_to(VillageCase1.Sitio.mundo(VillageCase1.SITIO_CLARO)) <= VillageCase1.CLARO_RADIO_PX * VillageCase1.Mapa3D.E:

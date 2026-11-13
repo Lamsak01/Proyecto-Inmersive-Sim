@@ -13608,12 +13608,12 @@ planta_m = Vector2(14.0, 9.8)
 puerta_ancho_m = 1.8
 
 [node name="building_abandoned_mill" type="Node3D" parent="Edificios" unique_id=2139826987 instance=ExtResource("17_3opqx")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.64, 0.99335885, -296.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56.168, 0.99335885, -299.124)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_abandoned_mill"
 centro_original = Vector2(188, -1060)
-planta_m = Vector2(6.944, 5.152)
-puerta_ancho_m = 2.352
+planta_m = Vector2(14.0, 9.8)
+puerta_ancho_m = 2.2
 
 [node name="building_restaurant" type="Node3D" parent="Edificios" unique_id=1220429657 instance=ExtResource("18_mkllk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.9, 0, -31.08)

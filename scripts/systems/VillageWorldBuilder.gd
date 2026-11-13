@@ -342,31 +342,27 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	# 6. Claro del Arroyo (Caso I) — área de inspección del lugar
 	vm.add_zona_uso_mundo("Case1ClearingArea", Sitio.mundo(vm.VillageCase1.SITIO_CLARO), 22.0, "case1_clearing")
 
-	# 7. Molino Viejo Abandonado río arriba del claro (`Vector2(188, -1060)`, tamaño `Vector2(124, 92)`)
+	# 7. Molino Viejo Abandonado río arriba del claro (14 × 9,8 m desde 2026-11-13)
 	var mill_center: Vector2 = RioLago.ABANDONED_MILL_CENTER
 	vm._construct_solid_building(vm.ID_MOLINO, "🏚️ Molino Viejo Abandonado", mill_center,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 
-	# Interior del Molino Viejo Abandonado (4 pistas/elementos del Caso I, dejando libre el pasillo central):
-	# Sus sitios son marcas de la escena del molino (mapa/marca.gd)
-	# (a) Pajar con paja seca (esquina noroeste)
+	# Interior del Molino Viejo Abandonado (pistas del Caso I): sus sitios son marcas de la escena del molino
+	# (mapa/marca.gd); los muebles y sus choques salen de su plano (tools/casas/plano_molino.gd, 2026-11-13)
+	# (a) Pajar con paja seca (granero, noroeste)
 	var straw_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.PAJAR)
-	vm.choque_en_edificio(vm.ID_MOLINO, straw_pos, Vector2(24.0, 16.0))
 	vm.zona_en_edificio(vm.ID_MOLINO, "MillHayloftArea", straw_pos, 26.0, "mill_hayloft")
 
-	# (b) Hogar viejo con ceniza de carbón (esquina noreste)
+	# (b) Hogar viejo con ceniza de carbón (granero, norte)
 	var hearth_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.HOGAR)
-	vm.choque_en_edificio(vm.ID_MOLINO, hearth_pos, Vector2(24.0, 14.0))
 	vm.zona_en_edificio(vm.ID_MOLINO, "MillHearthArea", hearth_pos, 28.0, "mill_hearth")
 
-	# (c) Cordel de cáñamo encerado (esquina suroeste)
+	# (c) Cordel de cáñamo encerado (sala, suroeste)
 	var cord_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.CORDEL)
-	vm.choque_en_edificio(vm.ID_MOLINO, cord_pos, Vector2(18.0, 12.0))
 	vm.zona_en_edificio(vm.ID_MOLINO, "MillHempCordArea", cord_pos, 26.0, "mill_hemp_cord")
 
-	# (d) Mesa con papel («Lista de nombres — texto pendiente del autor») (sureste)
+	# (d) Mesa con papel («Lista de nombres — texto pendiente del autor») (sala)
 	var table_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.MESA_PAPEL)
-	vm.choque_en_edificio(vm.ID_MOLINO, table_pos, Vector2(22.0, 14.0))
 	vm.zona_en_edificio(vm.ID_MOLINO, "MillPaperTableArea", table_pos, 26.0, "mill_table_paper")
 
 	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda (oeste)

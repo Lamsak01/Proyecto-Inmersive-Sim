@@ -6,7 +6,7 @@
 **Interiores de tamaño real (usuario, 2026-11-13)**: casas ×4 de suelo, cuarto por cama, sala, cocina y baño; la casa
 marca la clase (niveles 1–4 en `docs/VISION_Y_FUTURO.md`). Hechas las 4 casas de artesano (herrero, carnicero,
 carpintero, pescadero), 6 casas-tienda de artesano (con la posada), 2 pobres, el albergue y la acomodada del Arreglador (se gira con «girar»): `tools/casas/` (planos, id, espejo, POR_OFICIO),
-`mapa/cuarto.gd`, `scripts/systems/RutaCuartos.gd`. Clases en la visión. Casas de solar: 3 casas modelo con cuartos (`plano_casa_modelo_*`), rutas por `VillageLots.house_route`. Nivel 4: mansión, casona, ayuntamiento, comisaría («REJA»), hospital (morgue) y capilla (bancos «banco_N») hechos; escuela (12 pupitres; filas «solo_ruta») biblioteca (sala oculta tras el archivo) y las 4 tiendas de artesano (`plano_tienda_artesano`, hueco hondo «margen» en el mostrador) también.
+`mapa/cuarto.gd`, `scripts/systems/RutaCuartos.gd`. Clases en la visión. Casas de solar: 3 casas modelo con cuartos (`plano_casa_modelo_*`), rutas por `VillageLots.house_route`. Nivel 4: mansión, casona, ayuntamiento, comisaría («REJA»), hospital (morgue) y capilla (bancos «banco_N») hechos; escuela (12 pupitres; filas «solo_ruta») biblioteca (sala oculta tras el archivo), las 4 tiendas de artesano (`plano_tienda_artesano`, hueco hondo «margen» en el mostrador) y el molino del Caso I (`plano_molino`, cosas en `cosas_molino.gd`) también. Falta la taberna (pregunta 0b).
 **Casas de dos plantas** (2026-11-13): campos «…_ARRIBA» y `ESCALERA` en el plano (`planta_alta.gd`); en el juego
 `scripts/fisica/PisosCasas.gd`; el trozo alto de los muros va en «PisoAlto» (se esconde desde arriba).
 
@@ -28,14 +28,14 @@ carpintero, pescadero), 6 casas-tienda de artesano (con la posada), 2 pobres, el
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c) Siguiente paso técnico inmediato
+**Partida automática del Caso I** (`tools/tests/partida_caso1.gd`): el molino ya anda con sus marcas (7 ✅); claro, comisaría,
+biblioteca, morgue, botica y mansión fallan (puntos del mapa viejo, edificios agrandados): pasarlos a marcas igual.
 **×5 que queda (decidir con el usuario si se quita):** `Mapa3D.E` solo estira lo que aún está escrito en medidas del
-mapa original: relieve hecho por el juego, forma del lago y la ciénaga, manchas del mapa del valle (`mapa/zona.gd`).
-No se ve al jugar; quitarlo es mucho trabajo y arriesgado.
+mapa original: relieve, lago, ciénaga, manchas del mapa del valle (`mapa/zona.gd`). No se ve; quitarlo: mucho y arriesgado.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan 6 dibujos planos, todos ya con su 3D y el plano apagado o pasajero (caja, barril, muro débil y espada de `World.tscn`; 2 textos): al jugar no se ve nada plano.
-**Pesca, huerto, gallinero, campamento, animales de corral del jugador y huerto de casa borrados (usuario, 2026-11-12)**:
-se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd` (lee el río del editor 3D).
+**Pesca, huerto, gallinero, campamento, corral y huerto de casa borrados (2026-11-12)**: se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd` (lee el río del editor 3D).
 Red eléctrica: generador del Arreglador (lo dibuja su casa); farolas solo de noche. Mapa del valle: ya sale de las piezas del editor.
 
 ## d) Bloqueos activos

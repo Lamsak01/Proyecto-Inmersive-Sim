@@ -4,6 +4,17 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — El Molino Viejo Abandonado, de tamaño real (Claude Code)
+- De 6,9 × 5,2 m a 14 × 9,8 m. El muro del portón y el del oeste siguen donde estaban (la rueda, el canal y el barro rojo
+  no se mueven); crece al norte y al este. Ruina de piedra, tablas rotas y techo de paja, sin más luz que una vela.
+- Sala: foso del sótano con su reja (dos barrotes doblados) junto al muro de la rueda, banco con el cordel, mesa con la
+  hoja de papel, dos muelas de piedra rotas. Granero, por un hueco del tabique: pajar, hogar frío con ceniza y leña, y
+  la paja donde esperan los dos forasteros. El barro rojo de fuera, que iba pegado al edificio viejo, vuelve a su sitio.
+- Arreglo del Caso I: pulsar E en la reja, el cordel o el papel daba otra vez el barro rojo (su radio, de campo abierto,
+  llegaba dentro del molino). Ahora se miran antes las pistas de dentro.
+- Probado: rutas de los forasteros sin choques, fotos, y la partida automática del Caso I con los 7 pasos del molino en
+  verde (antes fallaban 5). Sus otros fallos (claro, comisaría, biblioteca, morgue, botica, mansión) ya estaban.
+
 ## 2026-11-13 — Las cuatro tiendas de artesano, de tamaño real (Claude Code)
 - Herrería, carnicería, carpintería y pescadería: de 6,5 × 4,3 m a 9,8 × 6,4 m, crecen por detrás (el muro de la
   puerta no se mueve, la plaza de delante queda igual). Tienda con mostrador de dos tramos y un hueco para pasar,
