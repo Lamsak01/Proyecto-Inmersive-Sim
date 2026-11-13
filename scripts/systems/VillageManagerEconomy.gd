@@ -1274,19 +1274,19 @@ func update_traveling_merchant_ai(merchant: VillageNPC, delta: float) -> void:
 
 
 ## Parada del mercader a la hora h: [sitio en el mundo, compra]. Compra = [marca de «ya compró», oficio, cosas, pago por
-## unidad, gasto tope] o vacía (en la plaza no compra en tiendas). Los sitios están en el plano de cada tienda (delante
-## de su mostrador) y van con ella si se mueve en el editor; la plaza va con su pieza de «Zonas».
+## unidad, gasto tope] o vacía (en la plaza no compra en tiendas). En las tiendas espera en su marca «cliente» (delante
+## del mostrador), que va con ella si se mueve en el editor; la plaza va con su pieza de «Zonas».
 func _parada_mercader(m_id: String, h: int) -> Array:
 	if m_id == "casimir":
 		if h < 12:
-			return [EdificioEditor.a_mundo("shop_family_smith", Vector2(335, -30)), ["route_Bought_smith", VillageNPC.TradeRole.BLACKSMITH, ["repair_kit", "iron_ore", "steel_ingot"], 24, 68]]
+			return [Marca.mundo("shop_family_smith", Marca.CLIENTE), ["route_Bought_smith", VillageNPC.TradeRole.BLACKSMITH, ["repair_kit", "iron_ore", "steel_ingot"], 24, 68]]
 		if h < 16:
-			return [EdificioEditor.a_mundo("shop_family_carpenter", Vector2(585, 142)), ["route_Bought_carp", VillageNPC.TradeRole.CARPENTER, ["repair_kit", "wood", "copper_coil"], 20, 62]]
+			return [Marca.mundo("shop_family_carpenter", Marca.CLIENTE), ["route_Bought_carp", VillageNPC.TradeRole.CARPENTER, ["repair_kit", "wood", "copper_coil"], 20, 62]]
 		return [ZonaMapa.estirar(Vector2(455, 44)), []] # Plaza Central para comerciar con el jugador
 	if h < 11:
-		return [EdificioEditor.a_mundo("shop_family_butcher", Vector2(585, -30)), ["route_Bought_butcher", VillageNPC.TradeRole.BUTCHER, ["leather", "cooked_meat", "roasted_chicken", "fox_pelt", "antlers"], 26, 78]]
+		return [Marca.mundo("shop_family_butcher", Marca.CLIENTE), ["route_Bought_butcher", VillageNPC.TradeRole.BUTCHER, ["leather", "cooked_meat", "roasted_chicken", "fox_pelt", "antlers"], 26, 78]]
 	if h < 14:
-		return [EdificioEditor.a_mundo("shop_family_fishmonger", Vector2(465, 142)), ["route_Bought_fish", VillageNPC.TradeRole.FISHMONGER, ["cooked_fish", "bread", "fertilizer"], 18, 48]]
+		return [Marca.mundo("shop_family_fishmonger", Marca.CLIENTE), ["route_Bought_fish", VillageNPC.TradeRole.FISHMONGER, ["cooked_fish", "bread", "fertilizer"], 18, 48]]
 	if h < 16:
 		return [EdificioEditor.a_mundo("mixed_family_herbalist", Vector2(325, 150)), ["route_Bought_herb", VillageNPC.TradeRole.HERBALIST, ["herbal_poultice", "carrot_seeds"], 16, 42]]
 	return [ZonaMapa.estirar(Vector2(480, 44)), []] # Plaza Central para comprar caza legal al jugador

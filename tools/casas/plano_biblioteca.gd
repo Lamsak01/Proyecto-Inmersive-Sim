@@ -83,7 +83,7 @@ const MUEBLES: Array[Dictionary] = [
 	{"modelo": "props/Chair_1.gltf", "pos": Vector2(-3.9, 2.35), "giro": 180.0, "tam": SILLA_TAM},
 	# Sala: el mostrador del bibliotecario junto a la puerta, con su silla, una alfombra y bombillas
 	{"modelo": "props/Table_Large.gltf", "pos": Vector2(-3.0, 4.0), "tam": MESA_TAM, "choque": MESA_CHOQUE},
-	{"modelo": "props/Chair_1.gltf", "pos": Vector2(-3.0, 4.55), "tam": SILLA_TAM},
+	{"modelo": "props/Chair_1.gltf", "pos": Vector2(-3.0, 4.675), "giro": 180.0, "tam": SILLA_TAM},
 	{"cosa": "alfombra", "pos": Vector2(-3.5, 0.5), "tam2": Vector2(4.4, 4.0), "color": Color(0.3, 0.22, 0.16)},
 	{"cosa": "bombilla", "pos": Vector2(-3.5, -1.0)},
 	{"cosa": "bombilla", "pos": Vector2(-3.5, 2.0)},

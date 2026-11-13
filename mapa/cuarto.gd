@@ -19,6 +19,9 @@ const VISTA_COLOR_CENTRAL := Color(0.95, 0.85, 0.3, 0.25)
 		_poner_vista()
 ## Centro del hueco por el que se entra, en metros respecto al centro del cuarto (sobre uno de sus lados).
 @export var paso_m: Vector3 = Vector3.ZERO
+## Hasta dónde se cruza el hueco en recto antes de girar, a cada lado (0: lo de siempre, medio metro). Más hondo
+## cuando junto al hueco hay un mueble (el hueco del mostrador de una tienda).
+@export var margen_paso_m: float = 0.0
 ## La sala que da a la calle y a los demás cuartos (solo una por casa; no necesita hueco).
 @export var central: bool = false:
 	set(valor):

@@ -13512,12 +13512,12 @@ planta_m = Vector2(19.488, 10.304)
 puerta_ancho_m = 2.464
 
 [node name="shop_family_smith" type="Node3D" parent="Edificios" unique_id=404754489 instance=ExtResource("5_fba6n")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 93.8, 0, -10.08)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 93.8, 0, -11.152)
 script = ExtResource("3_jgq7j")
 id_edificio = "shop_family_smith"
 centro_original = Vector2(335, -36)
-planta_m = Vector2(6.496, 4.256)
-puerta_ancho_m = 2.24
+planta_m = Vector2(9.8, 6.4)
+puerta_ancho_m = 1.4
 
 [node name="house_family_smith" type="Node3D" parent="Edificios" unique_id=1731714861 instance=ExtResource("6_7jlh3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 208.6, 0.33816472, -54.600002)
@@ -13528,12 +13528,12 @@ planta_m = Vector2(12.6, 9.0)
 puerta_ancho_m = 1.6
 
 [node name="shop_family_butcher" type="Node3D" parent="Edificios" unique_id=789771975 instance=ExtResource("7_ceh11")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.8, 0, -10.08)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.8, 0, -11.152)
 script = ExtResource("3_jgq7j")
 id_edificio = "shop_family_butcher"
 centro_original = Vector2(585, -36)
-planta_m = Vector2(6.496, 4.256)
-puerta_ancho_m = 2.24
+planta_m = Vector2(9.8, 6.4)
+puerta_ancho_m = 1.4
 
 [node name="house_family_butcher" type="Node3D" parent="Edificios" unique_id=364701192 instance=ExtResource("8_b4cx2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 253.4, 0.33816472, -54.600002)
@@ -13544,12 +13544,12 @@ planta_m = Vector2(12.6, 9.0)
 puerta_ancho_m = 1.6
 
 [node name="shop_family_carpenter" type="Node3D" parent="Edificios" unique_id=161082738 instance=ExtResource("9_g2orv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.8, 0, 41.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.8, 0, 42.512)
 script = ExtResource("3_jgq7j")
 id_edificio = "shop_family_carpenter"
 centro_original = Vector2(585, 148)
-planta_m = Vector2(6.496, 4.256)
-puerta_ancho_m = 2.24
+planta_m = Vector2(9.8, 6.4)
+puerta_ancho_m = 1.4
 
 [node name="house_family_carpenter" type="Node3D" parent="Edificios" unique_id=1211606493 instance=ExtResource("10_sgkmi")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 208.6, 0.33816472, -10.08)
@@ -13560,12 +13560,12 @@ planta_m = Vector2(12.6, 9.0)
 puerta_ancho_m = 1.6
 
 [node name="shop_family_fishmonger" type="Node3D" parent="Edificios" unique_id=1364401533 instance=ExtResource("11_5agyw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.2, 0, 41.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.2, 0, 42.512)
 script = ExtResource("3_jgq7j")
 id_edificio = "shop_family_fishmonger"
 centro_original = Vector2(465, 148)
-planta_m = Vector2(6.496, 4.256)
-puerta_ancho_m = 2.24
+planta_m = Vector2(9.8, 6.4)
+puerta_ancho_m = 1.4
 
 [node name="house_family_fishmonger" type="Node3D" parent="Edificios" unique_id=1377017120 instance=ExtResource("12_f1gs5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 253.4, 0.33816472, -10.08)
@@ -14262,7 +14262,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "paseo_16"
 
 [node name="paseo_17" type="Marker3D" parent="Sitios" unique_id=416726133]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.24, 0, 45.752)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.24, 0, 46.442)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_17"
@@ -14364,7 +14364,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "espera_15"
 
 [node name="espera_16" type="Marker3D" parent="Sitios" unique_id=855849453]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.24, 0, 45.752)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.24, 0, 46.442)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "espera_16"
@@ -17178,7 +17178,7 @@ material_override = SubResource("StandardMaterial3D_pfrgm")
 mesh = SubResource("CylinderMesh_1yjiv")
 
 [node name="Arbol_adorno_8" type="Node3D" parent="Decorado/Zona_1_0" unique_id=1550548681]
-transform = Transform3D(0.32556814, 0, 0.94551855, 0, 1, 0, -0.94551855, 0, 0.32556814, 127.68, -0.14794706, 45.695995)
+transform = Transform3D(0.32556814, 0, 0.94551855, 0, 1, 0, -0.94551855, 0, 0.32556814, 127.68, -0.14794706, 46.636)
 script = ExtResource("2_rotgg")
 modelo = "nature/BirchTree_2.obj"
 alto = 82.0

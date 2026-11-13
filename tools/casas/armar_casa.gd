@@ -140,11 +140,14 @@ static func _marcas(grupo: Node3D, marcas: Dictionary, y: float) -> void:
 
 static func _cuartos(grupo: Node3D, cuartos: Array, y: float) -> void:
 	for c: Dictionary in cuartos:
+		if bool(c.get("solo_suelo", false)):
+			continue  # un trozo de suelo sin cuarto (la franja del mostrador de una tienda): no cuenta para las rutas
 		var cuarto := _hijo(grupo, Node3D.new(), c["nombre"], CUARTO_GD)
 		cuarto.position = _en_suelo(c["centro"], y)
 		cuarto.set("tam_m", c["tam"])
 		cuarto.set("central", bool(c.get("central", false)))
 		cuarto.set("paso_m", _en_suelo(c.get("paso", c["centro"]) - (c["centro"] as Vector2), 0.0))
+		cuarto.set("margen_paso_m", float(c.get("margen", 0.0)))
 
 
 static func _hijo(padre: Node3D, hijo: Node3D, nombre: String, guion: Script = null) -> Node3D:

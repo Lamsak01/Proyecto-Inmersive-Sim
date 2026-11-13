@@ -15,6 +15,7 @@ const CAMA_1 := "cama_1"                  ## cama del maestro
 const CAMA_2 := "cama_2"                  ## cama de su familiar
 const MESA := "mesa"                      ## mesa de casa: comer y estar en familia
 const PUESTO := "puesto"                  ## mostrador de venta
+const CLIENTE := "cliente"                ## tiendas: delante del mostrador, donde espera quien compra (el mercader)
 const COFRE := "cofre"                    ## cofre de la casa o de la tienda
 const CAMILLA := "camilla"                ## hospital: cama de urgencias
 const MESA_MORGUE := "mesa_morgue_%d"     ## morgue: camillas de autopsia, de la 1 a la 3

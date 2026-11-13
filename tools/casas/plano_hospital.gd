@@ -86,7 +86,7 @@ const MUEBLES: Array[Dictionary] = [
 	{"modelo": "props/Bed_Twin1.gltf", "pos": Vector2(6.3, 0.3), "tam": Vector3(0.95, 0.9, 2.0)},
 	{"modelo": "props/Nightstand_Shelf.gltf", "pos": Vector2(6.55, -1.3), "tam": Vector3(0.5, 0.6, 0.4)},
 	{"modelo": "props/Table_Large.gltf", "pos": Vector2(4.2, 1.1), "tam": Vector3(1.6, 0.78, 0.9), "choque": Vector2(28, 16)},
-	{"modelo": "props/Chair_1.gltf", "pos": Vector2(3.3, 1.1), "giro": 90.0, "tam": Vector3(0.45, 0.95, 0.45)},
+	{"modelo": "props/Chair_1.gltf", "pos": Vector2(3.15, 1.1), "giro": 90.0, "tam": Vector3(0.45, 0.95, 0.45)},
 	{"cosa": "bombilla", "pos": Vector2(4.7, 0.0)},
 	# Botica: estantes de frascos, armario y caja
 	{"modelo": "props/Shelf_Small_Bottles.gltf", "pos": Vector2(6.65, 2.6), "giro": -90.0, "tam": Vector3(1.0, 1.2, 0.35), "choque": Vector2(18, 6)},

@@ -162,8 +162,6 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 		vm.mostrador_mundo(role_id, shop_title, fam_id, Marca.mundo(shop_id, Marca.PUESTO))
 
 	vm.cofre_en_edificio(shop_id, Marca.sitio(shop_id, Marca.COFRE), "Cofre de " + shop_title, fam_id)
-	if is_blacksmith:
-		vm.adorno_en_edificio(shop_id, "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/fireplace_0.png", sc + Vector2(-36, -16))
 
 static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, house_title: String, fam_id: String) -> void:
 	vm._construct_solid_building("house_" + fam_id, house_title, hc,
@@ -175,13 +173,9 @@ static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 
 	var id: String = "mixed_" + fam_id
-	var stall_pos: Vector2 = Marca.sitio(id, Marca.PUESTO)
 	if role_id >= 0:
 		vm.mostrador_mundo(role_id, title, fam_id, Marca.mundo(id, Marca.PUESTO))
-	vm.choque_en_edificio(id, stall_pos, Vector2(21.0, 9.5), true)
-	vm.choque_en_edificio(id, center + Vector2(35, -14), Vector2(12.0, 12.0), true)
-	vm.choque_en_edificio(id, center + Vector2(28, -38), Vector2(16.0, 8.5), true)
-	# Camas y mesa chocan desde sus muebles
+	# Mostrador, camas, mesa y lo del oficio chocan desde sus muebles (tools/casas/plano_casa_artesano_taller.gd)
 	vm.cofre_en_edificio(id, Marca.sitio(id, Marca.COFRE), "Cofre de la Botica Raíz Verde", fam_id)
 
 # PASO 1: 🏥 HOSPITAL DE URGENCIAS Y ⚰️ MORGUE FORENSE (`Vector2(745, 148)`)

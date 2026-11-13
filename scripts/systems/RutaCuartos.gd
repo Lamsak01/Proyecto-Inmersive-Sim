@@ -12,7 +12,7 @@ const EDIFICIO := "res://mapa/edificio.gd"
 const CARPETA := "Cuartos"
 const MARGEN_PASO_PX: float = 9.0  ## puntos a cada lado del hueco (dentro del cuarto y en la sala), ~0,5 m
 const ALINEADO_PX: float = 4.0     ## a esta distancia de la línea del hueco ya se puede cruzar en recto
-const CERCA_PASO_PX: float = 14.0  ## y a esta del centro del hueco
+const CERCA_PASO_PX: float = 14.0  ## y a esta del centro del hueco (más lo que sea más hondo su margen)
 
 static var _por_edificio: Dictionary = {} ## id del edificio → Array[Dictionary] de cuartos
 static var _por_escena: Dictionary = {}   ## ruta de una escena sin pieza (casa modelo) → sus cuartos
@@ -42,6 +42,11 @@ static func _siguiente(cuartos: Array[Dictionary], desde: Vector2, hasta: Vector
 	var destino: int = _cuarto_con(cuartos, hasta, piso)
 	if origen == destino:
 		return hasta
+	# Entre dos cuartos (en la franja de un hueco hondo, como el del mostrador): se acaba de cruzar antes de girar,
+	# hacia dentro si ese hueco es el del cuarto de destino y hacia fuera si no
+	var cruzando: int = _hueco_cerca(cuartos, desde, piso) if origen < 0 else -1
+	if cruzando >= 0:
+		return cuartos[cruzando]["dentro"] if cruzando == destino else cuartos[cruzando]["fuera"]
 	# Primero se sale del cuarto en que se está (si no es la sala) y luego se entra en el de destino
 	if origen >= 0 and not bool(cuartos[origen]["central"]):
 		return _cruzar(cuartos[origen], desde, true)
@@ -56,8 +61,18 @@ static func _cruzar(cuarto: Dictionary, desde: Vector2, saliendo: bool) -> Vecto
 	var despues: Vector2 = cuarto["fuera"] if saliendo else cuarto["dentro"]
 	var normal: Vector2 = cuarto["normal"]
 	var al_paso: Vector2 = desde - (cuarto["paso"] as Vector2)
-	var alineado: bool = absf(al_paso.cross(normal)) <= ALINEADO_PX and al_paso.length() <= CERCA_PASO_PX
+	var alineado: bool = absf(al_paso.cross(normal)) <= ALINEADO_PX and al_paso.length() <= float(cuarto["cerca"])
 	return despues if alineado else antes
+
+
+## El cuarto con un hueco a cuyo lado se está (dentro de su alcance y en su línea), o -1.
+static func _hueco_cerca(cuartos: Array[Dictionary], p: Vector2, piso: int) -> int:
+	for i in range(cuartos.size()):
+		var al_paso: Vector2 = p - (cuartos[i]["paso"] as Vector2)
+		var en_linea: bool = absf(al_paso.cross(cuartos[i]["normal"])) <= ALINEADO_PX
+		if int(cuartos[i]["piso"]) == piso and en_linea and al_paso.length() <= float(cuartos[i]["cerca"]):
+			return i
+	return -1
 
 
 static func _cuarto_con(cuartos: Array[Dictionary], p: Vector2, piso: int) -> int:
@@ -92,9 +107,12 @@ static func _leer(escena: PackedScene) -> Array[Dictionary]:
 		var paso_rel: Vector2 = Mapa3D.a_mapa(pieza.get("paso_m", Vector3.ZERO) as Vector3)
 		var normal: Vector2 = _normal_hacia_fuera(paso_rel, tam * 0.5)
 		var paso: Vector2 = c + paso_rel
+		var hondo_m: float = float(pieza.get("margen_paso_m", 0.0))
+		var margen: float = Mapa3D.a_mapa(Vector3(hondo_m, 0.0, 0.0)).x if hondo_m > 0.0 else MARGEN_PASO_PX
 		out.append({
 			"rect": Rect2(c - tam * 0.5, tam), "central": bool(pieza.get("central", false)), "paso": paso,
-			"normal": normal, "dentro": paso - normal * MARGEN_PASO_PX, "fuera": paso + normal * MARGEN_PASO_PX,
+			"normal": normal, "dentro": paso - normal * margen, "fuera": paso + normal * margen,
+			"cerca": margen + CERCA_PASO_PX - MARGEN_PASO_PX,
 			"piso": Mapa3D.piso_de_altura(en_edificio.origin.y),
 		})
 	return out

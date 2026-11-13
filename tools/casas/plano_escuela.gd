@@ -68,7 +68,7 @@ const MUEBLES: Array[Dictionary] = [
 	# Aula, fondo: la pizarra en el tabique, la mesa del maestro con su silla, la estufa y bombillas
 	{"cosa": "pizarra", "pos": Vector2(-3.2, -3.27)},
 	{"modelo": "props/Table_Large.gltf", "pos": Vector2(3.0, -2.4), "tam": Vector3(1.6, MESA_ALTO_M, 0.9), "choque": Vector2(28, 16)},
-	{"modelo": "props/Chair_1.gltf", "pos": Vector2(3.0, -3.0), "tam": Vector3(0.45, 0.95, 0.45)},
+	{"modelo": "props/Chair_1.gltf", "pos": Vector2(3.0, -3.08), "tam": Vector3(0.45, 0.95, 0.45)},
 	{"cosa": "vela", "pos": Vector2(3.5, -2.4), "alto": MESA_ALTO_M},
 	{"cosa": "estufa", "pos": Vector2(-6.4, -2.4), "giro": 90.0, "choque": Vector2(14, 11)},
 	{"cosa": "bombilla", "pos": Vector2(0.0, -1.0)},
@@ -105,7 +105,7 @@ const MUEBLES: Array[Dictionary] = [
 	{"modelo": "props/Stool.gltf", "pos": Vector2(1.4, 5.4), "tam": BANQUETA_TAM},
 	# Despacho del maestro: mesa con silla y vela, librerías, el arcón de los cuadernos y una bombilla
 	{"modelo": "props/Table_Large.gltf", "pos": Vector2(-4.5, -5.2), "tam": Vector3(1.6, MESA_ALTO_M, 0.9), "choque": Vector2(28, 16)},
-	{"modelo": "props/Chair_1.gltf", "pos": Vector2(-4.5, -4.55), "giro": 180.0, "tam": Vector3(0.45, 0.95, 0.45)},
+	{"modelo": "props/Chair_1.gltf", "pos": Vector2(-4.5, -4.48), "giro": 180.0, "tam": Vector3(0.45, 0.95, 0.45)},
 	{"cosa": "vela", "pos": Vector2(-4.0, -5.2), "alto": MESA_ALTO_M},
 	{"modelo": "props/Bookcase_2.gltf", "pos": Vector2(-6.75, -4.8), "giro": 90.0, "tam": Vector3(0.9, 1.8, 0.4), "choque": Vector2(16, 7)},
 	{"modelo": "props/Bookcase_2.gltf", "pos": Vector2(-2.4, -6.05), "tam": Vector3(0.9, 1.8, 0.4), "choque": Vector2(16, 7)},

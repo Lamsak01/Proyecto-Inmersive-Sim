@@ -4,6 +4,16 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Las cuatro tiendas de artesano, de tamaño real (Claude Code)
+- Herrería, carnicería, carpintería y pescadería: de 6,5 × 4,3 m a 9,8 × 6,4 m, crecen por detrás (el muro de la
+  puerta no se mueve, la plaza de delante queda igual). Tienda con mostrador de dos tramos y un hueco para pasar,
+  trastienda con el sitio del maestro, taller del oficio (forja y yunque, tajo, banco de carpintero, tina) y almacén.
+- El mercader espera delante del mostrador (marca nueva «cliente») en vez de en un punto fijo del plano viejo.
+  Fuera paredes invisibles sobrantes de la botica y un adorno plano de la herrería.
+- Rutas: un hueco puede pedir cruzarse más a fondo antes de girar (el del mostrador); los vecinos ya no lo rozan.
+  Sillas corregidas en escuela, biblioteca y hospital (metidas en su mesa o al revés).
+- Probado: rutas de las 4 tiendas y de 10 edificios más sin choques, 29 puertas, escolta a la celda y fotos.
+
 ## 2026-11-13 — La Biblioteca, de tamaño real (Claude Code)
 - De 7,2 × 5,4 m a 14 × 9,8 m (madera y teja gris, puerta al sur como siempre): sala de lectura con estanterías por
   las paredes, dos filas de mesas con velas y seis sillas, mostrador junto a la puerta; al este, el archivo.
