@@ -9,6 +9,9 @@
 - **A1 · «Preséntate ante el alguacil mayor Vane»** · la carta (que queda en la mochila) · hablar con Vane.
 - **A2 · «Examina a la mujer hallada junto al arroyo del norte»** · Vane te habla del cuerpo · examinar el cuerpo.
   *(Pendiente: si te manda Vane o da la voz un vecino; pregunta 0c.)*
+- **Escena custodiada (usuario, 2026-11-13):** un guardia de la comisaría vigila el claro junto al cuerpo («no tiene
+  sentido que la policía deje el cuerpo a la intemperie»). Te deja pasar porque vas de parte de Vane; se queda hasta
+  que el cuerpo se lleva a la morgue, y luego vuelve a su ronda.
 
 ## Cómo murió
 - **1 · «Labios azules y puntitos rojos en los ojos: ¿murió asfixiada?»** · mirar cabeza o cuello · autopsia del
