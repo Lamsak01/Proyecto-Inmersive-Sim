@@ -352,5 +352,9 @@ además cuarto de invitados, patio vallado, segundo piso o sótano. Negocios tam
 Medido por Claude: hoy casi todas las casas miden 6–7 × 4–5 m (~30 m²). Propuesta (pendiente de aprobar): doble de lado
 (×4 de suelo, ~115 m²), constructor de casas por lista de cuartos y nivel de riqueza, prueba con una casa primero.
 Añadido del usuario (2026-11-13): la casa marca la clase. Las más pobres, casi medievales (letrina fuera); las más ricas,
-más tecnológicas, siempre con estética antigua: nada de pantallas salvo las verdes, radios de onda corta. Propuesta de
-escalera por niveles pendiente de aprobar (pobre / artesano / acomodado / señor).
+más tecnológicas, siempre con estética antigua: nada de pantallas salvo las verdes, radios de onda corta. Niveles aprobados
+(2026-11-13, «casi perfecto»): 1 pobre (letrina fuera, leña, velas), 2 artesano (estufa de hierro, queroseno, bomba de
+agua), 3 acomodado (bombillas y cables, agua corriente, retrete dentro, radio), 4 señor y autoridades (generador diésel,
+teléfono de baquelita, nevera, terminales verdes). Corrección del usuario: los niveles 1, 2 y 3 también llevan algo
+tecnológico (propuesto: 1 linterna de dinamo, chapa ondulada y radio de galena; 2 una bombilla de la red del pueblo y
+radio de válvulas; 3 además ventilador, plancha eléctrica y tocadiscos).
