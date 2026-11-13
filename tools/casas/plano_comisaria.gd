@@ -61,11 +61,10 @@ const VENTANAS: Array[Dictionary] = [
 ]
 
 const MUEBLES: Array[Dictionary] = [
-	# Sala de guardia: mostrador con su silla (la bandeja del informe la pone el juego), bancos de espera y lámparas
-	{"modelo": "props/Table_Large.gltf", "pos": Vector2(1.2, 2.6), "tam": Vector3(1.6, 0.78, 0.9), "choque": Vector2(28, 16)},
-	{"modelo": "props/Chair_1.gltf", "pos": Vector2(0.6, 1.95), "tam": Vector3(0.45, 0.95, 0.45)},
-	{"cosa": "telefono", "pos": Vector2(0.7, 2.6), "alto": MESA_ALTO_M},
-	{"modelo": "props/Bench.gltf", "pos": Vector2(-1.95, 3.6), "giro": 90.0, "tam": Vector3(1.4, 0.5, 0.45), "choque": Vector2(25, 8)},
+	# Sala de guardia: el mostrador junto a la puerta, contra la fachada (la bandeja del informe la pone el juego);
+	# el guardia atiende de pie, del lado de dentro («trabajo»). Sin bancos: dejan libres los pasos a las puertas de los cuartos
+	{"modelo": "props/Table_Large.gltf", "pos": Vector2(-1.55, 4.42), "tam": Vector3(1.6, 0.78, 0.9), "choque": Vector2(28, 16)},
+	{"cosa": "telefono", "pos": Vector2(-2.0, 4.42), "alto": MESA_ALTO_M},
 	{"modelo": "props/Shelf_Simple.gltf", "pos": Vector2(1.6, -1.8), "tam": Vector3(1.0, 1.5, 0.35), "choque": Vector2(18, 6)},
 	{"cosa": "alfombra", "pos": Vector2(0.0, 3.4), "tam2": Vector2(1.8, 2.4), "color": AZUL_POLICIA},
 	{"cosa": "lampara", "pos": Vector2(0.0, 0.4)},
@@ -92,7 +91,7 @@ const MUEBLES: Array[Dictionary] = [
 	{"modelo": "props/Shelf_Simple.gltf", "pos": Vector2(-4.7, 0.3), "tam": Vector3(1.0, 1.5, 0.35), "choque": Vector2(18, 6)},
 	{"cosa": "bombilla", "pos": Vector2(-4.7, 2.45)},
 	# Dormitorio de guardia: la cama del comisario y del guardia, mesilla y armario
-	{"modelo": "props/Bed_Twin1.gltf", "pos": Vector2(5.3, -3.85), "giro": 90.0, "tam": Vector3(0.95, 0.9, 2.0), "choque": Vector2(36, 17)},
+	{"modelo": "props/Bed_Twin1.gltf", "pos": Vector2(5.3, -3.85), "giro": 90.0, "tam": Vector3(0.95, 0.9, 2.0)},
 	{"modelo": "props/Nightstand_Shelf.gltf", "pos": Vector2(3.9, -4.6), "tam": Vector3(0.5, 0.6, 0.4)},
 	{"modelo": "props/Cabinet.gltf", "pos": Vector2(6.55, -1.6), "giro": -90.0, "tam": Vector3(1.2, 1.9, 0.55), "choque": Vector2(21, 10)},
 	{"cosa": "bombilla", "pos": Vector2(4.7, -2.75)},
@@ -114,8 +113,8 @@ const MUEBLES: Array[Dictionary] = [
 ]
 
 const MARCAS: Dictionary = {
-	"trabajo": Vector2(1.4, 1.85),
-	"informe": Vector2(1.7, 2.6),
+	"trabajo": Vector2(-1.55, 3.75),
+	"informe": Vector2(-1.1, 4.42),
 	"escritorio": Vector2(-3.6, -1.8),
 	"terminal": Vector2(-6.5, -0.8),
 	"archivo": Vector2(-4.7, 2.4),

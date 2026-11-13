@@ -307,269 +307,254 @@ size = Vector3(0.04, 1.6, 0.04)
 [sub_resource type="BoxMesh" id="BoxMesh_dkmky"]
 size = Vector3(5.6, 0.04, 0.04)
 
-[node name="building_police" type="Node3D" unique_id=311924507]
+[node name="building_police" type="Node3D" unique_id=329227683]
 script = ExtResource("1_q5l4v")
 id_edificio = "building_police"
 centro_original = Vector2(915, 148)
 planta_m = Vector2(14, 9.8)
 puerta_ancho_m = 1.6
 
-[node name="Muros" type="Node3D" parent="." unique_id=394190451]
+[node name="Muros" type="Node3D" parent="." unique_id=497608216]
 
-[node name="@Node3D@10" type="Node3D" parent="Muros" unique_id=905914449]
+[node name="@Node3D@10" type="Node3D" parent="Muros" unique_id=375880982]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.82, 4.9)
 
-[node name="@Node3D@14" type="Node3D" parent="Muros" unique_id=1256913686]
+[node name="@Node3D@14" type="Node3D" parent="Muros" unique_id=154931066]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 1.82, 4.9)
 
-[node name="@Node3D@18" type="Node3D" parent="Muros" unique_id=991496772]
+[node name="@Node3D@18" type="Node3D" parent="Muros" unique_id=214559434]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 1.82, 4.9)
 
-[node name="@Node3D@32" type="Node3D" parent="Muros" unique_id=1884747792]
+[node name="@Node3D@32" type="Node3D" parent="Muros" unique_id=1928381204]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 1.82, -4.9)
 metadata/rol = "cristal"
 
-[node name="@MeshInstance3D@33" type="MeshInstance3D" parent="Muros/@Node3D@32" unique_id=751617696]
+[node name="@MeshInstance3D@33" type="MeshInstance3D" parent="Muros/@Node3D@32" unique_id=98466305]
 material_override = SubResource("StandardMaterial3D_hethy")
 mesh = SubResource("BoxMesh_bicas")
 
-[node name="@MeshInstance3D@34" type="MeshInstance3D" parent="Muros/@Node3D@32" unique_id=852656862]
+[node name="@MeshInstance3D@34" type="MeshInstance3D" parent="Muros/@Node3D@32" unique_id=520035723]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.58000004, 0)
 material_override = SubResource("StandardMaterial3D_q00jf")
 mesh = SubResource("BoxMesh_1afjj")
 
-[node name="@MeshInstance3D@35" type="MeshInstance3D" parent="Muros/@Node3D@32" unique_id=510671743]
+[node name="@MeshInstance3D@35" type="MeshInstance3D" parent="Muros/@Node3D@32" unique_id=2016147838]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.58, 0)
 material_override = SubResource("StandardMaterial3D_q00jf")
 mesh = SubResource("BoxMesh_iq1q7")
 
-[node name="@MeshInstance3D@36" type="MeshInstance3D" parent="Muros" unique_id=1781330349]
+[node name="@MeshInstance3D@36" type="MeshInstance3D" parent="Muros" unique_id=1129852374]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 1.8199999, -4.9)
 visible = false
 material_override = SubResource("StandardMaterial3D_q00jf")
 mesh = SubResource("BoxMesh_ey1wr")
 metadata/rol = "postigo"
 
-[node name="@Node3D@37" type="Node3D" parent="Muros" unique_id=352202779]
+[node name="@Node3D@37" type="Node3D" parent="Muros" unique_id=1380983454]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.8, 1.82, -4.9)
 
-[node name="@Node3D@50" type="Node3D" parent="Muros" unique_id=501942106]
+[node name="@Node3D@50" type="Node3D" parent="Muros" unique_id=46085872]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7, 1.82, -0.65)
 
-[node name="@Node3D@58" type="Node3D" parent="Muros" unique_id=398820369]
+[node name="@Node3D@58" type="Node3D" parent="Muros" unique_id=1281810260]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 1.82, 2.45)
 
-[node name="@Node3D@62" type="Node3D" parent="Muros" unique_id=1835092370]
+[node name="@Node3D@62" type="Node3D" parent="Muros" unique_id=1531486984]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7, 1.82, -2.45)
 
-[node name="Puerta" type="Node3D" parent="Muros" unique_id=1055309381]
+[node name="Puerta" type="Node3D" parent="Muros" unique_id=1154932602]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.27, -4.9)
 metadata/rol = "puerta"
 
-[node name="@Node3D@74" type="Node3D" parent="Muros/Puerta" unique_id=524944564]
+[node name="@Node3D@74" type="Node3D" parent="Muros/Puerta" unique_id=482488122]
 
-[node name="@MeshInstance3D@75" type="MeshInstance3D" parent="Muros/Puerta/@Node3D@74" unique_id=2041338963]
+[node name="@MeshInstance3D@75" type="MeshInstance3D" parent="Muros/Puerta/@Node3D@74" unique_id=809655365]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.78, 1.05, 0)
 material_override = SubResource("StandardMaterial3D_kei0c")
 mesh = SubResource("BoxMesh_5crrh")
 
-[node name="@MeshInstance3D@76" type="MeshInstance3D" parent="Muros/Puerta" unique_id=1369532742]
+[node name="@MeshInstance3D@76" type="MeshInstance3D" parent="Muros/Puerta" unique_id=966130919]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.28, 1.15, -0.05)
 visible = false
 material_override = SubResource("StandardMaterial3D_dvibc")
 mesh = SubResource("BoxMesh_5v2ly")
 metadata/rol = "candado"
 
-[node name="Juntado" type="MeshInstance3D" parent="Muros" unique_id=1274324531]
+[node name="Juntado" type="MeshInstance3D" parent="Muros" unique_id=335662772]
 mesh = ExtResource("4_iq1q7")
 
-[node name="Interior" type="Node3D" parent="." unique_id=1076812653]
+[node name="Interior" type="Node3D" parent="." unique_id=1700121827]
 
-[node name="RejaCelda" type="Node3D" parent="Interior" unique_id=1675405536]
+[node name="RejaCelda" type="Node3D" parent="Interior" unique_id=771972561]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.27, 2)
 metadata/rol = "reja_celda"
 
-[node name="@MeshInstance3D@81" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1888705699]
+[node name="@MeshInstance3D@81" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=815171274]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.075, 1.1, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_7liv0")
 
-[node name="@MeshInstance3D@82" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1102935168]
+[node name="@MeshInstance3D@82" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=681456751]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.225, 1.1, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_w4icf")
 
-[node name="@MeshInstance3D@83" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1858263366]
+[node name="@MeshInstance3D@83" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1893649585]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.375, 1.1, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_dng7x")
 
-[node name="@MeshInstance3D@84" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=8623114]
+[node name="@MeshInstance3D@84" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=250250629]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.525, 1.1, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_6lv6j")
 
-[node name="@MeshInstance3D@85" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=816288906]
+[node name="@MeshInstance3D@85" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1021373334]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.675, 1.1, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_a4qw3")
 
-[node name="@MeshInstance3D@86" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1972293518]
+[node name="@MeshInstance3D@86" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1325388273]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.825, 1.1, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_dxj72")
 
-[node name="@MeshInstance3D@87" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=672056754]
+[node name="@MeshInstance3D@87" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1172839478]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.975, 1.1, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_aafro")
 
-[node name="@MeshInstance3D@88" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=2114102908]
+[node name="@MeshInstance3D@88" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=641901156]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.125, 1.1, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_slaq7")
 
-[node name="@MeshInstance3D@89" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1873574901]
+[node name="@MeshInstance3D@89" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1655568464]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.025, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_r10dw")
 
-[node name="@MeshInstance3D@90" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=597049911]
+[node name="@MeshInstance3D@90" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1421538715]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 1.125, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_yvlpv")
 
-[node name="@MeshInstance3D@91" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1844144211]
+[node name="@MeshInstance3D@91" type="MeshInstance3D" parent="Interior/RejaCelda" unique_id=1982837450]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 2.1750002, 0)
 material_override = SubResource("StandardMaterial3D_ap37k")
 mesh = SubResource("BoxMesh_miynj")
 
-[node name="@Node3D@92" type="Node3D" parent="Interior" unique_id=1934251046]
+[node name="@Node3D@92" type="Node3D" parent="Interior" unique_id=832032268]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0.27, 0.5)
 metadata/rol = "puerta_cuarto"
 metadata/hueco = Vector3(2.4, 0.27, 1)
 metadata/nivel = 0
 
-[node name="@Node3D@93" type="Node3D" parent="Interior/@Node3D@92" unique_id=1718116089]
+[node name="@Node3D@93" type="Node3D" parent="Interior/@Node3D@92" unique_id=696742625]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="@MeshInstance3D@94" type="MeshInstance3D" parent="Interior/@Node3D@92/@Node3D@93" unique_id=832232059]
+[node name="@MeshInstance3D@94" type="MeshInstance3D" parent="Interior/@Node3D@92/@Node3D@93" unique_id=167809349]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 1.05, 0)
 material_override = SubResource("StandardMaterial3D_34yse")
 mesh = SubResource("BoxMesh_8rpjg")
 
-[node name="@Node3D@95" type="Node3D" parent="Interior" unique_id=946852769]
+[node name="@Node3D@95" type="Node3D" parent="Interior" unique_id=1274439330]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0.27, -2)
 metadata/rol = "puerta_cuarto"
 metadata/hueco = Vector3(2.4, 0.27, -1.5)
 metadata/nivel = 0
 
-[node name="@Node3D@96" type="Node3D" parent="Interior/@Node3D@95" unique_id=87719181]
+[node name="@Node3D@96" type="Node3D" parent="Interior/@Node3D@95" unique_id=299359316]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="@MeshInstance3D@97" type="MeshInstance3D" parent="Interior/@Node3D@95/@Node3D@96" unique_id=480916009]
+[node name="@MeshInstance3D@97" type="MeshInstance3D" parent="Interior/@Node3D@95/@Node3D@96" unique_id=1748304768]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 1.05, 0)
 material_override = SubResource("StandardMaterial3D_34yse")
 mesh = SubResource("BoxMesh_e5di3")
 
-[node name="@Node3D@103" type="Node3D" parent="Interior" unique_id=418217299]
+[node name="@Node3D@103" type="Node3D" parent="Interior" unique_id=2106895045]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0.27, 0.84999996)
 metadata/rol = "puerta_cuarto"
 metadata/hueco = Vector3(-2.4, 0.27, 1.3)
 metadata/nivel = 0
 
-[node name="@Node3D@104" type="Node3D" parent="Interior/@Node3D@103" unique_id=19004769]
+[node name="@Node3D@104" type="Node3D" parent="Interior/@Node3D@103" unique_id=1057273598]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="@MeshInstance3D@105" type="MeshInstance3D" parent="Interior/@Node3D@103/@Node3D@104" unique_id=1173285790]
+[node name="@MeshInstance3D@105" type="MeshInstance3D" parent="Interior/@Node3D@103/@Node3D@104" unique_id=1387314304]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.43, 1.05, 0)
 material_override = SubResource("StandardMaterial3D_34yse")
 mesh = SubResource("BoxMesh_uku2r")
 
-[node name="@Node3D@106" type="Node3D" parent="Interior" unique_id=1195397926]
+[node name="@Node3D@106" type="Node3D" parent="Interior" unique_id=17519029]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0.27, -1.05)
 metadata/rol = "puerta_cuarto"
 metadata/hueco = Vector3(-2.4, 0.27, -0.6)
 metadata/nivel = 0
 
-[node name="@Node3D@107" type="Node3D" parent="Interior/@Node3D@106" unique_id=1103399462]
+[node name="@Node3D@107" type="Node3D" parent="Interior/@Node3D@106" unique_id=234302926]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="@MeshInstance3D@108" type="MeshInstance3D" parent="Interior/@Node3D@106/@Node3D@107" unique_id=920029016]
+[node name="@MeshInstance3D@108" type="MeshInstance3D" parent="Interior/@Node3D@106/@Node3D@107" unique_id=1103545262]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.43, 1.05, 0)
 material_override = SubResource("StandardMaterial3D_34yse")
 mesh = SubResource("BoxMesh_a20xh")
 
-[node name="@Node3D@109" type="Node3D" parent="Interior" unique_id=762064680]
+[node name="@Node3D@109" type="Node3D" parent="Interior" unique_id=305293187]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0.27, -3.45)
 metadata/rol = "puerta_cuarto"
 metadata/hueco = Vector3(-2.4, 0.27, -3)
 metadata/nivel = 0
 
-[node name="@Node3D@110" type="Node3D" parent="Interior/@Node3D@109" unique_id=114109134]
+[node name="@Node3D@110" type="Node3D" parent="Interior/@Node3D@109" unique_id=37046048]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
 
-[node name="@MeshInstance3D@111" type="MeshInstance3D" parent="Interior/@Node3D@109/@Node3D@110" unique_id=1036382877]
+[node name="@MeshInstance3D@111" type="MeshInstance3D" parent="Interior/@Node3D@109/@Node3D@110" unique_id=753013313]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.43, 1.05, 0)
 material_override = SubResource("StandardMaterial3D_34yse")
 mesh = SubResource("BoxMesh_778af")
 
-[node name="Juntado" type="MeshInstance3D" parent="Interior" unique_id=801275573]
+[node name="Juntado" type="MeshInstance3D" parent="Interior" unique_id=1796369049]
 mesh = ExtResource("5_ey1wr")
 
-[node name="PisoAlto" type="Node3D" parent="." unique_id=2145142415]
+[node name="PisoAlto" type="Node3D" parent="." unique_id=109002368]
 
-[node name="Tejado" type="Node3D" parent="." unique_id=256348696]
+[node name="Tejado" type="Node3D" parent="." unique_id=1039935739]
 
-[node name="Juntado" type="MeshInstance3D" parent="Tejado" unique_id=1634376978]
+[node name="Juntado" type="MeshInstance3D" parent="Tejado" unique_id=500967198]
 mesh = ExtResource("6_kei0c")
 
-[node name="Muebles" type="Node3D" parent="." unique_id=1960705722]
+[node name="Muebles" type="Node3D" parent="." unique_id=599369799]
 
-[node name="Table_Large" type="Node3D" parent="Muebles" unique_id=1405462171]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.2, 0.27, -2.6)
+[node name="Table_Large" type="Node3D" parent="Muebles" unique_id=1532853271]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1.55, 0.27, -4.42)
 script = ExtResource("7_iq1q7")
 clave = "building_police_table_large"
 modelo = "props/Table_Large.gltf"
 tam3 = Vector3(1.6, 0.78, 0.9)
 choque = Vector2(28, 16)
 
-[node name="Chair_1" type="Node3D" parent="Muebles" unique_id=468304007]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.6, 0.27, -1.95)
-script = ExtResource("7_iq1q7")
-clave = "building_police_chair_1"
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.45, 0.95, 0.45)
-
-[node name="telefono" type="Node3D" parent="Muebles" unique_id=771085266]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -0.7, 0.27, -2.6)
+[node name="telefono" type="Node3D" parent="Muebles" unique_id=934108657]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 0.27, -4.42)
 script = ExtResource("7_iq1q7")
 clave = "building_police_telefono"
 
-[node name="@MeshInstance3D@125" type="MeshInstance3D" parent="Muebles/telefono" unique_id=1371067673]
+[node name="@MeshInstance3D@125" type="MeshInstance3D" parent="Muebles/telefono" unique_id=1789163051]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.83, 0)
 material_override = SubResource("StandardMaterial3D_mfml7")
 mesh = SubResource("BoxMesh_2d47o")
 
-[node name="@MeshInstance3D@126" type="MeshInstance3D" parent="Muebles/telefono" unique_id=686068755]
+[node name="@MeshInstance3D@126" type="MeshInstance3D" parent="Muebles/telefono" unique_id=1879769352]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.885, 0.04)
 material_override = SubResource("StandardMaterial3D_703k6")
 mesh = SubResource("CylinderMesh_lcjq6")
 
-[node name="@MeshInstance3D@127" type="MeshInstance3D" parent="Muebles/telefono" unique_id=3382328]
+[node name="@MeshInstance3D@127" type="MeshInstance3D" parent="Muebles/telefono" unique_id=2080713246]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.92499995, -0.05)
 material_override = SubResource("StandardMaterial3D_mfml7")
 mesh = SubResource("BoxMesh_wqsfg")
 
-[node name="Bench" type="Node3D" parent="Muebles" unique_id=2106402514]
-transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 1.95, 0.27, -3.6)
-script = ExtResource("7_iq1q7")
-clave = "building_police_bench"
-modelo = "props/Bench.gltf"
-tam3 = Vector3(1.4, 0.5, 0.45)
-choque = Vector2(25, 8)
-
-[node name="Shelf_Simple" type="Node3D" parent="Muebles" unique_id=432767868]
+[node name="Shelf_Simple" type="Node3D" parent="Muebles" unique_id=149988894]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.6, 0.27, 1.8)
 script = ExtResource("7_iq1q7")
 clave = "building_police_shelf_simple"
@@ -577,95 +562,95 @@ modelo = "props/Shelf_Simple.gltf"
 tam3 = Vector3(1, 1.5, 0.35)
 choque = Vector2(18, 6)
 
-[node name="alfombra" type="Node3D" parent="Muebles" unique_id=1745001049]
+[node name="alfombra" type="Node3D" parent="Muebles" unique_id=713920596]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0.27, -3.4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_alfombra"
 
-[node name="@MeshInstance3D@128" type="MeshInstance3D" parent="Muebles/alfombra" unique_id=385363651]
+[node name="@MeshInstance3D@128" type="MeshInstance3D" parent="Muebles/alfombra" unique_id=294170098]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
 material_override = SubResource("StandardMaterial3D_cm2sj")
 mesh = SubResource("BoxMesh_0juau")
 
-[node name="lampara" type="Node3D" parent="Muebles" unique_id=1155631202]
+[node name="lampara" type="Node3D" parent="Muebles" unique_id=1774467511]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0.27, -0.4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_lampara"
 
-[node name="@MeshInstance3D@129" type="MeshInstance3D" parent="Muebles/lampara" unique_id=171763086]
+[node name="@MeshInstance3D@129" type="MeshInstance3D" parent="Muebles/lampara" unique_id=694938866]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6799998, 0)
 material_override = SubResource("StandardMaterial3D_0db51")
 mesh = SubResource("CylinderMesh_3ejxa")
 
-[node name="@MeshInstance3D@130" type="MeshInstance3D" parent="Muebles/lampara" unique_id=1418504486]
+[node name="@MeshInstance3D@130" type="MeshInstance3D" parent="Muebles/lampara" unique_id=274737715]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 0)
 material_override = SubResource("StandardMaterial3D_0db51")
 mesh = SubResource("CylinderMesh_3kfcr")
 
-[node name="@MeshInstance3D@131" type="MeshInstance3D" parent="Muebles/lampara" unique_id=1008625450]
+[node name="@MeshInstance3D@131" type="MeshInstance3D" parent="Muebles/lampara" unique_id=1534098320]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 2.345, 0)
 material_override = SubResource("StandardMaterial3D_0db51")
 mesh = SubResource("CylinderMesh_d3s4j")
 
-[node name="@MeshInstance3D@132" type="MeshInstance3D" parent="Muebles/lampara" unique_id=1610381150]
+[node name="@MeshInstance3D@132" type="MeshInstance3D" parent="Muebles/lampara" unique_id=356959906]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9670125e-08, 2.345, 0.45)
 material_override = SubResource("StandardMaterial3D_0db51")
 mesh = SubResource("CylinderMesh_quao1")
 
-[node name="@MeshInstance3D@133" type="MeshInstance3D" parent="Muebles/lampara" unique_id=1661606061]
+[node name="@MeshInstance3D@133" type="MeshInstance3D" parent="Muebles/lampara" unique_id=606857737]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 2.345, -3.934025e-08)
 material_override = SubResource("StandardMaterial3D_0db51")
 mesh = SubResource("CylinderMesh_kkr51")
 
-[node name="@MeshInstance3D@134" type="MeshInstance3D" parent="Muebles/lampara" unique_id=934790960]
+[node name="@MeshInstance3D@134" type="MeshInstance3D" parent="Muebles/lampara" unique_id=976713863]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.366196e-09, 2.345, -0.45)
 material_override = SubResource("StandardMaterial3D_0db51")
 mesh = SubResource("CylinderMesh_iwju4")
 
-[node name="@Node3D@135" type="Node3D" parent="Muebles/lampara" unique_id=1522059928]
+[node name="@Node3D@135" type="Node3D" parent="Muebles/lampara" unique_id=1259670744]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.23, 0)
 metadata/rol = "luz_noche"
 
-[node name="@MeshInstance3D@136" type="MeshInstance3D" parent="Muebles/lampara/@Node3D@135" unique_id=157807997]
+[node name="@MeshInstance3D@136" type="MeshInstance3D" parent="Muebles/lampara/@Node3D@135" unique_id=2041782299]
 material_override = SubResource("StandardMaterial3D_aift0")
 mesh = SubResource("SphereMesh_6yaws")
 
-[node name="@OmniLight3D@137" type="OmniLight3D" parent="Muebles/lampara/@Node3D@135" unique_id=2077702624]
+[node name="@OmniLight3D@137" type="OmniLight3D" parent="Muebles/lampara/@Node3D@135" unique_id=1307082151]
 light_color = Color(1, 0.82, 0.55, 1)
 light_energy = 1.8
 omni_range = 9.0
 
-[node name="bombilla" type="Node3D" parent="Muebles" unique_id=1048582477]
+[node name="bombilla" type="Node3D" parent="Muebles" unique_id=1015208642]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0.27, -3.2)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bombilla"
 
-[node name="@MeshInstance3D@138" type="MeshInstance3D" parent="Muebles/bombilla" unique_id=1254158334]
+[node name="@MeshInstance3D@138" type="MeshInstance3D" parent="Muebles/bombilla" unique_id=1227361000]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.73, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("CylinderMesh_fptsc")
 
-[node name="@Node3D@139" type="Node3D" parent="Muebles/bombilla" unique_id=63771530]
+[node name="@Node3D@139" type="Node3D" parent="Muebles/bombilla" unique_id=749317863]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.37, 0)
 metadata/rol = "luz_noche"
 
-[node name="@MeshInstance3D@140" type="MeshInstance3D" parent="Muebles/bombilla/@Node3D@139" unique_id=1883535170]
+[node name="@MeshInstance3D@140" type="MeshInstance3D" parent="Muebles/bombilla/@Node3D@139" unique_id=745246223]
 material_override = SubResource("StandardMaterial3D_aift0")
 mesh = SubResource("SphereMesh_81c00")
 
-[node name="@OmniLight3D@141" type="OmniLight3D" parent="Muebles/bombilla/@Node3D@139" unique_id=910300809]
+[node name="@OmniLight3D@141" type="OmniLight3D" parent="Muebles/bombilla/@Node3D@139" unique_id=57869818]
 light_color = Color(1, 0.82, 0.55, 1)
 light_energy = 1.4
 omni_range = 6.0
 
-[node name="Bed_Twin1" type="Node3D" parent="Muebles" unique_id=572448799]
+[node name="Bed_Twin1" type="Node3D" parent="Muebles" unique_id=202093790]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, -1.4, 0.27, 4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bed_twin1"
 modelo = "props/Bed_Twin1.gltf"
 tam3 = Vector3(0.95, 0.9, 2)
 
-[node name="Bucket_Wooden_1" type="Node3D" parent="Muebles" unique_id=1452976114]
+[node name="Bucket_Wooden_1" type="Node3D" parent="Muebles" unique_id=1257196888]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1.9, 0.27, 4.5)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bucket_wooden_1"
@@ -673,7 +658,7 @@ modelo = "props/Bucket_Wooden_1.gltf"
 tam3 = Vector3(0.35, 0.4, 0.35)
 choque = Vector2(6, 6)
 
-[node name="Stool" type="Node3D" parent="Muebles" unique_id=1410751412]
+[node name="Stool" type="Node3D" parent="Muebles" unique_id=600223687]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1.2, 0.27, 4.4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_stool"
@@ -681,30 +666,30 @@ modelo = "props/Stool.gltf"
 tam3 = Vector3(0.4, 0.5, 0.4)
 choque = Vector2(7, 7)
 
-[node name="bombilla2" type="Node3D" parent="Muebles" unique_id=2127127312]
+[node name="bombilla2" type="Node3D" parent="Muebles" unique_id=102748932]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0.27, 3.45)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bombilla2"
 
-[node name="@MeshInstance3D@142" type="MeshInstance3D" parent="Muebles/bombilla2" unique_id=1111696785]
+[node name="@MeshInstance3D@142" type="MeshInstance3D" parent="Muebles/bombilla2" unique_id=1155548783]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.73, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("CylinderMesh_p13oh")
 
-[node name="@Node3D@143" type="Node3D" parent="Muebles/bombilla2" unique_id=423078158]
+[node name="@Node3D@143" type="Node3D" parent="Muebles/bombilla2" unique_id=1954184588]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.37, 0)
 metadata/rol = "luz_noche"
 
-[node name="@MeshInstance3D@144" type="MeshInstance3D" parent="Muebles/bombilla2/@Node3D@143" unique_id=273699926]
+[node name="@MeshInstance3D@144" type="MeshInstance3D" parent="Muebles/bombilla2/@Node3D@143" unique_id=2056054705]
 material_override = SubResource("StandardMaterial3D_aift0")
 mesh = SubResource("SphereMesh_8j1q4")
 
-[node name="@OmniLight3D@145" type="OmniLight3D" parent="Muebles/bombilla2/@Node3D@143" unique_id=468630928]
+[node name="@OmniLight3D@145" type="OmniLight3D" parent="Muebles/bombilla2/@Node3D@143" unique_id=26322596]
 light_color = Color(1, 0.82, 0.55, 1)
 light_energy = 1.4
 omni_range = 6.0
 
-[node name="Table_Large2" type="Node3D" parent="Muebles" unique_id=1054137107]
+[node name="Table_Large2" type="Node3D" parent="Muebles" unique_id=811978479]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 4.8, 0.27, 2.6)
 script = ExtResource("7_iq1q7")
 clave = "building_police_table_large2"
@@ -712,41 +697,41 @@ modelo = "props/Table_Large.gltf"
 tam3 = Vector3(1.6, 0.78, 0.9)
 choque = Vector2(28, 16)
 
-[node name="Chair_12" type="Node3D" parent="Muebles" unique_id=432896210]
+[node name="Chair_1" type="Node3D" parent="Muebles" unique_id=1085669039]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 5.55, 0.27, 2.6)
+script = ExtResource("7_iq1q7")
+clave = "building_police_chair_1"
+modelo = "props/Chair_1.gltf"
+tam3 = Vector3(0.45, 0.95, 0.45)
+
+[node name="Chair_12" type="Node3D" parent="Muebles" unique_id=553166651]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4.05, 0.27, 2.6)
 script = ExtResource("7_iq1q7")
 clave = "building_police_chair_12"
 modelo = "props/Chair_1.gltf"
 tam3 = Vector3(0.45, 0.95, 0.45)
 
-[node name="Chair_13" type="Node3D" parent="Muebles" unique_id=1471491344]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4.05, 0.27, 2.6)
-script = ExtResource("7_iq1q7")
-clave = "building_police_chair_13"
-modelo = "props/Chair_1.gltf"
-tam3 = Vector3(0.45, 0.95, 0.45)
-
-[node name="telefono2" type="Node3D" parent="Muebles" unique_id=404616762]
+[node name="telefono2" type="Node3D" parent="Muebles" unique_id=831693670]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.8, 0.27, 3.1)
 script = ExtResource("7_iq1q7")
 clave = "building_police_telefono2"
 
-[node name="@MeshInstance3D@146" type="MeshInstance3D" parent="Muebles/telefono2" unique_id=265957620]
+[node name="@MeshInstance3D@146" type="MeshInstance3D" parent="Muebles/telefono2" unique_id=1032772169]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.83, 0)
 material_override = SubResource("StandardMaterial3D_mfml7")
 mesh = SubResource("BoxMesh_vvoxr")
 
-[node name="@MeshInstance3D@147" type="MeshInstance3D" parent="Muebles/telefono2" unique_id=1093463759]
+[node name="@MeshInstance3D@147" type="MeshInstance3D" parent="Muebles/telefono2" unique_id=1429552442]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.885, 0.04)
 material_override = SubResource("StandardMaterial3D_703k6")
 mesh = SubResource("CylinderMesh_o8iu4")
 
-[node name="@MeshInstance3D@148" type="MeshInstance3D" parent="Muebles/telefono2" unique_id=1514733558]
+[node name="@MeshInstance3D@148" type="MeshInstance3D" parent="Muebles/telefono2" unique_id=1260304191]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.92499995, -0.05)
 material_override = SubResource("StandardMaterial3D_mfml7")
 mesh = SubResource("BoxMesh_bx85k")
 
-[node name="Bookcase_2" type="Node3D" parent="Muebles" unique_id=1193015348]
+[node name="Bookcase_2" type="Node3D" parent="Muebles" unique_id=227897758]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.8, 0.27, 4.65)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bookcase_2"
@@ -754,7 +739,7 @@ modelo = "props/Bookcase_2.gltf"
 tam3 = Vector3(0.9, 1.8, 0.4)
 choque = Vector2(16, 7)
 
-[node name="Cabinet" type="Node3D" parent="Muebles" unique_id=1071027688]
+[node name="Cabinet" type="Node3D" parent="Muebles" unique_id=12191780]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 3.3, 0.27, 4.6)
 script = ExtResource("7_iq1q7")
 clave = "building_police_cabinet"
@@ -762,54 +747,54 @@ modelo = "props/Cabinet.gltf"
 tam3 = Vector3(1.2, 1.9, 0.55)
 choque = Vector2(21, 10)
 
-[node name="alfombra2" type="Node3D" parent="Muebles" unique_id=129099534]
+[node name="alfombra2" type="Node3D" parent="Muebles" unique_id=381032807]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.8, 0.27, 2.6)
 script = ExtResource("7_iq1q7")
 clave = "building_police_alfombra2"
 
-[node name="@MeshInstance3D@149" type="MeshInstance3D" parent="Muebles/alfombra2" unique_id=1858666359]
+[node name="@MeshInstance3D@149" type="MeshInstance3D" parent="Muebles/alfombra2" unique_id=570575680]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
 material_override = SubResource("StandardMaterial3D_cm2sj")
 mesh = SubResource("BoxMesh_c8dq4")
 
-[node name="bombilla3" type="Node3D" parent="Muebles" unique_id=2100875287]
+[node name="bombilla3" type="Node3D" parent="Muebles" unique_id=752815924]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.7, 0.27, 2.45)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bombilla3"
 
-[node name="@MeshInstance3D@150" type="MeshInstance3D" parent="Muebles/bombilla3" unique_id=798611143]
+[node name="@MeshInstance3D@150" type="MeshInstance3D" parent="Muebles/bombilla3" unique_id=799177432]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.73, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("CylinderMesh_eceed")
 
-[node name="@Node3D@151" type="Node3D" parent="Muebles/bombilla3" unique_id=1921293042]
+[node name="@Node3D@151" type="Node3D" parent="Muebles/bombilla3" unique_id=757306181]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.37, 0)
 metadata/rol = "luz_noche"
 
-[node name="@MeshInstance3D@152" type="MeshInstance3D" parent="Muebles/bombilla3/@Node3D@151" unique_id=98646657]
+[node name="@MeshInstance3D@152" type="MeshInstance3D" parent="Muebles/bombilla3/@Node3D@151" unique_id=1661585965]
 material_override = SubResource("StandardMaterial3D_aift0")
 mesh = SubResource("SphereMesh_heu1d")
 
-[node name="@OmniLight3D@153" type="OmniLight3D" parent="Muebles/bombilla3/@Node3D@151" unique_id=1876791743]
+[node name="@OmniLight3D@153" type="OmniLight3D" parent="Muebles/bombilla3/@Node3D@151" unique_id=465546587]
 light_color = Color(1, 0.82, 0.55, 1)
 light_energy = 1.4
 omni_range = 6.0
 
-[node name="Table_Large3" type="Node3D" parent="Muebles" unique_id=299665569]
+[node name="Table_Large3" type="Node3D" parent="Muebles" unique_id=206012679]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.7, 0.27, -2.4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_table_large3"
 modelo = "props/Table_Large.gltf"
 tam3 = Vector3(1.6, 0.78, 0.9)
 
-[node name="Chair_14" type="Node3D" parent="Muebles" unique_id=584149923]
+[node name="Chair_13" type="Node3D" parent="Muebles" unique_id=1840039395]
 transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, 4.7, 0.27, -3.15)
 script = ExtResource("7_iq1q7")
-clave = "building_police_chair_14"
+clave = "building_police_chair_13"
 modelo = "props/Chair_1.gltf"
 tam3 = Vector3(0.45, 0.95, 0.45)
 
-[node name="Cabinet2" type="Node3D" parent="Muebles" unique_id=1783289269]
+[node name="Cabinet2" type="Node3D" parent="Muebles" unique_id=2114555104]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 6.55, 0.27, -1.4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_cabinet2"
@@ -817,7 +802,7 @@ modelo = "props/Cabinet.gltf"
 tam3 = Vector3(1.2, 1.9, 0.55)
 choque = Vector2(21, 10)
 
-[node name="Bookcase_22" type="Node3D" parent="Muebles" unique_id=673663682]
+[node name="Bookcase_22" type="Node3D" parent="Muebles" unique_id=468287739]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 6.55, 0.27, -3.3)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bookcase_22"
@@ -825,7 +810,7 @@ modelo = "props/Bookcase_2.gltf"
 tam3 = Vector3(0.9, 1.8, 0.4)
 choque = Vector2(16, 7)
 
-[node name="Shelf_Simple2" type="Node3D" parent="Muebles" unique_id=711809876]
+[node name="Shelf_Simple2" type="Node3D" parent="Muebles" unique_id=383442161]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.7, 0.27, -0.3)
 script = ExtResource("7_iq1q7")
 clave = "building_police_shelf_simple2"
@@ -833,45 +818,44 @@ modelo = "props/Shelf_Simple.gltf"
 tam3 = Vector3(1, 1.5, 0.35)
 choque = Vector2(18, 6)
 
-[node name="bombilla4" type="Node3D" parent="Muebles" unique_id=1578506693]
+[node name="bombilla4" type="Node3D" parent="Muebles" unique_id=964619749]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.7, 0.27, -2.45)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bombilla4"
 
-[node name="@MeshInstance3D@154" type="MeshInstance3D" parent="Muebles/bombilla4" unique_id=810325809]
+[node name="@MeshInstance3D@154" type="MeshInstance3D" parent="Muebles/bombilla4" unique_id=125184626]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.73, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("CylinderMesh_8tnyx")
 
-[node name="@Node3D@155" type="Node3D" parent="Muebles/bombilla4" unique_id=261223179]
+[node name="@Node3D@155" type="Node3D" parent="Muebles/bombilla4" unique_id=922269815]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.37, 0)
 metadata/rol = "luz_noche"
 
-[node name="@MeshInstance3D@156" type="MeshInstance3D" parent="Muebles/bombilla4/@Node3D@155" unique_id=1710649473]
+[node name="@MeshInstance3D@156" type="MeshInstance3D" parent="Muebles/bombilla4/@Node3D@155" unique_id=1453172715]
 material_override = SubResource("StandardMaterial3D_aift0")
 mesh = SubResource("SphereMesh_nc7wd")
 
-[node name="@OmniLight3D@157" type="OmniLight3D" parent="Muebles/bombilla4/@Node3D@155" unique_id=561443569]
+[node name="@OmniLight3D@157" type="OmniLight3D" parent="Muebles/bombilla4/@Node3D@155" unique_id=1090753633]
 light_color = Color(1, 0.82, 0.55, 1)
 light_energy = 1.4
 omni_range = 6.0
 
-[node name="Bed_Twin12" type="Node3D" parent="Muebles" unique_id=49689744]
+[node name="Bed_Twin12" type="Node3D" parent="Muebles" unique_id=86347436]
 transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, -5.3, 0.27, 3.85)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bed_twin12"
 modelo = "props/Bed_Twin1.gltf"
 tam3 = Vector3(0.95, 0.9, 2)
-choque = Vector2(36, 17)
 
-[node name="Nightstand_Shelf" type="Node3D" parent="Muebles" unique_id=1065021532]
+[node name="Nightstand_Shelf" type="Node3D" parent="Muebles" unique_id=67930020]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -3.9, 0.27, 4.6)
 script = ExtResource("7_iq1q7")
 clave = "building_police_nightstand_shelf"
 modelo = "props/Nightstand_Shelf.gltf"
 tam3 = Vector3(0.5, 0.6, 0.4)
 
-[node name="Cabinet3" type="Node3D" parent="Muebles" unique_id=93948136]
+[node name="Cabinet3" type="Node3D" parent="Muebles" unique_id=1611668569]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.55, 0.27, 1.6)
 script = ExtResource("7_iq1q7")
 clave = "building_police_cabinet3"
@@ -879,30 +863,30 @@ modelo = "props/Cabinet.gltf"
 tam3 = Vector3(1.2, 1.9, 0.55)
 choque = Vector2(21, 10)
 
-[node name="bombilla5" type="Node3D" parent="Muebles" unique_id=1483337092]
+[node name="bombilla5" type="Node3D" parent="Muebles" unique_id=951268931]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4.7, 0.27, 2.75)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bombilla5"
 
-[node name="@MeshInstance3D@158" type="MeshInstance3D" parent="Muebles/bombilla5" unique_id=677692376]
+[node name="@MeshInstance3D@158" type="MeshInstance3D" parent="Muebles/bombilla5" unique_id=266236323]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.73, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("CylinderMesh_820rj")
 
-[node name="@Node3D@159" type="Node3D" parent="Muebles/bombilla5" unique_id=413086058]
+[node name="@Node3D@159" type="Node3D" parent="Muebles/bombilla5" unique_id=1572350942]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.37, 0)
 metadata/rol = "luz_noche"
 
-[node name="@MeshInstance3D@160" type="MeshInstance3D" parent="Muebles/bombilla5/@Node3D@159" unique_id=740499502]
+[node name="@MeshInstance3D@160" type="MeshInstance3D" parent="Muebles/bombilla5/@Node3D@159" unique_id=484901483]
 material_override = SubResource("StandardMaterial3D_aift0")
 mesh = SubResource("SphereMesh_s6xcg")
 
-[node name="@OmniLight3D@161" type="OmniLight3D" parent="Muebles/bombilla5/@Node3D@159" unique_id=1796244799]
+[node name="@OmniLight3D@161" type="OmniLight3D" parent="Muebles/bombilla5/@Node3D@159" unique_id=1203264582]
 light_color = Color(1, 0.82, 0.55, 1)
 light_energy = 1.4
 omni_range = 6.0
 
-[node name="Table_Large4" type="Node3D" parent="Muebles" unique_id=219050378]
+[node name="Table_Large4" type="Node3D" parent="Muebles" unique_id=1470935008]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -5, 0.27, -0.65)
 script = ExtResource("7_iq1q7")
 clave = "building_police_table_large4"
@@ -910,46 +894,46 @@ modelo = "props/Table_Large.gltf"
 tam3 = Vector3(1.6, 0.78, 0.9)
 choque = Vector2(28, 16)
 
-[node name="Bench2" type="Node3D" parent="Muebles" unique_id=494237587]
+[node name="Bench" type="Node3D" parent="Muebles" unique_id=1911854764]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -5, 0.27, 0.1)
+script = ExtResource("7_iq1q7")
+clave = "building_police_bench"
+modelo = "props/Bench.gltf"
+tam3 = Vector3(1.4, 0.5, 0.45)
+choque = Vector2(25, 8)
+
+[node name="Bench2" type="Node3D" parent="Muebles" unique_id=615027621]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -5, 0.27, -1.4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bench2"
 modelo = "props/Bench.gltf"
 tam3 = Vector3(1.4, 0.5, 0.45)
 choque = Vector2(25, 8)
 
-[node name="Bench3" type="Node3D" parent="Muebles" unique_id=818589437]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -5, 0.27, -1.4)
-script = ExtResource("7_iq1q7")
-clave = "building_police_bench3"
-modelo = "props/Bench.gltf"
-tam3 = Vector3(1.4, 0.5, 0.45)
-choque = Vector2(25, 8)
-
-[node name="bombilla6" type="Node3D" parent="Muebles" unique_id=923263057]
+[node name="bombilla6" type="Node3D" parent="Muebles" unique_id=1181626090]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4.7, 0.27, -0.65)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bombilla6"
 
-[node name="@MeshInstance3D@162" type="MeshInstance3D" parent="Muebles/bombilla6" unique_id=614440304]
+[node name="@MeshInstance3D@162" type="MeshInstance3D" parent="Muebles/bombilla6" unique_id=314997301]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.73, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("CylinderMesh_ma2p8")
 
-[node name="@Node3D@163" type="Node3D" parent="Muebles/bombilla6" unique_id=1613617139]
+[node name="@Node3D@163" type="Node3D" parent="Muebles/bombilla6" unique_id=1439368065]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.37, 0)
 metadata/rol = "luz_noche"
 
-[node name="@MeshInstance3D@164" type="MeshInstance3D" parent="Muebles/bombilla6/@Node3D@163" unique_id=1263365930]
+[node name="@MeshInstance3D@164" type="MeshInstance3D" parent="Muebles/bombilla6/@Node3D@163" unique_id=1969820732]
 material_override = SubResource("StandardMaterial3D_aift0")
 mesh = SubResource("SphereMesh_pvsbj")
 
-[node name="@OmniLight3D@165" type="OmniLight3D" parent="Muebles/bombilla6/@Node3D@163" unique_id=1251978680]
+[node name="@OmniLight3D@165" type="OmniLight3D" parent="Muebles/bombilla6/@Node3D@163" unique_id=759901302]
 light_color = Color(1, 0.82, 0.55, 1)
 light_energy = 1.4
 omni_range = 6.0
 
-[node name="WeaponStand" type="Node3D" parent="Muebles" unique_id=1359170822]
+[node name="WeaponStand" type="Node3D" parent="Muebles" unique_id=16741858]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.5, 0.27, -2.8)
 script = ExtResource("7_iq1q7")
 clave = "building_police_weaponstand"
@@ -957,7 +941,7 @@ modelo = "props/WeaponStand.gltf"
 tam3 = Vector3(1.2, 1.6, 0.5)
 choque = Vector2(21, 9)
 
-[node name="WeaponStand2" type="Node3D" parent="Muebles" unique_id=1901552192]
+[node name="WeaponStand2" type="Node3D" parent="Muebles" unique_id=1027649999]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -6.5, 0.27, -4.2)
 script = ExtResource("7_iq1q7")
 clave = "building_police_weaponstand2"
@@ -965,7 +949,7 @@ modelo = "props/WeaponStand.gltf"
 tam3 = Vector3(1.2, 1.6, 0.5)
 choque = Vector2(21, 9)
 
-[node name="Crate_Wooden" type="Node3D" parent="Muebles" unique_id=135730316]
+[node name="Crate_Wooden" type="Node3D" parent="Muebles" unique_id=1152221215]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4.4, 0.27, -4.4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_crate_wooden"
@@ -973,7 +957,7 @@ modelo = "props/Crate_Wooden.gltf"
 tam3 = Vector3(0.7, 0.7, 0.7)
 choque = Vector2(12, 12)
 
-[node name="Shelf_Simple3" type="Node3D" parent="Muebles" unique_id=343843585]
+[node name="Shelf_Simple3" type="Node3D" parent="Muebles" unique_id=1026156322]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4.4, 0.27, -2.1)
 script = ExtResource("7_iq1q7")
 clave = "building_police_shelf_simple3"
@@ -981,254 +965,254 @@ modelo = "props/Shelf_Simple.gltf"
 tam3 = Vector3(1, 1.5, 0.35)
 choque = Vector2(18, 6)
 
-[node name="bombilla7" type="Node3D" parent="Muebles" unique_id=398928071]
+[node name="bombilla7" type="Node3D" parent="Muebles" unique_id=494097388]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4.7, 0.27, -3.4)
 script = ExtResource("7_iq1q7")
 clave = "building_police_bombilla7"
 
-[node name="@MeshInstance3D@166" type="MeshInstance3D" parent="Muebles/bombilla7" unique_id=1895911198]
+[node name="@MeshInstance3D@166" type="MeshInstance3D" parent="Muebles/bombilla7" unique_id=670542276]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.73, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("CylinderMesh_0wx8v")
 
-[node name="@Node3D@167" type="Node3D" parent="Muebles/bombilla7" unique_id=1256279336]
+[node name="@Node3D@167" type="Node3D" parent="Muebles/bombilla7" unique_id=308938449]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.37, 0)
 metadata/rol = "luz_noche"
 
-[node name="@MeshInstance3D@168" type="MeshInstance3D" parent="Muebles/bombilla7/@Node3D@167" unique_id=1947841621]
+[node name="@MeshInstance3D@168" type="MeshInstance3D" parent="Muebles/bombilla7/@Node3D@167" unique_id=1524562037]
 material_override = SubResource("StandardMaterial3D_aift0")
 mesh = SubResource("SphereMesh_wniff")
 
-[node name="@OmniLight3D@169" type="OmniLight3D" parent="Muebles/bombilla7/@Node3D@167" unique_id=1277270867]
+[node name="@OmniLight3D@169" type="OmniLight3D" parent="Muebles/bombilla7/@Node3D@167" unique_id=2095663166]
 light_color = Color(1, 0.82, 0.55, 1)
 light_energy = 1.4
 omni_range = 6.0
 
-[node name="cuadro_electrico" type="Node3D" parent="Muebles" unique_id=1740382661]
+[node name="cuadro_electrico" type="Node3D" parent="Muebles" unique_id=1539802689]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1.4, 0, -5.1)
 script = ExtResource("7_iq1q7")
 clave = "building_police_cuadro_electrico"
 
-[node name="@MeshInstance3D@170" type="MeshInstance3D" parent="Muebles/cuadro_electrico" unique_id=1903741280]
+[node name="@MeshInstance3D@170" type="MeshInstance3D" parent="Muebles/cuadro_electrico" unique_id=1198536782]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 material_override = SubResource("StandardMaterial3D_n6xpc")
 mesh = SubResource("BoxMesh_0o4jd")
 
-[node name="@MeshInstance3D@171" type="MeshInstance3D" parent="Muebles/cuadro_electrico" unique_id=1727668911]
+[node name="@MeshInstance3D@171" type="MeshInstance3D" parent="Muebles/cuadro_electrico" unique_id=1782346313]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 1.5, 0.075)
 material_override = SubResource("StandardMaterial3D_0db51")
 mesh = SubResource("BoxMesh_255os")
 
-[node name="@MeshInstance3D@172" type="MeshInstance3D" parent="Muebles/cuadro_electrico" unique_id=1690338207]
+[node name="@MeshInstance3D@172" type="MeshInstance3D" parent="Muebles/cuadro_electrico" unique_id=1969982559]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, 1.5, 0.075)
 material_override = SubResource("StandardMaterial3D_0db51")
 mesh = SubResource("BoxMesh_ak5dt")
 
-[node name="@MeshInstance3D@173" type="MeshInstance3D" parent="Muebles/cuadro_electrico" unique_id=1912592521]
+[node name="@MeshInstance3D@173" type="MeshInstance3D" parent="Muebles/cuadro_electrico" unique_id=1717923960]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.24, 0.075)
 material_override = SubResource("StandardMaterial3D_pghdl")
 mesh = SubResource("BoxMesh_7q8tt")
 metadata/rol = "bombilla_cuadro"
 
-[node name="cable" type="Node3D" parent="Muebles" unique_id=2129931706]
+[node name="cable" type="Node3D" parent="Muebles" unique_id=1650496835]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 1.4, 0, -5.08)
 script = ExtResource("7_iq1q7")
 clave = "building_police_cable"
 
-[node name="@MeshInstance3D@174" type="MeshInstance3D" parent="Muebles/cable" unique_id=2069626026]
+[node name="@MeshInstance3D@174" type="MeshInstance3D" parent="Muebles/cable" unique_id=925713809]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("BoxMesh_ehf0q")
 
-[node name="cable2" type="Node3D" parent="Muebles" unique_id=1784941737]
+[node name="cable2" type="Node3D" parent="Muebles" unique_id=886136927]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.2, 0, -5.08)
 script = ExtResource("7_iq1q7")
 clave = "building_police_cable2"
 
-[node name="@MeshInstance3D@175" type="MeshInstance3D" parent="Muebles/cable2" unique_id=1340084818]
+[node name="@MeshInstance3D@175" type="MeshInstance3D" parent="Muebles/cable2" unique_id=172260436]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.92, 0)
 material_override = SubResource("StandardMaterial3D_0ddx6")
 mesh = SubResource("BoxMesh_dkmky")
 
-[node name="Marcas" type="Node3D" parent="." unique_id=1767820046]
+[node name="Marcas" type="Node3D" parent="." unique_id=1698052016]
 
-[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=633343640]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, -1.85)
+[node name="trabajo" type="Marker3D" parent="Marcas" unique_id=1917984922]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 0, -3.75)
 script = ExtResource("8_cp56h")
 id_marca = "trabajo"
 
-[node name="informe" type="Marker3D" parent="Marcas" unique_id=2052832379]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7, 0, -2.6)
+[node name="informe" type="Marker3D" parent="Marcas" unique_id=779983745]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0, -4.42)
 script = ExtResource("8_cp56h")
 id_marca = "informe"
 
-[node name="escritorio" type="Marker3D" parent="Marcas" unique_id=432713209]
+[node name="escritorio" type="Marker3D" parent="Marcas" unique_id=1895174602]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6, 0, 1.8)
 script = ExtResource("8_cp56h")
 id_marca = "escritorio"
 
-[node name="terminal" type="Marker3D" parent="Marcas" unique_id=531029604]
+[node name="terminal" type="Marker3D" parent="Marcas" unique_id=1886737615]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, 0.8)
 script = ExtResource("8_cp56h")
 id_marca = "terminal"
 
-[node name="archivo" type="Marker3D" parent="Marcas" unique_id=1778306699]
+[node name="archivo" type="Marker3D" parent="Marcas" unique_id=2115385069]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 0, -2.4)
 script = ExtResource("8_cp56h")
 id_marca = "archivo"
 
-[node name="mesa" type="Marker3D" parent="Marcas" unique_id=841417217]
+[node name="mesa" type="Marker3D" parent="Marcas" unique_id=1715424018]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6, 0, -0.65)
 script = ExtResource("8_cp56h")
 id_marca = "mesa"
 
-[node name="cama_1" type="Marker3D" parent="Marcas" unique_id=757400324]
+[node name="cama_1" type="Marker3D" parent="Marcas" unique_id=239513255]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3, 0, 3.85)
 script = ExtResource("8_cp56h")
 id_marca = "cama_1"
 
-[node name="celda" type="Marker3D" parent="Marcas" unique_id=1054787678]
+[node name="celda" type="Marker3D" parent="Marcas" unique_id=316798898]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.45)
 script = ExtResource("8_cp56h")
 id_marca = "celda"
 
-[node name="cama_celda" type="Marker3D" parent="Marcas" unique_id=463575327]
+[node name="cama_celda" type="Marker3D" parent="Marcas" unique_id=1328187678]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, 4)
 script = ExtResource("8_cp56h")
 id_marca = "cama_celda"
 
-[node name="celda_puerta" type="Marker3D" parent="Marcas" unique_id=8217280]
+[node name="celda_puerta" type="Marker3D" parent="Marcas" unique_id=303639011]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
 script = ExtResource("8_cp56h")
 id_marca = "celda_puerta"
 
-[node name="celda_salida" type="Marker3D" parent="Marcas" unique_id=1845122264]
+[node name="celda_salida" type="Marker3D" parent="Marcas" unique_id=225953788]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.3)
 script = ExtResource("8_cp56h")
 id_marca = "celda_salida"
 
-[node name="ante_celda" type="Marker3D" parent="Marcas" unique_id=1288773178]
+[node name="ante_celda" type="Marker3D" parent="Marcas" unique_id=1981803529]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 1.5)
 script = ExtResource("8_cp56h")
 id_marca = "ante_celda"
 
-[node name="puerta" type="Marker3D" parent="Marcas" unique_id=1374976068]
+[node name="puerta" type="Marker3D" parent="Marcas" unique_id=782476235]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.9)
 script = ExtResource("8_cp56h")
 id_marca = "puerta"
 
-[node name="ventana" type="Marker3D" parent="Marcas" unique_id=422278830]
+[node name="ventana" type="Marker3D" parent="Marcas" unique_id=815167258]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 0, -4.9)
 script = ExtResource("8_cp56h")
 id_marca = "ventana"
 
-[node name="Tabiques" type="Node3D" parent="." unique_id=1438775014]
+[node name="Tabiques" type="Node3D" parent="." unique_id=18697176]
 
-[node name="Tabique" type="Node3D" parent="Tabiques" unique_id=1191145650]
+[node name="Tabique" type="Node3D" parent="Tabiques" unique_id=401329019]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0, 3.2)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(0.15, 3.4)
 
-[node name="Tabique2" type="Node3D" parent="Tabiques" unique_id=598281619]
+[node name="Tabique2" type="Node3D" parent="Tabiques" unique_id=1136852795]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0, -0.25)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(0.15, 1.5)
 
-[node name="Tabique3" type="Node3D" parent="Tabiques" unique_id=1179568036]
+[node name="Tabique3" type="Node3D" parent="Tabiques" unique_id=2017262052]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0, -3.4500003)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(0.15, 2.9)
 
-[node name="Tabique4" type="Node3D" parent="Tabiques" unique_id=766765140]
+[node name="Tabique4" type="Node3D" parent="Tabiques" unique_id=1144284507]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0, 3.325)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(0.15, 3.15)
 
-[node name="Tabique5" type="Node3D" parent="Tabiques" unique_id=1192554842]
+[node name="Tabique5" type="Node3D" parent="Tabiques" unique_id=924478983]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0, 0.3499999)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(0.15, 0.9999999)
 
-[node name="Tabique6" type="Node3D" parent="Tabiques" unique_id=2092104648]
+[node name="Tabique6" type="Node3D" parent="Tabiques" unique_id=672352508]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0, -1.7999997)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(0.15, 1.5000001)
 
-[node name="Tabique7" type="Node3D" parent="Tabiques" unique_id=2027602855]
+[node name="Tabique7" type="Node3D" parent="Tabiques" unique_id=348035221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0, -4.1749997)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(0.15, 1.45)
 
-[node name="Tabique8" type="Node3D" parent="Tabiques" unique_id=1041056354]
+[node name="Tabique8" type="Node3D" parent="Tabiques" unique_id=1821996222]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 2)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(1.8000001, 0.15)
 
-[node name="Tabique9" type="Node3D" parent="Tabiques" unique_id=2054643777]
+[node name="Tabique9" type="Node3D" parent="Tabiques" unique_id=725170064]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 2)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(1.8000001, 0.15)
 
-[node name="Tabique10" type="Node3D" parent="Tabiques" unique_id=827098869]
+[node name="Tabique10" type="Node3D" parent="Tabiques" unique_id=313201248]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 0, 0)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(4.6, 0.15)
 
-[node name="Tabique11" type="Node3D" parent="Tabiques" unique_id=1623594399]
+[node name="Tabique11" type="Node3D" parent="Tabiques" unique_id=1507280599]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 0, 0.6)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(4.6, 0.15)
 
-[node name="Tabique12" type="Node3D" parent="Tabiques" unique_id=1703389267]
+[node name="Tabique12" type="Node3D" parent="Tabiques" unique_id=1840324694]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 0, -1.9)
 script = ExtResource("9_bpgh2")
 tam_m = Vector2(4.6, 0.15)
 
-[node name="Cuartos" type="Node3D" parent="." unique_id=1579177731]
+[node name="Cuartos" type="Node3D" parent="." unique_id=1743062844]
 
-[node name="SalaGuardia" type="Node3D" parent="Cuartos" unique_id=913495295]
+[node name="SalaGuardia" type="Node3D" parent="Cuartos" unique_id=1691763508]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.45)
 script = ExtResource("10_5crrh")
 tam_m = Vector2(4.8, 6.9)
 central = true
 
-[node name="Calabozo" type="Node3D" parent="Cuartos" unique_id=396322315]
+[node name="Calabozo" type="Node3D" parent="Cuartos" unique_id=1986883181]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.45)
 script = ExtResource("10_5crrh")
 tam_m = Vector2(4.8, 2.9)
 paso_m = Vector3(0, 0, -1.45)
 
-[node name="DespachoComisario" type="Node3D" parent="Cuartos" unique_id=455434398]
+[node name="DespachoComisario" type="Node3D" parent="Cuartos" unique_id=725039427]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 0, 2.45)
 script = ExtResource("10_5crrh")
 tam_m = Vector2(4.6, 4.9)
 paso_m = Vector3(-2.2999997, 0, -1.45)
 
-[node name="ArchivoPruebas" type="Node3D" parent="Cuartos" unique_id=1257776686]
+[node name="ArchivoPruebas" type="Node3D" parent="Cuartos" unique_id=2073824431]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 0, -2.45)
 script = ExtResource("10_5crrh")
 tam_m = Vector2(4.6, 4.9)
 paso_m = Vector3(-2.2999997, 0, 0.95000005)
 
-[node name="DormitorioGuardia" type="Node3D" parent="Cuartos" unique_id=1845183945]
+[node name="DormitorioGuardia" type="Node3D" parent="Cuartos" unique_id=1592396318]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 0, 2.75)
 script = ExtResource("10_5crrh")
 tam_m = Vector2(4.6, 4.3)
 paso_m = Vector3(2.2999997, 0, -1.45)
 
-[node name="Comedor" type="Node3D" parent="Cuartos" unique_id=1120263557]
+[node name="Comedor" type="Node3D" parent="Cuartos" unique_id=1154994728]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 0, -0.65)
 script = ExtResource("10_5crrh")
 tam_m = Vector2(4.6, 2.5)
 paso_m = Vector3(2.2999997, 0, 0.049999952)
 
-[node name="Armeria" type="Node3D" parent="Cuartos" unique_id=1910883791]
+[node name="Armeria" type="Node3D" parent="Cuartos" unique_id=353591810]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 0, -3.4)
 script = ExtResource("10_5crrh")
 tam_m = Vector2(4.6, 3)
 paso_m = Vector3(2.2999997, 0, 0.4000001)
 
-[node name="Cartel" type="Node3D" parent="." unique_id=2073900272]
+[node name="Cartel" type="Node3D" parent="." unique_id=339905428]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.6, 2.4, -5.12)
 script = ExtResource("10_57rxb")
 ancho_m = 1.2
