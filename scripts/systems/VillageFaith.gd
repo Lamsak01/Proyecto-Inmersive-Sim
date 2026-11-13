@@ -12,7 +12,6 @@ extends RefCounted
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const Marca = preload("res://mapa/marca.gd")
-const Edificio = preload("res://mapa/edificio.gd")
 
 const FAITH_NAME: String = "la Fe del Alba"
 const RITE_NAME: String = "Oficio del Alba"
@@ -164,12 +163,8 @@ static func can_join(npc) -> bool:
 	return npc.need_energy > 15.0 and npc.need_hunger > 30.0
 
 static func _pew_spot(vm, i: int) -> Vector2:
-	var side: float = -29.0 if i % 2 == 0 else 29.0
-	var row: int = int(float(i) / 2.0) % 4
-	var row_y: float = [-22.5, -7.5, 6.8, 13.5][row]
-	var col_x_off: float = float((int(float(i) / 8.0) % 2) * 12 - 6)
-	# en el plano de la capilla, llevado a donde está (2026-11-12: antes se quedaba en el mapa viejo)
-	return Edificio.a_mundo(vm.ID_CAPILLA, vm._church_center + Vector2(side + col_x_off, row_y))
+	# cada fiel junto a su banco (marcas de la capilla); si hay más fieles que bancos, se reparten de nuevo
+	return Marca.mundo(vm.ID_CAPILLA, Marca.BANCO % (i % Marca.BANCOS + 1))
 
 static func on_hour(vm, hour: int) -> void:
 	if not is_rite_day():

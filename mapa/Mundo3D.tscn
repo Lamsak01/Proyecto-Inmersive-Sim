@@ -13604,8 +13604,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 208.6, 0.33816472, 87.36)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_church"
 centro_original = Vector2(745, 312)
-planta_m = Vector2(7.392, 5.152)
-puerta_ancho_m = 2.352
+planta_m = Vector2(14.0, 9.8)
+puerta_ancho_m = 1.8
 
 [node name="building_abandoned_mill" type="Node3D" parent="Edificios" unique_id=2139826987 instance=ExtResource("17_3opqx")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.64, 0.99335885, -296.8)
@@ -20968,7 +20968,7 @@ mesh = ExtResource("27_q7wve")
 surface_material_override/0 = SubResource("StandardMaterial3D_m8dre")
 
 [node name="Arbol_adorno_1" type="Node3D" parent="Decorado/Zona_2_0" unique_id=1795809485]
-transform = Transform3D(-0.20791174, 0, 0.97814757, 0, 1, 0, -0.97814757, 0, -0.20791174, 213.584, 0.19021766, 85.12)
+transform = Transform3D(-0.20791174, 0, 0.97814757, 0, 1, 0, -0.97814757, 0, -0.20791174, 217.1, 0.19021766, 85.12)
 script = ExtResource("2_rotgg")
 modelo = "nature/BirchTree_2.obj"
 alto = 52.0
