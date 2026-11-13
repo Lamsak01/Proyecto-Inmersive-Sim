@@ -33,6 +33,7 @@ const MILL_ID: String = "building_abandoned_mill"
 const MANSION_ID: String = "building_mansion"
 const ReportDeskScript = preload("res://scripts/systems/Case1ReportDesk.gd")
 const Case1Aviso = preload("res://scripts/systems/Case1Aviso.gd") ## el guardia que te avisa y custodia la escena
+const Case1Objetivos = preload("res://scripts/systems/Case1Objetivos.gd") ## preguntas del caso en el diario
 ## Pruebas que se pueden adjuntar al informe (clave del cuaderno → nombre corto).
 const REPORT_EVIDENCE: Dictionary = {
 	"clue_case1_clearing": "El cuerpo junto al arroyo",
@@ -206,7 +207,20 @@ static func fosa_pos() -> Vector2:
 static func tick(vm) -> void:
 	if vm == null or not empezado():
 		return
-	Case1Aviso.tick(vm, state(vm), cuerpo_pos())
+	var st: Dictionary = state(vm)
+	Case1Aviso.tick(vm, st, cuerpo_pos())
+	Case1Objetivos.revisar(st, func(clave: String) -> bool: return _tiene_pista(vm, clave), report_evidence(vm).size())
+
+
+## ¿Está esta pista en el cuaderno del detective? «@escena:N»: la pista N de la escena del claro, encontrada o anotada.
+static func _tiene_pista(vm, clave: String) -> bool:
+	if not clave.begins_with("@escena:"):
+		return _has_progress(vm, clave)
+	var idx: int = int(clave.trim_prefix("@escena:"))
+	var dui = _detective_ui(vm)
+	if dui != null and (dui.get("scene_clues_found") as Dictionary).get(idx) == true:
+		return true
+	return _has_progress(vm, "c_%d" % idx)
 
 
 static func sync(vm) -> void:

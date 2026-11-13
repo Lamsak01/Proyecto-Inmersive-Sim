@@ -72,8 +72,8 @@ func _build_ui() -> void:
 
 	_tab_bar = TabBar.new()
 	_tab_bar.add_tab("🗺️ Secundarias")
-	# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: Pestaña «Principal» de los 4 capítulos oculta sin borrar código (docs/HANDOFF.md §8):
-	# _tab_bar.add_tab("👑 Principal")
+	# La pestaña «main» guarda ahora las preguntas del caso (Caso I, 2026-11-13); los 4 capítulos viejos siguen ocultos (§3c)
+	_tab_bar.add_tab("🔎 Caso")
 	_tab_bar.tab_changed.connect(func(_i: int) -> void:
 		_selected_id = ""
 		refresh_ui()
@@ -138,7 +138,7 @@ func _show_detail() -> void:
 	if q.is_empty():
 		if _current_category() == "main":
 			# [OCULTO_HISTORIA_PRINCIPAL_PP] §3c: Si se reactiva la pestaña sin historia nueva, mostrar solo «Próximamente»:
-			_detail.text = "[color=#9aa4b5]Próximamente.[/color]"
+			_detail.text = "[color=#9aa4b5]Aún no hay ningún caso abierto.[/color]"
 		else:
 			_detail.text = "[color=#9aa4b5]No tienes misiones secundarias.\nHabla con los vecinos: a veces alguien necesita ayuda (lo verás con un ❗ sobre su cabeza).[/color]"
 		return
