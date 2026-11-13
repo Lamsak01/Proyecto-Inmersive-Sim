@@ -294,27 +294,15 @@ func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector
 	})
 
 func _build_epoch_props_3d(m_bulb: Material) -> void:
-	var m_cable := _mat("epoch_thick_cable", Color(0.08, 0.09, 0.11), 0.72, 0.25)
-	var m_insul := _mat("epoch_insulator", Color(0.76, 0.78, 0.74), 0.35, 0.10)
+	# Los cables de la Comisaría, del Ayuntamiento y del Arreglador (con su generador) los traen sus planos
+	# (tools/casas/plano_comisaria.gd, plano_ayuntamiento.gd y plano_casa_acomodada_taller.gd, 2026-11-13)
 
-	# Cables gruesos por la fachada de la Comisaría (los del Ayuntamiento y el generador del Arreglador con su cable los
-	# traen ya sus planos, tools/casas/plano_ayuntamiento.gd y plano_casa_acomodada_taller.gd, 2026-11-13)
-	# Comisaría (building_police: rect x=844..986, y=100..196): cables gruesos por la fachada norte y esquina este hasta el poste del foco
-	colocar_plano = _en_edificio(ID_COMISARIA)
-	_add_box_2d(streetlights_root_3d, Vector2(915.0, 99.2), Vector2(140.0, 1.8), 24.5, 1.6, m_cable)
-	_add_box_2d(streetlights_root_3d, Vector2(915.0, 99.2), Vector2(140.0, 1.5), 21.5, 1.4, m_cable)
-	_add_box_2d(streetlights_root_3d, Vector2(986.8, 136.0), Vector2(1.8, 72.0), 23.0, 1.6, m_cable)
-	_add_box_2d(streetlights_root_3d, Vector2(936.0, 99.0), Vector2(1.6, 1.8), 12.0, 12.5, m_cable) # Bajante hacia la terminal policial
-	_add_box_2d(streetlights_root_3d, Vector2(990.0, 97.5), Vector2(9.0, 1.6), 24.5, 1.6, m_cable) # Ramal al poste del foco
-	for ix_p in [852.0, 886.0, 944.0, 980.0]:
-		_add_cyl_2d(streetlights_root_3d, Vector2(ix_p, 98.5), 1.1, 24.0, 2.6, m_insul, 1.1, 6)
-
-	# 3. Sacos terreros y alambre de espino a la entrada de la Comisaría (dejando libre la puerta x=893..937) y en el Puesto
+	# 3. Sacos terreros y alambre de espino a la entrada de la Comisaría (dejando libre la puerta x=901..929) y en el Puesto
 	# del Paso; 4. focos en poste de madera en los dos (se apagan si se sabotea la red eléctrica)
-	colocar_plano = _en_edificio(ID_COMISARIA)
-	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(864.0, 92.0))
-	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(966.0, 92.0))
-	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(994.0, 96.0), Vector2(915.0, 62.0), m_bulb)
+	colocar_plano = _en_edificio(ID_COMISARIA) # muro norte (el de la puerta) en y ≈ 60 del plano (14 × 9,8 m)
+	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(875.0, 52.0))
+	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(955.0, 52.0))
+	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1048.0, 54.0), Vector2(915.0, 20.0), m_bulb)
 	colocar_plano = _en_solar(VillageCulture.OUTPOST_SOLAR)
 	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 22.0))
 	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 78.0))
