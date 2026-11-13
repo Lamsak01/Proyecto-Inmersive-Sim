@@ -76,9 +76,7 @@ static func state(vm) -> Dictionary:
 # ---------------------------------------------------------------- mapa
 static func build_world(vm) -> void:
 	var bench: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/bench_0.png"
-	# Parque: sus pinos (el 3D los copia de aquí); los bancos del parque y de la plaza chocan desde su pieza de «Decorado»
-	for tp in [Vector2(188, 224), Vector2(420, 224), Vector2(188, 338), Vector2(420, 338), Vector2(304, 228)]:
-		vm._add_marca_3d("deco_pine", tp)
+	# Los árboles y bancos del parque y los bancos de la plaza son piezas de «Decorado» con su choque
 	# Mirador del lago: barandilla de madera y un banco
 	var lv: Vector2 = Sitio.original(SITIO_OCIO % "lake_view") # lo que se dibuja aún se traduce: se le da el mapa original
 	vm._add_prop_collider(lv + Vector2(0, -12), Vector2(72.0, 5.0))

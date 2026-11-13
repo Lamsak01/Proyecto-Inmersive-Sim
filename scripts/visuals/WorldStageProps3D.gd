@@ -2,7 +2,6 @@
 extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
-const TIPO_PINO_ADORNO := "deco_pine" ## marca de pino de adorno: lo pone el 3D de la naturaleza (WorldStageTerrain3D)
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
 const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
@@ -889,8 +888,6 @@ func _build_pet_bed_3d_for(bed_node: Node2D) -> void:
 
 func _add_prop_source(spr: Node2D) -> void:
 	var kind := _prop_kind_for(spr)
-	if kind == TIPO_PINO_ADORNO:
-		return
 	if not kind.is_empty():
 		_prop_sources.append({"sprite": spr, "kind": kind})
 

@@ -16880,6 +16880,14 @@ transform = Transform3D(2.8, 0, 0, 0, 2.8, 0, 0, 0, 2.3745346, 0.23520166, 0.243
 material_override = SubResource("StandardMaterial3D_pfrgm")
 mesh = SubResource("CylinderMesh_1yjiv")
 
+[node name="Arbol_adorno_8" type="Node3D" parent="Decorado/Zona_1_0" unique_id=1550548681]
+transform = Transform3D(0.32556814, 0, 0.94551855, 0, 1, 0, -0.94551855, 0, 0.32556814, 127.68, -0.14794706, 45.695995)
+script = ExtResource("2_rotgg")
+modelo = "nature/BirchTree_2.obj"
+alto = 82.0
+choque = "ninguno"
+metadata/choque = Vector2(10, 10)
+
 [node name="Zona_0_0" type="Node3D" parent="Decorado" unique_id=1498151901]
 
 [node name="Caja_51" type="Node3D" parent="Decorado/Zona_0_0" unique_id=2017673230]
@@ -18622,6 +18630,14 @@ mesh = SubResource("BoxMesh_nprsa")
 transform = Transform3D(2.8, 0, 0, 0, 2.8, 0, 0, 0, 2.3745346, 0.11199989, -0.10039266, 0.28000042)
 material_override = SubResource("StandardMaterial3D_g2orv")
 mesh = SubResource("BoxMesh_xykpm")
+
+[node name="Arbol_adorno_11" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1591177667]
+transform = Transform3D(-0.84804803, 0, 0.5299193, 0, 1, 0, -0.5299193, 0, -0.84804803, 89.824, -0.14794706, 47.488)
+script = ExtResource("2_rotgg")
+modelo = "nature/BirchTree_1.obj"
+alto = 76.0
+choque = "ninguno"
+metadata/choque = Vector2(10, 10)
 
 [node name="Zona_-1_1" type="Node3D" parent="Decorado" unique_id=908950617]
 
@@ -20654,6 +20670,30 @@ transform = Transform3D(0.34883723, 0, 0, 0, 0.34678343, 0, 0, 0, 0.19744381, 0,
 mesh = ExtResource("27_q7wve")
 surface_material_override/0 = SubResource("StandardMaterial3D_m8dre")
 
+[node name="Arbol_adorno_1" type="Node3D" parent="Decorado/Zona_2_0" unique_id=1795809485]
+transform = Transform3D(-0.20791174, 0, 0.97814757, 0, 1, 0, -0.97814757, 0, -0.20791174, 213.584, 0.19021766, 85.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/BirchTree_2.obj"
+alto = 52.0
+choque = "ninguno"
+metadata/choque = Vector2(10, 10)
+
+[node name="Arbol_adorno_2" type="Node3D" parent="Decorado/Zona_2_0" unique_id=572932734]
+transform = Transform3D(-0.17364813, 0, -0.9848078, 0, 1, 0, 0.9848078, 0, -0.17364813, 301.28, 0.40157062, 76.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_3.obj"
+alto = 64.0
+choque = "ninguno"
+metadata/choque = Vector2(10, 10)
+
+[node name="Arbol_adorno_3" type="Node3D" parent="Decorado/Zona_2_0" unique_id=188543424]
+transform = Transform3D(-0.17364813, 0, -0.9848078, 0, 1, 0, 0.9848078, 0, -0.17364813, 301.28, 0.40157062, 96.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/BirchTree_2.obj"
+alto = 64.0
+choque = "ninguno"
+metadata/choque = Vector2(10, 10)
+
 [node name="Zona_2_1" type="Node3D" parent="Decorado" unique_id=1860430957]
 
 [node name="Caja_142" type="Node3D" parent="Decorado/Zona_2_1" unique_id=626816892]
@@ -20863,6 +20903,30 @@ transform = Transform3D(0.34883723, 0, 0, 0, 0.34678343, 0, 0, 0, 0.19744381, 0,
 [node name="cross-wood" type="MeshInstance3D" parent="Decorado/Zona_2_1/Caja_181/@Node3D@4805/cross-wood2" unique_id=1635297311]
 mesh = ExtResource("27_q7wve")
 surface_material_override/0 = SubResource("StandardMaterial3D_m8dre")
+
+[node name="Arbol_adorno_4" type="Node3D" parent="Decorado/Zona_2_1" unique_id=1098777935]
+transform = Transform3D(0.9848077, 0, 0.17364818, 0, 1, 0, -0.17364818, 0, 0.9848077, 233.52, 0.19021766, 116.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 76.0
+choque = "ninguno"
+metadata/choque = Vector2(10, 10)
+
+[node name="Arbol_adorno_5" type="Node3D" parent="Decorado/Zona_2_1" unique_id=1473727613]
+transform = Transform3D(-0.8660254, 0, 0.50000006, 0, 1, 0, -0.50000006, 0, -0.8660254, 271.04, 0.19021766, 117.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/PineTree_1.obj"
+alto = 52.0
+choque = "ninguno"
+metadata/choque = Vector2(10, 10)
+
+[node name="Arbol_adorno_6" type="Node3D" parent="Decorado/Zona_2_1" unique_id=213083003]
+transform = Transform3D(-0.17364813, 0, -0.9848078, 0, 1, 0, 0.9848078, 0, -0.17364813, 301.28, 0.40157062, 116.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/CommonTree_4.obj"
+alto = 64.0
+choque = "ninguno"
+metadata/choque = Vector2(10, 10)
 
 [node name="Zona_0_-1" type="Node3D" parent="Decorado" unique_id=1878625916]
 
@@ -23474,66 +23538,6 @@ nombre_visible = "CemeteryGateArea (14)"
 es_ancla = true
 radio_ancla = 12.0
 
-[node name="pine-tree_0_(15)" type="Node3D" parent="Objetos" unique_id=80980143]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 213.584, 0.33816472, 85.12)
-script = ExtResource("29_bojho")
-clave = "ancla_15"
-pos_original = Vector2(834, 272)
-alto = 10.0
-nombre_visible = "pine-tree_0 (15)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(16)" type="Node3D" parent="Objetos" unique_id=577128037]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 301.28, 0.5495177, 76.16)
-script = ExtResource("29_bojho")
-clave = "ancla_16"
-pos_original = Vector2(1076, 272)
-alto = 10.0
-nombre_visible = "pine-tree_0 (16)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(17)" type="Node3D" parent="Objetos" unique_id=1672549759]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 301.28, 0.5495177, 96.32)
-script = ExtResource("29_bojho")
-clave = "ancla_17"
-pos_original = Vector2(1076, 344)
-alto = 10.0
-nombre_visible = "pine-tree_0 (17)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(18)" type="Node3D" parent="Objetos" unique_id=1447295290]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 233.52, 0.33816472, 116.48)
-script = ExtResource("29_bojho")
-clave = "ancla_18"
-pos_original = Vector2(834, 416)
-alto = 10.0
-nombre_visible = "pine-tree_0 (18)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(19)" type="Node3D" parent="Objetos" unique_id=505064338]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 271.04, 0.33816472, 117.04)
-script = ExtResource("29_bojho")
-clave = "ancla_19"
-pos_original = Vector2(968, 418)
-alto = 10.0
-nombre_visible = "pine-tree_0 (19)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(20)" type="Node3D" parent="Objetos" unique_id=1378268528]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 301.28, 0.5495177, 116.48)
-script = ExtResource("29_bojho")
-clave = "ancla_20"
-pos_original = Vector2(1076, 416)
-alto = 10.0
-nombre_visible = "pine-tree_0 (20)"
-es_ancla = true
-radio_ancla = 12.0
-
 [node name="🌉_Puente_Viejo_(21)" type="Node3D" parent="Objetos" unique_id=17643992]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.42601, -0.19021766, 6.72)
 script = ExtResource("29_bojho")
@@ -23722,56 +23726,6 @@ clave = "ancla_85"
 pos_original = Vector2(-153, -278)
 alto = 10.0
 nombre_visible = "rock_iron_vein (85)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(86)" type="Node3D" parent="Objetos" unique_id=231682734]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.64, 0.06340589, 62.719997)
-script = ExtResource("29_bojho")
-clave = "ancla_86"
-pos_original = Vector2(188, 224)
-alto = 10.0
-nombre_visible = "pine-tree_0 (86)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(87)" type="Node3D" parent="Objetos" unique_id=1229464079]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 127.68, 0.06340589, 45.695995)
-script = ExtResource("29_bojho")
-clave = "ancla_87"
-pos_original = Vector2(420, 224)
-alto = 10.0
-nombre_visible = "pine-tree_0 (87)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(88)" type="Node3D" parent="Objetos" unique_id=1282812582]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52.64, 0.045919776, 94.64)
-script = ExtResource("29_bojho")
-clave = "ancla_88"
-pos_original = Vector2(188, 338)
-alto = 10.0
-nombre_visible = "pine-tree_0 (88)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(89)" type="Node3D" parent="Objetos" unique_id=739170513]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 117.6, 0.06340589, 94.64)
-script = ExtResource("29_bojho")
-clave = "ancla_89"
-pos_original = Vector2(420, 338)
-alto = 10.0
-nombre_visible = "pine-tree_0 (89)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="pine-tree_0_(90)" type="Node3D" parent="Objetos" unique_id=513633672]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 89.824, 0.06340589, 47.488)
-script = ExtResource("29_bojho")
-clave = "ancla_90"
-pos_original = Vector2(304, 228)
-alto = 10.0
-nombre_visible = "pine-tree_0 (90)"
 es_ancla = true
 radio_ancla = 12.0
 

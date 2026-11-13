@@ -27,7 +27,7 @@ toca el código del mundo** y el usuario no edita el mapa mientras dure. Pasos 0
 Paso 4, trozos seguros (decorado del código → piezas), comparando árbol 3D y lógica antes y después. Hechos: terreno,
 constructor, taberna, restaurante, solares, bosque (Sitios), **choques de muebles** (`mueble.gd` campo `choque`, 69; los pone
 `WorldStageBuildings3D` con `vm.choque_de_mueble`; `add_choque_mundo` = choque ya en el mundo). Hecho también: choques
-del «Decorado» (41: metadatos `choque`, `choque_giro`, `choque_desplaz`; los pone `WorldStageTerrain3D`). Siguen: `VillagePlaces`…
+del «Decorado» (41: metadatos `choque`, `choque_giro`, `choque_desplaz`; los pone `WorldStageTerrain3D`), árboles de adorno (8 piezas). Siguen: mirador, pozos, letreros, `VillagePlaces`…
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.

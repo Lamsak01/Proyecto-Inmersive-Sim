@@ -15,7 +15,7 @@
   1. **Línea blanca transparente que sale del molino** y sube en diagonal hacia el cielo · bosque del molino, 12:53 (`1p_09_molino_linea_blanca.png`). Sospecha: arroyo o agua del molino con la altura del mapa antiguo. En esa foto el minimapa sale vacío.
   2. **Muebles de la iglesia al aire libre**: altar, atril, taburete con cálices, cama, mesa y silla sobre la hierba junto al río, sin edificio · 10:24 (`1p_05_iglesia_muebles_fuera.png`).
   3. **Tejado flotando sin postes** encima del lavadero (pila de piedra, barril y cubo) · 10:36 (`1p_06_lavadero_tejado_flotante.png`).
-  4. **Árbol metido dentro de una casa** (sale por la fachada) y rayitas blancas en la pared; macetas y un palo negro pegados a la casa · 10:46 (`1p_07_arbol_dentro_casa.png`).
+  4. **Árbol metido dentro de una casa** (sale por la fachada) y rayitas blancas en la pared; macetas y un palo negro pegados a la casa · 10:46 (`1p_07_arbol_dentro_casa.png`). *(2026-11-12: el árbol del parque que atraviesa una casa es ya una pieza del «Decorado» (`Arbol_adorno_N`): se puede apartar a mano en el editor.)*
   5. **Restos sueltos por el campo**: palos negros altos con macetas de arbusto, losas de piedra, pilares, rejilla de madera sobre el camino · 09:06–10:10 (`1p_01`, `1p_02`, `1p_04`).
   6. **Cementerio desperdigado**: tumbas, trozos de verja verde, pilares blancos y tramos de muro muy separados por el prado · 10:00 (`1p_11_cementerio_desperdigado.png`).
   7. **Casas en miniatura por dentro**: paredes casi pegadas al jugador, armario, dos mesas y cama sin sitio para moverse · 15:17 (`1p_10_casa_miniatura.png`). Va con «Los edificios antiguos son diminutos y feos» (más abajo).

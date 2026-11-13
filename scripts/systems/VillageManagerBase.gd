@@ -6,7 +6,7 @@ const Anclas = preload("res://mapa/anclas.gd")
 const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D
 const GIRO_MINIMO_GRADOS: float = 0.5
 ## Choque de cada objeto quieto con marca 3D (tamaño en el mapa plano).
-const COLISOR_MARCA: Dictionary = {"well": Vector2(14.0, 14.0), "compost": Vector2(10.0, 9.0), "deco_pine": Vector2(10.0, 10.0), "sign": Vector2(7.0, 6.0)}
+const COLISOR_MARCA: Dictionary = {"well": Vector2(14.0, 14.0), "compost": Vector2(10.0, 9.0), "sign": Vector2(7.0, 6.0)}
 const GRUPO_CHOQUE_MUEBLE := "choque_mueble"
 const COLISOR_PUESTO := Vector2(16.0, 9.0)   ## mostrador o puesto de trabajo
 const COLISOR_TABLON := Vector2(7.0, 6.0)    ## tablón de encargos y farolas

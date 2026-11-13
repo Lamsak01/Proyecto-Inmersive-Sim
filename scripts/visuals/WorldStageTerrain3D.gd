@@ -244,7 +244,6 @@ func _scan_nature_sources() -> void:
 	if vm == null or not is_instance_valid(vm.entities_root):
 		return
 	_nature_sources.clear()
-	var tree_positions_seen: Array[Vector2] = []
 	for n in get_tree().get_nodes_in_group("destructible"):
 		if not (n is Node2D) or n.get("harvest_type") == null:
 			continue
@@ -255,7 +254,6 @@ func _scan_nature_sources() -> void:
 				(n as Node2D).visible = false # árbol talable que quedó dentro del río redibujado
 				continue
 			kind = "pine"
-			tree_positions_seen.append((n as Node2D).global_position)
 		elif ht == 2:
 			kind = "rock"
 		elif ht == 0:
@@ -269,30 +267,6 @@ func _scan_nature_sources() -> void:
 		if n is Node2D and n.get("harvest_type") != null and int(n.get("harvest_type")) == 0:
 			var fk: String = "forage_mushroom" if String(n.get("primary_item_id")) == "mushroom" else "forage_herb"
 			_nature_sources.append({"node": n, "kind": fk})
-	var parents: Array = [vm.entities_root]
-	for eco in get_tree().get_nodes_in_group("ecosystem_manager"):
-		parents.append(eco)
-	for par in parents:
-		for c in (par as Node).get_children():
-			if c is Node2D and String(c.get_meta(META_TIPO_3D, "")) == TIPO_PINO_ADORNO:
-				var tp: Vector2 = (c as Node2D).global_position
-				# Evitar que árboles decorativos se solapen con muros de edificios, bancos del parque u otros árboles
-				var overlaps := en_cauce_del_rio(tp, 2.0)
-				if not overlaps and "building_footprints" in vm:
-					for b_fp in vm.building_footprints:
-						if (b_fp["rect"] as Rect2).grow(12.0).has_point(tp):
-							overlaps = true
-							break
-				if not overlaps:
-					for existing_tp in tree_positions_seen:
-						if existing_tp.distance_squared_to(tp) < 18.0 * 18.0:
-							overlaps = true
-							break
-				if overlaps:
-					(c as Node2D).visible = false
-					continue
-				tree_positions_seen.append(tp)
-				_nature_sources.append({"node": c, "kind": TIPO_PINO_ADORNO})
 	_sync_nature_3d(false)
 	_scan_props_sources()
 
@@ -410,7 +384,7 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 	var hv: int = absi(int(n.global_position.x * 13.0 + n.global_position.y * 7.0))
 	var pos := n.global_position
 	var rot: float = float(hv % 360)
-	if kind == "pine" or kind == TIPO_PINO_ADORNO:
+	if kind == "pine":
 		# Árboles variados por zona: robles/hayas frondosos, abedules de corteza blanca y pinos altos
 		var village_trees := [
 			"nature/CommonTree_1.obj", "nature/CommonTree_2.obj", "nature/BirchTree_1.obj",
@@ -426,10 +400,8 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 		var files: Array = forest_trees if pos.y >= 680.0 else village_trees
 		var h: float = 52.0 + float(hv % 6) * 6.0
 		var t := _add_model_2d(nature_root_3d, files[hv % files.size()], pos, -1.4, Vector2.ZERO, h, rot)
-		var stump: Node3D = null
-		if kind == "pine":
-			stump = _add_cyl_2d(nature_root_3d, pos, 5.0, -1.2, 6.2, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
-			stump.visible = false
+		var stump: Node3D = _add_cyl_2d(nature_root_3d, pos, 5.0, -1.2, 6.2, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
+		stump.visible = false
 		return {"tree": t, "stump": stump}
 	if kind == "forage_mushroom":
 		# Kenney Nature Kit (CC0): seta roja o parda, sola, alta o en grupo

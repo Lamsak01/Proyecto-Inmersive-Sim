@@ -284,10 +284,6 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 		for cx in col_xs:
 			vm._cemetery_grave_positions.append(Vector2(cx, ry))
 
-	# Árboles (pinos/cipreses) flanqueando el perímetro del cementerio en 2D y 3D
-	for c_tp in [Vector2(834.0, 272.0), Vector2(1076.0, 272.0), Vector2(1076.0, 344.0), Vector2(834.0, 416.0), Vector2(968.0, 418.0), Vector2(1076.0, 416.0)]:
-		vm._add_marca_3d("deco_pine", c_tp)
-
 	# Río de norte a sur, arroyo del bosque norte, Claro del Caso I y Molino Viejo Abandonado
 	_spawn_river_arroyo_and_abandoned_mill(vm)
 

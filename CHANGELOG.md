@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: árboles de adorno (Claude Code, paso 4 del plan del mundo)
+- Los árboles del parque y del cementerio eran marcas del código con una bolita en el editor; ahora son 8 piezas de
+  «Decorado» (`Arbol_adorno_N`) con su modelo y su choque: se ven y se mueven en el editor. Los 3 que el juego escondía
+  (pisaban otro árbol) ya no dejan una pared invisible. Borradas sus 11 anclas de «Objetos». Fotos antes/después iguales.
+
 ## 2026-11-12 — Mudanza al editor: el decorado trae su choque (Claude Code, paso 4 del plan del mundo)
 - 41 piezas de «Decorado» llevan su pared invisible en sus datos (`choque`, y si hace falta `choque_giro` y
   `choque_desplaz`): 4 bancos del parque y la plaza, la verja del cementerio (5 tramos), sus 24 tumbas y los 8 troncos
