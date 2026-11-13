@@ -1139,9 +1139,12 @@ func _update_roof_cutaways_and_lighting() -> void:
 		if is_instance_valid(loft_root):
 			var is_tav: bool = str(rec.get("id", "")) == "building_tavern"
 			var on_tavern_stairs: bool = is_tav and VillageTavern.elevation_height_for(pl_pos, elev) > 6.0
-			# Casa de dos plantas: su planta alta se ve si estás arriba o en su escalera (desde arriba, si no, tapa la baja)
-			var arriba_en_casa: bool = is_finite(pl_pos.x) and PisosCasas.de(pl_pos) == str(rec.get("id", "")) and PisosCasas.altura_px(pl_pos, elev) > 0.0
-			loft_root.visible = (is_tav and (first_person_active or elev == 1 or on_tavern_stairs)) or arriba_en_casa or (first_person_active and PisosCasas.tiene(str(rec.get("id", ""))))
+			# Casa de dos plantas: su planta alta (con el trozo alto de los muros) se esconde solo desde arriba y estando tú
+			# en su planta baja, para que no la tape; en primera persona, desde fuera, arriba o en la escalera se ve
+			var b_id: String = str(rec.get("id", ""))
+			var en_casa: bool = is_finite(pl_pos.x) and PisosCasas.de(pl_pos) == b_id
+			var abajo_en_casa: bool = en_casa and PisosCasas.altura_px(pl_pos, elev) <= 0.0
+			loft_root.visible = (is_tav and (first_person_active or elev == 1 or on_tavern_stairs)) or (PisosCasas.tiene(b_id) and (first_person_active or not abajo_en_casa))
 	for altillo in get_tree().get_nodes_in_group("altillo_casa_3d"): # paso 2e: el piso alto de tu casa, igual que el de la posada
 		(altillo as Node3D).visible = first_person_active or elev == 1
 

@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Casas de dos plantas, vista desde arriba (Claude Code)
+- Desde arriba, estando en la planta baja de la casona, ya se ve entera: el trozo alto de los muros va con la planta
+  alta y se esconde con ella. Desde fuera, arriba o en primera persona la casa se ve completa. Probado con fotos.
+
 ## 2026-11-13 — Casas de dos plantas: la Casa Grande de los Rentistas (Claude Code)
 - Primera casa con piso de arriba de verdad: de 8,4 × 5,8 m a 11,2 × 8,4 m por planta, de arenisca y teja roja, con
   generador propio. Abajo: recibidor con la escalera, cuarto de cobro de rentas (mesa con teléfono, archivo y cofre),

@@ -38,7 +38,7 @@ static func armar(plano: Dictionary, centro_original: Vector2) -> Node3D:
 	var grupos: Dictionary = {}
 	for nombre: String in [PARTES.MUROS, PARTES.INTERIOR, PARTES.PISO_ALTO, PARTES.TEJADO, PARTES.MUEBLES, PARTES.MARCAS, TABIQUE_GD.CARPETA, CUARTO_GD.CARPETA]:
 		grupos[nombre] = _hijo(raiz, Node3D.new(), nombre)
-	Cascaron.armar(grupos[PARTES.MUROS], grupos[PARTES.TEJADO], plano)
+	Cascaron.armar(grupos[PARTES.MUROS], grupos[PARTES.TEJADO], grupos[PARTES.PISO_ALTO], plano)
 	var cuenta_muebles: Dictionary = {}
 	for piso: int in range(LeerPlano.PLANTAS.size()):
 		var planta: String = LeerPlano.PLANTAS[piso]

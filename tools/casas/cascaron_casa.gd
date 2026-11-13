@@ -4,7 +4,8 @@ extends RefCounted
 ## los cuatro muros con su puerta y ventanas, y el tejado a dos aguas con sus hastiales.
 ## Metros respecto al centro de la casa; x al este, z al sur; la puerta de la calle en el muro sur (o el norte si la
 ## casa va girada: «PUERTA_LADO»). En una casa de dos plantas («ESCALERA» en el plano) los muros suben una planta
-## más, con las ventanas de arriba («VENTANAS_ARRIBA»), y el tejado va encima.
+## más, con las ventanas de arriba («VENTANAS_ARRIBA»), y el tejado va encima. Ese trozo de arriba va con la planta
+## alta («PisoAlto»): desde arriba, quien está en la planta baja la ve entera sin que el muro alto la tape.
 
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const PARTES = preload("res://scripts/visuals/PartesEdificio3D.gd")
@@ -33,7 +34,7 @@ const ONDA_PASO_M: float = 0.3          ## distancia entre las ondas de la chapa
 const ONDA_TAM := Vector2(0.1, 0.05)    ## ancho y alto de cada onda
 
 
-static func armar(muros: Node3D, tejado: Node3D, plano: Dictionary) -> void:
+static func armar(muros: Node3D, tejado: Node3D, piso_alto: Node3D, plano: Dictionary) -> void:
 	var medio: Vector2 = (plano["PLANTA_M"] as Vector2) * 0.5
 	var zocalo_tam := Vector3(medio.x * 2.0 + ZOCALO_SOBRA_M * 2.0, ZOCALO_HONDO_M + SUELO_Y_M - SUELO_GROSOR_M, medio.y * 2.0 + ZOCALO_SOBRA_M * 2.0)
 	Piezas.caja(muros, Vector3(0.0, -ZOCALO_HONDO_M, 0.0), zocalo_tam, Piezas.material(plano["ZOCALO"], PIEDRA))
@@ -41,13 +42,14 @@ static func armar(muros: Node3D, tejado: Node3D, plano: Dictionary) -> void:
 		var c: Vector2 = cuarto["centro"]
 		var t: Vector2 = cuarto["tam"]
 		Piezas.caja(muros, Vector3(c.x, SUELO_Y_M - SUELO_GROSOR_M, c.y), Vector3(t.x, SUELO_GROSOR_M, t.y), Piezas.material(cuarto["suelo"], TINTE))
-	_muros(muros, plano, medio)
+	_muros(muros, piso_alto, plano, medio)
 	_puerta(muros, plano, medio)
 	_tejado(tejado, plano, medio)
 
 
-## Los cuatro muros. Los del norte y el sur llegan hasta la cara de fuera de los otros dos (esquinas cerradas).
-static func _muros(muros: Node3D, plano: Dictionary, medio: Vector2) -> void:
+## Los cuatro muros, por plantas. Los del norte y el sur llegan hasta la cara de fuera de los otros dos (esquinas
+## cerradas).
+static func _muros(muros: Node3D, piso_alto: Node3D, plano: Dictionary, medio: Vector2) -> void:
 	var fachada: Material = Piezas.material(plano["FACHADA"], TINTE)
 	var g: float = MURO_GROSOR_M * 0.5
 	var lados: Dictionary = {
@@ -56,17 +58,19 @@ static func _muros(muros: Node3D, plano: Dictionary, medio: Vector2) -> void:
 		"oeste": [Vector2(-medio.x, -medio.y), Vector2(-medio.x, medio.y), medio.y],
 		"este": [Vector2(medio.x, -medio.y), Vector2(medio.x, medio.y), medio.y],
 	}
-	for lado: String in lados:
-		var huecos: Array = []
-		if lado == plano.get("PUERTA_LADO", "sur"):
-			huecos.append({"en": plano["PUERTA_X_M"] + lados[lado][2], "ancho": plano["PUERTA_ANCHO_M"], "alto": SUELO_Y_M + PUERTA_HUECO_ALTO_M})
-		for planta: Array in _plantas_con_ventanas(plano):
-			for v: Dictionary in planta[0]:
+	for planta: Dictionary in _plantas(muros, piso_alto, plano):
+		var padre: Node3D = planta["padre"]
+		var base: float = planta["base"]
+		for lado: String in lados:
+			var huecos: Array = []
+			if base <= 0.0 and lado == plano.get("PUERTA_LADO", "sur"):
+				huecos.append({"en": plano["PUERTA_X_M"] + lados[lado][2], "ancho": plano["PUERTA_ANCHO_M"], "alto": SUELO_Y_M + PUERTA_HUECO_ALTO_M})
+			for v: Dictionary in planta["ventanas"]:
 				if v["lado"] != lado:
 					continue
-				huecos.append({"en": float(v["en"]) + float(lados[lado][2]), "ancho": v["ancho"], "base": float(planta[1]) + VENTANA_BASE_M, "alto": VENTANA_ALTO_M})
-				_ventana(muros, lado, v, medio, float(planta[1]))
-		Piezas.muro(muros, lados[lado][0], lados[lado][1], 0.0, alto_muros(plano), MURO_GROSOR_M, huecos, fachada)
+				huecos.append({"en": float(v["en"]) + float(lados[lado][2]), "ancho": v["ancho"], "base": float(planta["suelo"]) - base + VENTANA_BASE_M, "alto": VENTANA_ALTO_M})
+				_ventana(padre, lado, v, medio, float(planta["suelo"]))
+			Piezas.muro(padre, lados[lado][0], lados[lado][1], base, float(planta["alto"]), MURO_GROSOR_M, huecos, fachada)
 
 
 ## Altura de los muros (de la calle al alero): una planta más en las casas de dos plantas.
@@ -76,12 +80,16 @@ static func alto_muros(plano: Dictionary) -> float:
 	return MURO_ALTO_M - SUELO_Y_M + Mapa3D.alto_a_3d(Mapa3D.PISO_ALTO_PX)
 
 
-## Las ventanas de cada planta con la altura de su suelo: [[ventanas, suelo], …].
-static func _plantas_con_ventanas(plano: Dictionary) -> Array:
-	var out: Array = [[plano["VENTANAS"], SUELO_Y_M]]
-	if plano.has("VENTANAS_ARRIBA"):
-		out.append([plano["VENTANAS_ARRIBA"], Mapa3D.alto_a_3d(Mapa3D.PISO_ALTO_PX)])
-	return out
+## Los trozos de muro de cada planta: dónde van (`padre`), desde qué altura (`base`) y cuánto suben (`alto`), con sus
+## ventanas y la altura de su suelo. Una casa de una planta tiene un solo trozo, de la calle al alero.
+static func _plantas(muros: Node3D, piso_alto: Node3D, plano: Dictionary) -> Array[Dictionary]:
+	if not plano.has("ESCALERA"):
+		return [{"padre": muros, "base": 0.0, "alto": MURO_ALTO_M, "suelo": SUELO_Y_M, "ventanas": plano["VENTANAS"]}]
+	var alto_m: float = Mapa3D.alto_a_3d(Mapa3D.PISO_ALTO_PX)
+	return [
+		{"padre": muros, "base": 0.0, "alto": alto_m, "suelo": SUELO_Y_M, "ventanas": plano["VENTANAS"]},
+		{"padre": piso_alto, "base": alto_m, "alto": alto_muros(plano) - alto_m, "suelo": alto_m, "ventanas": plano.get("VENTANAS_ARRIBA", [])},
+	]
 
 
 static func _ventana(muros: Node3D, lado: String, v: Dictionary, medio: Vector2, suelo: float) -> void:
