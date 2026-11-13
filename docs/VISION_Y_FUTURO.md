@@ -344,3 +344,10 @@ las escaleras y trampillas te cambian de nivel.
 - Quiere **granjas alrededor** del pueblo y el **centro más centralizado**; lo recolocará él mismo en el editor.
 - Quiere que **todas las casas sean accesibles** (con interior). Duda de que llenar el pueblo de interiores sea viable.
   Opinión de Claude: sí por plantillas (pocas casas modelo con variantes), no casa a casa. Sin decidir.
+
+## Idea del usuario (2026-11-13): interiores de tamaño real
+Todos los interiores se ven minúsculos (una habitación apretada). Quiere agrandarlos «×4»; un cuarto por cama si hay
+varias, cama de matrimonio para las parejas; cada casa con baño, cuarto(s), cocina y sala de estar; según la riqueza,
+además cuarto de invitados, patio vallado, segundo piso o sótano. Negocios también más grandes; proporciones realistas.
+Medido por Claude: hoy casi todas las casas miden 6–7 × 4–5 m (~30 m²). Propuesta (pendiente de aprobar): doble de lado
+(×4 de suelo, ~115 m²), constructor de casas por lista de cuartos y nivel de riqueza, prueba con una casa primero.
