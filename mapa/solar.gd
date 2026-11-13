@@ -6,7 +6,7 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 ## levanta una casa, una tienda o un edificio público. Muévelo con el ratón: la obra, la casa que se construya en él,
 ## su letrero y sus campos salen ahí. Girarlo (eje vertical) gira lo construido de 90 en 90 grados.
 ## Puede llevar marcas (grupo «Marcas», cruces de mapa/marca.gd) para sitios del solar: van con él.
-## Paso 2 de docs/PLAN_MUNDO_DESDE_EDITOR.md. Lo lee mapa/anclas.gd.
+## Paso 2 de docs/PLAN_MUNDO_DESDE_EDITOR.md.
 
 const CARPETA := "Solares"
 const NINGUNA := "ninguna"
@@ -18,6 +18,7 @@ const LETRERO_TAM_PIXEL: float = 0.02
 const LETRERO_VISTO_HASTA_M: float = 400.0
 const GIRO_RECTO: float = 90.0 ## lo construido en un solar gira de 90 en 90 grados (paredes rectas)
 const VUELTA: float = 360.0
+const PRECISION_PX: float = 0.001 ## metros del editor → píxeles, sin el ruido de la conversión
 const LETRERO_FRANJA_PX: float = 16.0 ## franja al norte y al sur del terreno: ahí va su letrero de «solar libre»
 
 ## Nombre interno del solar en el juego (no lo cambies).
@@ -41,7 +42,7 @@ const LETRERO_FRANJA_PX: float = 16.0 ## franja al norte y al sur del terreno: a
 
 static var _lista: Array[Dictionary] = []
 static var _marcas: Dictionary = {} ## id del solar → {id de la marca → sitio en el mapa original}
-static var _piezas: Dictionary = {} ## id del solar → [centro original, desplazamiento en el mundo, giro en grados, terreno]
+static var _piezas: Dictionary = {} ## id del solar → [centro original, centro en el mundo, giro en grados, terreno]
 static var _leida: bool = false
 
 
@@ -90,7 +91,7 @@ static func marca(id_solar: String, id_marca: String) -> Vector2:
 
 
 ## Del plano del solar (mapa original, sin girar) al mundo, donde está su pieza ahora: lo construido en él gira
-## con ella de 90 en 90 grados. Es la misma cuenta que la capa de anclas hacía para cada solar.
+## con ella de 90 en 90 grados: el centro de la pieza en el mundo más lo que el punto se aparta del centro, girado.
 static func a_mundo(id_solar: String, p_plano: Vector2) -> Vector2:
 	_leer()
 	if not _piezas.has(id_solar):
@@ -98,7 +99,7 @@ static func a_mundo(id_solar: String, p_plano: Vector2) -> Vector2:
 		return p_plano * Mapa3D.E
 	var pieza: Array = _piezas[id_solar]
 	var centro: Vector2 = pieza[0]
-	return centro * Mapa3D.E + (pieza[1] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(pieza[2])))
+	return (pieza[1] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(pieza[2])))
 
 
 ## Solar en cuyo terreno (mapa original, con la franja de su letrero) cae el punto p ("" si ninguno): el de una casa
@@ -159,7 +160,7 @@ static func _anadir_pieza(p: Dictionary) -> void:
 	var giro_recto: float = fposmod(roundf(giro / GIRO_RECTO) * GIRO_RECTO, VUELTA)
 	var tam: Vector2 = (p.get("terreno_m", Vector2.ZERO) as Vector2) / Mapa3D.ESCALA
 	var terreno := Rect2(centro - tam * 0.5, tam).grow_individual(0.0, LETRERO_FRANJA_PX, 0.0, LETRERO_FRANJA_PX)
-	_piezas[String(p.get("id_solar", ""))] = [centro, Mapa3D.a_mapa(xf.origin) - centro * Mapa3D.E, giro_recto, terreno]
+	_piezas[String(p.get("id_solar", ""))] = [centro, Mapa3D.a_mapa(xf.origin).snapped(Vector2.ONE * PRECISION_PX), giro_recto, terreno]
 
 
 static func _anadir(p: Dictionary) -> void:

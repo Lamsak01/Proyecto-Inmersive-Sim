@@ -1,4 +1,5 @@
 extends SceneTree
+const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escritas en el mapa original → mundo
 
 ## Mapa ×E (docs/specs/PLAN_MAPA_X3.md, 2026-11-11): al estirar el mapa los árboles quedan a E veces de distancia y el
 ## bosque se vuelve ralo. Esta herramienta añade, junto a cada árbol de mapa/Mundo3D.tscn → Vegetacion/Arboles, unos
@@ -13,7 +14,6 @@ func _initialize() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	var por_arbol: int = int(args[0]) if args.size() > 0 else 3
 	var sep: float = float(args[1]) if args.size() > 1 else 26.0
-	var AN = load("res://mapa/anclas.gd")
 	var FS = load("res://scripts/fisica/RioLago.gd")
 	var escena: Node = (load(ESCENA) as PackedScene).instantiate()
 	var arboles: Node = escena.get_node("Vegetacion/Arboles")
@@ -31,7 +31,7 @@ func _initialize() -> void:
 		while hechos < por_arbol and intentos < por_arbol * 6:
 			intentos += 1
 			var p: Vector2 = p0 + Vector2.RIGHT.rotated(randf() * TAU) * randf_range(sep * 1.4, sep * 5.0)
-			if FS.is_point_in_river_water(p, 14.0) or _pegado(p, puestos, sep) or AN.buscar(AN.desmover(p)).has("rect"):
+			if FS.is_point_in_river_water(p, 14.0) or _pegado(p, puestos, sep) or _ocupado(p):
 				continue
 			var t := Node3D.new()
 			t.set_script(a.get_script())
@@ -59,3 +59,9 @@ func _pegado(p: Vector2, puestos: Array[Vector2], sep: float) -> bool:
 		if q.distance_squared_to(p) < sep * sep:
 			return true
 	return false
+
+
+## ¿Cae el punto del mundo en un edificio o un solar (ahí no se siembra)?
+func _ocupado(p: Vector2) -> bool:
+	var q: Vector2 = MapaViejo.a_original(p)
+	return not MapaViejo._edificio_de(q).is_empty() or not MapaViejo.Solar.con_punto(q).is_empty()

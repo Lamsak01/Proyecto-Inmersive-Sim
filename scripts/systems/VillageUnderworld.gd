@@ -187,7 +187,7 @@ const SEWER_LOCATIONS_BASE: Dictionary = {
 	}
 }
 ## Editor del mapa 3D (2026-11-10): build_sewers_world() rellena esto con las trampillas donde estén en la calle (siguen a
-## las anclas) y la red de túneles desplazada lo que el usuario la movió (pieza «bajo_alcantarillas» de «BajoTierra»).
+## su pieza) y la red de túneles desplazada lo que el usuario la movió (pieza «bajo_alcantarillas» de «BajoTierra»).
 static var SEWER_LOCATIONS: Dictionary = SEWER_LOCATIONS_BASE.duplicate(true)
 static var desp_red: Vector2 = Vector2.ZERO
 

@@ -203,7 +203,7 @@ static func _restos(f: Dictionary) -> int:
 static func _tabla_codigo() -> String:
 	var re_v := RegEx.create_from_string("Vector2\\(\\s*(-?\\d+(?:\\.\\d+)?)\\s*,\\s*(-?\\d+(?:\\.\\d+)?)\\s*\\)")
 	var re_r := RegEx.create_from_string("Rect2\\(\\s*-?\\d|Rect2\\(\\s*Vector2\\(\\s*-?\\d")
-	var re_a := RegEx.create_from_string("Anclas(Script)?\\.(mover|aplicar|rect_con|mover_puntos|mover_lista|buscar)\\(|\\.sitio\\(")
+	var re_a := RegEx.create_from_string("\\.(a_mundo|estirar|estirar_puntos|colocar_plano)\\(")
 	var filas: Array = []
 	var total := Vector3i.ZERO
 	for ruta: String in _archivos_gd():

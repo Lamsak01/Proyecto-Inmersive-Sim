@@ -5,7 +5,7 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 ## Zona de terreno en el editor del mapa 3D (mapa/Mundo3D.tscn → «Zonas»), 2026-11-11: la plaza, el lago o la ciénaga.
 ## Muévela con el ratón: su suelo o su agua, la hondonada del terreno y lo que el juego pone encima salen ahí.
 ## No gira ni cambia de forma. Paso 2 de docs/PLAN_MUNDO_DESDE_EDITOR.md. El terreno, el agua y el mapa del valle la
-## leen con `estirar`, `estirar_puntos` y `desestirar` (abajo, sin pasar por las anclas).
+## leen con `estirar`, `estirar_puntos` y `desestirar` (abajo).
 
 const CARPETA := "Zonas"
 const ESCENA := "res://mapa/Mundo3D.tscn"
@@ -53,7 +53,7 @@ func _poner_vista() -> void:
 	add_child(letrero)
 
 
-## Todas las zonas (las lee una vez de la escena del mapa). Las anclas las usan para lo que el código pone encima.
+## Todas las zonas (las lee una vez de la escena del mapa).
 static func todas() -> Array[Dictionary]:
 	if not _leidas:
 		_leer()

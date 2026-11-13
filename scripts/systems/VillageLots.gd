@@ -22,8 +22,8 @@ const SITE_RADIUS: float = 50.0
 const CARPENTER_SHARE: float = 0.4 # Lo que cobra el carpintero; el resto son materiales
 
 ## Solares: salen de las piezas de «Solares» del editor del mapa (mapa/solar.gd), con su zona, su barrio, el tamaño
-## de la casa, hacia dónde mira la puerta y cuánto se aparta el edificio. Aún no se añaden duplicando una pieza: la
-## copia tendría el mismo «centro original» y la traducción (mapa/anclas.gd) confundiría las dos; será al quitarla (paso 4).
+## de la casa, hacia dónde mira la puerta y cuánto se aparta el edificio. Un solar nuevo lo añade Claude: una pieza
+## duplicada tendría el mismo nombre interno que la original.
 static func lots() -> Array[Dictionary]:
 	return Solar.lista()
 

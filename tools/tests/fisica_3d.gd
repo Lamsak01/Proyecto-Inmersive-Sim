@@ -1,11 +1,11 @@
 extends SceneTree
+const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escritas en el mapa original → mundo
 
 ## Prueba del paso del mundo a 3D (docs/PLAN_MUNDO_3D.md). Cada paso añade aquí lo suyo. Sin ventana, ~1 min.
 ## Uso: timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/fisica_3d.gd
 ## Termina con «FISICA 3D: PASSED» o «FAILED».
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
-const Anclas = preload("res://mapa/anclas.gd")
 var _fallos: int = 0
 
 
@@ -308,7 +308,7 @@ func _paso3_nadar() -> void:
 	_ok(nado, "3: en el centro del río no se hace pie: nada (hondo %.1f m)" % Agua.hondura_m(Vector2(rio_lago.river_center_x(y_rio), y_rio)))
 	_ok(pl.global_position.x > orillas.y + 8.0 and mc.estado_agua() == Cuerpo3D.EnAgua.SECO, "3: cruza el río nadando y sale por la otra orilla (" + str(pl.global_position.round()) + ")")
 	# En el lago: flota con la cabeza fuera
-	pl.global_position = Anclas.mover(Vector2(-880.0, 160.0))
+	pl.global_position = MapaViejo.a_mundo(Vector2(-880.0, 160.0))
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.5)
 	var cabeza: float = c.global_position.y + 1.74 - Agua.superficie_y(pl.global_position)
 	_ok(mc.estado_agua() == Cuerpo3D.EnAgua.NADANDO and cabeza > 0.2 and cabeza < 0.6, "3: en el lago flota con la cabeza fuera (%.2f m sobre el agua)" % cabeza)
@@ -349,7 +349,7 @@ func _paso3_nadar() -> void:
 	mc.buceando = false
 	_ok(not en_superficie and buceando_ve, "3c: lo del fondo solo se alcanza buceando (superficie %s, buceando %s)" % [str(en_superficie), str(buceando_ve)])
 	fondo_area.queue_free()
-	pl.global_position = Anclas.mover(Vector2(454.0, -100.0)) # delante de la posada, fuera del agua
+	pl.global_position = MapaViejo.a_mundo(Vector2(454.0, -100.0)) # delante de la posada, fuera del agua
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	mc.set_physics_process(true)
 
@@ -367,7 +367,7 @@ func _paso2e_casa() -> void:
 	st["payer"] = "player"
 	st["status"] = "built"
 	st["upgrades"] = {"upper_floor": true, "hidden_cellar": true}
-	var centro: Vector2 = Anclas.mover(VillageLots.lot_def(id)["center"]) # la casa está en su sitio del mundo (mapa ×E)
+	var centro: Vector2 = MapaViejo.a_mundo(VillageLots.lot_def(id)["center"]) # la casa está en su sitio del mundo (mapa ×E)
 	_ok(Suelo.altura_px(centro, 1, vm) == Suelo.ALTILLO_CASA_PX, "2e: el piso alto de tu casa está a %.0f px de altura" % Suelo.altura_px(centro, 1, vm))
 	_ok(Suelo.altura_px(centro, -1, vm) == Suelo.PROFUNDIDAD_SOTANO_PX, "2e: y el sótano, bajo tierra (%.0f px)" % Suelo.altura_px(centro, -1, vm))
 	mc.set_physics_process(false)

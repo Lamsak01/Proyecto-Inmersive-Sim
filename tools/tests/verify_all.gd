@@ -1,4 +1,5 @@
 extends SceneTree
+const MapaViejo = preload("res://tools/tests/mapa_viejo.gd")
 
 const SkillCatalog = preload("res://scripts/systems/SkillCatalog.gd")
 
@@ -7351,11 +7352,11 @@ func _initialize() -> void:
 	quit(0)
 
 
-## Mapa ×E (2026-11-11): las posiciones escritas a mano en esta prueba están en el mapa original.
+## Mapa ×E (2026-11-11): las posiciones escritas a mano en esta prueba están en el mapa original (tools/tests/mapa_viejo.gd).
 func M(p: Vector2) -> Vector2:
-	return load("res://mapa/anclas.gd").mover(p)
+	return MapaViejo.a_mundo(p)
 
 
 ## Del mundo al mapa original (para funciones que esperan coordenadas fijas, como room_of)
 func D(p: Vector2) -> Vector2:
-	return load("res://mapa/anclas.gd").desmover(p)
+	return MapaViejo.a_original(p)

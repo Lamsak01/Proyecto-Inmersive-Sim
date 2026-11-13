@@ -1,4 +1,5 @@
 extends SceneTree
+const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escritas en el mapa original → mundo
 
 ## Fotos fijas del mundo en 1.ª persona (y una desde arriba, «arriba_plaza») para comparar antes y después de un cambio (Claude Code, 2026-11-10;
 ## paso del mundo a 3D, docs/PLAN_MUNDO_3D.md). Con ventana, ~2 min. Siempre los mismos sitios, mediodía, cielo
@@ -49,9 +50,8 @@ func _initialize() -> void:
 	stage.call("set_first_person", true)
 	var pl = get_first_node_in_group("player") as Node2D
 	var total_dist: float = 0.0
-	var AN = load("res://mapa/anclas.gd") # mapa ×E: los sitios están escritos en el mapa original
 	for s in SITIOS:
-		pl.global_position = AN.mover(s[1])
+		pl.global_position = MapaViejo.a_mundo(s[1]) # los sitios están escritos en el mapa original
 		for _i in range(40):
 			stage.set("fp_yaw", s[2])
 			stage.set("fp_pitch", -0.05)
@@ -69,7 +69,7 @@ func _initialize() -> void:
 			print("CAPTURA %s guardada" % s[0])
 	# Vista desde arriba (paso 0b): el 3D debe cuadrar con el mapa del pueblo (casas, caminos, letreros)
 	stage.call("set_first_person", false)
-	pl.global_position = AN.mover(SITIOS[0][1])
+	pl.global_position = MapaViejo.a_mundo(SITIOS[0][1])
 	for _i in range(40):
 		await process_frame
 	var img_arriba: Image = root.get_texture().get_image()

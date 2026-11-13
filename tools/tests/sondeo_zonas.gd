@@ -18,7 +18,6 @@ var _fallos: int = 0
 
 func _initialize() -> void:
 	_mover_zonas()
-	var anclas: GDScript = load("res://mapa/anclas.gd")
 	var zona: GDScript = load("res://mapa/zona.gd")
 	var agua: GDScript = load("res://scripts/fisica/Agua.gd")
 	var relieve: GDScript = load("res://scripts/visuals/WorldStageBase3D.gd")
@@ -26,8 +25,6 @@ func _initialize() -> void:
 	var lago_viejo: Vector2 = LAGO_DENTRO * Mapa3D.E
 	var lago_nuevo: Vector2 = lago_viejo + DESPLAZAMIENTO_PX
 	_comprobar("el lago se estira a su sitio nuevo", (zona.call("estirar", LAGO_DENTRO) as Vector2).is_equal_approx(lago_nuevo))
-	_comprobar("la lógica (mover) lleva el lago al sitio nuevo", (anclas.call("mover", LAGO_DENTRO) as Vector2).is_equal_approx(lago_nuevo))
-	_comprobar("desde el sitio nuevo se vuelve al original", (anclas.call("desmover", lago_nuevo) as Vector2).is_equal_approx(LAGO_DENTRO))
 	_comprobar("se nada en el lago nuevo", bool(agua.call("en_lago", lago_nuevo)))
 	_comprobar("no se nada en el sitio viejo", not bool(agua.call("en_lago", lago_viejo)))
 	_comprobar("hay hondonada en el lago nuevo", float(relieve.call("terrain_height_px", lago_nuevo)) < HONDO_PX)

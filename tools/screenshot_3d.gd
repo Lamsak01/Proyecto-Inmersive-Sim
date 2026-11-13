@@ -1,4 +1,5 @@
 extends SceneTree
+const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escritas en el mapa original → mundo
 
 ## Captura fotos del juego en 3D (con ventana real, NO headless) para revisar la estética.
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/screenshot_3d.gd -- <carpeta_salida> [horas separadas por comas] [sitios]
@@ -164,7 +165,7 @@ func _initialize() -> void:
 						vun_loop.enter_sewer_location(vm_loop, "smuggler_tunnel", player)
 					elif vun_loop.is_player_in_sewers(vm_loop):
 						vun_loop.exit_sewers_to_surface(vm_loop)
-				player.global_position = load("res://mapa/anclas.gd").mover(SPOTS[s]) # sitios escritos en el mapa original (mapa ×E)
+				player.global_position = MapaViejo.a_mundo(SPOTS[s]) # sitios escritos en el mapa original (mapa ×E)
 				if s == "muelle_lago":
 					player.global_position = load("res://scripts/fisica/RioLago.gd").lake_dock_center() + Vector2(0.0, 20.0)
 				var horse_n = get_first_node_in_group("player_horse")

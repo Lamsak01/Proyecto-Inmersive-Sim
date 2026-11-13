@@ -163,10 +163,10 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - Las texturas de los muros pueden verse corridas unos centímetros respecto a antes (se pegan al edificio, no al mundo).
 
 ## Mapa ×5 (2026-11-11/12)
-- Las escenas `mapa/Mundo3D.tscn` y `mapa/EditorMapa.tscn` se convirtieron con `tools/estirar_mapa.py` y
-  `estirar_mapa_objetos.py` (copias `*.antes-x5.tscn`). Las piezas siguen la regla de las anclas: edificio a E·centro con
-  su tamaño (`mapa/edificio.gd`: `d = ahora − centro·E`), objetos igual (`mapa/objeto.gd` devuelve el número fijo y el
-  ancla lo lleva), campo abierto ×E.
+- Las escenas del editor se estiraron una vez (herramientas y copias ya borradas). Desde el corte final (2026-11-12,
+  sin capa de anclas): cada pieza guarda su sitio del mundo y lo de dentro va con ella (`EdificioEditor.a_mundo`,
+  `Solar.a_mundo`: centro de la pieza + lo que el punto se aparta del centro de fábrica, girado). E solo queda en
+  `mapa/zona.gd` para el relieve, el lago, la ciénaga y el mapa del valle, escritos aún en medidas del mapa original.
 - Editor: la maqueta «Vista» de Mundo3D y la «Referencia» de EditorMapa (`mapa/mundo3d.gd`, `mapa/referencia.gd`) estiran
   la referencia del mapa original (caminos, lago, suelo, plantas de los edificios); `rio.gd` dibuja cada paso alargado
   hasta las orillas como hace el juego (no sale rojo sin motivo); rangos de «ancho» del río (hasta 400) y «largo» de

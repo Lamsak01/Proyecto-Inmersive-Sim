@@ -12,12 +12,14 @@ func _initialize() -> void:
 	seed(11)
 	var ref: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://mapa/referencia_mapa.json"))
 	var ED = load("res://mapa/edificio.gd")
+	var E: float = load("res://scripts/fisica/Mapa3D.gd").E # el mapa de referencia está en medidas del mapa original
 	var cache := {}
 	var viejos := {}
 	for e in ref["edificios"]:
 		var r: Array = e["r"]
 		viejos[str(e["id"])] = Rect2(r[0], r[1], r[2], r[3])
-		cache[str(e["id"])] = [D, 0.0, (viejos[str(e["id"])] as Rect2).get_center()] # desplazamiento, giro, centro
+		var centro: Vector2 = (viejos[str(e["id"])] as Rect2).get_center()
+		cache[str(e["id"])] = [centro * E + D, 0.0, centro] # centro en el mundo (sitio de siempre + D), giro, centro de fábrica
 	ED._leido = true
 	ED._cache = cache
 	root.add_child(load("uid://dsoiuct8kdsk3").instantiate())
@@ -30,7 +32,6 @@ func _initialize() -> void:
 	var movidos := 0
 	for id in viejos.keys():
 		var viejo: Rect2 = viejos[id]
-		var E: float = load("res://scripts/fisica/Mapa3D.gd").E # mapa ×E: el edificio va a E veces su centro, con su tamaño
 		if nuevos.has(id) and (nuevos[id] as Rect2).position.distance_to(viejo.position + viejo.get_center() * (E - 1.0) + D) < 2.0:
 			movidos += 1
 	print("SONDEO edificios movidos bien: %d de %d" % [movidos, viejos.size()])

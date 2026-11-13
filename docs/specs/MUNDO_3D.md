@@ -42,7 +42,7 @@ Conversión terminada el 2026-11-12 (etiqueta `fin-paso-a-3d`). Plan, manuscrito
   mundo estirado (`mover`; `desmover` al revés). Reglas en `PLAN_MAPA_X3.md` §2–§3. Lo que viene del editor o de un nodo
   ya es del mundo: **nunca** pasarlo por `mover` (traducción doble); lo que se compara con una constante del código se
   pasa por `desmover`. Interiores 3D con coordenadas fijas: `WorldStageBase3D.mover_posiciones`; terreno: `estirar_terreno`.
-- Herramientas de un solo uso ya pasadas: `tools/estirar_mapa.py`, `estirar_mapa_objetos.py`, `hornear_caminos.gd`, `repoblar_bosque.gd`.
+- Herramientas de un solo uso ya pasadas: `hornear_caminos.gd`, `repoblar_bosque.gd`.
 
 ## Mapa editable (`mapa/Mundo3D.tscn`)
 - Carpetas «Vegetacion» (árboles, rocas, plantas, troncos, vetas horneados del código, editables a mano) y «Decorado».

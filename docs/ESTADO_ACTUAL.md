@@ -5,7 +5,7 @@
 ## a) Tarea activa
 **PRIORIDAD TOTAL (usuario, 2026-11-12): salir del mapa 2D**; lo demás espera (detención orgánica: `docs/FALLOS_VISIBLES.md`).
 Migración «el mundo sale solo del editor» (`docs/PLAN_MUNDO_DESDE_EDITOR.md`); una sola sesión de Claude toca el código
-del mundo. Pasos 0 a 3 hechos; **paso 4: puntos 1–5 hechos** (falta el 6, el corte final, con el usuario).
+del mundo. Pasos 0 a 4 hechos (corte final 2026-11-12: sin capa de anclas). Queda el paso 5 del plan.
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;
@@ -18,24 +18,22 @@ del mundo. Pasos 0 a 3 hechos; **paso 4: puntos 1–5 hechos** (falta el 6, el c
     pieza (`Zona.estirar`, `estirar_puntos`, `desestirar`, `rect_mundo`); las usan terreno, relieve, `Agua`, `RioLago`,
     la ciénaga que enferma y el mapa del valle (`scripts/ui/ValleMapaPiezas.gd`: edificios y solares desde sus piezas).
 - Paso 3 (2026-11-12): **Sitios** (86, `mapa/sitio.gd`): cruces al aire libre ya en el mundo (`Sitio.mundo(id)`,
-  `Sitio.serie(nombre)`; `Sitio.original(id)` solo para funciones que aún traducen). Caso I: 3 marcas de edificio.
+  `Sitio.serie(nombre)`). Caso I: 3 marcas de edificio.
+- Paso 4 (2026-11-12): el juego ya no traduce. Cada pieza guarda su sitio del mundo y lo de dentro va con ella
+  (`EdificioEditor.a_mundo`, `Solar.a_mundo`, `colocar_plano`); río y puentes en `Mundo3D.tscn` («Rio», «Cruces»).
+  Borrados `mapa/anclas.gd`, la copia `Mundo3D.antes-x5.tscn` y las herramientas de estirar. Las pruebas que escriben
+  sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c) Siguiente paso técnico inmediato
-Paso 4 por tandas, comparando con `tools/tests/volcado_mundo.gd` (choques, zonas, marcas, vecinos antes/después).
-**Hecho (2026-11-12):** edificios, casas de solar, anexos, alcantarillas y mirador van directos a su pieza; los
-vecinos nacen ya en el mundo; cementerio, corral y sitios de fuera son cruces; zonas y mapa del valle salen de sus
-piezas; río y puentes en `Mundo3D.tscn` («Rio», «Cruces»), editor 2D borrado. Muebles de la taberna sin pieza propia.
-**El juego ya no traduce (2026-11-12):** constructor, tabiques, dibujos 3D (`colocar_plano`) y objetos van con su
-pieza; solo `Anclas.registrar_edificio` sigue para las pruebas que escriben en el mapa original.
-**Siguiente (corte final, con el usuario):** pasar esas pruebas (`M()` de verify_all, `fisica_3d`, `partida_caso1`,
-herramientas) a coordenadas del mundo; quitar `anclas.gd`, el ×5 (`Mapa3D.E`, `estirar_terreno`, `Zona.estirar`…) y
-`mapa/Mundo3D.antes-x5.tscn`.
+**×5 que queda (decidir con el usuario si se quita):** `Mapa3D.E` solo estira lo que aún está escrito en medidas del
+mapa original: relieve hecho por el juego, forma del lago y la ciénaga, manchas del mapa del valle (`mapa/zona.gd`).
+No se ve al jugar; quitarlo es mucho trabajo y arriesgado.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.
 **Pesca, huerto, gallinero, campamento, animales de corral del jugador y huerto de casa borrados (usuario, 2026-11-12)**:
 se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd` (lee el río del editor 3D).
-Red eléctrica: generador del Arreglador; farolas solo de noche. Corte final pedido por el usuario el 2026-11-12.
+Red eléctrica: generador del Arreglador; farolas solo de noche.
 Pendiente: tamaños (`VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS` (mal comparados con el mundo); matas que no esquivan una plaza movida; `RIVER_*`; mapa del valle.
 
 ## d) Bloqueos activos

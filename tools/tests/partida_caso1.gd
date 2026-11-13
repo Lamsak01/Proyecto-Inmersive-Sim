@@ -1,4 +1,5 @@
 extends SceneTree
+const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escritas en el mapa original → mundo
 
 ## Partida automática completa del Caso I (a pie, sin teletransportar ni atravesar paredes).
 ## Uso:
@@ -28,7 +29,7 @@ func _has_note_with_source(det_ui: Node, source_key: String) -> bool:
 
 func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vector2], arrive_dist: float = 8.0, max_frames_per_seg: int = 6000, ya_mundo: bool = false) -> bool:
 	for wp0 in waypoints:
-		var wp: Vector2 = wp0 if ya_mundo else load("res://mapa/anclas.gd").mover(wp0) # los puntos de paso están en el mapa original (mapa ×E)
+		var wp: Vector2 = wp0 if ya_mundo else MapaViejo.a_mundo(wp0) # los puntos de paso están en el mapa original (mapa ×E)
 		var frames: int = 0
 		var stuck_count: int = 0
 		var side_sign: float = 1.0
@@ -76,7 +77,7 @@ func _walk_to_waypoints(pl: CharacterBody2D, stage: Node, waypoints: Array[Vecto
 
 func _aim_and_press_e(pl: CharacterBody2D, stage: Node, look_target: Vector2, pitch: float = -0.24, want_substr: String = "", ya_mundo: bool = false) -> Dictionary:
 	if not ya_mundo:
-		look_target = load("res://mapa/anclas.gd").mover(look_target) # mapa original → mundo (mapa ×E)
+		look_target = MapaViejo.a_mundo(look_target) # mapa original → mundo (mapa ×E)
 	var dir: Vector2 = look_target - pl.global_position
 	if dir.length_squared() > 0.001 and stage != null:
 		stage.set("fp_yaw", dir.angle())
@@ -188,7 +189,7 @@ func _initialize() -> void:
 	if ui_root != null and ui_root.has_method("close_controls_panel"):
 		ui_root.call("close_controls_panel")
 	var letter_closed_ok: bool = letter_panel != null and not letter_panel.visible
-	_record("A1_carta_inicio_afueras", start_pos.distance_to(load("res://mapa/anclas.gd").mover(Vector2(-1180.0, 50.0))) < 35.0 and letter_open_ok and letter_closed_ok,
+	_record("A1_carta_inicio_afueras", start_pos.distance_to(MapaViejo.a_mundo(Vector2(-1180.0, 50.0))) < 35.0 and letter_open_ok and letter_closed_ok,
 		"pos=%s carta_abierta=%s cerrada_con_E=%s" % [str(start_pos.round()), str(letter_open_ok), str(letter_closed_ok)])
 
 	# Caminar a pie desde las afueras (-1180, 50) hasta el Claro del arroyo (138, -854)
@@ -270,7 +271,7 @@ func _initialize() -> void:
 
 	# Entrar al Molino Viejo por la puerta sur (188, -1014)
 	await _walk_to_waypoints(pl, stage, [Vector2(188.0, -996.0)], 4.0)
-	var d_mill: Dictionary = vm.call("_find_nearest_door", load("res://mapa/anclas.gd").mover(Vector2(188.0, -1014.0)), 20.0)
+	var d_mill: Dictionary = vm.call("_find_nearest_door", MapaViejo.a_mundo(Vector2(188.0, -1014.0)), 20.0)
 	if not bool(d_mill.get("is_open", false)):
 		await _aim_and_press_e(pl, stage, Vector2(188.0, -1014.0), -0.05, "puerta")
 	var walked_mill_in: bool = await _walk_to_waypoints(pl, stage, [Vector2(188.0, -1035.0), Vector2(154.0, -1061.0)], 5.0)
@@ -310,7 +311,7 @@ func _initialize() -> void:
 	# Salir del molino y bajar a pie hasta el Puente Viejo (zapato izquierdo)
 	# Mapa ×E: el zapato lo coloca el juego junto al cruce del río del editor; se apunta a donde esté de verdad (en el mapa original)
 	var shoe_area: Node2D = root.find_child("OldBridgeVictimShoeArea", true, false) as Node2D
-	var shoe_mundo: Vector2 = shoe_area.global_position if shoe_area != null else load("res://mapa/anclas.gd").mover(Vector2(95.0, 38.0))
+	var shoe_mundo: Vector2 = shoe_area.global_position if shoe_area != null else MapaViejo.a_mundo(Vector2(95.0, 38.0))
 	var path_to_bridge: Array[Vector2] = [
 		Vector2(188.0, -1028.0),
 		Vector2(188.0, -996.0),
@@ -527,7 +528,7 @@ func _initialize() -> void:
 		var pos_before: Vector2 = pl.global_position
 		pl.global_position = page_pos + Vector2(0.0, 18.0) # (sin ruta a pie fija: la casa depende del reparto)
 		await process_frame
-		var e_page: Dictionary = await _aim_and_press_e(pl, stage, load("res://mapa/anclas.gd").desmover(page_pos), -0.25, "hoja") # page_pos ya es del mundo
+		var e_page: Dictionary = await _aim_and_press_e(pl, stage, page_pos, -0.25, "hoja", true) # page_pos ya es del mundo
 		page_label = str(e_page["label"])
 		page_ok = bool(e_page["ok"]) and _has_note_with_source(det_ui, "clue_case1_relative_page")
 		await _save_shot("03_casa_familiar_hoja_arrancada_v2")
@@ -542,7 +543,7 @@ func _initialize() -> void:
 	var kds: Array = get_nodes_in_group("case1_kidnappers")
 	var near_mill: int = 0
 	for kd in kds:
-		if is_instance_valid(kd) and (kd as Node2D).global_position.distance_to(load("res://mapa/anclas.gd").mover(Vector2(188.0, -1060.0))) < 80.0:
+		if is_instance_valid(kd) and (kd as Node2D).global_position.distance_to(MapaViejo.a_mundo(Vector2(188.0, -1060.0))) < 80.0:
 			near_mill += 1
 	_record("D4d_secuestradores_en_el_molino", near_mill == 2, "forasteros_en_el_molino=%d (el tercero es el vecino de la lana azul)" % near_mill)
 	await _walk_to_waypoints(pl, stage, [

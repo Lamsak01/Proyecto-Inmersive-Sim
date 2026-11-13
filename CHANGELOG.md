@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Corte final: adiós a la capa de anclas (Claude Code)
+- Borrados `mapa/anclas.gd`, la copia `mapa/Mundo3D.antes-x5.tscn` y las herramientas de un solo uso del ×5.
+- Edificios y solares guardan su sitio del mundo leído de la pieza (sin `centro·E + desplazamiento`).
+- Muebles: fuera el lector de anclas. Pruebas y herramientas usan `tools/tests/mapa_viejo.gd` para sus sitios escritos
+  en el mapa original. Volcado del mundo igual que antes (diferencia máxima 0,0001 px).
+- El ×5 solo queda en `mapa/zona.gd` (relieve, lago, ciénaga y mapa del valle aún escritos en medidas viejas).
+
 ## 2026-11-12 — El juego ya no traduce nada con las anclas (Claude Code)
 - Constructor de edificios: se levanta con la función de su pieza (`EdificioEditor.a_mundo`) o de su solar
   (`Solar.a_mundo`, nuevo `Solar.con_punto`/`giro`); tabiques girados con su edificio, sin anclas ni «pausa».

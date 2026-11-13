@@ -1,8 +1,6 @@
 @tool
 extends Node2D
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 const EdificioEditor = preload("res://mapa/edificio.gd")
-const Anclas = preload("res://mapa/anclas.gd")
 const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D
 const GIRO_MINIMO_GRADOS: float = 0.5
 ## Choque de cada objeto quieto con marca 3D (tamaño en el mapa plano).
@@ -406,7 +404,6 @@ func _construct_solid_building(
 	var colocar: Callable = _colocador(b_id, solar)
 	var g_edif: float = EdificioEditor.giro(b_id) if solar.is_empty() else Solar.giro(solar)
 	var d_edif: Vector2 = colocar.call(center) - center
-	Anclas.registrar_edificio(Rect2(center - size * 0.5, size), d_edif - center * (Mapa3D.E - 1.0), g_edif) # lo que aún traduce (escena 2D vieja)
 	var orig_info := {"rect_orig": Rect2(center - size * 0.5, size)}
 	center += d_edif
 	var half := size * 0.5
