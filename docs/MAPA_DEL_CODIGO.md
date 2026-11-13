@@ -105,5 +105,5 @@ desde arriba),
 `perf_*.gd` (rendimiento). Cómo lanzarlas: `docs/specs/PRUEBAS.md`.
 
 ## Herramientas del mapa — `tools/`
-`hornear_*.gd` (pasan al mapa editable lo que colocaba el código), `esparcir_arboles.gd` (quita árboles con el tronco pegado a otro, por zonas), `repoblar_bosque.gd` (más árboles junto a cada uno), `screenshot_3d.gd`.
+`hornear_*.gd` (pasan al mapa editable lo que colocaba el código), `esparcir_arboles.gd` (quita árboles con el tronco pegado a otro, por zonas), `repoblar_bosque.gd` (más árboles junto a cada uno), `juntar_decorado.py` (recompone un grupo del decorado estirado ×5 pieza a pieza, como el cementerio), `screenshot_3d.gd`.
 `mapa/anclas.gd` [~290] — la capa que lleva cada punto del mapa original a su sitio actual (piezas movidas en el editor y mapa ×E).

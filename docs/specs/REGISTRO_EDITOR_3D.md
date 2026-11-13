@@ -167,6 +167,8 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
   sin capa de anclas): cada pieza guarda su sitio del mundo y lo de dentro va con ella (`EdificioEditor.a_mundo`,
   `Solar.a_mundo`: centro de la pieza + lo que el punto se aparta del centro de fábrica, girado). E solo queda en
   `mapa/zona.gd` para el relieve, el lago, la ciénaga y el mapa del valle, escritos aún en medidas del mapa original.
+- Grupos del «Decorado» estirados pieza a pieza (2026-11-13): `tools/juntar_decorado.py X0 Y0 X1 Y1 [--sitios …]`
+  los junta con su forma original (`E·c + (p − c)`). Hecho: cementerio. Quedan ~40 grupos (FALLOS_VISIBLES, punto 5).
 - Editor: la maqueta «Vista» de Mundo3D y la «Referencia» de EditorMapa (`mapa/mundo3d.gd`, `mapa/referencia.gd`) estiran
   la referencia del mapa original (caminos, lago, suelo, plantas de los edificios); `rio.gd` dibuja cada paso alargado
   hasta las orillas como hace el juego (no sale rojo sin motivo); rangos de «ancho» del río (hasta 400) y «largo» de

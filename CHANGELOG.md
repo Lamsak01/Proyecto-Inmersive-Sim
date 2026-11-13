@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Cementerio recompuesto (Claude Code)
+- Las 39 piezas del cementerio en el «Decorado» del editor y sus 26 cruces de «Sitios» se habían estirado ×5 una a una
+  (muros en trozos sueltos, tumbas a 8 m). Juntadas con la forma original alrededor de su centro (`E·c + (p − c)`).
+- Fotos en `docs/capturas_arreglos/2026-11-13_cementerio_despues_*.png`. Quedan ~40 grupos parecidos en el decorado
+  (pista en `docs/FALLOS_VISIBLES.md`, punto 5).
+
 ## 2026-11-13 — Restos planos: animales del rancho, caja y barril (Claude Code)
 - Animales del corral del rancho: fuera su dibujo plano (ya tenían modelo 3D). Dibujos planos 14 → 6 (y 2 son textos
   pasajeros).

@@ -4,7 +4,8 @@
 
 ## a) Tarea activa
 **PRIORIDAD TOTAL (usuario, 2026-11-12): salir del mapa 2D**. Detención sin atajos hecha (2026-11-13,
-`scripts/systems/EscoltaPolicial.gd`, prueba `tools/tests/escolta_organica.gd`); cola en las puertas hecha; siguiente: restos planos (capa 2).
+`scripts/systems/EscoltaPolicial.gd`, prueba `tools/tests/escolta_organica.gd`); cola en las puertas y cementerio recompuesto hechos;
+siguiente: ~40 grupos del decorado estirados pieza a pieza (`tools/juntar_decorado.py`, FALLOS punto 5).
 Migración «el mundo sale solo del editor» (`docs/PLAN_MUNDO_DESDE_EDITOR.md`); una sola sesión de Claude toca el código
 del mundo. Pasos 0 a 4 hechos (corte final 2026-11-12: sin capa de anclas). Queda el paso 5 del plan.
 
@@ -31,7 +32,7 @@ mapa original: relieve hecho por el juego, forma del lago y la ciénaga, manchas
 No se ve al jugar; quitarlo es mucho trabajo y arriesgado.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
-sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.
+sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan 6 dibujos planos (caja, barril, muro débil y espada de `World.tscn`, ya con 3D; textos pasajeros).
 **Pesca, huerto, gallinero, campamento, animales de corral del jugador y huerto de casa borrados (usuario, 2026-11-12)**:
 se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd` (lee el río del editor 3D).
 Red eléctrica: generador del Arreglador; farolas solo de noche.
