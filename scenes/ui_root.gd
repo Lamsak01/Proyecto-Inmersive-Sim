@@ -38,6 +38,12 @@ var hud_gold_label: Label = null
 var inv_panel: PanelContainer = null
 var controls_panel: PanelContainer = null
 var hiring_letter_panel: Control = null
+var _aviso_carta: Label = null # la línea de abajo de la carta: cambia si se relee desde la mochila
+## Carta con la que llegas al valle: solo tu contrato de detective del pueblo (decidido por el usuario el 2026-11-13: no
+## habla del asesinato, que ocurre después de llegar). Se relee desde la mochila («carta_contrato»). Texto provisional.
+const TEXTO_CARTA_CONTRATO: String = "«Al investigador forastero:\n\nEl concejo del valle le contrata como detective del pueblo, a sueldo y con cuarto pagado, para atender lo que la guardia no alcance a ver.\n\nLlegue hoy, tome un cuarto en la posada El Jabalí Dorado y conozca a los vecinos. Cuando se le necesite, el alguacil mayor Vane le mandará llamar.»\n\n(Texto provisional)"
+const AVISO_CARTA_LLEGADA: String = "[E / Enter / Esc / Clic] Continuar hacia el valle"
+const AVISO_CARTA_RELEER: String = "[E / Enter / Esc / Clic] Guardar la carta"
 var inv_gold_label: Label = null
 var inv_armor_stats_label: Label = null
 var inv_armor_slots_box: HBoxContainer = null
@@ -799,7 +805,7 @@ func _setup_hiring_letter_panel_ui() -> void:
 
 	var body_lbl := _make_lbl(
 		vbox,
-		"«Al investigador forastero:\n\nUna lavandera del valle lleva días sin aparecer y la denuncia duerme en un cajón de la comisaría. Le pagamos el viaje para que mire donde otros no quieren mirar.\n\nLlegue hoy, tome un cuarto en la posada El Jabalí Dorado y conozca el pueblo. Mañana al amanecer, preséntese ante el alguacil mayor Vane.»\n\n(Texto provisional)",
+		TEXTO_CARTA_CONTRATO,
 		18,
 		Color(0.149, 0.129, 0.106, 1.0),
 		true,
@@ -816,19 +822,26 @@ func _setup_hiring_letter_panel_ui() -> void:
 
 	var hint_lbl := _make_lbl(
 		vbox,
-		"[E / Enter / Esc / Clic] Continuar hacia el valle",
+		AVISO_CARTA_LLEGADA,
 		11,
 		Color(0.353, 0.314, 0.259, 1.0),
 		false,
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 	hint_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_aviso_carta = hint_lbl
 
 	add_child(backdrop)
 
-func open_hiring_letter_panel() -> void:
-	if hiring_letter_panel:
-		hiring_letter_panel.visible = true
+## Abre la carta de contrato. Desde la mochila (`releyendo`) se cierra sin «continuar hacia el valle» y se pone encima
+## del panel de la mochila.
+func open_hiring_letter_panel(releyendo: bool = false) -> void:
+	if not hiring_letter_panel:
+		return
+	if is_instance_valid(_aviso_carta):
+		_aviso_carta.text = AVISO_CARTA_RELEER if releyendo else AVISO_CARTA_LLEGADA
+	move_child(hiring_letter_panel, -1)
+	hiring_letter_panel.visible = true
 
 func close_hiring_letter_panel() -> void:
 	if hiring_letter_panel:
@@ -909,7 +922,7 @@ func _refresh_inventory_list() -> void:
 
 			if info.get("usable", false):
 				var cat_str: String = str(info.get("category", ""))
-				var btn_txt := "🔫 Equipar" if info.get("is_weapon_item", false) else ("🛡️ Equipar" if (info.has("armor_slot") or cat_str.begins_with("Armadura")) else "🍽️ Usar")
+				var btn_txt := "🔫 Equipar" if info.get("is_weapon_item", false) else ("🛡️ Equipar" if (info.has("armor_slot") or cat_str.begins_with("Armadura")) else ("📜 Leer" if info.get("is_letter", false) else "🍽️ Usar"))
 				var captured_id := str(item_id)
 				_make_btn(hbox, btn_txt, func():
 					inv.use_item(captured_id, player)

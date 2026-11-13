@@ -90,6 +90,7 @@ const CATALOG: Dictionary = {
 	"organ_liver": {"name": "Hígado Humano", "category": "Órgano Vital (Cirugía)", "desc": "Órgano hepático vital extraído quirúrgicamente. Restaura la filtración sanguínea al 100% mediante trasplante.", "usable": false, "organ_id": "liver"},
 	"organ_stomach": {"name": "Estómago Humano", "category": "Órgano Interno (Cirugía)", "desc": "Órgano digestivo extraído quirúrgicamente. Restaura el estómago dañado por venenos o heridas.", "usable": false, "organ_id": "stomach"},
 	"organ_eye": {"name": "Globo Ocular", "category": "Órgano Sensorial (Cirugía)", "desc": "Órgano visual extraído quirúrgicamente. Restaura la visión y precisión mediante trasplante.", "usable": false, "organ_id": "eyes"},
+	"carta_contrato": {"name": "Carta de contrato", "category": "Documento", "desc": "Tu contrato de detective del pueblo, sellado por el concejo del valle.", "usable": true, "is_letter": true},
 	"magnifying_glass": {"name": "Lupa de Latón", "category": "Herramienta de Detective", "desc": "Lente de aumento para examinar fibras, marcas de uñas, polen y restos diminutos en un cadáver ([E] sobre un cuerpo).", "usable": false},
 
 	# --- ARMADURAS TIER 1..3 (CUERO / HIERRO / ACERO) ---
@@ -160,6 +161,7 @@ func _ready() -> void:
 	add_item("clean_water", 1)
 	add_item("empty_flask", 1)
 	add_item("magnifying_glass", 1)
+	add_item("carta_contrato", 1)
 	add_item("bread", 1)
 
 func get_item_info(item_id: String) -> Dictionary:
@@ -388,6 +390,13 @@ func use_item(item_id: String, player: Node) -> bool:
 	var info := get_item_info(item_id)
 	if not info.get("usable", false):
 		return false
+
+	# Una carta se lee (no se gasta): la abre el panel de la interfaz
+	if info.get("is_letter", false):
+		var ui_carta: Node = player.get_tree().get_first_node_in_group("game_ui")
+		if ui_carta != null and ui_carta.has_method("open_hiring_letter_panel"):
+			ui_carta.call("open_hiring_letter_panel", true)
+		return true
 
 	# Si es una pieza de armadura, equiparla en su slot correspondiente
 	if info.has("armor_slot"):
