@@ -11,8 +11,12 @@
 - **El asesinato ocurre después de que llegues** (usuario): no vienes a resolverlo. Propuesta: el día 1 conoces el
   pueblo; al alba del día 2 un vecino encuentra el cuerpo junto al arroyo y da la voz; la policía pone un guardia en la
   escena y Vane te manda llamar.
-- **A1 · «Han encontrado a una mujer muerta junto al arroyo del norte»** · Vane te llama (o te enteras por el pueblo) ·
+- **A1 · «Han encontrado a una mujer muerta junto al arroyo del norte»** · **Vane te manda llamar** (usuario) ·
   examinar el cuerpo.
+- **Tumba a medio cavar junto al cuerpo (usuario, 2026-11-13):** como si alguien la fuera a enterrar. Pista que se
+  examina con [E]. Qué significa lo decide el autor.
+- **Más lejos del molino (usuario):** si el claro está a ~60 m, el jugador va al molino lo primero. Se aleja río abajo
+  (siguiendo el arroyo, para que las rodadas «desde el norte» y el barro rojo sigan teniendo sentido).
 - **Escena custodiada (usuario, 2026-11-13):** un guardia de la comisaría vigila el claro junto al cuerpo («no tiene
   sentido que la policía deje el cuerpo a la intemperie»). Te deja pasar porque eres el detective; se queda hasta
   que el cuerpo se lleva a la morgue, y luego vuelve a su ronda.

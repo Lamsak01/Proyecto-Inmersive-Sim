@@ -14,9 +14,9 @@
 
 ## Abiertas
 
-0c. **(2026-11-13) Arranque del Caso I:** respondido en parte: la carta es solo tu contrato de detective y el asesinato
-   ocurre después de llegar. Falta: ¿Vane te manda llamar o te enteras por el pueblo? (propuesta: al alba del día 2 un
-   vecino lo encuentra, un guardia custodia la escena y Vane te llama).
+0c. ✅ **(2026-11-13) Arranque del Caso I:** respondido: la carta es solo tu contrato; el asesinato ocurre después de
+   llegar; Vane te manda llamar; un guardia custodia la escena; junto al cuerpo hay una tumba a medio cavar; el claro
+   más lejos del molino. Detalle en `docs/specs/OBJETIVOS_CASO1.md`.
 
 0b. **(2026-11-13, noche) Pisos de la taberna con el sistema de las casas de dos plantas:** no se ha tocado. La posada
    tiene su propio sistema (~800 líneas en `VillageTavern.gd`: escalera, galería, losa, alturas, sótano del club; lo
