@@ -97,6 +97,7 @@ func _process(delta: float) -> void:
 	if _needs_tick_acc >= 1.0:
 		_needs_tick_acc = 0.0
 		VillageNeeds.tick(self) # E: terminar encargos al llegar
+		VillageCase1.tick(self) # Caso I: el guardia que viene a avisarte de que Vane te llama
 	VillageTavern.tick(self, delta) # Paso 3: escalera al 2.º piso, mesa de póker viva y ambiente de taberna
 	VillageRestaurant.tick(self, delta) # Terraza y comedor de la trattoria con vecinos sentados de tarde y noche
 	if not is_demo_mode():

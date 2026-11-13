@@ -29,6 +29,7 @@ const POLICE_ID: String = "building_police"
 const MILL_ID: String = "building_abandoned_mill"
 const MANSION_ID: String = "building_mansion"
 const ReportDeskScript = preload("res://scripts/systems/Case1ReportDesk.gd")
+const Case1Aviso = preload("res://scripts/systems/Case1Aviso.gd") ## el guardia que te avisa y custodia la escena
 ## Pruebas que se pueden adjuntar al informe (clave del cuaderno → nombre corto).
 const REPORT_EVIDENCE: Dictionary = {
 	"clue_case1_clearing": "El cuerpo junto al arroyo",
@@ -93,7 +94,6 @@ static func report_pos() -> Vector2:
 	return Marca.mundo(POLICE_ID, Marca.INFORME)
 
 
-const AVISO_AMANECER: String = "🔔 Al amanecer, un pastor ha encontrado a una mujer muerta junto al arroyo, al norte del pueblo. El alguacil Vane te espera allí."
 
 static func empezado() -> bool:
 	return _today() >= 1 + DIA_DE_MARGEN
@@ -108,16 +108,6 @@ static func mostrar_cuerpo(vm, visible: bool) -> void:
 	cuerpo.visible = visible
 	cuerpo.corpse_on_ground = visible
 	cuerpo._set_area_col_disabled(cuerpo.interact_area, not visible)
-
-
-static func _avisar_inicio(vm, st: Dictionary) -> void:
-	if st.get("aviso_dado") == true:
-		return
-	st["aviso_dado"] = true
-	var jugador = vm.get_tree().get_first_node_in_group("player")
-	if jugador != null and jugador.has_method("show_hint"):
-		jugador.call("show_hint", AVISO_AMANECER)
-	vm._msg_player(jugador, "🔔 Han encontrado un cuerpo junto al arroyo del norte", Color(0.95, 0.80, 0.55))
 
 
 # ---------------------------------------------------------------- reparto de papeles
@@ -198,6 +188,18 @@ static func cabinet_pos() -> Vector2:
 
 
 # ---------------------------------------------------------------- sincronía con el mundo
+## Dónde está el cuerpo del claro (cruz de «Sitios», ya en el mundo).
+static func cuerpo_pos() -> Vector2:
+	return Sitio.mundo(SITIO_CUERPO)
+
+
+## Cada segundo (VillageManager._process): el guardia que viene a avisarte te sigue hasta alcanzarte.
+static func tick(vm) -> void:
+	if vm == null or not empezado():
+		return
+	Case1Aviso.tick(vm, state(vm), cuerpo_pos())
+
+
 static func sync(vm) -> void:
 	if vm == null or not vm.is_inside_tree():
 		return
@@ -210,7 +212,8 @@ static func sync(vm) -> void:
 		return
 	mostrar_cuerpo(vm, true)
 	if int(WorldClock.current_hour) >= 6: # el aviso llega al amanecer, no a medianoche mientras duermes
-		_avisar_inicio(vm, st)
+		Case1Aviso.empezar(vm, st, cuerpo_pos())
+	Case1Aviso.vigilar(vm, st, cuerpo_pos())
 	# Áreas de [E] (se crean una vez por sesión)
 	if vm.get_node_or_null("Case1CabinetArea") == null:
 		vm.add_zona_uso_mundo("Case1CabinetArea", cabinet_pos(), 20.0, "case1_forced_cabinet")
@@ -307,6 +310,7 @@ static func _has_progress(vm, key: String) -> bool:
 static func add_dialogue(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
 	if vm == null or npc == null:
 		return
+	Case1Aviso.add_dialogue(npc, state(vm), diag, ch_arr) # Vane te cuenta lo del arroyo
 	var role_id: String = role_of(vm, str(npc.npc_name))
 	if role_id == "":
 		return
@@ -336,6 +340,9 @@ static func add_dialogue(vm, npc, diag: Dictionary, ch_arr: Array) -> void:
 static func on_action(vm, npc, action_id: String) -> void:
 	var player = vm.get_tree().get_first_node_in_group("player")
 	var what: String = action_id.trim_prefix("case1:")
+	if action_id == Case1Aviso.ACCION_VANE:
+		Case1Aviso.on_encargo(vm, npc, state(vm))
+		return
 	if what == "blue_wool":
 		vm._record_case_clue(player, "👕 " + str(npc.npc_name),
 			"Te fijas en el jubón de lana azul oscuro de %s: una manga rasgada y arañazos recientes en la mano." % npc.npc_name,

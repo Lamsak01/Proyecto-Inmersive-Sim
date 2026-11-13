@@ -260,7 +260,7 @@ static func tick(vm) -> void:
 	for n in living(vm):
 		if n.errand_kind == "":
 			continue
-		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk", "fence_alley", "gathering", "catering", "club_go", "club_watch", "night_job", "familia_meet", "night_stroll", "sleepwalk", "prowl_victim"]):
+		if now - int(n.errand_since) > ERRAND_TIMEOUT_HOURS and not (n.errand_kind in ["beg", "outpost_work", "player_shop_clerk", "fence_alley", "gathering", "catering", "club_go", "club_watch", "night_job", "familia_meet", "night_stroll", "sleepwalk", "prowl_victim", "case1_mensajero", "case1_custodia"]):
 			if n.errand_kind == "leisure":
 				vm.VillagePlaces._leave(n)
 				continue
