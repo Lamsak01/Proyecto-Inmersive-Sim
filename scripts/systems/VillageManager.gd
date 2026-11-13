@@ -113,35 +113,13 @@ func _process(delta: float) -> void:
 	var real_delta: float = delta / maxf(1.0, Engine.time_scale)
 	check_elevation_exit(player)
 
-	# Escolta física policial hacia la celda de la Comisaría (Estilo Kenshi / Red Dead Redemption 2)
+	# Escolta a la celda: el guardia y el preso andan de verdad (scripts/systems/EscoltaPolicial.gd)
 	if player_being_escorted_to_jail and player:
-		_escort_elapsed_timer += real_delta
-		set_jail_cell_gate_locked(false)
-		if is_instance_valid(escorting_officer) and not escorting_officer.is_dead and not escorting_officer.is_downed and not escorting_officer.is_stunned_flag and escorting_officer.sedated_timer <= 0.0:
-			# El preso va DETRÁS del guardia según hacia dónde anda: pegado a un lado fijo, al girar se le ponía delante y lo atascaba
-			var atras: Vector2 = -escorting_officer.velocity.normalized() if escorting_officer.velocity.length() > 1.0 else (player.global_position - escorting_officer.global_position).normalized()
-			var follow_pos: Vector2 = escorting_officer.global_position + atras * ESCOLTA_DISTANCIA
-			if player.global_position.distance_to(escorting_officer.global_position) > 28.0:
-				player.global_position = follow_pos
-			else:
-				player.global_position = player.global_position.move_toward(follow_pos, 96.0 * delta)
-			if "velocity" in player:
-				player.velocity = Vector2.ZERO
-			if escorting_officer.global_position.distance_to(_jail_cell_pos) <= 26.0 or player.global_position.distance_to(_jail_cell_pos) <= 24.0 or _escort_elapsed_timer >= _escort_limite_s:
-				complete_police_escort_to_jail(player)
-		else:
-			var nav_wp: Vector2 = get_navigation_waypoint(player.global_position, _jail_cell_pos, player)
-			player.global_position = player.global_position.move_toward(nav_wp, 84.0 * delta)
-			if player.global_position.distance_to(_jail_cell_pos) <= 24.0 or _escort_elapsed_timer >= _escort_limite_s:
-				complete_police_escort_to_jail(player)
+		escolta.tick(self, player as CharacterBody2D, real_delta)
 
-	# Si el jugador está cumpliendo condena dentro de la celda de la cárcel, mantenerlo dentro y descontar el tiempo mínimo en celda
-	if player_in_jail and player:
-		if jail_mandatory_stay_timer > 0.0:
-			jail_mandatory_stay_timer = maxf(0.0, jail_mandatory_stay_timer - real_delta)
-		var cell_rect := Rect2(_jail_cell_pos - Vector2(22, 16), Vector2(44, 32))
-		if not cell_rect.has_point(player.global_position):
-			player.global_position = _jail_cell_pos
+	# En la celda le retiene la reja cerrada (choca); aquí solo corre el tiempo mínimo de estancia
+	if player_in_jail and jail_mandatory_stay_timer > 0.0:
+		jail_mandatory_stay_timer = maxf(0.0, jail_mandatory_stay_timer - real_delta)
 
 	# Paso 2: Rastreo realista de entrada/salida a edificios por testigos
 	_sighting_check_timer -= delta

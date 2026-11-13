@@ -5,12 +5,16 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
-- [ ] **(Para después de salir del mapa 2D) Detención orgánica, sin atajos** (usuario, 2026-11-12: «que me escolte de
+- ✅ (2026-11-13, falta que el usuario lo vea jugando) **Detención orgánica, sin atajos** (usuario, 2026-11-12: «que me escolte de
   manera orgánica… nada se simule, todo pase orgánicamente, tipo Kenshi o RimWorld»). Hoy quedan 6 atajos: el guardia
   lejano aparece a tu lado; te pega a su espalda si te alejas; tope de tiempo que te mete en la celda; al llegar te
   centra en la celda; si sales te devuelve dentro aunque la reja esté abierta; si el guardia cae sigues solo a la celda.
   Plan propuesto: el guardia viene andando y te esposa; vas atado como con una cuerda corta (si te sueltas o cae, quedas
   libre y más buscado); si se atasca rodea o abre puertas; abre la reja, entras andando y la cierra; te retiene la reja.
+  *(Hecho: el guardia viene andando y te esposa a su lado; vas detrás pisando su mismo camino (cruza las mismas puertas)
+  y, si te quedas atrás, te espera; ante la reja se aparta y entras andando; la reja cerrada te retiene. Sin tope de
+  tiempo: si el guardia cae, o nadie avanza en 15 s, te suelta donde estés. Probado sin ventana desde la plaza: esposado
+  a los 6 s, en la celda a los 42 s, sin un solo salto de sitio. Sin hacer: soltarte tú a la fuerza.)*
 - ✅ (2026-11-12, usuario) **Al detenerte, el guardia andaba un trecho y luego te teletransportaba a la celda**: la escolta tenía un tope de 9,5 s del pueblo pequeño; ahora el tope va según la distancia y el preso camina detrás del guardia (antes, pegado a un lado, lo atascaba al girar dentro de la comisaría). Probado sin ventana: desde la plaza llega andando en ~35 s. Falta que el usuario lo vea jugando.
 - ✅ (2026-11-12, visto por Claude en fotos de noche) **El pueblo de noche casi negro**: solo 6 farolas para todo el mapa ×5,
   ninguna en la plaza, el farol no brillaba y su luz no llegaba al suelo · 22:00, 1.ª persona. *(Ahora 53 farolas por las

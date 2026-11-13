@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Detención sin atajos (Claude Code)
+- Nueva `scripts/systems/EscoltaPolicial.gd`: el guardia viene andando y esposa; el preso pisa sus pasos (velocidad y
+  choques de verdad, nada de colocarlo); ante la reja el guardia se aparta y el preso entra andando.
+- Quitados los 6 atajos: guardia que aparecía al lado, preso pegado a su espalda, tope de tiempo, centrado en la celda,
+  devolución a la celda con la reja abierta, y preso que iba solo si el guardia caía (ahora queda libre).
+- Prueba nueva `tools/tests/escolta_organica.gd` (plaza → celda en 42 s, paso máximo 1,6 px, la reja retiene).
+
 ## 2026-11-12 — Corte final: adiós a la capa de anclas (Claude Code)
 - Borrados `mapa/anclas.gd`, la copia `mapa/Mundo3D.antes-x5.tscn` y las herramientas de un solo uso del ×5.
 - Edificios y solares guardan su sitio del mundo leído de la pieza (sin `centro·E + desplazamiento`).

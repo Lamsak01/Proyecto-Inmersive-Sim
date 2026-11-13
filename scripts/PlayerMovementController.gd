@@ -210,16 +210,19 @@ func _physics_process(delta: float) -> void:
 	if (dialogue_manager and dialogue_manager.has_method("is_active") and dialogue_manager.call("is_active")) or (WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()) or (player.has_method("is_any_ui_modal_open") and bool(player.call("is_any_ui_modal_open"))) or being_escorted:
 		if is_instance_valid(stamina_comp):
 			stamina_comp.is_input_blocking = false
-		if being_escorted:
-			is_stealthing = false
-			is_sprinting = false
 		roll_timer = 0.0
 		roll_invuln_timer = 0.0
 		anim.rotation = 0.0
+		if being_escorted:
+			# Esposado: anda con la velocidad que le da la escolta (EscoltaPolicial), chocando como siempre
+			is_stealthing = false
+			is_sprinting = false
+			_mover()
+			_update_visual_state()
+			return
 		player.velocity = Vector2.ZERO
 		_play_idle()
-		if not being_escorted:
-			_mover()
+		_mover()
 		return
 
 	# Block movement if stunned

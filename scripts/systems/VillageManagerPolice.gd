@@ -286,10 +286,12 @@ func start_police_escort_to_jail(player: Node2D, officer: VillageNPC = null) -> 
 	if not player:
 		return
 	var chosen_officer: VillageNPC = officer if (officer != null and is_instance_valid(officer) and not officer.is_dead and not officer.is_downed and not officer.is_stunned_flag and officer.sedated_timer <= 0.0) else _find_nearest_police_officer(player.global_position)
+	if chosen_officer == null:
+		_hint_player("🚔 No queda ningún guardia en pie que pueda llevarte a la celda", player)
+		return
 	player_being_escorted_to_jail = true
 	player_in_jail = false
-	_escort_elapsed_timer = 0.0
-	_escort_limite_s = maxf(ESCOLTA_TOPE_MIN_S, player.global_position.distance_to(_jail_cell_pos) / ESCOLTA_VELOCIDAD * ESCOLTA_MARGEN)
+	escolta.empezar()
 	escorting_officer = chosen_officer
 	clear_police_hostility()
 	set_jail_cell_gate_locked(false)
@@ -297,23 +299,19 @@ func start_police_escort_to_jail(player: Node2D, officer: VillageNPC = null) -> 
 		police_panel.visible = false
 	if "velocity" in player:
 		player.velocity = Vector2.ZERO
-	if chosen_officer != null:
-		chosen_officer.is_sleeping = false
-		chosen_officer.sedated_timer = 0.0
-		chosen_officer.is_stunned_flag = false
-		if chosen_officer.body_col:
-			chosen_officer.body_col.disabled = true
-		if chosen_officer.health_comp:
-			chosen_officer.health_comp.stop_bleeding()
-			chosen_officer.health_comp.current_health = maxf(chosen_officer.health_comp.current_health, 28.0)
-		if chosen_officer.sprite:
-			chosen_officer.sprite.rotation_degrees = 0.0
-			chosen_officer.sprite.modulate = Color.WHITE
-		if chosen_officer.global_position.distance_to(player.global_position) > 48.0:
-			chosen_officer.global_position = player.global_position + Vector2(14, 0)
-		chosen_officer._spawn_floating_text("🚔⛓️ ¡Esposado! En marcha hacia la Celda de la Comisaría", Color.SKY_BLUE, -42.0)
-	if player.has_method("_spawn_floating_text"):
-		player._spawn_floating_text("🚔⛓️ La policía te lleva físicamente hacia la Prisión...", Color.SKY_BLUE, -46.0)
+	chosen_officer.is_sleeping = false
+	chosen_officer.sedated_timer = 0.0
+	chosen_officer.is_stunned_flag = false
+	if chosen_officer.body_col:
+		chosen_officer.body_col.disabled = true
+	if chosen_officer.health_comp:
+		chosen_officer.health_comp.stop_bleeding()
+		chosen_officer.health_comp.current_health = maxf(chosen_officer.health_comp.current_health, 28.0)
+	if chosen_officer.sprite:
+		chosen_officer.sprite.rotation_degrees = 0.0
+		chosen_officer.sprite.modulate = Color.WHITE
+	# El guardia viene andando desde donde esté (EscoltaPolicial): nada de aparecer al lado del preso
+	_hint_player("🚔 Te entregas: %s viene a ponerte las esposas" % chosen_officer.npc_name, player)
 
 ## Controla físicamente la puerta de barrotes de la celda (`Vector2(902, 152)`) y abre la puerta principal de la Comisaría al quedar en libertad
 
@@ -326,7 +324,7 @@ func set_jail_cell_gate_locked(locked: bool) -> void:
 			if str(d_entry.get("building_id", "")) == "building_police":
 				_set_door_state(d_entry, true, false, false)
 
-## Se ejecuta cuando el agente y el jugador llegan caminando físicamente al interior de la celda
+## Se ejecuta cuando el preso ha entrado andando hasta el centro de la celda: se cierra la reja
 
 func complete_police_escort_to_jail(player: Node2D) -> void:
 	clear_police_hostility()
@@ -350,12 +348,19 @@ func complete_police_escort_to_jail(player: Node2D) -> void:
 			active_royal_investigation["stage"] = "INITIAL_PLAYER_INTERVIEW"
 			active_royal_investigation["stage_timer"] = 0.0
 	if player:
-		player.global_position = _jail_cell_pos
 		if "velocity" in player:
-			player.velocity = Vector2.ZERO
+			player.velocity = Vector2.ZERO # ya está dentro: ha entrado andando
 		_msg_player(player, "🔒⛓️ Encerrado en la Celda (%ds de estancia antes de usar el camastro)" % int(JAIL_MANDATORY_STAY_SECONDS), Color.SKY_BLUE, -46.0)
 	_police_confront_cooldown = 0.0
 	trigger_police_confrontation(null)
+
+## El preso queda libre donde está (el guardia cayó o no encuentra paso): sin esposas y sin saltos de sitio.
+func soltar_preso(player: Node2D, motivo: String) -> void:
+	player_being_escorted_to_jail = false
+	escorting_officer = null
+	if "velocity" in player:
+		player.velocity = Vector2.ZERO
+	_hint_player(motivo, player)
 
 func capture_knocked_out_player_to_jail(player: Node2D) -> void:
 	if player:

@@ -318,8 +318,8 @@ func _process_duties(delta: float) -> bool:
 	if vm_escort and vm_escort.VillageJustice.process_npc_jail_step(vm_escort, self, delta):
 		return true
 	if vm_escort and bool(vm_escort.get("player_being_escorted_to_jail")) and vm_escort.get("escorting_officer") == self:
-		var jail_target: Vector2 = vm_escort.get("_jail_cell_pos")
-		_move_towards_point(jail_target, vm_escort.ESCOLTA_VELOCIDAD, delta)
+		var destino: Vector2 = vm_escort.escolta.destino_guardia(vm_escort, self) # hasta el preso, luego a la reja
+		_move_towards_point(destino, vm_escort.ESCOLTA_VELOCIDAD, delta)
 		_finish_frame_movement(delta)
 		return true
 

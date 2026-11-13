@@ -1,6 +1,7 @@
 @tool
 extends Node2D
 const EdificioEditor = preload("res://mapa/edificio.gd")
+const EscoltaPolicial = preload("res://scripts/systems/EscoltaPolicial.gd")
 const META_TIPO_3D := "tipo_3d" ## igual que WorldStageProps3D.META_TIPO_3D
 const GIRO_MINIMO_GRADOS: float = 0.5
 ## Choque de cada objeto quieto con marca 3D (tamaño en el mapa plano).
@@ -196,17 +197,12 @@ var player_murder_warrants_count: int = 0
 var player_in_jail: bool = false
 var player_being_escorted_to_jail: bool = false
 var escorting_officer: VillageNPC = null
-var _escort_elapsed_timer: float = 0.0
-## Tope de la escolta hasta la celda: lo que tarda el guardia en llegar andando, con margen. Pasado el tope (atasco),
-## el jugador entra en la celda de golpe. Con el mapa ×5 un tope fijo de 9,5 s cortaba casi todas las escoltas.
-var _escort_limite_s: float = 0.0
+## Escolta a la celda andando, sin atajos (scripts/systems/EscoltaPolicial.gd).
+var escolta: EscoltaPolicial = EscoltaPolicial.new()
 const ESCOLTA_VELOCIDAD: float = 64.0 ## px/s del guardia que escolta (VillageNPC)
-const ESCOLTA_MARGEN: float = 1.8 ## rodeos por calles y puertas
-const ESCOLTA_TOPE_MIN_S: float = 9.5
 ## Hueco de un paso entre salas (tabique de 6 px y algo de margen a cada lado): lo que choque ahí se quita. Con 32×32
 ## se llevaba por delante la mesa 2 de la morgue, que está justo delante del paso del hospital.
 const PASO_INTERIOR_TAM := Vector2(24.0, 16.0)
-const ESCOLTA_DISTANCIA: float = 12.0 ## px entre el guardia y el preso que lleva detrás
 const JAIL_MANDATORY_STAY_SECONDS: float = 10.0
 var jail_mandatory_stay_timer: float = 0.0
 var _last_confronting_officer: VillageNPC = null
