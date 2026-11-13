@@ -39,6 +39,8 @@ static func armar(muros: Node3D, tejado: Node3D, piso_alto: Node3D, plano: Dicti
 	var zocalo_tam := Vector3(medio.x * 2.0 + ZOCALO_SOBRA_M * 2.0, ZOCALO_HONDO_M + SUELO_Y_M - SUELO_GROSOR_M, medio.y * 2.0 + ZOCALO_SOBRA_M * 2.0)
 	Piezas.caja(muros, Vector3(0.0, -ZOCALO_HONDO_M, 0.0), zocalo_tam, Piezas.material(plano["ZOCALO"], PIEDRA))
 	for cuarto: Dictionary in plano["CUARTOS"]:
+		if bool(cuarto.get("solo_ruta", false)):
+			continue  # un trozo de cuarto solo para las rutas (las filas de la escuela): ya tiene el suelo de su sala
 		var c: Vector2 = cuarto["centro"]
 		var t: Vector2 = cuarto["tam"]
 		Piezas.caja(muros, Vector3(c.x, SUELO_Y_M - SUELO_GROSOR_M, c.y), Vector3(t.x, SUELO_GROSOR_M, t.y), Piezas.material(cuarto["suelo"], TINTE))

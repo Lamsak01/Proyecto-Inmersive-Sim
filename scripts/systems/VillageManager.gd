@@ -1457,5 +1457,3 @@ func reconcile_npc_registries_after_load() -> void:
 						v.work_position = slot.get("work_pos", v.work_position)
 			if v.is_vagrant_camper and not v.is_dead and not v.in_shelter:
 				_spawn_or_update_vagrant_camp_visual(v, v.vagrant_camp_pos)
-
-
