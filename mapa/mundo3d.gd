@@ -19,7 +19,7 @@ const LUZ_AMBIENTE: float = 0.8
 const CIELO_ARRIBA := Color(0.36, 0.54, 0.80)
 const CIELO_HORIZONTE := Color(0.72, 0.80, 0.88)
 
-## Marca esta casilla para rehacer la maqueta (por ejemplo, después de mover el río en el editor 2D).
+## Marca esta casilla para rehacer la maqueta (por ejemplo, para que el suelo siga al río tras moverlo en «Rio»).
 @export var regenerar: bool = false:
 	set(v):
 		regenerar = false
@@ -147,6 +147,18 @@ func _suelo(vista: Node3D) -> void:
 	mi.material_override = _mat(Color.WHITE, true)
 	vista.add_child(mi)
 	mi.create_trimesh_collision()
+
+
+## El río de la maqueta otra vez (lo pide mapa/rio.gd al mover un punto o un puente); el suelo no se rehace (tarda).
+func rehacer_rio() -> void:
+	var vista: Node3D = get_node_or_null("Vista")
+	if vista == null:
+		return
+	var viejo: Node = vista.get_node_or_null("Rio")
+	if viejo != null:
+		vista.remove_child(viejo)
+		viejo.free()
+	_rio(vista)
 
 
 func _rio(vista: Node3D) -> void:

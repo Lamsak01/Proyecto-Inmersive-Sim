@@ -25,15 +25,14 @@ Paso 4 por tandas, comparando con `tools/tests/volcado_mundo.gd` (choques, zonas
 **Hecho (2026-11-12):** edificios, casas de solar, anexos, alcantarillas y mirador van directos a su pieza; los
 vecinos nacen ya en el mundo; cementerio, corral y sitios de fuera son cruces; zonas y mapa del valle salen de sus
 piezas. Muebles de la taberna sin pieza propia (pasarlos = muebles 3D nuevos, cambio visible).
-**Siguiente:** el río y sus puentes viven aún en el editor 2D viejo (`mapa/EditorMapa.tscn`, ya en coordenadas del
-mundo): pasarlos a `Mundo3D.tscn` cambia dónde los edita el usuario (preguntado). Luego `_construct_solid_building`,
-tabiques y envoltorios de VMBase (aún registran anclas), baldosas de `World.gd`, `mover_posiciones`; al final quitar
-`anclas.gd` y el ×5.
+El río y sus puentes ya están en `Mundo3D.tscn` («Rio», «Cruces»; `mapa/rio_forma.gd`); editor 2D borrado.
+**Siguiente:** `_construct_solid_building`, tabiques y envoltorios de VMBase (aún registran anclas), baldosas de
+`World.gd`, `mover_posiciones`; al final quitar `anclas.gd` y el ×5 (con el usuario).
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.
 **Pesca, huerto, gallinero, campamento, animales de corral del jugador y huerto de casa borrados (usuario, 2026-11-12)**:
-se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd`.
+se rehacen en 3D tras el Caso I (`docs/VISION_Y_FUTURO.md`, «Jugador»). Río y lago: `scripts/fisica/RioLago.gd` (lee el río del editor 3D).
 Red eléctrica: generador del Arreglador; farolas solo de noche. Corte final pedido por el usuario el 2026-11-12.
 Pendiente: tamaños (`VillageRestaurant.RECT`, `HOUSE_PLOTS.size`), `OPENINGS` (mal comparados con el mundo); matas que no esquivan una plaza movida; `RIVER_*`; mapa del valle.
 

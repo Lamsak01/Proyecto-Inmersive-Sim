@@ -1,5 +1,8 @@
 # Plan del editor del mapa (para Claude en cualquier ordenador)
 
+> **Superado el 2026-11-12:** el editor 2D (`mapa/EditorMapa.tscn`) y sus herramientas se borraron; el río y sus puentes
+> se editan en `mapa/Mundo3D.tscn` (carpetas «Rio» y «Cruces»). Guía al día: `docs/EDITOR_MAPA_GUIA.md`.
+
 Pedido por el usuario el 2026-11-09: quiere construir el mapa él mismo, con algo intuitivo, en su ordenador
 principal (este bloque se hizo en el portátil y se sube a GitHub). Tiene **muchos assets gratuitos descargados en el
 ordenador principal**: pregúntale cuáles antes de las piezas nuevas (árboles, rocas, casas) y úsalos.

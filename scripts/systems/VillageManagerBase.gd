@@ -1132,7 +1132,7 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 	# 0. Si el trayecto cruza el río o toca el agua fuera de los puentes/vados, redirigir al puente/vado más cercano
 	var side_from: float = from_pos.x - RioLago.river_center_x(from_pos.y)
 	var side_to: float = cur_target.x - RioLago.river_center_x(cur_target.y)
-	if side_from * side_to < 0.0:
+	if side_from * side_to < 0.0 and not RioLago.river_crossings().is_empty(): # sin puentes (río sin guardar) no hay a dónde ir
 		var cr: Dictionary = RioLago.nearest_river_crossing(from_pos, cur_target)
 		var cr_pos: Vector2 = cr["pos"]
 		var cr_hy: float = maxf(6.0, float(cr["half_y"]) - 4.0)

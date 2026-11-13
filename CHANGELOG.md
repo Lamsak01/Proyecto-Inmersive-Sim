@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — El río y sus puentes, al editor 3D; adiós al editor 2D (Claude Code)
+- Los 28 puntos del río y los 6 puentes y vados están en `mapa/Mundo3D.tscn` (carpetas «Rio» y «Cruces»), con el
+  ancho en metros. Al moverlos, el agua de la maqueta se rehace sola. Comprobado: río idéntico punto por punto.
+- Borrados el editor 2D (`mapa/EditorMapa.tscn` y su copia, `editor_mapa.gd`, `referencia.gd`, sus herramientas) y el
+  río «de fábrica» que ya no se usaba (`RIVER_WAYPOINTS`, `RIVER_CROSSINGS`, `_antiguo_*`).
+- Guía del usuario al día (`docs/EDITOR_MAPA_GUIA.md`, apartado 4).
+
 ## 2026-11-12 — Mudanza al editor: plaza, lago, ciénaga, mapa del valle (Claude Code)
 - Las cuentas de las zonas (plaza, lago, ciénaga) salen de su propia pieza (`mapa/zona.gd`: `estirar`,
   `estirar_puntos`, `desestirar`, `rect_mundo`), ya no del traductor (`anclas.gd` solo las lee para lo que hay encima).

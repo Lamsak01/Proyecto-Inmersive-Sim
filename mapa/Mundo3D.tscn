@@ -63,6 +63,9 @@
 [ext_resource type="Script" path="res://mapa/marca.gd" id="34_ceh11"]
 [ext_resource type="Script" path="res://mapa/zona.gd" id="34_fba6n"]
 [ext_resource type="Script" path="res://mapa/sitio.gd" id="35_7jlh3"]
+[ext_resource type="Script" uid="uid://c5danpj4s5a24" path="res://mapa/rio.gd" id="rio_3d"]
+[ext_resource type="Script" uid="uid://blqhruy6vkwr1" path="res://mapa/punto_rio.gd" id="punto_rio_3d"]
+[ext_resource type="Script" uid="uid://xerdlp7xjyuh" path="res://mapa/cruce_rio.gd" id="cruce_rio_3d"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1p8rd"]
 albedo_color = Color(0.793, 0.712, 0.64000005, 1)
@@ -23831,3 +23834,242 @@ script = ExtResource("31_cyb43")
 [node name="Tramo_32" type="Node3D" parent="Caminos" unique_id=1033264644]
 transform = Transform3D(78.4, 0, 0, 0, 1, 0, 0, 0, 2.24, 453.6, 0.5495177, 50.96)
 script = ExtResource("31_cyb43")
+
+[node name="Rio" type="Node3D" parent="." unique_id=2002659720]
+script = ExtResource("rio_3d")
+
+[node name="Punto01" type="Marker3D" parent="Rio" unique_id=2000119909]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.76, 1, -534.24)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 6.048
+
+[node name="Punto02" type="Marker3D" parent="Rio" unique_id=2055151661]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.2, 1, -443.8)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 8.232
+
+[node name="Punto03" type="Marker3D" parent="Rio" unique_id=2119786568]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.72, 1, -331.24)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 5.544
+
+[node name="Punto04" type="Marker3D" parent="Rio" unique_id=1437061772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.44, 1, -266.56)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 3.584
+
+[node name="Punto05" type="Marker3D" parent="Rio" unique_id=802699127]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.96, 1, -219.8)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 2.688
+
+[node name="Punto06" type="Marker3D" parent="Rio" unique_id=1922916337]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.64, 1, -196)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 4.928
+
+[node name="Punto07" type="Marker3D" parent="Rio" unique_id=506467916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48.72, 1, -172.2)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 3.584
+
+[node name="Punto08" type="Marker3D" parent="Rio" unique_id=986519879]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.96, 1, -142.8)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 7.392
+
+[node name="Punto09" type="Marker3D" parent="Rio" unique_id=908422666]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.28, 1, -120.4)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 6.776
+
+[node name="Punto10" type="Marker3D" parent="Rio" unique_id=735116748]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.88, 1, -98.28)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 7.112
+
+[node name="Punto11" type="Marker3D" parent="Rio" unique_id=207984841]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.24, 1, -82.6)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 5.768
+
+[node name="Punto12" type="Marker3D" parent="Rio" unique_id=217059057]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.8, 1, -60.76)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 7.672
+
+[node name="Punto13" type="Marker3D" parent="Rio" unique_id=985483884]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.92, 1, -38.64)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 6.16
+
+[node name="Punto14" type="Marker3D" parent="Rio" unique_id=1708014984]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 1, -16.24)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 6.944
+
+[node name="Punto15" type="Marker3D" parent="Rio" unique_id=1997828491]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.4, 1, 4.2)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 8.344
+
+[node name="Punto16" type="Marker3D" parent="Rio" unique_id=1451639002]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.28, 1, 14)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 7.784
+
+[node name="Punto17" type="Marker3D" parent="Rio" unique_id=1512491727]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.8, 1, 29.4)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 7.784
+
+[node name="Punto18" type="Marker3D" parent="Rio" unique_id=697669983]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.16, 1, 47.32)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 4.592
+
+[node name="Punto19" type="Marker3D" parent="Rio" unique_id=467207389]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.88, 1, 67.76)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 8.12
+
+[node name="Punto20" type="Marker3D" parent="Rio" unique_id=1024995243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.08, 1, 84.28)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 4.648
+
+[node name="Punto21" type="Marker3D" parent="Rio" unique_id=244766730]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.56, 1, 104.16)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 6.888
+
+[node name="Punto22" type="Marker3D" parent="Rio" unique_id=535826059]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.76, 1, 126.28)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 4.704
+
+[node name="Punto23" type="Marker3D" parent="Rio" unique_id=1515626946]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.64, 1, 163.52)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 5.992
+
+[node name="Punto24" type="Marker3D" parent="Rio" unique_id=1511958316]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.32, 1, 253.96)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 5.04
+
+[node name="Punto25" type="Marker3D" parent="Rio" unique_id=1301914367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.4, 1, 378.56)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 5.88
+
+[node name="Punto26" type="Marker3D" parent="Rio" unique_id=1923362976]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.4, 1, 463.12)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 4.648
+
+[node name="Punto27" type="Marker3D" parent="Rio" unique_id=1781803896]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.6, 1, 590.8)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 5.264
+
+[node name="Punto28" type="Marker3D" parent="Rio" unique_id=267600075]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.44, 1, 920.64)
+gizmo_extents = 6.0
+script = ExtResource("punto_rio_3d")
+ancho_m = 5.936
+
+[node name="Cruces" type="Node3D" parent="." unique_id=823046888]
+
+[node name="VadodelClaro" type="Marker3D" parent="Cruces" unique_id=1389925379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.76, 1, -246.12)
+gizmo_extents = 5.0
+script = ExtResource("cruce_rio_3d")
+nombre = "Vado del Claro"
+tipo = 0
+ancho_m = 4.032
+largo_m = 2.912
+altura_arco = 0.35
+id_interno = "ford_clearing"
+
+[node name="PasareladelArroyoNorte" type="Marker3D" parent="Cruces" unique_id=988887157]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.88, 1, -98.28)
+gizmo_extents = 5.0
+script = ExtResource("cruce_rio_3d")
+nombre = "Pasarela del Arroyo Norte"
+tipo = 1
+ancho_m = 1.792
+largo_m = 4.704
+altura_arco = 1.1
+id_interno = "bridge_north"
+
+[node name="PuenteViejo" type="Marker3D" parent="Cruces" unique_id=664374939]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.28, 1, 14)
+gizmo_extents = 5.0
+script = ExtResource("cruce_rio_3d")
+nombre = "Puente Viejo"
+tipo = 2
+ancho_m = 4.704
+largo_m = 8.792
+altura_arco = 2.4
+id_interno = "old_bridge"
+
+[node name="PuentedelosCampos" type="Marker3D" parent="Cruces" unique_id=593804352]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.56, 1, 104.16)
+gizmo_extents = 5.0
+script = ExtResource("cruce_rio_3d")
+nombre = "Puente de los Campos"
+tipo = 1
+ancho_m = 3.808
+largo_m = 7.84
+altura_arco = 1.2
+id_interno = "south_fields_bridge"
+
+[node name="VadodelBosque" type="Marker3D" parent="Cruces" unique_id=704338448]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.72, 1, 215.88)
+gizmo_extents = 5.0
+script = ExtResource("cruce_rio_3d")
+nombre = "Vado del Bosque"
+tipo = 0
+ancho_m = 4.256
+largo_m = 4.256
+altura_arco = 0.35
+id_interno = "forest_ford"
+
+[node name="TroncoCaido" type="Marker3D" parent="Cruces" unique_id=572384764]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 57.12, 1, 571.2)
+gizmo_extents = 5.0
+script = ExtResource("cruce_rio_3d")
+nombre = "Tronco caído"
+tipo = 3
+ancho_m = 4.48
+largo_m = 4.032
+altura_arco = 0
+id_interno = "fallen_log_bridge"

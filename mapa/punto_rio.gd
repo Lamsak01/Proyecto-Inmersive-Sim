@@ -1,19 +1,22 @@
 @tool
-extends Marker2D
+extends Marker3D
 
-## Un punto del río. Arrástralo para mover el cauce; cambia «ancho» para ensancharlo o estrecharlo aquí.
-## Para añadir un punto: selecciona uno y pulsa Ctrl+D (duplicar), luego arrástralo. Para quitarlo: Supr.
+## Un punto del río (carpeta «Rio» de mapa/Mundo3D.tscn). Arrástralo para mover el cauce; cambia «ancho_m» para
+## ensancharlo o estrecharlo aquí. Para añadir un punto: selecciona uno y pulsa Ctrl+D (duplicar), luego muévelo.
+## Para quitarlo: Supr. Solo cuenta dónde está sobre el suelo (la altura da igual).
 
-## Ancho del río en este punto, de orilla a orilla (en píxeles del juego; una persona mide unos 10; con el mapa ×5 el
-## río del pueblo anda por 100–150).
-@export_range(9.0, 400.0, 0.5) var ancho: float = 40.0:
+const GIZMO_M: float = 6.0 ## tamaño de la cruz en el editor: que se vea desde arriba
+
+## Ancho del río en este punto, de orilla a orilla, en metros (una persona mide unos 0,5 m de ancho; el río del
+## pueblo anda por 6–8 m).
+@export_range(0.5, 22.5, 0.05) var ancho_m: float = 2.25:
 	set(v):
-		ancho = v
+		ancho_m = v
 		_avisar()
 
 
 func _ready() -> void:
-	gizmo_extents = 16.0
+	gizmo_extents = GIZMO_M
 	set_notify_transform(true)
 
 
@@ -23,6 +26,6 @@ func _notification(what: int) -> void:
 
 
 func _avisar() -> void:
-	var p := get_parent()
-	if p != null and p.has_method("redibujar"):
-		p.call("redibujar")
+	var rio: Node = get_parent()
+	if rio != null and rio.has_method("redibujar"):
+		rio.call("redibujar")

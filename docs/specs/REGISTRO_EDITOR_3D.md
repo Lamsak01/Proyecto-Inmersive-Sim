@@ -98,7 +98,7 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 4. **Lógica** (después, decisión del usuario): rutas y puestos de trabajo de los vecinos, caminos del mapa pequeño y del suelo
    aplanado (los caminos 3D se mueven pero el minimapa no), pistas del Caso I que el código busca por coordenadas fijas
    (p. ej. distancia al claro en VillageManager), recolocar el Caso I tras mover edificios.
-5. Suelo, agua del río y del lago y orillas siguen en código a propósito (el río se edita con `mapa/EditorMapa.tscn`).
+5. Suelo, agua del río y del lago y orillas siguen en código a propósito (el río se edita en las carpetas «Rio» y «Cruces» de `mapa/Mundo3D.tscn` desde el 2026-11-12; antes, en el editor 2D `mapa/EditorMapa.tscn`, ya borrado).
 
 ## Escala uniforme en metros (paso 0b del paso a 3D, 2026-11-10)
 - `mapa/Mundo3D.tscn` se convirtió con `tools/convertir_escala_0b.py` (copia: `mapa/Mundo3D.antes-3d.tscn`). Todo sigue

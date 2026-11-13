@@ -1,9 +1,8 @@
 # Editor del mapa — guía para el usuario (puesta al día el 2026-11-12, mapa ×5)
 
-Hay **dos editores**, los dos dentro de Godot:
-- **Mundo3D** (carpeta `mapa` → doble clic en **Mundo3D**): todo el pueblo en 3D. Aquí mueves edificios, objetos,
-  caminos, árboles, rocas y decorado. Es el que vas a usar casi siempre.
-- **EditorMapa** (carpeta `mapa` → doble clic en **EditorMapa**): el río y sus puentes, visto desde arriba en 2D.
+Hay **un solo editor**, dentro de Godot: **Mundo3D** (carpeta `mapa` → doble clic en **Mundo3D**), todo el valle en
+3D. Aquí mueves edificios, objetos, caminos, árboles, rocas, decorado y también el río y sus puentes (desde el
+2026-11-12; el editor 2D viejo del río se borró).
 
 Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derecha): el juego usa lo que hay guardado.
 **Ctrl+Z** deshace. Si algo se rompe de verdad, pide a Claude que lo vuelva atrás: todo está en GitHub.
@@ -87,15 +86,16 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
   tal cual y son sólidos; para que se atraviesen: Inspector → Metadata → añade «atravesable» = true.
 - **BajoTierra:** las alcantarillas enteras (oculta: ábrela con el ojo). Solo se mueven, no giran.
 
-## 4. El río y los puentes (EditorMapa)
-- Despliega **Rio**: cada **Punto** es un punto del cauce de norte a sur. **W** y arrastra la cruz. **Ancho** (Inspector)
-  ensancha el río en ese punto. Con el mapa ×5 el río del pueblo anda por **100–150** y una persona mide unos 10.
+## 4. El río y los puentes (carpetas «Rio» y «Cruces» de Mundo3D)
+- Despliega **Rio**: cada **Punto** es una cruz del cauce, de norte a sur. **W** y arrastra la cruz por el suelo (la
+  altura da igual). **Ancho m** (Inspector) ensancha el río en ese punto, en metros: el del pueblo anda por **6–8 m**.
+  El agua azul de la maqueta se rehace sola al soltar.
 - Punto nuevo: elige uno, **Ctrl+D** y arrástralo. Quitar: **Supr**. **Curvas naturales** (en Rio): 1 = orillas
   irregulares; 0 = el agua pasa justo por tus puntos.
 - **Cruces:** cada puente o vado. Arrástralo encima del agua. En el Inspector: nombre, tipo, ancho y largo. El juego alarga
-  solo cada paso hasta las dos orillas, así que el largo apenas importa; el ancho sí (menos de 32 y no se cabe).
-- **Rojo:** un edificio con borde rojo es que el agua lo pisa (aparta el río). Un puente rojo no llega a las orillas.
-- Al mover el río, en Mundo3D marca «Regenerar» (Inspector del nodo raíz) para que la maqueta lo enseñe en su sitio.
+  solo cada paso hasta las dos orillas, así que el largo apenas importa; el ancho sí (menos de **1,8 m** y no se cabe).
+- Mira que el agua no pise ningún edificio (el molino viejo sí está junto al agua a propósito).
+- El hueco del cauce en el suelo de la maqueta se ve tras marcar «Regenerar» (Inspector del nodo raíz; tarda un poco).
 
 ## 5. Medidas con el mapa ×5 (2026-11-11)
 - Todo está **cinco veces más lejos** que antes; los edificios miden lo mismo. Una casa mediana mide unos 130 × 96 y la
