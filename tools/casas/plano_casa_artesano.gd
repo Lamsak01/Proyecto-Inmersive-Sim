@@ -1,10 +1,12 @@
 extends RefCounted
 
-## Plano de la casa del herrero Thoran y su hijo Kael (2026-11-13, casa de prueba de los interiores de tamaño real).
+## Plano de la casa de una familia artesana de dos (2026-11-13, interiores de tamaño real): el maestro y su familiar
+## (hijo, hija, hermano o hermana), un dormitorio para cada uno. La primera fue la del herrero Thoran y su hijo Kael;
+## la usan también el carnicero, el carpintero y el pescadero (con otro `id`, y en espejo para no ser calcadas).
 ## Nivel 2, artesano: estufa de hierro, bomba de agua en la cocina, una bombilla de la red del pueblo, radio de válvulas,
 ## bañera de cinc y letrina en el patio. Doble de lado que la casa vieja (de 6,3 × 4,4 m a 12,6 × 9 m).
 ## Metros respecto al centro de la casa; x hacia el este, z hacia el sur (la puerta de la calle da al sur).
-## Lo lee tools/casas/construir_casa.gd, que rehace la escena del edificio.
+## Lo lee tools/casas/construir_casa.gd (por tools/casas/leer_plano.gd), que rehace la escena del edificio.
 
 const ID := "house_family_smith"
 const PLANTA_M := Vector2(12.6, 9.0)
@@ -24,8 +26,8 @@ const ZOCALO := "wall_stone.png"
 ## Cuartos: la sala (central) da a la calle y a todos; cada otro cuarto tiene su hueco («paso») en un tabique.
 const CUARTOS: Array[Dictionary] = [
 	{"nombre": "Sala", "centro": Vector2(0.0, 0.0), "tam": Vector2(4.0, 9.0), "central": true, "suelo": MADERA},
-	{"nombre": "CuartoThoran", "centro": Vector2(-4.15, -2.25), "tam": Vector2(4.3, 4.5), "paso": Vector2(-2.0, -1.2), "ancho": 1.0, "hoja": true, "suelo": MADERA},
-	{"nombre": "CuartoKael", "centro": Vector2(-4.15, 2.25), "tam": Vector2(4.3, 4.5), "paso": Vector2(-2.0, 1.2), "ancho": 1.0, "hoja": true, "suelo": MADERA},
+	{"nombre": "DormitorioMaestro", "centro": Vector2(-4.15, -2.25), "tam": Vector2(4.3, 4.5), "paso": Vector2(-2.0, -1.2), "ancho": 1.0, "hoja": true, "suelo": MADERA},
+	{"nombre": "DormitorioFamiliar", "centro": Vector2(-4.15, 2.25), "tam": Vector2(4.3, 4.5), "paso": Vector2(-2.0, 1.2), "ancho": 1.0, "hoja": true, "suelo": MADERA},
 	{"nombre": "Aseo", "centro": Vector2(4.15, -2.75), "tam": Vector2(4.3, 3.5), "paso": Vector2(2.0, -2.0), "ancho": 1.0, "hoja": true, "suelo": BALDOSA},
 	{"nombre": "Cocina", "centro": Vector2(4.15, 1.75), "tam": Vector2(4.3, 5.5), "paso": Vector2(2.0, 0.8), "ancho": 1.4, "hoja": false, "suelo": BALDOSA},
 ]
@@ -51,12 +53,12 @@ const VENTANAS: Array[Dictionary] = [
 ## Muebles: modelo comprado («modelo») o cosa armada a mano («cosa», tools/casas/cosas_casa.gd). «choque» en píxeles
 ## del mapa, sin girar (gira con el mueble; 0, 0 = se atraviesa); «giro» en grados.
 const MUEBLES: Array[Dictionary] = [
-	# Cuarto de Thoran
+	# Dormitorio del maestro
 	{"modelo": "props/Bed_Twin1.gltf", "pos": Vector2(-5.45, -3.3), "tam": Vector3(0.95, 0.9, 2.0)},
 	{"modelo": "props/Nightstand_Shelf.gltf", "pos": Vector2(-4.6, -4.15), "tam": Vector3(0.5, 0.6, 0.4)},
 	{"modelo": "props/Cabinet.gltf", "pos": Vector2(-2.9, -4.1), "tam": Vector3(1.2, 1.9, 0.55), "choque": Vector2(21, 10)},
 	{"cosa": "alfombra", "pos": Vector2(-4.3, -1.6), "tam2": Vector2(1.6, 1.0), "color": Color(0.45, 0.2, 0.15)},
-	# Cuarto de Kael
+	# Dormitorio del familiar
 	{"modelo": "props/Bed_Twin1.gltf", "pos": Vector2(-5.45, 3.3), "giro": 180.0, "tam": Vector3(0.95, 0.9, 2.0)},
 	{"modelo": "props/Chest_Wood.gltf", "pos": Vector2(-5.45, 1.75), "tam": Vector3(0.8, 0.5, 0.45), "choque": Vector2(14, 8)},
 	{"modelo": "props/Shelf_Simple.gltf", "pos": Vector2(-3.4, 0.3), "tam": Vector3(1.0, 1.5, 0.35), "choque": Vector2(18, 6)},

@@ -23,49 +23,49 @@ const CARTEL_ANCHO_M: float = 1.2
 const TINTE := Color(0.9, 0.86, 0.8)
 
 
-static func armar(plano: GDScript, centro_original: Vector2) -> Node3D:
+static func armar(plano: Dictionary, centro_original: Vector2) -> Node3D:
 	var raiz := Node3D.new()
-	raiz.name = plano.ID
+	raiz.name = plano["ID"]
 	raiz.set_script(EDIFICIO_GD)
-	raiz.set("id_edificio", plano.ID)
+	raiz.set("id_edificio", plano["ID"])
 	raiz.set("centro_original", centro_original)
-	raiz.set("planta_m", plano.PLANTA_M)
-	raiz.set("puerta_ancho_m", plano.PUERTA_ANCHO_M)
+	raiz.set("planta_m", plano["PLANTA_M"])
+	raiz.set("puerta_ancho_m", plano["PUERTA_ANCHO_M"])
 	var grupos: Dictionary = {}
 	for nombre: String in [PARTES.MUROS, PARTES.INTERIOR, PARTES.PISO_ALTO, PARTES.TEJADO, PARTES.MUEBLES, PARTES.MARCAS, TABIQUE_GD.CARPETA, CUARTO_GD.CARPETA]:
 		grupos[nombre] = _hijo(raiz, Node3D.new(), nombre)
 	Cascaron.armar(grupos[PARTES.MUROS], grupos[PARTES.TEJADO], plano)
 	_tabiques(grupos[PARTES.INTERIOR], grupos[TABIQUE_GD.CARPETA], plano)
 	for quieto: String in [PARTES.MUROS, PARTES.INTERIOR, PARTES.TEJADO]:
-		Juntar.juntar(grupos[quieto], plano.ID)
+		Juntar.juntar(grupos[quieto], plano["ID"])
 	_muebles(grupos[PARTES.MUEBLES], plano)
-	for id: String in plano.MARCAS:
+	for id: String in plano["MARCAS"]:
 		var marca := _hijo(grupos[PARTES.MARCAS], Marker3D.new(), id, MARCA_GD) as Marker3D
 		marca.set("id_marca", id)
-		marca.position = _en_suelo(plano.MARCAS[id], 0.0)
-	for c: Dictionary in plano.CUARTOS:
+		marca.position = _en_suelo(plano["MARCAS"][id], 0.0)
+	for c: Dictionary in plano["CUARTOS"]:
 		var cuarto := _hijo(grupos[CUARTO_GD.CARPETA], Node3D.new(), c["nombre"], CUARTO_GD)
 		cuarto.position = _en_suelo(c["centro"], 0.0)
 		cuarto.set("tam_m", c["tam"])
 		cuarto.set("central", bool(c.get("central", false)))
 		cuarto.set("paso_m", _en_suelo(c.get("paso", c["centro"]) - (c["centro"] as Vector2), 0.0))
 	var cartel := _hijo(raiz, Node3D.new(), "Cartel", CARTEL_GD)
-	cartel.position = plano.CARTEL_M
+	cartel.position = plano["CARTEL_M"]
 	cartel.set("ancho_m", CARTEL_ANCHO_M)
 	_dar_dueno(raiz, raiz)
 	return raiz
 
 
 ## Cada tabique: la pared que se ve (con sus huecos y las hojas de los cuartos) y los trozos que chocan entre hueco y hueco.
-static func _tabiques(interior: Node3D, chocan: Node3D, plano: GDScript) -> void:
-	var pared: Material = Piezas.material(plano.TABIQUE, TINTE)
+static func _tabiques(interior: Node3D, chocan: Node3D, plano: Dictionary) -> void:
+	var pared: Material = Piezas.material(plano["TABIQUE"], TINTE)
 	var hoja: Material = Piezas.material("door_wood.png", TINTE)
 	var alto: float = Cascaron.MURO_ALTO_M - Cascaron.SUELO_Y_M
-	for t: Array in plano.TABIQUES:
+	for t: Array in plano["TABIQUES"]:
 		var a: Vector2 = t[0]
 		var b: Vector2 = t[1]
 		var huecos: Array = []
-		for c: Dictionary in plano.CUARTOS:
+		for c: Dictionary in plano["CUARTOS"]:
 			if not c.has("paso") or Geometry2D.get_closest_point_to_segment(c["paso"], a, b).distance_to(c["paso"]) > SOBRE_TABIQUE_M:
 				continue
 			huecos.append({"en": a.distance_to(c["paso"]), "ancho": c["ancho"], "alto": Cascaron.PUERTA_HUECO_ALTO_M})
@@ -95,16 +95,16 @@ static func _trozos_que_chocan(chocan: Node3D, a: Vector2, b: Vector2, huecos: A
 
 
 ## Muebles: el modelo comprado lo dibuja el juego; las cosas armadas a mano van dibujadas dentro de su pieza.
-static func _muebles(grupo: Node3D, plano: GDScript) -> void:
+static func _muebles(grupo: Node3D, plano: Dictionary) -> void:
 	var cuenta: Dictionary = {}
-	for m: Dictionary in plano.MUEBLES:
+	for m: Dictionary in plano["MUEBLES"]:
 		var base: String = String(m.get("cosa", String(m.get("modelo", "")).get_file().get_basename()))
 		cuenta[base] = int(cuenta.get(base, 0)) + 1
 		var nombre: String = base if int(cuenta[base]) == 1 else "%s%d" % [base, cuenta[base]]
 		var pieza := _hijo(grupo, Node3D.new(), nombre, MUEBLE_GD)
 		pieza.position = _en_suelo(m["pos"], 0.0 if bool(m.get("fuera", false)) else Cascaron.SUELO_Y_M)
 		pieza.rotation_degrees.y = float(m.get("giro", 0.0))
-		pieza.set("clave", "%s_%s" % [plano.ID, nombre.to_lower()])
+		pieza.set("clave", "%s_%s" % [plano["ID"], nombre.to_lower()])
 		pieza.set("modelo", String(m.get("modelo", "")))
 		pieza.set("tam3", m.get("tam", Vector3.ZERO))
 		pieza.set("choque", m.get("choque", Vector2.ZERO))

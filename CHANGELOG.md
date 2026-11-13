@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Las cuatro casas de artesano, ya de tamaño real (Claude Code)
+- Carnicero, carpintero y pescadero estrenan la misma casa que el herrero; dos de ellas al revés (dormitorios al otro
+  lado) para que las vecinas no sean calcadas. Probado: 29 puertas sin atascos y 80 trayectos dentro de las 4 casas.
+
 ## 2026-11-13 — Casa de prueba de los interiores de tamaño real: la del herrero (Claude Code)
 - La casa de Thoran y Kael pasa de una sola habitación de 6 × 4 m a una casa de 12,6 × 9 m: sala con mesa, radio de
   válvulas y bombilla; un dormitorio para cada uno; cocina con estufa de hierro y bomba de agua; aseo con bañera de

@@ -4,9 +4,9 @@
 
 ## a) Tarea activa
 **Interiores de tamaño real (usuario, 2026-11-13)**: casas ×4 de suelo, cuarto por cama, sala, cocina y baño; la casa
-marca la clase (niveles 1–4 en `docs/VISION_Y_FUTURO.md`). Casa de prueba hecha: la del herrero, con
-`tools/casas/construir_casa.gd` + `plano_herrero.gd`, cuartos `mapa/cuarto.gd` y rutas `scripts/systems/RutaCuartos.gd`.
-Siguiente: más casas por plano (de una planta; pisos altos pendientes en `docs/PREGUNTAS_PENDIENTES.md`).
+marca la clase (niveles 1–4 en `docs/VISION_Y_FUTURO.md`). Hechas las 4 casas de artesano (herrero, carnicero,
+carpintero, pescadero): `tools/casas/` (plano, id y espejo), `mapa/cuarto.gd`, `scripts/systems/RutaCuartos.gd`.
+Siguiente: otros niveles y negocios, de una planta (pisos altos: `docs/PREGUNTAS_PENDIENTES.md`).
 Mundo desde el editor (`docs/PLAN_MUNDO_DESDE_EDITOR.md`): pasos 0–4 hechos, queda el 5; una sola sesión toca el mundo.
 
 ## b) Último avance completado

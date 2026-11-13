@@ -3,10 +3,12 @@ extends SceneTree
 ## Constructor de casas (2026-11-13, interiores de tamaño real): rehace la escena de un edificio a partir de su plano
 ## (tools/casas/plano_*.gd: cuartos, tabiques, ventanas, muebles y marcas) y pone su nueva planta en el mapa.
 ## El edificio sigue en su sitio del mapa (mismo centro); solo cambia por dentro y de tamaño.
-##   flatpak run org.godotengine.Godot --headless --path . -s tools/casas/construir_casa.gd -- res://tools/casas/plano_herrero.gd
+##   flatpak run org.godotengine.Godot --headless --path . -s tools/casas/construir_casa.gd -- res://tools/casas/plano_casa_artesano.gd [id] [espejo]
+## `id`: otra casa con el mismo plano; `espejo`: con los cuartos del este al oeste y al revés.
 ## Si Godot tiene abiertas la escena del edificio o el mapa: recargarlas SIN guardar después.
 
 const Armar = preload("res://tools/casas/armar_casa.gd")
+const LeerPlano = preload("res://tools/casas/leer_plano.gd")
 const Marca = preload("res://mapa/marca.gd")
 
 const MAPA := "res://mapa/Mundo3D.tscn"
@@ -19,8 +21,8 @@ func _init() -> void:
 		push_error("CASA: falta el plano (res://tools/casas/plano_*.gd)")
 		quit(1)
 		return
-	var plano: GDScript = load(args[0]) as GDScript
-	var ruta: String = EDIFICIOS % plano.ID
+	var plano: Dictionary = LeerPlano.leer(load(args[0]) as GDScript, args[1] if args.size() > 1 else "", args.has("espejo"))
+	var ruta: String = EDIFICIOS % plano["ID"]
 	var vieja: PackedScene = load(ruta) as PackedScene
 	var centro: Vector2 = Marca.propiedades(vieja.get_state(), 0).get("centro_original", Vector2.ZERO)
 	var raiz: Node3D = Armar.armar(plano, centro)
@@ -33,8 +35,8 @@ func _init() -> void:
 		push_error("CASA: no se pudo guardar %s (error %d)" % [ruta, error])
 		quit(1)
 		return
-	_planta_en_el_mapa(plano.ID, plano.PLANTA_M, plano.PUERTA_ANCHO_M)
-	print("CASA: %s rehecha (%s m)" % [ruta, plano.PLANTA_M])
+	_planta_en_el_mapa(plano["ID"], plano["PLANTA_M"], plano["PUERTA_ANCHO_M"])
+	print("CASA: %s rehecha (%s m)" % [ruta, plano["PLANTA_M"]])
 	quit()
 
 

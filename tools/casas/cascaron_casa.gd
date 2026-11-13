@@ -25,11 +25,11 @@ const TINTE := Color(0.88, 0.84, 0.8)
 const HIERRO := Color(0.22, 0.24, 0.28)
 
 
-static func armar(muros: Node3D, tejado: Node3D, plano: GDScript) -> void:
-	var medio: Vector2 = (plano.PLANTA_M as Vector2) * 0.5
+static func armar(muros: Node3D, tejado: Node3D, plano: Dictionary) -> void:
+	var medio: Vector2 = (plano["PLANTA_M"] as Vector2) * 0.5
 	var zocalo_tam := Vector3(medio.x * 2.0 + ZOCALO_SOBRA_M * 2.0, ZOCALO_HONDO_M + SUELO_Y_M - SUELO_GROSOR_M, medio.y * 2.0 + ZOCALO_SOBRA_M * 2.0)
-	Piezas.caja(muros, Vector3(0.0, -ZOCALO_HONDO_M, 0.0), zocalo_tam, Piezas.material(plano.ZOCALO, PIEDRA))
-	for cuarto: Dictionary in plano.CUARTOS:
+	Piezas.caja(muros, Vector3(0.0, -ZOCALO_HONDO_M, 0.0), zocalo_tam, Piezas.material(plano["ZOCALO"], PIEDRA))
+	for cuarto: Dictionary in plano["CUARTOS"]:
 		var c: Vector2 = cuarto["centro"]
 		var t: Vector2 = cuarto["tam"]
 		Piezas.caja(muros, Vector3(c.x, SUELO_Y_M - SUELO_GROSOR_M, c.y), Vector3(t.x, SUELO_GROSOR_M, t.y), Piezas.material(cuarto["suelo"], TINTE))
@@ -39,8 +39,8 @@ static func armar(muros: Node3D, tejado: Node3D, plano: GDScript) -> void:
 
 
 ## Los cuatro muros. Los del norte y el sur llegan hasta la cara de fuera de los otros dos (esquinas cerradas).
-static func _muros(muros: Node3D, plano: GDScript, medio: Vector2) -> void:
-	var fachada: Material = Piezas.material(plano.FACHADA, TINTE)
+static func _muros(muros: Node3D, plano: Dictionary, medio: Vector2) -> void:
+	var fachada: Material = Piezas.material(plano["FACHADA"], TINTE)
 	var g: float = MURO_GROSOR_M * 0.5
 	var lados: Dictionary = {
 		"sur": [Vector2(-medio.x - g, medio.y), Vector2(medio.x + g, medio.y), medio.x + g],
@@ -51,8 +51,8 @@ static func _muros(muros: Node3D, plano: GDScript, medio: Vector2) -> void:
 	for lado: String in lados:
 		var huecos: Array = []
 		if lado == "sur":
-			huecos.append({"en": plano.PUERTA_X_M + lados[lado][2], "ancho": plano.PUERTA_ANCHO_M, "alto": SUELO_Y_M + PUERTA_HUECO_ALTO_M})
-		for v: Dictionary in plano.VENTANAS:
+			huecos.append({"en": plano["PUERTA_X_M"] + lados[lado][2], "ancho": plano["PUERTA_ANCHO_M"], "alto": SUELO_Y_M + PUERTA_HUECO_ALTO_M})
+		for v: Dictionary in plano["VENTANAS"]:
 			if v["lado"] != lado:
 				continue
 			huecos.append({"en": float(v["en"]) + float(lados[lado][2]), "ancho": v["ancho"], "base": SUELO_Y_M + VENTANA_BASE_M, "alto": VENTANA_ALTO_M})
@@ -60,7 +60,7 @@ static func _muros(muros: Node3D, plano: GDScript, medio: Vector2) -> void:
 		Piezas.muro(muros, lados[lado][0], lados[lado][1], 0.0, MURO_ALTO_M, MURO_GROSOR_M, huecos, fachada)
 
 
-static func _ventana(muros: Node3D, plano: GDScript, lado: String, v: Dictionary, medio: Vector2) -> void:
+static func _ventana(muros: Node3D, plano: Dictionary, lado: String, v: Dictionary, medio: Vector2) -> void:
 	var y: float = SUELO_Y_M + VENTANA_BASE_M + VENTANA_ALTO_M * 0.5
 	var en: float = float(v["en"])
 	var sitios: Dictionary = {"sur": Vector3(en, y, medio.y), "norte": Vector3(en, y, -medio.y), "oeste": Vector3(-medio.x, y, en), "este": Vector3(medio.x, y, en)}
@@ -71,9 +71,9 @@ static func _ventana(muros: Node3D, plano: GDScript, lado: String, v: Dictionary
 
 
 ## Puerta de la calle: hoja que gira sobre su bisagra (la mueve el juego) y el candado, que solo se ve con llave.
-static func _puerta(muros: Node3D, plano: GDScript, medio: Vector2) -> void:
-	var ancho: float = plano.PUERTA_ANCHO_M
-	var bisagra := Vector3(float(plano.PUERTA_X_M) - ancho * 0.5, SUELO_Y_M, medio.y)
+static func _puerta(muros: Node3D, plano: Dictionary, medio: Vector2) -> void:
+	var ancho: float = plano["PUERTA_ANCHO_M"]
+	var bisagra := Vector3(float(plano["PUERTA_X_M"]) - ancho * 0.5, SUELO_Y_M, medio.y)
 	var pivote: Node3D = Piezas.hoja(muros, bisagra, ancho, false, Piezas.material("door_wood.png", TINTE))
 	pivote.name = "Puerta"
 	pivote.set_meta(PARTES.ROL, PARTES.PUERTA)
@@ -83,8 +83,8 @@ static func _puerta(muros: Node3D, plano: GDScript, medio: Vector2) -> void:
 
 
 ## Tejado a dos aguas con la cumbrera de este a oeste, y los dos hastiales (triángulos de pared bajo él).
-static func _tejado(tejado: Node3D, plano: GDScript, medio: Vector2) -> void:
-	var tejas: Material = Piezas.material(plano.TEJADO, TINTE)
+static func _tejado(tejado: Node3D, plano: Dictionary, medio: Vector2) -> void:
+	var tejas: Material = Piezas.material(plano["TEJADO"], TINTE)
 	var vuelo: float = medio.y + ALERO_M
 	var largo: float = sqrt(vuelo * vuelo + TEJADO_ALTO_M * TEJADO_ALTO_M)
 	var pendiente: float = atan(TEJADO_ALTO_M / vuelo)
@@ -101,7 +101,7 @@ static func _tejado(tejado: Node3D, plano: GDScript, medio: Vector2) -> void:
 		hastial.size = Vector3(medio.y * 2.0, TEJADO_ALTO_M, MURO_GROSOR_M)
 		var pared := MeshInstance3D.new()
 		pared.mesh = hastial
-		pared.material_override = Piezas.material(plano.FACHADA, TINTE)
+		pared.material_override = Piezas.material(plano["FACHADA"], TINTE)
 		pared.position = Vector3(lado * medio.x, MURO_ALTO_M + TEJADO_ALTO_M * 0.5, 0.0)
 		pared.rotation_degrees.y = 90.0
 		tejado.add_child(pared)
