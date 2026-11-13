@@ -97,6 +97,7 @@ static func _en_mundo(clave: String, plano: Array[Vector2]) -> Array[Vector2]:
 		var lista: Array[Vector2] = []
 		for q: Vector2 in plano:
 			lista.append(al_mundo(q))
+		lista.make_read_only() # guardada para toda la partida: quien la toque por error da un fallo en vez de agrandarla
 		_mesas[clave] = lista
 	return _mesas[clave]
 
@@ -115,6 +116,7 @@ static func _lista_de_mesas(marca: String, cuantas: int) -> Array[Vector2]:
 		var lista: Array[Vector2] = []
 		for i in range(1, cuantas + 1):
 			lista.append(sitio(marca % i))
+		lista.make_read_only() # guardada para toda la partida (ver _en_mundo)
 		_mesas[marca] = lista
 	return _mesas[marca]
 
@@ -287,8 +289,11 @@ static func terrace_seats() -> Array[Vector2]:
 		out.append(t + Vector2(12.5, 0.0))
 	return _en_mundo("mundo_terraza", out)
 
+## Lista nueva cada vez: antes se añadía la terraza a la lista guardada del comedor, que crecía sin parar (miles de
+## asientos tras unas horas) y congelaba el juego segundos cada hora desde las 12:00, al buscar sitio a los clientes.
 static func seats() -> Array[Vector2]:
-	var out: Array[Vector2] = indoor_seats()
+	var out: Array[Vector2] = []
+	out.append_array(indoor_seats())
 	out.append_array(terrace_seats())
 	return out
 

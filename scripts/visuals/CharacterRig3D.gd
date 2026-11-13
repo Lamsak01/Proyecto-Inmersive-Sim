@@ -41,6 +41,7 @@ var shin_r_pivot: Node3D
 # Esqueleto real Quaternius (65 huesos)
 var _skeleton: Skeleton3D = null
 var _using_real_mesh: bool = false
+var _ultima_firma_cuerpo: String = "" # con qué aspecto se hizo el cuerpo por última vez (ver apply_character_appearance)
 var _bone_idx: Dictionary = {} # bone_name -> int
 var _bone_rest_q: Dictionary = {} # bone_name -> Quaternion
 
@@ -312,8 +313,25 @@ func apply_character_appearance(config: Dictionary) -> void:
 		_missing_leg_r = bool(config.get("missing_leg_r", _missing_leg_r))
 		_prosthetic_leg_r = bool(config.get("prosthetic_leg_r", _prosthetic_leg_r))
 
-	if is_inside_tree():
-		_rebuild_meshes()
+	if not is_inside_tree():
+		return
+	# Si solo cambia lo que lleva en las manos (herramienta, farol), basta con cambiar eso: rehacer el cuerpo entero
+	# (esqueleto, ropa, huesos de muñeco) de varios vecinos a la vez congelaba el juego segundos al cambiar la hora.
+	var firma_cuerpo: String = _firma_cuerpo()
+	if firma_cuerpo == _ultima_firma_cuerpo and _using_real_mesh:
+		_rebuild_tools()
+		AssetLib.make_retro(tool_r_root)
+		AssetLib.make_retro(tool_l_root)
+		return
+	_rebuild_meshes()
+
+
+## Todo lo que obliga a rehacer el cuerpo entero (no las herramientas ni el farol de las manos).
+func _firma_cuerpo() -> String:
+	return str([_is_female, _is_child, _skin_color, _hair_color, _tunic_color, _pants_color, _apron_color, _has_beard,
+		_has_skirt, _has_cape, _cape_color, _hair_style, _outfit_kind, _outfit_tex_variant, _hair_tex_variant,
+		_is_dark_skin, _hat_style, _helmet_tier, _chest_tier, _legs_tier, _boots_tier, _missing_arm_r,
+		_prosthetic_arm_r, _missing_leg_r, _prosthetic_leg_r])
 
 
 func set_weapon(weapon_id: String) -> void:
@@ -385,6 +403,7 @@ func _add_part(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3 = Vector3
 
 
 func _rebuild_meshes() -> void:
+	_ultima_firma_cuerpo = _firma_cuerpo()
 	var s := 0.72 if _is_child else 1.0
 	scale = Vector3(s, s, s)
 

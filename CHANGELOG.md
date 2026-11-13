@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Adiós al parón de varios segundos cada hora desde las 12:00 (Claude Code)
+- El restaurante, al buscar sitio a sus clientes, volvía a añadir los asientos de la terraza a su lista guardada cada
+  vez que la miraba: tras unas horas tenía casi 4.000 asientos y elegir mesa congelaba el juego 4–15 s cada hora.
+  Ahora la lista se hace nueva y las guardadas quedan bloqueadas contra cambios.
+- Los vecinos que solo cambian lo que llevan en la mano (herramienta, farol) ya no rehacen el cuerpo entero.
+- Probado con ventana de 11:00 a 19:00: el peor fotograma, 24 ms (antes paradas de 1–15 s).
+
 ## 2026-11-13 — La partida automática del Caso I, otra vez entera (Claude Code)
 - La prueba andaba a puntos del mapa viejo y, con los edificios agrandados, ya no llegaba a las pistas del claro, la
   comisaría, la biblioteca, la morgue, la botica, la mansión ni la bandeja del informe. Ahora va al portón por fuera,

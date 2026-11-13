@@ -28,8 +28,8 @@ carpintero, pescadero), 6 casas-tienda de artesano (con la posada), 2 pobres, el
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
-1. **Que el usuario juegue**: Caso I entero (automático `partida_caso1.gd` 25/25), escolta a la celda, restaurante y
-   edificios agrandados. Lo que cuente, a `docs/FALLOS_VISIBLES.md`. Recomendado antes que lo demás.
+1. **El usuario está jugando** (2026-11-13): arreglado el parón de cada hora desde las 12:00 (asientos del restaurante,
+   `VillageRestaurant.seats`). Pide **rehacer por completo el menú de diálogos**: falta que diga cómo lo quiere.
 2. **Rendimiento** (prioridad 1 en FALLOS_VISIBLES): pendiente las sombras del sol (duplican el dibujo). Medio.
 3. **Vecinos atascados**: simulaciones a 0; abierto hasta que el usuario lo confirme jugando.
 4. **Interiores que faltan**: taberna (pregunta 0b, mucho), casa de la cantera (`mixed_family_quarry`, sin plano) y
