@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Terraza del restaurante, camas de mascota y puentes de orilla a orilla (Claude Code)
+- Las macetas, postes, losa y bombillas de la terraza del restaurante se habían quedado a 39 m (×5 dentro de su malla):
+  vuelven delante de la puerta. Las camas de Sultán, Pelusa y Sombra salen de la plaza y vuelven junto a su tienda.
+- Los tres puentes del río se alargan hasta pisar las dos orillas (antes 4–6 m sobre 7–8 m de agua).
+
 ## 2026-11-13 — Línea blanca del molino y altar de la capilla en el prado (Claude Code)
 - Al mover los edificios con el ×5, algunos vértices de sus mallas horneadas se quedaron en el sitio viejo: 2 del molino
   (un triángulo finísimo hasta el cielo: la «línea blanca») y 6.242 del interior de la capilla (altar, velas y cálices

@@ -298,121 +298,121 @@ light_energy = 0.85
 omni_range = 5.04
 
 [node name="@MeshInstance3D@7753" type="MeshInstance3D" parent="Interior" unique_id=810007048]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.299995, 2.9378061, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.86, 2.93781, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_t0htg")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7754" type="MeshInstance3D" parent="Interior" unique_id=2062475879]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.66, 2.7830849, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.132, 2.78308, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_jjdr6")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7755" type="MeshInstance3D" parent="Interior" unique_id=1598208967]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.019997, 2.726453, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.404, 2.72645, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_q52kk")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7756" type="MeshInstance3D" parent="Interior" unique_id=705285776]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.379997, 2.7830849, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.676, 2.78308, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_7vm0n")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7757" type="MeshInstance3D" parent="Interior" unique_id=549589224]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.739998, 2.9378061, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.948, 2.93781, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_wv8xo")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7759" type="MeshInstance3D" parent="Interior" unique_id=1423394778]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.23333, 2.9378061, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.84667, 2.93781, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_0q2xn")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7760" type="MeshInstance3D" parent="Interior" unique_id=1282163475]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.366669, 2.7830849, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.47333, 2.78308, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_hhgwj")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7761" type="MeshInstance3D" parent="Interior" unique_id=2005344712]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 2.726453, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.1, 2.72645, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_mf52f")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7762" type="MeshInstance3D" parent="Interior" unique_id=38674889]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.633331, 2.7830849, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.72667, 2.78308, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_jbyak")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7763" type="MeshInstance3D" parent="Interior" unique_id=446079965]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.7666664, 2.9378061, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.35333, 2.93781, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_a76o6")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7765" type="MeshInstance3D" parent="Interior" unique_id=443091785]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.79333115, 2.9378061, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.158666, 2.93781, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_imfto")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7766" type="MeshInstance3D" parent="Interior" unique_id=716896501]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3133354, 2.7830849, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.662667, 2.78308, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_3lj7m")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7767" type="MeshInstance3D" parent="Interior" unique_id=1500090608]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.420002, 2.726453, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.484, 2.72645, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_hi0jx")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7768" type="MeshInstance3D" parent="Interior" unique_id=4342769]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.52667, 2.7830849, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.30533, 2.78308, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_c0b47")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7769" type="MeshInstance3D" parent="Interior" unique_id=1195034341]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.633333, 2.9378061, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.12667, 2.93781, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_i24a5")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7771" type="MeshInstance3D" parent="Interior" unique_id=1974839720]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.773336, 2.9378061, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.55467, 2.93781, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_2ixru")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7772" type="MeshInstance3D" parent="Interior" unique_id=1994757535]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.80667, 2.7830849, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.16133, 2.78308, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_kmlga")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7773" type="MeshInstance3D" parent="Interior" unique_id=563720402]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.840002, 2.726453, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.768, 2.72645, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_mv8ey")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7774" type="MeshInstance3D" parent="Interior" unique_id=1169854702]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31.873335, 2.7830849, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.37467, 2.78308, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_i4l8q")
 metadata/rol = "luz_noche"
 
 [node name="@MeshInstance3D@7775" type="MeshInstance3D" parent="Interior" unique_id=77992720]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.906666, 2.9378061, 38.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.98133, 2.93781, 7.784)
 material_override = SubResource("StandardMaterial3D_ry1fl")
 mesh = SubResource("CylinderMesh_l8kaj")
 metadata/rol = "luz_noche"
