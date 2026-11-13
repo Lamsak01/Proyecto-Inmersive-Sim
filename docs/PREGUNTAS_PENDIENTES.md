@@ -14,4 +14,7 @@
 
 ## Abiertas
 
-(ninguna)
+1. **(2026-11-13) Herrero encima de la herrería:** dormir en el piso de arriba de la tienda pide un sistema de pisos
+   para cualquier edificio (hoy solo la posada y tu casa tienen piso alto, con código propio en ~20 archivos). Coste:
+   mucho. Mientras, la casa de prueba del herrero es su vivienda de siempre, de una planta y por cuartos. ¿Hacemos el
+   sistema de pisos ya, o seguimos con casas de una planta y lo dejamos para las casas ricas más adelante?

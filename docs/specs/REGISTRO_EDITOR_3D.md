@@ -134,6 +134,12 @@ mover una pista del claro y el molino mueve sus zonas de uso y el interior 3D de
 - **Tabiques** (`mapa/tabique.gd`, 2026-11-11): grupo «Tabiques» de la escena, una pieza por pared de dentro (`tam_m`
   ancho × fondo en metros, `tapa_vista`). `Planta` los devuelve en `partitions` y `_construct_solid_building` los crea
   y los deja en `vm.interior_walls[id]` (la taberna los apaga al subir de planta). 39 tabiques en 13 edificios.
+- **Cuartos** (`mapa/cuarto.gd`, 2026-11-13): grupo «Cuartos» de las casas por cuartos; `tam_m`, `paso_m` (centro del
+  hueco respecto al cuarto) y `central` (la sala). `scripts/systems/RutaCuartos.gd` los lee y
+  `VillageManagerBase._route_internal_plano` lo usa antes que las rutas escritas a mano. Las casas por cuartos se
+  generan con `tools/casas/construir_casa.gd -- res://tools/casas/plano_<casa>.gd` (rehace la escena y pone la planta
+  en Mundo3D): cascarón, tabiques con huecos y hojas, muebles (cosas sin modelo armadas en `cosas_casa.gd`), marcas,
+  cuartos y cartel; muros, interior y tejado se juntan en `mapa/edificios/comun/casa_<id>_<grupo>.res`.
 - **Solares** (`mapa/solar.gd`, carpeta «Solares» de Mundo3D, paso 2, 2026-11-11): 40 piezas con `id_solar`,
   `centro_original` y `terreno_m`. `mapa/anclas.gd` registra un ancla por solar (rectángulo del terreno, giro de 90 en
   90) con la prioridad más baja (`PASADAS`: primero edificios y objetos, dentro o pegados; al final el solar). Un

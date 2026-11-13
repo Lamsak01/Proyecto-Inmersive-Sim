@@ -349,8 +349,9 @@ las escaleras y trampillas te cambian de nivel.
 Todos los interiores se ven minúsculos (una habitación apretada). Quiere agrandarlos «×4»; un cuarto por cama si hay
 varias, cama de matrimonio para las parejas; cada casa con baño, cuarto(s), cocina y sala de estar; según la riqueza,
 además cuarto de invitados, patio vallado, segundo piso o sótano. Negocios también más grandes; proporciones realistas.
-Medido por Claude: hoy casi todas las casas miden 6–7 × 4–5 m (~30 m²). Propuesta (pendiente de aprobar): doble de lado
-(×4 de suelo, ~115 m²), constructor de casas por lista de cuartos y nivel de riqueza, prueba con una casa primero.
+Medido por Claude: hoy casi todas las casas miden 6–7 × 4–5 m (~30 m²). Aprobado: doble de lado
+(×4 de suelo, ~115 m²), constructor de casas por lista de cuartos y nivel de riqueza, prueba con una casa primero
+(2026-11-13: hecha la del herrero, `tools/casas/`).
 Añadido del usuario (2026-11-13): la casa marca la clase. Las más pobres, casi medievales (letrina fuera); las más ricas,
 más tecnológicas, siempre con estética antigua: nada de pantallas salvo las verdes, radios de onda corta. Niveles aprobados
 (2026-11-13, «casi perfecto»): 1 pobre (letrina fuera, leña, velas), 2 artesano (estufa de hierro, queroseno, bomba de

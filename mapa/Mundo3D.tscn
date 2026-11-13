@@ -13524,8 +13524,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 208.6, 0.33816472, -54.600002
 script = ExtResource("3_jgq7j")
 id_edificio = "house_family_smith"
 centro_original = Vector2(745, -195)
-planta_m = Vector2(6.272, 4.368)
-puerta_ancho_m = 2.128
+planta_m = Vector2(12.6, 9.0)
+puerta_ancho_m = 1.6
 
 [node name="shop_family_butcher" type="Node3D" parent="Edificios" unique_id=789771975 instance=ExtResource("7_ceh11")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 163.8, 0, -10.08)
@@ -14646,7 +14646,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "mascota_sultan"
 
 [node name="mascota_canela" type="Marker3D" parent="Sitios" unique_id=197670754]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 208.6, 0, -51.24)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 211.6, 0, -48.6)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "mascota_canela"

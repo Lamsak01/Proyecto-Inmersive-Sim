@@ -3,11 +3,11 @@
 > Última actualización: 2026-11-13, Claude Code. Historial: `CHANGELOG.md` y `git log`.
 
 ## a) Tarea activa
-**PRIORIDAD TOTAL (usuario, 2026-11-12): salir del mapa 2D**. Detención sin atajos hecha (2026-11-13,
-`scripts/systems/EscoltaPolicial.gd`, prueba `tools/tests/escolta_organica.gd`); cola en las puertas hecha; cementerio, lavadero, corral, 2 huertos, valla del lago, terraza del restaurante y camas de mascota;
-3 puentes alargados de orilla a orilla. Siguiente: conos de la taberna (FALLOS punto 9).
-Migración «el mundo sale solo del editor» (`docs/PLAN_MUNDO_DESDE_EDITOR.md`); una sola sesión de Claude toca el código
-del mundo. Pasos 0 a 4 hechos (corte final 2026-11-12: sin capa de anclas). Queda el paso 5 del plan.
+**Interiores de tamaño real (usuario, 2026-11-13)**: casas ×4 de suelo, cuarto por cama, sala, cocina y baño; la casa
+marca la clase (niveles 1–4 en `docs/VISION_Y_FUTURO.md`). Casa de prueba hecha: la del herrero, con
+`tools/casas/construir_casa.gd` + `plano_herrero.gd`, cuartos `mapa/cuarto.gd` y rutas `scripts/systems/RutaCuartos.gd`.
+Siguiente: más casas por plano (de una planta; pisos altos pendientes en `docs/PREGUNTAS_PENDIENTES.md`).
+Mundo desde el editor (`docs/PLAN_MUNDO_DESDE_EDITOR.md`): pasos 0–4 hechos, queda el 5; una sola sesión toca el mundo.
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;

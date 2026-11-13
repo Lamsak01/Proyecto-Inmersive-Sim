@@ -4,6 +4,13 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Casa de prueba de los interiores de tamaño real: la del herrero (Claude Code)
+- La casa de Thoran y Kael pasa de una sola habitación de 6 × 4 m a una casa de 12,6 × 9 m: sala con mesa, radio de
+  válvulas y bombilla; un dormitorio para cada uno; cocina con estufa de hierro y bomba de agua; aseo con bañera de
+  cinc; letrina en el patio. Los vecinos cruzan de cuarto a cuarto por las puertas (que se abren solas).
+- Nuevo constructor de casas: cada casa sale de un plano con sus cuartos, tabiques, ventanas y muebles; las paredes se
+  juntan en una sola malla para no cargar el portátil. Probado: 29 puertas sin atascos; 8 trayectos dentro de la casa.
+
 ## 2026-11-13 — Terraza del restaurante, camas de mascota y puentes de orilla a orilla (Claude Code)
 - Las macetas, postes, losa y bombillas de la terraza del restaurante se habían quedado a 39 m (×5 dentro de su malla):
   vuelven delante de la puerta. Las camas de Sultán, Pelusa y Sombra salen de la plaza y vuelven junto a su tienda.

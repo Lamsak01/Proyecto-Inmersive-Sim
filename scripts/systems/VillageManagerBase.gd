@@ -17,6 +17,7 @@ const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const Vista = preload("res://scripts/fisica/Vista.gd")
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
 const Solar = preload("res://mapa/solar.gd")
+const RutaCuartos = preload("res://scripts/systems/RutaCuartos.gd") # casas por cuartos: se cruza por sus huecos
 
 var VillageJustice = load("res://scripts/systems/VillageJustice.gd")
 
@@ -745,6 +746,8 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 
 
 func _route_internal_plano(b_id: String, from_pos: Vector2, target_pos: Vector2) -> Vector2:
+	if RutaCuartos.tiene(b_id):
+		return RutaCuartos.siguiente(b_id, from_pos, target_pos)
 	match b_id:
 		"mixed_family_herbalist":
 			if from_pos.y > 156.0 and target_pos.y < 162.0:

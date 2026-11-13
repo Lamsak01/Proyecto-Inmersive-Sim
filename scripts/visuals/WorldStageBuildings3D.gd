@@ -109,8 +109,8 @@ func _poner_muebles_de_escena(raiz: Node3D, b_id: String) -> void:
 		_register_furniture_rect(modelo.get_file().get_basename(), Mapa3D.a_mapa(mueble.global_position), Mapa3D.a_mapa(tam3), mueble.global_rotation_degrees.y)
 		# Su pared invisible sale de la pieza: en el plano el giro va al revés que en 3D
 		vm.choque_de_mueble(Mapa3D.a_mapa(mueble.global_position), mueble.get("choque"), -deg_to_rad(mueble.global_rotation_degrees.y), _current_building_floor)
-		if _is_headless or not AssetLib.has_curated_assets():
-			continue
+		if _is_headless or modelo.is_empty() or not AssetLib.has_curated_assets():
+			continue # sin modelo: la pieza ya trae su dibujo (cosas armadas a mano, tools/casas/cosas_casa.gd)
 		var dibujo: Node3D = AssetLib.instantiate_model(modelo, tam3, float(mueble.get("alto3")), true, true)
 		if dibujo != null:
 			mueble.add_child(dibujo)
