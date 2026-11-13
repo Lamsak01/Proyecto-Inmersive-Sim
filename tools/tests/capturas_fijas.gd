@@ -1,5 +1,4 @@
 extends SceneTree
-const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escritas en el mapa original → mundo
 
 ## Fotos fijas del mundo en 1.ª persona (y una desde arriba, «arriba_plaza») para comparar antes y después de un cambio (Claude Code, 2026-11-10;
 ## paso del mundo a 3D, docs/PLAN_MUNDO_3D.md). Con ventana, ~2 min. Siempre los mismos sitios, mediodía, cielo
@@ -7,22 +6,24 @@ const MapaViejo = preload("res://tools/tests/mapa_viejo.gd") ## posiciones escri
 ## Uso: flatpak run org.godotengine.Godot --path . -s tools/tests/capturas_fijas.gd -- <carpeta> [carpeta_referencia]
 ## Con carpeta_referencia, compara foto a foto e imprime el % de píxeles distintos (CAPTURA <sitio> distinto=…%).
 
+## Sitios en coordenadas del mundo (2026-11-12, corte final: ya no se traducen). Si se mueve una pieza del editor,
+## la foto de ese sitio cambia: es lo esperado; se toma una referencia nueva.
 const SITIOS: Array = [
-	["plaza", Vector2(430, 76), 0.0],
-	["rio", Vector2(250, 0), PI],
-	["bosque", Vector2(138, -850), -PI / 2.0],
-	["molino", Vector2(190, -1040), -PI / 2.0],
-	["mansion", Vector2(1315, -330), -PI / 2.0],
-	["taberna_dentro", Vector2(420, -198), 0.0],
-	["capilla_altar", Vector2(745, 296), PI / 2.0],
-	["capilla_fondo", Vector2(745, 318), -PI / 2.0],
-	["casa_fuera", Vector2(330, -350), -PI / 2.0],
-	["casa_dentro", Vector2(330, -398), -PI / 2.0],
-	["casita_dentro", Vector2(186, -405), -PI / 2.0],
-	["casa_norte_fuera", Vector2(-600, 730), PI / 2.0],
-	["casa_norte_dentro", Vector2(-600, 776), PI / 2.0],
-	["puesto_paso", Vector2(1490, 50), 0.0],
-	["lago", Vector2(-640, 105), PI],
+	["plaza", Vector2(2110, 328), 0.0],
+	["rio", Vector2(1930, 252), PI],
+	["bosque", Vector2(690, -4310), -PI / 2.0],
+	["molino", Vector2(942, -5280), -PI / 2.0],
+	["mansion", Vector2(6575, -1650), -PI / 2.0],
+	["taberna_dentro", Vector2(2156, -1094), 0.0],
+	["capilla_altar", Vector2(3725, 1544), PI / 2.0],
+	["capilla_fondo", Vector2(3722, 1564), -PI / 2.0],
+	["casa_fuera", Vector2(1650, -2050), -PI / 2.0],
+	["casa_dentro", Vector2(1650, -2098), -PI / 2.0],
+	["casita_dentro", Vector2(930, -2105), -PI / 2.0],
+	["casa_norte_fuera", Vector2(-3000, 3930), PI / 2.0],
+	["casa_norte_dentro", Vector2(-3000, 3976), PI / 2.0],
+	["puesto_paso", Vector2(7090, -94), 0.0],
+	["lago", Vector2(-3200, 525), PI],
 ]
 
 func _initialize() -> void:
@@ -51,7 +52,7 @@ func _initialize() -> void:
 	var pl = get_first_node_in_group("player") as Node2D
 	var total_dist: float = 0.0
 	for s in SITIOS:
-		pl.global_position = MapaViejo.a_mundo(s[1]) # los sitios están escritos en el mapa original
+		pl.global_position = s[1]
 		for _i in range(40):
 			stage.set("fp_yaw", s[2])
 			stage.set("fp_pitch", -0.05)
@@ -69,7 +70,7 @@ func _initialize() -> void:
 			print("CAPTURA %s guardada" % s[0])
 	# Vista desde arriba (paso 0b): el 3D debe cuadrar con el mapa del pueblo (casas, caminos, letreros)
 	stage.call("set_first_person", false)
-	pl.global_position = MapaViejo.a_mundo(SITIOS[0][1])
+	pl.global_position = SITIOS[0][1]
 	for _i in range(40):
 		await process_frame
 	var img_arriba: Image = root.get_texture().get_image()

@@ -10,6 +10,8 @@ El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `do
 - Muebles: fuera el lector de anclas. Pruebas y herramientas usan `tools/tests/mapa_viejo.gd` para sus sitios escritos
   en el mapa original. Volcado del mundo igual que antes (diferencia máxima 0,0001 px).
 - El ×5 solo queda en `mapa/zona.gd` (relieve, lago, ciénaga y mapa del valle aún escritos en medidas viejas).
+- Fotos fijas (`capturas_fijas.gd`) con sitios en coordenadas del mundo: antes/después del corte iguales (<0,5 %, salvo
+  la capilla, donde un mueble empuja al jugador unos píxeles, y el letrero de la mascota en la plaza).
 
 ## 2026-11-12 — El juego ya no traduce nada con las anclas (Claude Code)
 - Constructor de edificios: se levanta con la función de su pieza (`EdificioEditor.a_mundo`) o de su solar
