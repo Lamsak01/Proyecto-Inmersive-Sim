@@ -23434,16 +23434,6 @@ pos_original = Vector2(476, 14)
 alto = 14.0
 nombre_visible = "Tablón de encargos"
 
-[node name="🪦_Cementerio_Parroquial_del_Alba_(13)" type="Node3D" parent="Objetos" unique_id=552623418]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 267.4, 0.33816472, 68.88)
-script = ExtResource("29_bojho")
-clave = "ancla_13"
-pos_original = Vector2(955, 246)
-alto = 10.0
-nombre_visible = "🪦 Cementerio Parroquial del Alba (13)"
-es_ancla = true
-radio_ancla = 12.0
-
 [node name="CemeteryGateArea_(14)" type="Node3D" parent="Objetos" unique_id=1953066334]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 248.64, 0.33816472, 73.36)
 script = ExtResource("29_bojho")
@@ -23454,16 +23444,6 @@ nombre_visible = "CemeteryGateArea (14)"
 es_ancla = true
 radio_ancla = 12.0
 
-[node name="🌉_Puente_Viejo_(21)" type="Node3D" parent="Objetos" unique_id=17643992]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.42601, -0.19021766, 6.72)
-script = ExtResource("29_bojho")
-clave = "ancla_21"
-pos_original = Vector2(126.52147, 24)
-alto = 10.0
-nombre_visible = "🌉 Puente Viejo (21)"
-es_ancla = true
-radio_ancla = 12.0
-
 [node name="OldBridgeVictimShoeArea_(22)" type="Node3D" parent="Objetos" unique_id=1168934359]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.62601, -0.19021766, 10.64)
 script = ExtResource("29_bojho")
@@ -23471,16 +23451,6 @@ clave = "ancla_22"
 pos_original = Vector2(116.52147, 38)
 alto = 10.0
 nombre_visible = "OldBridgeVictimShoeArea (22)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="🌲_Claro_del_Arroyo_(23)" type="Node3D" parent="Objetos" unique_id=1720374307]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.44, 0.99335885, -250.32)
-script = ExtResource("29_bojho")
-clave = "ancla_23"
-pos_original = Vector2(148, -894)
-alto = 10.0
-nombre_visible = "🌲 Claro del Arroyo (23)"
 es_ancla = true
 radio_ancla = 12.0
 
@@ -23512,146 +23482,6 @@ pos_original = Vector2(610, -735)
 modelo = "exterior/Well.obj"
 alto = 8.0
 nombre_visible = "RondaWaterWellArea (28)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="🌾_Molino_del_Este_(29)" type="Node3D" parent="Objetos" unique_id=1923238621]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 408.24, 0.5495177, 60.76)
-script = ExtResource("29_bojho")
-clave = "ancla_29"
-pos_original = Vector2(1458, 217)
-alto = 10.0
-nombre_visible = "🌾 Molino del Este (29)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(61)" type="Node3D" parent="Objetos" unique_id=320020646]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 392, 0.5495177, 17.08)
-script = ExtResource("29_bojho")
-clave = "ancla_61"
-pos_original = Vector2(1400, 61)
-alto = 10.0
-nombre_visible = "📜 Solar libre (61)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(71)" type="Node3D" parent="Objetos" unique_id=889922241]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -170.8, 0, 167.16)
-script = ExtResource("29_bojho")
-clave = "ancla_71"
-pos_original = Vector2(-610, 597)
-alto = 10.0
-nombre_visible = "📜 Solar libre (71)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(73)" type="Node3D" parent="Objetos" unique_id=2009315549]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -168, 0, 202.72)
-script = ExtResource("29_bojho")
-clave = "ancla_73"
-pos_original = Vector2(-600, 724)
-alto = 10.0
-nombre_visible = "📜 Solar libre (73)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(77)" type="Node3D" parent="Objetos" unique_id=1704626979]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 439.6, 0.5495177, 47.32)
-script = ExtResource("29_bojho")
-clave = "ancla_77"
-pos_original = Vector2(1570, 169)
-alto = 10.0
-nombre_visible = "📜 Solar libre (77)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="📜_Solar_libre_(79)" type="Node3D" parent="Objetos" unique_id=583385943]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 473.2, 0.5495177, 45.92)
-script = ExtResource("29_bojho")
-clave = "ancla_79"
-pos_original = Vector2(1690, 164)
-alto = 10.0
-nombre_visible = "📜 Solar libre (79)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="🌾_Campos_de_la_Granja_(80)" type="Node3D" parent="Objetos" unique_id=488690975]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, -0.19021766, 109.48)
-script = ExtResource("29_bojho")
-clave = "ancla_80"
-pos_original = Vector2(30, 391)
-alto = 10.0
-nombre_visible = "🌾 Campos de la Granja (80)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="tavern_bed_(81)" type="Node3D" parent="Objetos" unique_id=134689316]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.184, -0.19021766, 133.056)
-script = ExtResource("29_bojho")
-clave = "ancla_81"
-pos_original = Vector2(204, 496)
-alto = 10.0
-nombre_visible = "tavern_bed (81)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="rock_iron_vein_(82)" type="Node3D" parent="Objetos" unique_id=2038898920]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -73.472, 0.36986765, -95.088)
-script = ExtResource("29_bojho")
-clave = "ancla_82"
-pos_original = Vector2(-192, -378)
-alto = 10.0
-nombre_visible = "rock_iron_vein (82)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="rock_iron_vein_(83)" type="Node3D" parent="Objetos" unique_id=1187251088]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40.04, 0.36986765, -100.8)
-script = ExtResource("29_bojho")
-clave = "ancla_83"
-pos_original = Vector2(-143, -360)
-alto = 10.0
-nombre_visible = "rock_iron_vein (83)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="rock_iron_vein_(84)" type="Node3D" parent="Objetos" unique_id=852888892]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72.8, 0.36986765, -89.824)
-script = ExtResource("29_bojho")
-clave = "ancla_84"
-pos_original = Vector2(-180, -284)
-alto = 10.0
-nombre_visible = "rock_iron_vein (84)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="rock_iron_vein_(85)" type="Node3D" parent="Objetos" unique_id=38845583]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.84, 0.36986765, -77.84)
-script = ExtResource("29_bojho")
-clave = "ancla_85"
-pos_original = Vector2(-153, -278)
-alto = 10.0
-nombre_visible = "rock_iron_vein (85)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="🌅_Mirador_del_Lago_(91)" type="Node3D" parent="Objetos" unique_id=393417707]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200.2, 0, 50.68)
-script = ExtResource("29_bojho")
-clave = "ancla_91"
-pos_original = Vector2(-715, 181)
-alto = 10.0
-nombre_visible = "🌅 Mirador del Lago (91)"
-es_ancla = true
-radio_ancla = 12.0
-
-[node name="🧺_Lavadero_(92)" type="Node3D" parent="Objetos" unique_id=313685356]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.2, 0, 35.56)
-script = ExtResource("29_bojho")
-clave = "ancla_92"
-pos_original = Vector2(215, 127)
-alto = 10.0
-nombre_visible = "🧺 Lavadero (92)"
 es_ancla = true
 radio_ancla = 12.0
 

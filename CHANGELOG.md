@@ -4,6 +4,11 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: 17 anclas de letreros viejos borradas (Claude Code)
+- Las anclas de «Objetos» de los letreros flotantes que ya no existen (cementerio, puente, claro, molino, solares
+  libres, campos, mirador, lavadero), las de 4 vetas de hierro y una cama suelta no movían nada: borradas.
+  Comprobado: 1.659 cosas del pueblo idénticas; el 3D no las usaba.
+
 ## 2026-11-12 — Compostador del campamento borrado (Claude Code)
 - Era del huerto del campamento (borrado por el usuario): ya estaba apagado pero dejaba una pared invisible en el sitio
   del campamento. Borrados el compostador, su [E], su dibujo 3D y su ancla del editor. El abono sigue en recetas y oficios.
