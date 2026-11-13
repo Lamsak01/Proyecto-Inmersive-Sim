@@ -52,7 +52,10 @@ const VENTANAS: Array[Dictionary] = [
 
 ## Muebles: modelo comprado («modelo») o cosa armada a mano («cosa», tools/casas/cosas_*.gd). «choque» en píxeles
 ## del mapa, sin girar (gira con el mueble; 0, 0 = se atraviesa); «giro» en grados; «alto» del quinqué, en metros.
-const MUEBLES: Array[Dictionary] = [
+const MUEBLES: Array[Dictionary] = MUEBLES_CASA + MUEBLES_TALLER
+
+## Lo de vivir (dormitorios, sala-cocina, aseo y letrina); la posada de los Candil lo reutiliza con otro cuarto del fondo.
+const MUEBLES_CASA: Array[Dictionary] = [
 	# Dormitorio del maestro (el cofre lo pone el juego en su marca)
 	{"modelo": "props/Bed_Twin1.gltf", "pos": Vector2(-5.45, -3.3), "tam": Vector3(0.95, 0.9, 2.0)},
 	{"modelo": "props/Nightstand_Shelf.gltf", "pos": Vector2(-4.6, -4.15), "tam": Vector3(0.5, 0.6, 0.4)},
@@ -77,18 +80,21 @@ const MUEBLES: Array[Dictionary] = [
 	{"cosa": "radio", "pos": Vector2(-1.6, -3.1), "giro": 90.0, "choque": Vector2(11, 8)},
 	{"cosa": "alfombra", "pos": Vector2(0.0, 1.4), "tam2": Vector2(2.2, 1.4), "color": Color(0.3, 0.32, 0.18)},
 	{"modelo": "props/Workbench_Drawers.gltf", "pos": Vector2(1.3, 3.6), "tam": Vector3(1.2, 0.9, 0.55), "choque": Vector2(21, 10)},
-	# Taller: banco de trabajo, estante, caja y barril (lo de cada oficio, en POR_OFICIO)
-	{"modelo": "props/Workbench.gltf", "pos": Vector2(5.75, 0.6), "giro": 90.0, "tam": Vector3(1.6, 0.9, 0.7), "choque": Vector2(28, 12)},
-	{"modelo": "props/Shelf_Simple.gltf", "pos": Vector2(6.0, 3.2), "giro": 90.0, "tam": Vector3(1.0, 1.5, 0.35), "choque": Vector2(18, 6)},
-	{"modelo": "props/Crate_Wooden.gltf", "pos": Vector2(2.6, -1.0), "tam": Vector3(0.7, 0.7, 0.7), "choque": Vector2(12, 12)},
-	{"modelo": "props/Barrel.gltf", "pos": Vector2(5.8, -1.0), "tam": Vector3(0.6, 0.9, 0.6), "choque": Vector2(10, 10)},
-	{"cosa": "bombilla", "pos": Vector2(4.15, 1.5)},
 	# Aseo: bañera de cinc, palangana y cubo
 	{"cosa": "banera", "pos": Vector2(5.35, -3.6), "choque": Vector2(27, 12)},
 	{"cosa": "palangana", "pos": Vector2(2.6, -4.05), "choque": Vector2(7, 7)},
 	{"modelo": "props/Bucket_Wooden_1.gltf", "pos": Vector2(3.6, -4.1), "tam": Vector3(0.4, 0.4, 0.4)},
 	# Patio trasero: la letrina
 	{"cosa": "letrina", "pos": Vector2(4.6, -6.6), "choque": Vector2(22, 22), "fuera": true},
+]
+
+## Taller: banco de trabajo, estante, caja, barril y bombilla (lo de cada oficio, en POR_OFICIO).
+const MUEBLES_TALLER: Array[Dictionary] = [
+	{"modelo": "props/Workbench.gltf", "pos": Vector2(5.75, 0.6), "giro": 90.0, "tam": Vector3(1.6, 0.9, 0.7), "choque": Vector2(28, 12)},
+	{"modelo": "props/Shelf_Simple.gltf", "pos": Vector2(6.0, 3.2), "giro": 90.0, "tam": Vector3(1.0, 1.5, 0.35), "choque": Vector2(18, 6)},
+	{"modelo": "props/Crate_Wooden.gltf", "pos": Vector2(2.6, -1.0), "tam": Vector3(0.7, 0.7, 0.7), "choque": Vector2(12, 12)},
+	{"modelo": "props/Barrel.gltf", "pos": Vector2(5.8, -1.0), "tam": Vector3(0.6, 0.9, 0.6), "choque": Vector2(10, 10)},
+	{"cosa": "bombilla", "pos": Vector2(4.15, 1.5)},
 ]
 
 ## Lo propio de cada oficio, en el taller: un rincón al fondo (4.6, 3.7) y otro junto al tabique del aseo (3.8, -1.0).

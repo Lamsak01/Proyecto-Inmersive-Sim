@@ -5,8 +5,8 @@
 ## a) Tarea activa
 **Interiores de tamaño real (usuario, 2026-11-13)**: casas ×4 de suelo, cuarto por cama, sala, cocina y baño; la casa
 marca la clase (niveles 1–4 en `docs/VISION_Y_FUTURO.md`). Hechas las 4 casas de artesano (herrero, carnicero,
-carpintero, pescadero), 5 casas-tienda de artesano y 2 pobres: `tools/casas/` (planos, id, espejo, POR_OFICIO),
-`mapa/cuarto.gd`, `scripts/systems/RutaCuartos.gd`. Clases en la visión. Siguiente: Arreglador y Candil (nivel 3).
+carpintero, pescadero), 6 casas-tienda de artesano (con la posada) y 2 pobres: `tools/casas/` (planos, id, espejo, POR_OFICIO),
+`mapa/cuarto.gd`, `scripts/systems/RutaCuartos.gd`. Clases en la visión. Siguiente: el Arreglador (nivel 3).
 Mundo desde el editor (`docs/PLAN_MUNDO_DESDE_EDITOR.md`): pasos 0–4 hechos, queda el 5; una sola sesión toca el mundo.
 
 ## b) Último avance completado

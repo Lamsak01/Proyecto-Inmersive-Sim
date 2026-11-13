@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — La posada de los Candil, de tamaño real (Claude Code)
+- Misma casa-taller de artesano, con el cuarto del fondo hecho alcoba de huéspedes (dos camas, mesilla y arcón). Los
+  Candil pasan a artesanos («Posada Humilde»). Probado: 29 puertas y 72 trayectos dentro sin chocar.
+
 ## 2026-11-13 — Casas-tienda de artesano: panadería, sastrería, herbolaria, granja y rancho (Claude Code)
 - Las cinco pasan a 12,6 × 9 m: sala-cocina con estufa, bomba de agua, mesa, radio y el mostrador junto a la puerta;
   dos dormitorios con quinqué; taller con bombilla y lo de cada oficio (horno de pan, maniquí, caldero de hierbas,
