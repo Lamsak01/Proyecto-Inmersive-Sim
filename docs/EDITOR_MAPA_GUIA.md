@@ -72,9 +72,9 @@ Guarda siempre con **Ctrl+S** y prueba con **F5** (o el ▶ de arriba a la derec
 - **Zonas (3):** la plaza, el lago y la ciénaga (losas azules translúcidas con su nombre). Mueve una y van con ella su
   suelo o su agua, la hondonada del terreno, el muelle y dónde se nada y se pesca. No se giran ni cambian de forma. Los
   bancos, árboles y adornos de encima son piezas aparte: selecciónalos a la vez para moverlos juntos.
-- **Objetos (145):** pozos, farolas, tablón y las «anclas» (cuadrados o cilindros tenues): marcan dónde el juego pone cosas
-  sin dibujo propio (zonas de uso, letreros, casas de animales, setas, pistas del Caso I, huertos, el campamento, el
-  carro…). Muévelos y lo suyo va detrás. **No cambies «Clave»**.
+- **Objetos (45):** pozos, farolas, tablón y las «anclas» (cuadrados o cilindros tenues): marcan dónde el juego pone cosas
+  sin dibujo propio (zonas de uso, letreros, pistas del Caso I…). Las setas, hierbas y madrigueras del bosque ya no
+  están aquí: son cruces de **Sitios**. Muévelos y lo suyo va detrás. **No cambies «Clave»**.
 - **Caminos (32):** cada tramo recto es una losa que puedes mover, girar y **estirar con R**: el eje **X** es el largo y el
   **Z** el ancho. Para una calle nueva: Ctrl+D en un tramo y colócalo. Si hay tramos, el juego solo dibuja estos.
 - **Vegetacion:** árboles, rocas, plantas, troncos, vetas de mineral. Son piezas sueltas: mueve, gira, borra o copia.

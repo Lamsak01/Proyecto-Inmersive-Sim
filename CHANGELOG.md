@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: anclas viejas del bosque borradas (Claude Code)
+- 89 «anclas» de «Objetos» (setas, hierbas, madrigueras, guaridas, claros, hozaderos y letreros del bosque) ya no
+  mandaban nada desde que el bosque sale de «Sitios»: borradas. Comprobado: 1.662 cosas del pueblo, idénticas.
+
 ## 2026-11-12 — Mudanza al editor: árboles de adorno (Claude Code, paso 4 del plan del mundo)
 - Los árboles del parque y del cementerio eran marcas del código con una bolita en el editor; ahora son 8 piezas de
   «Decorado» (`Arbol_adorno_N`) con su modelo y su choque: se ven y se mueven en el editor. Los 3 que el juego escondía
