@@ -17372,7 +17372,7 @@ material_override = SubResource("StandardMaterial3D_7l5ts")
 mesh = SubResource("CylinderMesh_1plh7")
 
 [node name="Caja_124" type="Node3D" parent="Decorado/Zona_0_0" unique_id=271683987]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.200005, 0.10567647, 40.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.2, 0.105676, 40.6)
 metadata/pos_original = Vector2(215.00002, 145)
 metadata/radio = 8.0
 
@@ -17392,7 +17392,7 @@ material_override = SubResource("StandardMaterial3D_cgp5w")
 mesh = SubResource("BoxMesh_glhbh")
 
 [node name="Caja_125" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1923793662]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.88, 1.1624413, 37.24)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.136, 1.16244, 39.928)
 metadata/pos_original = Vector2(196, 133)
 metadata/radio = 8.0
 
@@ -17402,7 +17402,7 @@ material_override = SubResource("StandardMaterial3D_g2orv")
 mesh = SubResource("BoxMesh_am6or")
 
 [node name="Caja_126" type="Node3D" parent="Decorado/Zona_0_0" unique_id=744860848]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85.90401, 1.1624413, 42.168)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.264, 1.16244, 39.928)
 metadata/pos_original = Vector2(233.99998, 133)
 metadata/radio = 8.0
 
@@ -17412,7 +17412,7 @@ material_override = SubResource("StandardMaterial3D_g2orv")
 mesh = SubResource("BoxMesh_i7doc")
 
 [node name="Caja_127" type="Node3D" parent="Decorado/Zona_0_0" unique_id=828449651]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.88, 1.1624413, 43.960003)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.136, 1.16244, 41.272)
 metadata/pos_original = Vector2(196, 157)
 metadata/radio = 8.0
 
@@ -17422,7 +17422,7 @@ material_override = SubResource("StandardMaterial3D_g2orv")
 mesh = SubResource("BoxMesh_2ujpf")
 
 [node name="Caja_128" type="Node3D" parent="Decorado/Zona_0_0" unique_id=862008954]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85.90401, 1.1624413, 43.512005)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.264, 1.16244, 41.272)
 metadata/pos_original = Vector2(233.99998, 157)
 metadata/radio = 8.0
 
@@ -17432,7 +17432,7 @@ material_override = SubResource("StandardMaterial3D_g2orv")
 mesh = SubResource("BoxMesh_qpjwj")
 
 [node name="Caja_129" type="Node3D" parent="Decorado/Zona_0_0" unique_id=58997499]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.200005, 2.3513017, 40.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.2, 2.3513, 40.6)
 metadata/pos_original = Vector2(215.00002, 145)
 metadata/radio = 26.867952
 
@@ -18939,7 +18939,7 @@ metadata/choque = Vector2(10, 10)
 [node name="Zona_-1_1" type="Node3D" parent="Decorado" unique_id=908950617]
 
 [node name="Caja_60" type="Node3D" parent="Decorado/Zona_-1_1" unique_id=1221029860]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.14794706, 131.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.147947, 130.704)
 metadata/pos_original = Vector2(-156.5, 470)
 metadata/radio = 8.0
 
@@ -18949,7 +18949,7 @@ material_override = SubResource("StandardMaterial3D_bfe02")
 mesh = SubResource("BoxMesh_jb03d")
 
 [node name="Caja_61" type="Node3D" parent="Decorado/Zona_-1_1" unique_id=1123481759]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.031702943, 114.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.0317029, 127.344)
 metadata/pos_original = Vector2(-156.5, 410)
 metadata/radio = 21.999989
 
@@ -18964,7 +18964,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_7uakg")
 
 [node name="Caja_62" type="Node3D" parent="Decorado/Zona_-1_1" unique_id=1366626077]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.031702943, 122.64001)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.0317029, 128.912)
 metadata/pos_original = Vector2(-156.5, 438.00003)
 metadata/radio = 21.999989
 
@@ -18979,7 +18979,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_jte8c")
 
 [node name="Caja_63" type="Node3D" parent="Decorado/Zona_-1_1" unique_id=1808423092]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.031702943, 130.48)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.0317029, 130.48)
 metadata/pos_original = Vector2(-156.5, 466)
 metadata/radio = 21.999989
 
@@ -18994,7 +18994,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_k67hu")
 
 [node name="Caja_64" type="Node3D" parent="Decorado/Zona_-1_1" unique_id=723219312]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.031702943, 138.32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.0317029, 132.048)
 metadata/pos_original = Vector2(-156.5, 494)
 metadata/radio = 21.999989
 
@@ -19009,7 +19009,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_u4r3k")
 
 [node name="Caja_65" type="Node3D" parent="Decorado/Zona_-1_1" unique_id=1686311097]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.031702943, 146.16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43.82, -0.0317029, 133.616)
 metadata/pos_original = Vector2(-156.5, 522)
 metadata/radio = 8.0
 
@@ -19021,7 +19021,7 @@ mesh = SubResource("BoxMesh_j0gsw")
 [node name="Zona_0_1" type="Node3D" parent="Decorado" unique_id=277986411]
 
 [node name="Caja_66" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1665609350]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.400001, -0.14794706, 131.6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, -0.147947, 130.704)
 metadata/pos_original = Vector2(30.000002, 470)
 metadata/radio = 8.0
 
@@ -19031,7 +19031,7 @@ material_override = SubResource("StandardMaterial3D_bfe02")
 mesh = SubResource("BoxMesh_cycmg")
 
 [node name="Caja_67" type="Node3D" parent="Decorado/Zona_0_1" unique_id=865447763]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.400001, -0.031702943, 114.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, -0.0317029, 127.344)
 metadata/pos_original = Vector2(30.000002, 410)
 metadata/radio = 21.999989
 
@@ -19046,7 +19046,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_b4cc3")
 
 [node name="Caja_68" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1352715393]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.400001, -0.031702943, 122.64001)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, -0.0317029, 128.912)
 metadata/pos_original = Vector2(30.000002, 438.00003)
 metadata/radio = 21.999989
 
@@ -19061,7 +19061,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_6wrvk")
 
 [node name="Caja_69" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1486344928]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.400001, -0.031702943, 130.48)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, -0.0317029, 130.48)
 metadata/pos_original = Vector2(30.000002, 466)
 metadata/radio = 21.999989
 
@@ -19076,7 +19076,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_0m28l")
 
 [node name="Caja_70" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1819333872]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.400001, -0.031702943, 138.32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, -0.0317029, 132.048)
 metadata/pos_original = Vector2(30.000002, 494)
 metadata/radio = 21.999989
 
@@ -19091,7 +19091,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_53nps")
 
 [node name="Caja_71" type="Node3D" parent="Decorado/Zona_0_1" unique_id=335156386]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.400001, -0.031702943, 146.16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, -0.0317029, 133.616)
 metadata/pos_original = Vector2(30.000002, 522)
 metadata/radio = 8.0
 
@@ -19101,7 +19101,7 @@ material_override = SubResource("StandardMaterial3D_f08dy")
 mesh = SubResource("BoxMesh_l38ci")
 
 [node name="Caja_73" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1230956316]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, -0.14794706, 131.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, -0.147947, 131.88)
 metadata/pos_original = Vector2(360, 471)
 metadata/radio = 8.0
 
@@ -19111,7 +19111,7 @@ material_override = SubResource("StandardMaterial3D_f1gs5")
 mesh = SubResource("BoxMesh_vi78g")
 
 [node name="Caja_74" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1727041721]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 127.568)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 127.792)
 metadata/pos_original = Vector2(304, 398)
 metadata/radio = 19.20002269744873
 
@@ -19126,7 +19126,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_268x6")
 
 [node name="Caja_75" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1974318482]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72.0384, 0.39100295, 127.568)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 98.9184, 0.391003, 127.792)
 metadata/pos_original = Vector2(326.4, 398)
 metadata/radio = 19.20002269744873
 
@@ -19141,7 +19141,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_157e3")
 
 [node name="Caja_76" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1246583888]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.39100295, 111.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.173, 0.391003, 127.792)
 metadata/pos_original = Vector2(348.8, 398)
 metadata/radio = 19.199999
 
@@ -19156,7 +19156,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_0hkyc")
 
 [node name="Caja_77" type="Node3D" parent="Decorado/Zona_0_1" unique_id=748260570]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.39100295, 111.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.427, 0.391003, 127.792)
 metadata/pos_original = Vector2(371.2, 398)
 metadata/radio = 19.19997501373291
 
@@ -19171,7 +19171,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_e5ng8")
 
 [node name="Caja_80" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1813981076]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, 0.30646178, 111.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, 0.306462, 127.792)
 metadata/pos_original = Vector2(360, 398)
 metadata/radio = 8.0
 
@@ -19186,7 +19186,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_b6c5s")
 
 [node name="Caja_91" type="Node3D" parent="Decorado/Zona_0_1" unique_id=805027376]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.39100295, 152.32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.427, 0.391003, 135.968)
 metadata/pos_original = Vector2(371.2, 544)
 metadata/radio = 19.20002269744873
 
@@ -19201,7 +19201,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_hjcca")
 
 [node name="Caja_92" type="Node3D" parent="Decorado/Zona_0_1" unique_id=122627374]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.39100295, 152.32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.173, 0.391003, 135.968)
 metadata/pos_original = Vector2(348.8, 544)
 metadata/radio = 19.19997501373291
 
@@ -19216,7 +19216,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_2vmb2")
 
 [node name="Caja_93" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1409839712]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72.0384, 0.39100295, 135.744)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 98.9184, 0.391003, 135.968)
 metadata/pos_original = Vector2(326.4, 544)
 metadata/radio = 19.19997501373291
 
@@ -19231,7 +19231,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_7ssap")
 
 [node name="Caja_94" type="Node3D" parent="Decorado/Zona_0_1" unique_id=689423106]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 135.744)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 135.968)
 metadata/pos_original = Vector2(304, 544)
 metadata/radio = 8.0
 
@@ -19241,7 +19241,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_d0xvk")
 
 [node name="Caja_95" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1736417774]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, 0.30646178, 152.32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100.8, 0.306462, 135.968)
 metadata/pos_original = Vector2(360, 544)
 metadata/radio = 8.0
 
@@ -19256,7 +19256,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_q1g77")
 
 [node name="Caja_96" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1605870568]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 135.744)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 135.968)
 metadata/pos_original = Vector2(304, 544)
 metadata/radio = 19.230788230895996
 
@@ -19271,7 +19271,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_j14sw")
 
 [node name="Caja_97" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1217824390]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 134.48618)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 134.71)
 metadata/pos_original = Vector2(304, 521.53845)
 metadata/radio = 19.230788230895996
 
@@ -19286,7 +19286,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_crgmy")
 
 [node name="Caja_98" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1798566019]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 133.2283)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 133.452)
 metadata/pos_original = Vector2(304, 499.0769)
 metadata/radio = 19.230748176574707
 
@@ -19301,7 +19301,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_xc8hk")
 
 [node name="Caja_99" type="Node3D" parent="Decorado/Zona_0_1" unique_id=916883597]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 131.97047)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 132.195)
 metadata/pos_original = Vector2(304, 476.6154)
 metadata/radio = 19.230788230895996
 
@@ -19316,7 +19316,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_fnc2f")
 
 [node name="Caja_100" type="Node3D" parent="Decorado/Zona_0_1" unique_id=127996054]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 130.71262)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 130.937)
 metadata/pos_original = Vector2(304, 454.15387)
 metadata/radio = 19.230788230895996
 
@@ -19331,7 +19331,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_63i8b")
 
 [node name="Caja_101" type="Node3D" parent="Decorado/Zona_0_1" unique_id=690868851]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 129.45477)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 129.679)
 metadata/pos_original = Vector2(304, 431.69232)
 metadata/radio = 19.230788230895996
 
@@ -19346,7 +19346,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_520qe")
 
 [node name="Caja_102" type="Node3D" parent="Decorado/Zona_0_1" unique_id=904886677]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.39100295, 128.19693)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.391003, 128.421)
 metadata/pos_original = Vector2(304, 409.23077)
 metadata/radio = 19.230788230895996
 
@@ -19361,7 +19361,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_rybfs")
 
 [node name="Caja_103" type="Node3D" parent="Decorado/Zona_0_1" unique_id=1031191213]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.784, 0.30646178, 131.656)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.664, 0.306462, 131.88)
 metadata/pos_original = Vector2(304, 471)
 metadata/radio = 8.0
 
@@ -19376,7 +19376,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_amnx8")
 
 [node name="Caja_104" type="Node3D" parent="Decorado/Zona_0_1" unique_id=901889812]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 71.456, 0.11624412, 128.352)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 98.336, 0.116244, 128.576)
 metadata/pos_original = Vector2(316, 412)
 metadata/radio = 8.0
 
@@ -19900,7 +19900,7 @@ mesh = SubResource("BoxMesh_jdpt1")
 [node name="Zona_1_1" type="Node3D" parent="Decorado" unique_id=891577283]
 
 [node name="Caja_78" type="Node3D" parent="Decorado/Zona_1_1" unique_id=405258311]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110.208, 0.39100295, 111.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 102.682, 0.391003, 127.792)
 metadata/pos_original = Vector2(393.6, 398)
 metadata/radio = 19.19997501373291
 
@@ -19915,7 +19915,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_r3xbe")
 
 [node name="Caja_79" type="Node3D" parent="Decorado/Zona_1_1" unique_id=733817360]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 111.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 127.792)
 metadata/pos_original = Vector2(416, 398)
 metadata/radio = 8.0
 
@@ -19925,7 +19925,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_1q7hs")
 
 [node name="Caja_81" type="Node3D" parent="Decorado/Zona_1_1" unique_id=1935830355]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 111.44)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 127.792)
 metadata/pos_original = Vector2(416, 398)
 metadata/radio = 19.230788230895996
 
@@ -19940,7 +19940,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_rst7l")
 
 [node name="Caja_82" type="Node3D" parent="Decorado/Zona_1_1" unique_id=1939067053]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 117.72923)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 129.05)
 metadata/pos_original = Vector2(416, 420.46155)
 metadata/radio = 19.230788230895996
 
@@ -19955,7 +19955,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_c40l2")
 
 [node name="Caja_83" type="Node3D" parent="Decorado/Zona_1_1" unique_id=1168118473]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 124.01847)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 130.308)
 metadata/pos_original = Vector2(416, 442.9231)
 metadata/radio = 19.230748176574707
 
@@ -19970,7 +19970,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_0kv8c")
 
 [node name="Caja_84" type="Node3D" parent="Decorado/Zona_1_1" unique_id=111835713]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 130.3077)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 131.565)
 metadata/pos_original = Vector2(416, 465.3846)
 metadata/radio = 19.230788230895996
 
@@ -19985,7 +19985,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_41uob")
 
 [node name="Caja_85" type="Node3D" parent="Decorado/Zona_1_1" unique_id=617314580]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 136.59692)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 132.823)
 metadata/pos_original = Vector2(416, 487.84613)
 metadata/radio = 19.230788230895996
 
@@ -20000,7 +20000,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_nxlfh")
 
 [node name="Caja_86" type="Node3D" parent="Decorado/Zona_1_1" unique_id=297871750]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 142.88615)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 134.081)
 metadata/pos_original = Vector2(416, 510.30768)
 metadata/radio = 19.230788230895996
 
@@ -20015,7 +20015,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_v4lbl")
 
 [node name="Caja_87" type="Node3D" parent="Decorado/Zona_1_1" unique_id=1581639198]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 149.17538)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 135.339)
 metadata/pos_original = Vector2(416, 532.7692)
 metadata/radio = 19.230788230895996
 
@@ -20030,7 +20030,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_hcmjv")
 
 [node name="Caja_88" type="Node3D" parent="Decorado/Zona_1_1" unique_id=1117113462]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.30646178, 131.88)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.306462, 131.88)
 metadata/pos_original = Vector2(416, 471)
 metadata/radio = 8.0
 
@@ -20045,7 +20045,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_ntpoj")
 
 [node name="Caja_89" type="Node3D" parent="Decorado/Zona_1_1" unique_id=1901940156]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.39100295, 152.32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.936, 0.391003, 135.968)
 metadata/pos_original = Vector2(416, 544)
 metadata/radio = 19.199999
 
@@ -20060,7 +20060,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_x4kua")
 
 [node name="Caja_90" type="Node3D" parent="Decorado/Zona_1_1" unique_id=1921150498]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110.208, 0.39100295, 152.32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 102.682, 0.391003, 135.968)
 metadata/pos_original = Vector2(393.6, 544)
 metadata/radio = 19.20002269744873
 
@@ -20075,7 +20075,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_caj6a")
 
 [node name="Caja_105" type="Node3D" parent="Decorado/Zona_1_1" unique_id=747070810]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 113.12, 0.16908236, 115.92)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 103.264, 0.169082, 128.688)
 metadata/pos_original = Vector2(404, 414)
 metadata/radio = 16.99998
 
@@ -20092,7 +20092,7 @@ mesh = SubResource("BoxMesh_qsh3j")
 [node name="Zona_-2_0" type="Node3D" parent="Decorado" unique_id=624119048]
 
 [node name="Caja_119" type="Node3D" parent="Decorado/Zona_-2_0" unique_id=390582757]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -209.72, 0.5812206, 48.16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -202.104, 0.581221, 48.16)
 metadata/pos_original = Vector2(-749, 172)
 metadata/radio = 19.333275
 
@@ -20107,7 +20107,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_j8286")
 
 [node name="Caja_120" type="Node3D" parent="Decorado/Zona_-2_0" unique_id=126094835]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -203.37334, 0.5812206, 48.16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200.835, 0.581221, 48.16)
 metadata/pos_original = Vector2(-726.3333, 172)
 metadata/radio = 19.333323
 
@@ -20122,7 +20122,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_ybhyr")
 
 [node name="Caja_121" type="Node3D" parent="Decorado/Zona_-2_0" unique_id=779107365]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -197.02667, 0.5812206, 48.16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -199.565, 0.581221, 48.16)
 metadata/pos_original = Vector2(-703.6667, 172)
 metadata/radio = 19.33337
 
@@ -20137,7 +20137,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_bbqxf")
 
 [node name="Caja_122" type="Node3D" parent="Decorado/Zona_-2_0" unique_id=946675437]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -190.68, 0.5812206, 48.16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -198.296, 0.581221, 48.16)
 metadata/pos_original = Vector2(-681, 172)
 metadata/radio = 8.0
 
@@ -20147,7 +20147,7 @@ material_override = SubResource("StandardMaterial3D_1p8rd")
 mesh = SubResource("BoxMesh_yt1yl")
 
 [node name="Caja_123" type="Node3D" parent="Decorado/Zona_-2_0" unique_id=2114173493]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200.2, 0.49667943, 48.16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200.2, 0.496679, 48.16)
 metadata/pos_original = Vector2(-715, 172)
 metadata/radio = 18.000014305114746
 

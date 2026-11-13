@@ -4,6 +4,10 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — Lavadero, corral, huertos y valla del lago recompuestos (Claude Code)
+- Mismo arreglo que el cementerio con `tools/juntar_decorado.py`: lavadero (tejado otra vez sobre sus postes), corral del
+  rancho, los dos huertos del sur (surcos sueltos a 30 m) y la valla con banco junto al lago. Fotos en `docs/capturas_arreglos/`.
+
 ## 2026-11-13 — Cementerio recompuesto (Claude Code)
 - Las 39 piezas del cementerio en el «Decorado» del editor y sus 26 cruces de «Sitios» se habían estirado ×5 una a una
   (muros en trozos sueltos, tumbas a 8 m). Juntadas con la forma original alrededor de su centro (`E·c + (p − c)`).
