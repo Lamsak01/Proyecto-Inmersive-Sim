@@ -1,5 +1,6 @@
 extends CharacterBody2D
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
+const Zona = preload("res://mapa/zona.gd") # la ciénaga va con su pieza del editor («Zonas»)
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const _EDIFICIO = preload("res://mapa/edificio.gd")
 const _CAMA_URGENCIAS_PLANO := Vector2(718.0, 136.0) ## cama de urgencias, en el plano del hospital
 const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7: sonidos de golpe
@@ -391,7 +392,7 @@ func has_master_lockpick() -> bool:
 
 var _env_sickness_timer: float = 0.0
 var bloodstained_timer: float = 0.0
-const FROG_MARSH_RECT := Rect2(-2020.0, 110.0, 920.0, 450.0)
+const ZONA_CIENAGA := "cienaga"
 
 func add_bloodstain(duration: float = 180.0) -> void:
 	var was_stained: bool = bloodstained_timer > 0.0
@@ -408,7 +409,7 @@ func is_near_water_source(max_meters: float = 2.0) -> bool:
 	if vm and vm.has_method("is_position_near_water_source"):
 		if bool(vm.call("is_position_near_water_source", global_position, max_meters)):
 			return true
-	if FROG_MARSH_RECT.grow(max_meters * 16.0).has_point(_AN_SITIOS.desmover(global_position)):
+	if Zona.rect_mundo(ZONA_CIENAGA).grow(max_meters / Mapa3D.ESCALA).has_point(global_position):
 		return true
 	return false
 
@@ -486,7 +487,7 @@ func _process(delta: float) -> void:
 func _check_environmental_sickness() -> void:
 	if not health_comp or health_comp.current_health <= 0.0:
 		return
-	if FROG_MARSH_RECT.has_point(_AN_SITIOS.desmover(global_position)):
+	if Zona.rect_mundo(ZONA_CIENAGA).has_point(global_position):
 		var prev_swamp: float = health_comp.swamp_sickness
 		health_comp.add_swamp_or_miasma_exposure(1.6, "Humedad de la Ciénaga de las Ranas")
 		if prev_swamp < 25.0 and health_comp.swamp_sickness >= 25.0:

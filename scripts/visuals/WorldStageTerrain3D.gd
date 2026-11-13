@@ -116,7 +116,7 @@ func _build_ground_3d() -> void:
 func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Material) -> MeshInstance3D:
 	if estirar_terreno:
 		var tam: Vector2 = rect.size * Mapa3D.E
-		rect = Rect2(AnclasScript.estirar(rect.get_center()) - tam * 0.5, tam)
+		rect = Rect2(Zona.estirar(rect.get_center()) - tam * 0.5, tam)
 	var step: float = 20.0
 	var nx: int = maxi(1, int(ceil(rect.size.x / step)))
 	var ny: int = maxi(1, int(ceil(rect.size.y / step)))
@@ -222,7 +222,7 @@ func _build_lake_3d() -> void:
 ## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (si absolute_h es true, no suma el relieve).
 func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat: Material, absolute_h: bool = false) -> MeshInstance3D:
 	if estirar_terreno:
-		pts = AnclasScript.estirar_puntos(pts)
+		pts = Zona.estirar_puntos(pts)
 	var idx := Geometry2D.triangulate_polygon(pts)
 	if idx.is_empty():
 		return null

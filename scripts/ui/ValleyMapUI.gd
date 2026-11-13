@@ -24,9 +24,9 @@ var _fullmap_redraw_timer: float = 0.0
 
 const WORLD_RECT := Rect2(Vector2(-2150.0, -900.0) * Mapa3D.E, Vector2(3900.0, 3350.0) * Mapa3D.E) # Paso 2: abarca Llanura/Ciénaga separadas al oeste y Bosque Profundo ampliado al sur
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
-const Anclas = preload("res://mapa/anclas.gd")
+const Zona = preload("res://mapa/zona.gd") ## plaza, lago y ciénaga van con su pieza del editor
+const Piezas = preload("res://scripts/ui/ValleMapaPiezas.gd") ## edificios, solares, plaza y agua desde el editor
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
-const VillageRestaurant = preload("res://scripts/systems/VillageRestaurant.gd")
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -189,7 +189,7 @@ func _draw_round_paper_minimap(canvas: Control) -> void:
 		return center + (wpos - p_world) * scale_px
 
 	# Agua (lago y ciénaga)
-	for w_rect in _e_lista([Rect2(Vector2(-1078, 78), Vector2(412, 162)), Rect2(Vector2(-2020, 110), Vector2(920, 450))]):
+	for w_rect in Piezas.agua():
 		var mr := Rect2(to_mini.call(w_rect.position), w_rect.size * scale_px)
 		var cr := _clip_rect_to_circle(mr, center, rad - 3.0)
 		if cr.size.x > 0.5:
@@ -205,8 +205,7 @@ func _draw_round_paper_minimap(canvas: Control) -> void:
 		Rect2(Vector2(140, 356), Vector2(312, 22)),
 		Rect2(Vector2(660, -135), Vector2(280, 24)),
 		Rect2(Vector2(660, -135), Vector2(24, 185)),
-		Rect2(Vector2(395, 10), Vector2(140, 78))
-	] + VillageLots.ROADS if _tramos_ed().is_empty() else [Rect2(Vector2(395, 10), Vector2(140, 78))]):
+	] + VillageLots.ROADS if _tramos_ed().is_empty() else []) + [Piezas.plaza()]:
 		var mr2 := Rect2(to_mini.call(r_rect.position), r_rect.size * scale_px)
 		var cr2 := _clip_rect_to_circle(mr2, center, rad - 3.0)
 		if cr2.size.x > 0.5:
@@ -224,25 +223,9 @@ func _draw_round_paper_minimap(canvas: Control) -> void:
 				canvas.draw_line(q0, q1, road_col, maxf(1.0, float(t["ancho"]) * scale_px))
 
 	# Edificios (#8a7356 con borde de tinta #3a3228)
-	var b_rects: Array[Rect2] = [
-		VillageRestaurant.RECT,
-		Rect2(Vector2(260, -316), Vector2(348, 184)),
-		Rect2(Vector2(277, -74), Vector2(116, 76)),
-		Rect2(Vector2(527, -74), Vector2(116, 76)),
-		Rect2(Vector2(527, 110), Vector2(116, 76)),
-		Rect2(Vector2(407, 110), Vector2(116, 76)),
-		Rect2(Vector2(261, 107), Vector2(128, 96)),
-		Rect2(Vector2(689, -234), Vector2(112, 78)),
-		Rect2(Vector2(849, -234), Vector2(112, 78)),
-		Rect2(Vector2(689, -75), Vector2(112, 78)),
-		Rect2(Vector2(849, -75), Vector2(112, 78)),
-		Rect2(Vector2(676, 100), Vector2(138, 96)),
-		Rect2(Vector2(844, 100), Vector2(142, 96)),
-		Rect2(Vector2(679, 266), Vector2(132, 92)),
-		Rect2(Vector2(822, 260), Vector2(268, 168))
-	]
-	for bi in range(b_rects.size()): # siguen al edificio si el usuario lo movió en el editor 3D
-		b_rects[bi] = _a_sitio_nuevo(b_rects[bi])
+	var b_rects: Array[Rect2] = [] # cada edificio donde esté su pieza en el editor 3D
+	for b_pieza: Dictionary in Piezas.edificios():
+		b_rects.append(b_pieza["rect"])
 	for br_w in b_rects:
 		var mr3 := Rect2(to_mini.call(br_w.position), br_w.size * scale_px)
 		var cr3 := _clip_rect_to_circle(mr3, center, rad - 4.0)
@@ -363,7 +346,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	canvas.draw_rect(bandit_r, Color(0.73, 0.56, 0.48, 0.72), true)
 	canvas.draw_rect(bandit_r, Color(0.48, 0.26, 0.22, 0.78), false, 1.0)
 
-	var marsh_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-2020, 110), Vector2(920, 450))])[0], csize)
+	var marsh_r := _world_rect_to_map(Zona.rect_mundo("cienaga"), csize)
 	canvas.draw_rect(marsh_r, Color(0.58, 0.69, 0.64, 0.82), true)
 	canvas.draw_rect(marsh_r, Color(0.30, 0.42, 0.38, 0.85), false, 1.2)
 
@@ -415,12 +398,12 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		var cw: float = _world_rect_to_map(Rect2(Vector2.ZERO, Vector2(float(cr["w"]), float(cr["w"]))), csize).size.x
 		canvas.draw_polyline(cpts, road_col, maxf(1.0, cw))
 
-	var plaza_r := _world_rect_to_map(_e_lista([Rect2(Vector2(395, 10), Vector2(140, 78))])[0], csize)
+	var plaza_r := _world_rect_to_map(Piezas.plaza(), csize)
 	canvas.draw_rect(plaza_r, Color(0.67, 0.62, 0.52, 0.95), true)
 	canvas.draw_rect(plaza_r, Color(0.227, 0.196, 0.157, 0.70), false, 1.0)
 
 	# 5. Lago del Oeste, Río de Norte a Sur, Puente Viejo, Campamento del Jugador y Gallinero/Huerto
-	var lake_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-1082, 76), Vector2(418, 166))])[0], csize)
+	var lake_r := _world_rect_to_map(Zona.rect_mundo("lago"), csize)
 	canvas.draw_rect(lake_r, Color(0.498, 0.639, 0.678, 0.94), true)
 	canvas.draw_rect(lake_r, Color(0.24, 0.35, 0.39, 0.90), false, 1.2)
 
@@ -433,24 +416,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	canvas.draw_rect(ob_map_r, Color(0.56, 0.44, 0.30, 0.96), true)
 
 	# 6. Edificios de la Aldea en tonos teja/madera y borde de tinta
-	var buildings: Array[Dictionary] = [
-		{"rect": VillageRestaurant.RECT, "col": Color(0.68, 0.42, 0.32), "label": "Casa de Comidas El Fogón"},
-		{"rect": Rect2(Vector2(260, -316), Vector2(348, 184)), "col": Color(0.64, 0.40, 0.28), "label": "Posada El Jabalí"},
-		{"rect": Rect2(Vector2(277, -74), Vector2(116, 76)), "col": Color(0.52, 0.48, 0.44), "label": "Herrería"},
-		{"rect": Rect2(Vector2(527, -74), Vector2(116, 76)), "col": Color(0.62, 0.38, 0.34), "label": "Carnicería"},
-		{"rect": Rect2(Vector2(527, 110), Vector2(116, 76)), "col": Color(0.58, 0.46, 0.32), "label": "Carpintería"},
-		{"rect": Rect2(Vector2(407, 110), Vector2(116, 76)), "col": Color(0.42, 0.54, 0.58), "label": "Pescadería"},
-		{"rect": Rect2(Vector2(261, 107), Vector2(128, 96)), "col": Color(0.46, 0.56, 0.42), "label": "Botica"},
-		{"rect": Rect2(Vector2(689, -234), Vector2(112, 78)), "col": Color(0.56, 0.46, 0.35), "label": "Casa Herrero"},
-		{"rect": Rect2(Vector2(849, -234), Vector2(112, 78)), "col": Color(0.56, 0.46, 0.35), "label": "Casa Carnicero"},
-		{"rect": Rect2(Vector2(689, -75), Vector2(112, 78)), "col": Color(0.56, 0.46, 0.35), "label": "Casa Carpintero"},
-		{"rect": Rect2(Vector2(849, -75), Vector2(112, 78)), "col": Color(0.56, 0.46, 0.35), "label": "Casa Pescador"},
-		{"rect": Rect2(Vector2(676, 100), Vector2(138, 96)), "col": Color(0.44, 0.56, 0.52), "label": "Hospital"},
-		{"rect": Rect2(Vector2(844, 100), Vector2(142, 96)), "col": Color(0.42, 0.48, 0.58), "label": "Comisaría"},
-		{"rect": Rect2(Vector2(679, 266), Vector2(132, 92)), "col": Color(0.56, 0.46, 0.54), "label": "Capilla"},
-		{"rect": Rect2(Vector2(822, 260), Vector2(268, 168)), "col": Color(0.48, 0.52, 0.46), "label": "Cementerio"},
-		{"rect": Rect2(Vector2(126, -1106), Vector2(124, 92)), "col": Color(0.46, 0.36, 0.28), "label": "Molino Viejo"}
-	]
+	var buildings: Array[Dictionary] = Piezas.edificios() # cada uno donde esté su pieza en el editor 3D
 	var vm_lots = get_tree().get_first_node_in_group("village_manager")
 	if vm_lots and "lots_state" in vm_lots:
 		for l in VillageLots.lots(): # V4: solares (libres, en obra o construidos)
@@ -461,16 +427,14 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 				"built":
 					var bsz: Vector2 = Vector2(128, 96) if str(lst["kind"]) in ["shop_house", "civic", "inn"] else Vector2(112, 78)
 					if str(lst["kind"]) == "fields":
-						buildings.append({"rect": Rect2(lc - lsz * 0.5, lsz), "col": Color(0.58, 0.64, 0.42, 0.85), "label": str(lst["title"])})
+						buildings.append({"rect": Piezas.en_solar(str(l["id"]), Rect2(lc - lsz * 0.5, lsz)), "col": Color(0.58, 0.64, 0.42, 0.85), "label": str(lst["title"])})
 					else:
-						buildings.append({"rect": Rect2(VillageLots.building_center(str(l["id"])) - bsz * 0.5, bsz), "col": Color(0.56, 0.46, 0.35), "label": str(lst["title"])})
+						buildings.append({"rect": Piezas.en_solar(str(l["id"]), Rect2(VillageLots.building_center(str(l["id"])) - bsz * 0.5, bsz)), "col": Color(0.56, 0.46, 0.35), "label": str(lst["title"])})
 				"building":
-					buildings.append({"rect": Rect2(lc - lsz * 0.5, lsz), "col": Color(0.70, 0.56, 0.34, 0.80), "label": "Obra"})
+					buildings.append({"rect": Piezas.en_solar(str(l["id"]), Rect2(lc - lsz * 0.5, lsz)), "col": Color(0.70, 0.56, 0.34, 0.80), "label": "Obra"})
 				_:
-					canvas.draw_rect(_world_rect_to_map(Rect2(lc - lsz * 0.5, lsz), csize), Color(0.35, 0.30, 0.24, 0.32), false, 1.0)
+					canvas.draw_rect(_world_rect_to_map(Piezas.en_solar(str(l["id"]), Rect2(lc - lsz * 0.5, lsz)), csize), Color(0.35, 0.30, 0.24, 0.32), false, 1.0)
 	var font: Font = ThemeDB.fallback_font
-	for b in buildings: # siguen al edificio si el usuario lo movió en el editor 3D
-		b["rect"] = _a_sitio_nuevo(b["rect"])
 	for b in buildings:
 		var br := _world_rect_to_map(b["rect"], csize)
 		canvas.draw_rect(br, b["col"], true)
@@ -648,21 +612,15 @@ func _update_census_and_hover() -> void:
 	hover_info_label.text = best_txt
 
 
-## Editor del mapa 3D (2026-11-10): rectángulo de un edificio en su sitio nuevo (anclas) y tramos de «Caminos».
-func _a_sitio_nuevo(r: Rect2) -> Rect2:
-	var AN = load("res://mapa/anclas.gd")
-	return AN.rect_con(AN.buscar(r.get_center()), r)
-
-
 ## Mapa ×E: zonas y caminos escritos a mano (mapa original) → mundo estirado.
 func _e_lista(lista: Array) -> Array:
 	var out: Array = []
 	for r in lista:
 		if r is Rect2:
 			var tam: Vector2 = (r as Rect2).size * Mapa3D.E
-			out.append(Rect2(Anclas.estirar((r as Rect2).get_center()) - tam * 0.5, tam)) # plaza, lago y ciénaga van con su pieza
+			out.append(Rect2(Zona.estirar((r as Rect2).get_center()) - tam * 0.5, tam)) # plaza, lago y ciénaga van con su pieza
 		elif r is Vector2:
-			out.append(Anclas.estirar(r as Vector2))
+			out.append(Zona.estirar(r as Vector2))
 		else:
 			out.append(r)
 	return out

@@ -4,6 +4,15 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: plaza, lago, ciénaga, mapa del valle (Claude Code)
+- Las cuentas de las zonas (plaza, lago, ciénaga) salen de su propia pieza (`mapa/zona.gd`: `estirar`,
+  `estirar_puntos`, `desestirar`, `rect_mundo`), ya no del traductor (`anclas.gd` solo las lee para lo que hay encima).
+- La ciénaga que enferma al jugador y a los vecinos es la de su pieza (antes, un rectángulo viejo traducido).
+- Mapa del valle: dibuja los 30 edificios, solares, cementerio, plaza y agua desde las piezas del editor
+  (`scripts/ui/ValleMapaPiezas.gd`); antes pintaba 15 con una lista vieja. Cementerio = lo que abarcan sus tumbas
+  (`Sitio.cementerio()`), también para abrir el registro de la capilla. El molino que corta el río, por su pieza.
+- Comprobado: volcado del mundo idéntico al anterior; sondeo de zonas movidas en verde.
+
 ## 2026-11-12 — Mudanza al editor: cementerio, corral y sitios de fuera como cruces (Claude Code)
 - 40 cruces nuevas en «Sitios» (donde el juego ya los ponía): `tumba_1…24`, `entierro`, `plaza_espera`,
   `puesto_guardia`, `puesto_inquisidor`, `reconstruccion_inquisidor`, `rincon_plaza`, caravanas y llegadas de Casimir

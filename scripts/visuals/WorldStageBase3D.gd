@@ -19,6 +19,9 @@ const VillageUnderworldScript = preload("res://scripts/systems/VillageUnderworld
 const VillageHousingScript = preload("res://scripts/systems/VillageHousing.gd")
 const RioLagoScript = preload("res://scripts/fisica/RioLago.gd")
 const AnclasScript = preload("res://mapa/anclas.gd")
+const Zona = preload("res://mapa/zona.gd") ## plaza, lago y ciénaga: su terreno va con su pieza del editor
+const EdificioEditorScript = preload("res://mapa/edificio.gd")
+const ID_MOLINO := "building_abandoned_mill" ## el molino corta el río: ahí el cauce no se hunde
 ## Mapa ×E (2026-11-11): mientras se construye el terreno desde las listas del código (coordenadas del mapa original),
 ## cada posición se estira E veces tal cual (`_add_box_2d`, `_add_cyl_2d`, `_add_model_2d`, polígonos y calles): el
 ## terreno es el mapa original estirado y no sigue a las piezas movidas (como hasta ahora). Lo que viene del editor o de
@@ -533,7 +536,7 @@ static func superficie_rio_px(y: float) -> float:
 ## Parte del hundimiento del cauce en un punto (para no contarla al medir la orilla).
 static func _river_cut_px(pos_2d: Vector2) -> float:
 	var y: float = pos_2d.y
-	if y < RioLagoScript.river_y_start() or y > RioLagoScript.river_y_end() or RioLagoScript.ABANDONED_MILL_RECT.grow(4.0).has_point(AnclasScript.desmover(pos_2d)):
+	if y < RioLagoScript.river_y_start() or y > RioLagoScript.river_y_end() or RioLagoScript.ABANDONED_MILL_RECT.grow(4.0).has_point(EdificioEditorScript.a_plano(ID_MOLINO, pos_2d)):
 		return 0.0
 	var riv_hw: float = RioLagoScript.river_half_width(y)
 	var d_riv: float = absf(pos_2d.x - RioLagoScript.river_center_x(y))
@@ -608,7 +611,7 @@ static func _lake_signed_dist_px(o: Vector2) -> float:
 static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
 	# Mapa ×E: las lomas, cuencas y terrazas están escritas en el mapa original → se miran en `o` (el mundo encogido E
 	# veces); el río viene del editor (mundo actual) → se mira en `pos_2d`
-	var o: Vector2 = AnclasScript.desestirar(pos_2d) # las zonas de terreno (lago, ciénaga, plaza) van con su pieza
+	var o: Vector2 = Zona.desestirar(pos_2d) # las zonas de terreno (lago, ciénaga, plaza) van con su pieza
 	var x: float = o.x
 	var y: float = o.y
 
@@ -725,7 +728,7 @@ func terrain_normal_3d(pos_2d: Vector2, step_px: float = 10.0) -> Vector3:
 func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
 	# Mapa ×E: bosque, llanura, lago y ciénaga están escritos en el mapa original → se miran en el mundo encogido E veces;
 	# el río viene del editor (mundo actual) → se mira en `pos_2d`
-	var o: Vector2 = AnclasScript.desestirar(pos_2d) # las zonas de terreno (lago, ciénaga, plaza) van con su pieza
+	var o: Vector2 = Zona.desestirar(pos_2d) # las zonas de terreno (lago, ciénaga, plaza) van con su pieza
 	var x: float = o.x
 	var y: float = o.y
 	var edge_wave: float = sin(x * 0.009 + 1.2) * 32.0 + cos(x * 0.021 - 0.5) * 16.0
@@ -865,7 +868,7 @@ func check_furniture_overlaps(warn_on_overlap: bool = true) -> Array[String]:
 
 func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_h_px: float, sz_2d: Vector2 = Vector2.ZERO, height_px: float = 24.0, rot_y_deg: float = 0.0) -> Node3D:
 	if estirar_terreno:
-		center_2d = AnclasScript.estirar(center_2d)
+		center_2d = Zona.estirar(center_2d)
 	if not _permitir_en_rio and es_vegetacion_en_rio(rel_path, center_2d):
 		return null
 	if _construyendo_estatico and not _permitir_en_rio and rel_path.begins_with("nature/") and (grabar_vegetacion or vegetacion_en_escena):
@@ -908,7 +911,7 @@ func _particulas_a_metros(p: CPUParticles3D) -> void:
 
 func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px: float, height_px: float, mat: Material, rot_y_deg: float = 0.0, absolute_h: bool = false) -> MeshInstance3D:
 	if estirar_terreno:
-		center_2d = AnclasScript.estirar(center_2d)
+		center_2d = Zona.estirar(center_2d)
 	var mi := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = size_3d(sz_2d, height_px)
@@ -923,7 +926,7 @@ func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px
 
 func _add_cyl_2d(parent: Node3D, center_2d: Vector2, radius_px: float, bottom_h_px: float, height_px: float, mat: Material, top_radius_px: float = -1.0, radial_segs: int = 12) -> MeshInstance3D:
 	if estirar_terreno:
-		center_2d = AnclasScript.estirar(center_2d)
+		center_2d = Zona.estirar(center_2d)
 	var mi := MeshInstance3D.new()
 	var cm := CylinderMesh.new()
 	cm.bottom_radius = maxf(0.01, radius_px * WORLD_SCALE)

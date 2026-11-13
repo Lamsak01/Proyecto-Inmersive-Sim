@@ -128,6 +128,11 @@ static func a_mundo(id: String, p_plano: Vector2) -> Vector2:
 	return centro * Mapa3D.E + (datos[0] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(datos[1])))
 
 
+## Centro de la planta del edificio en su plano de fábrica (mapa original): con `a_mundo` da dónde está ahora.
+static func centro_de_fabrica(id: String) -> Vector2:
+	return _datos(id)[2]
+
+
 ## Edificio cuya pieza tiene ese centro de fábrica ("" si ninguno): el de un solar (tienda-vivienda, taller…), que
 ## no sabe su id pero sí su centro.
 const _MISMO_CENTRO_PX: float = 0.5

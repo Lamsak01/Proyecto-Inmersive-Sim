@@ -594,7 +594,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 3b. Capilla del Alba y Cementerio Parroquial
-	if pos.distance_squared_to(_church_altar_pos) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Rect2(Vector2(822, 260), Vector2(268, 168)).has_point(_AN_SITIOS.desmover(pos)):
+	if pos.distance_squared_to(_church_altar_pos) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Sitio.cementerio().has_point(pos):
 		_open_church_registry_ui()
 		return
 

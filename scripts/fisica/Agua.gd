@@ -9,7 +9,7 @@ extends RefCounted
 const RioLagoScript = preload("res://scripts/fisica/RioLago.gd")
 const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
-const Anclas = preload("res://mapa/anclas.gd")
+const Zona = preload("res://mapa/zona.gd")
 
 const SUPERFICIE_LAGO_PX: float = -0.8 ## la lámina honda del lago (WorldStageTerrain3D._build_lake_3d)
 const HONDO_RIO_M: float = 2.2         ## en el centro del río ancho (pueblo): ahí no se hace pie
@@ -22,12 +22,12 @@ const MUELLE_LAGO: Rect2 = Rect2(Vector2(-703.0, 94.0), Vector2(38.0, 22.0)) ## 
 static func muelle_lago() -> Rect2:
 	if Mapa3D.E == 1.0:
 		return MUELLE_LAGO
-	var c: Vector2 = Anclas.desestirar(RioLagoScript.lake_dock_center())
+	var c: Vector2 = Zona.desestirar(RioLagoScript.lake_dock_center())
 	return Rect2(c - Vector2(22.0, 8.0) / Mapa3D.E, Vector2(44.0, 16.0) / Mapa3D.E).grow(2.0)
 
 
 static func en_lago(pos: Vector2) -> bool:
-	var o: Vector2 = Anclas.desestirar(pos) # el lago está escrito en el mapa original y va con su pieza de «Zonas»
+	var o: Vector2 = Zona.desestirar(pos) # el lago está escrito en el mapa original y va con su pieza de «Zonas»
 	return Geometry2D.is_point_in_polygon(o, RioLagoScript.lake_water()) and not muelle_lago().has_point(o)
 
 

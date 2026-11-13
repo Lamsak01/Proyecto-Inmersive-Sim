@@ -1,5 +1,6 @@
 extends RefCounted
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const Zona = preload("res://mapa/zona.gd")
 
 ## Anclas del editor del mapa 3D (Claude Code, 2026-11-10). Cuando el usuario mueve en mapa/Mundo3D.tscn un edificio, un
 ## objeto de «Objetos» marcado como ancla, un objeto de «Decorado» o un solar de «Solares», todo lo que el juego crea en el mapa 2D dentro de su
@@ -32,7 +33,6 @@ static var _leidas: bool = false
 static var pausa: int = 0 # mientras se construye un edificio (ya se desplaza solo) no se aplican
 
 static var _muebles: Array = [] # muebles movidos dentro de su edificio (mapa/mueble.gd), en coordenadas originales
-static var _zonas: Array = []      # zonas de terreno (mapa/zona.gd): se estiran E veces y van con su pieza
 static var _rej: Dictionary = {}   # celda (mapa original) -> anclas que la tocan
 static var _rej_m: Dictionary = {} # celda (mundo actual) -> anclas que la tocan
 
@@ -46,6 +46,11 @@ static func _leer() -> void:
 	if E != 1.0:
 		for nombre in GRUPOS.keys():
 			_anadir({"rect": (GRUPOS[nombre] as Rect2), "c": (GRUPOS[nombre] as Rect2).get_center(), "d": Vector2.ZERO, "g": 0.0, "m": Transform2D.IDENTITY})
+	for zona: Dictionary in Zona.todas():
+		# Zona de terreno (mapa/zona.gd): lo que el código pone encima se estira E veces y va con su pieza (prioridad baja)
+		var r_zona: Rect2 = zona["rect"]
+		_anadir({"rect": r_zona, "c": r_zona.get_center(), "d": zona["d"], "g": 0.0,
+			"m": Transform2D(0.0, Vector2.ONE * E, 0.0, Vector2.ZERO), "solar": true, "zona": true})
 	if not ResourceLoader.exists(ESCENA):
 		return
 	var st: SceneState = (load(ESCENA) as PackedScene).get_state()
@@ -55,8 +60,7 @@ static func _leer() -> void:
 		var es_dec := ruta.begins_with("./Decorado/") and ruta.count("/") == 3 # Decorado/Zona/Objeto
 		var es_bajo := ruta.begins_with("./BajoTierra/") and ruta.count("/") == 2
 		var es_solar := ruta.begins_with("./Solares/") and ruta.count("/") == 2
-		var es_zona := ruta.begins_with("./Zonas/") and ruta.count("/") == 2
-		if not (es_obj or es_dec or es_bajo or es_solar or es_zona):
+		if not (es_obj or es_dec or es_bajo or es_solar):
 			continue
 		var orig := Vector2.INF
 		var radio := 0.0
@@ -76,9 +80,6 @@ static func _leer() -> void:
 			continue
 		var d := Mapa3D.a_mapa(xf.origin) - orig * E
 		var g := rad_to_deg(xf.basis.orthonormalized().get_euler().y)
-		if es_zona:
-			_anadir_zona(orig, terreno / E, d)
-			continue
 		if es_solar:
 			# Solar (mapa/solar.gd): todo lo que el juego crea en su terreno va con él; lo construido gira de 90 en 90
 			var g_solar: float = fposmod(roundf(g / 90.0) * 90.0, 360.0)
@@ -108,78 +109,6 @@ static func _leer() -> void:
 static func registrar_edificio(rect_original: Rect2, d: Vector2, g: float = 0.0) -> void:
 	if E != 1.0 or d.length() > 0.5 or absf(g) > 0.5:
 		_anadir({"rect": rect_original.grow(3.0), "cerca": rect_original.grow(CERCA_PX), "c": rect_original.get_center(), "d": d, "g": g, "m": matriz(g)})
-
-
-## Zona de terreno (plaza, lago, ciénaga; mapa/zona.gd): un trozo de campo abierto que se estira E veces como el resto
-## pero va a donde esté su pieza. Tiene la prioridad más baja, como un solar, y no gira.
-static func _anadir_zona(centro: Vector2, tam: Vector2, d: Vector2) -> void:
-	var zona: Dictionary = {"rect": Rect2(centro - tam * 0.5, tam), "c": centro, "d": d, "g": 0.0,
-		"m": Transform2D(0.0, Vector2.ONE * E, 0.0, Vector2.ZERO), "solar": true, "zona": true}
-	_zonas.append(zona)
-	_anadir(zona)
-
-
-## La zona de terreno que contiene el punto original p ({} si ninguna).
-static func _zona_de(p: Vector2) -> Dictionary:
-	if not _leidas:
-		_leer()
-	for zona: Dictionary in _zonas:
-		if (zona["rect"] as Rect2).has_point(p):
-			return zona
-	return {}
-
-
-## Terreno hecho por código (suelos, agua, orillas): punto original → mundo. Solo miran las zonas de terreno, no los
-## edificios ni objetos: fuera de una zona es campo abierto estirado E veces.
-static func estirar(p: Vector2) -> Vector2:
-	var zona: Dictionary = _zona_de(p)
-	return p * E if zona.is_empty() else aplicar(zona, p)
-
-
-## Como `estirar` para un polígono entero: todos sus puntos van con la zona en la que cae su centro.
-static func estirar_puntos(pts: PackedVector2Array) -> PackedVector2Array:
-	var centro := Vector2.ZERO
-	for q: Vector2 in pts:
-		centro += q
-	var zona: Dictionary = _zona_de(centro / maxf(1.0, float(pts.size())))
-	var out := PackedVector2Array()
-	for q: Vector2 in pts:
-		out.append(q * E if zona.is_empty() else aplicar(zona, q))
-	return out
-
-
-## Lo contrario de `estirar` (mundo → mapa original), para el relieve. Un punto del mundo dentro de una zona movida da
-## el interior de esa zona; el hueco que dejó la zona en su sitio viejo da su borde (ahí ya no hay lago ni plaza).
-static func desestirar(p: Vector2) -> Vector2:
-	if not _leidas:
-		_leer()
-	for zona: Dictionary in _zonas:
-		var c: Vector2 = zona["c"]
-		var q: Vector2 = c + (p - c * E - (zona["d"] as Vector2)) / E
-		if (zona["rect"] as Rect2).has_point(q):
-			return q
-	var o: Vector2 = p / E
-	for zona: Dictionary in _zonas:
-		var r: Rect2 = zona["rect"]
-		if r.has_point(o):
-			return _al_borde(r, o)
-	return o
-
-
-## El punto del borde del rectángulo más cercano a q (q está dentro).
-static func _al_borde(r: Rect2, q: Vector2) -> Vector2:
-	var a_izquierda: float = q.x - r.position.x
-	var a_derecha: float = r.end.x - q.x
-	var a_arriba: float = q.y - r.position.y
-	var a_abajo: float = r.end.y - q.y
-	var menor: float = minf(minf(a_izquierda, a_derecha), minf(a_arriba, a_abajo))
-	if menor == a_izquierda:
-		return Vector2(r.position.x, q.y)
-	if menor == a_derecha:
-		return Vector2(r.end.x, q.y)
-	if menor == a_arriba:
-		return Vector2(q.x, r.position.y)
-	return Vector2(q.x, r.end.y)
 
 
 static func _anadir(a: Dictionary) -> void:

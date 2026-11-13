@@ -10,6 +10,8 @@ const Anclas = preload("res://mapa/anclas.gd")
 
 const ESCENA := "res://mapa/Mundo3D.tscn"
 const CARPETA := "Sitios"
+const TUMBAS := "tumba"                  ## tumba_1 … tumba_24
+const CEMENTERIO_MARGEN_PX: float = 40.0 ## la tapia del cementerio queda algo más allá de las tumbas de fuera
 const SERIE := "%s_%d"                    ## sitios numerados de una misma lista: paseo_1, paseo_2…
 const LETRERO_ALTURA_M: float = 1.6
 const LETRERO_TAM_PIXEL: float = 0.012
@@ -66,6 +68,17 @@ static func serie(nombre: String) -> Array[Vector2]:
 	while sitios.has(SERIE % [nombre, out.size() + 1]):
 		out.append(sitios[SERIE % [nombre, out.size() + 1]])
 	return out
+
+
+## El cementerio en el mundo: lo que abarcan sus tumbas, con la tapia algo más allá.
+static func cementerio() -> Rect2:
+	var puntos: Array[Vector2] = serie(TUMBAS)
+	if puntos.is_empty():
+		return Rect2()
+	var caja := Rect2(puntos[0], Vector2.ZERO)
+	for p: Vector2 in puntos:
+		caja = caja.expand(p)
+	return caja.grow(CEMENTERIO_MARGEN_PX)
 
 
 ## El mismo sitio en el mapa ORIGINAL, para las funciones antiguas que todavía traducen lo que reciben (al crear un

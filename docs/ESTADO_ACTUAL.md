@@ -5,7 +5,7 @@
 ## a) Tarea activa
 **PRIORIDAD TOTAL (usuario, 2026-11-12): salir del mapa 2D**; lo demás espera (detención orgánica: `docs/FALLOS_VISIBLES.md`).
 Migración «el mundo sale solo del editor» (`docs/PLAN_MUNDO_DESDE_EDITOR.md`); una sola sesión de Claude toca el código
-del mundo. Pasos 0 a 3 hechos; **paso 4: puntos 1–3 hechos**.
+del mundo. Pasos 0 a 3 hechos; **paso 4: puntos 1–5 hechos** (falta el 6, el corte final, con el usuario).
 
 ## b) Último avance completado
 - Paso 1 (edificios): 32 escenas en `mapa/edificios/` con Muros, Interior, PisoAlto, Tejado, Muebles, **Marcas** (282;
@@ -15,21 +15,20 @@ del mundo. Pasos 0 a 3 hechos; **paso 4: puntos 1–3 hechos**.
   - **Solares** (41, `mapa/solar.gd`, con el Puesto del Paso): ancla por solar con prioridad baja; cubre 16 px más al
     norte y al sur para su letrero. Las casas de solar no tienen pieza y heredan sitio y giro de su solar.
   - **Zonas** (3, `mapa/zona.gd`: plaza, lago, ciénaga): trozos de campo abierto que se estiran ×5 pero van con su
-    pieza (`Anclas.estirar`, `estirar_puntos`, `desestirar`); las usan terreno, relieve, `Agua`, `RioLago` y mapa del valle.
+    pieza (`Zona.estirar`, `estirar_puntos`, `desestirar`, `rect_mundo`); las usan terreno, relieve, `Agua`, `RioLago`,
+    la ciénaga que enferma y el mapa del valle (`scripts/ui/ValleMapaPiezas.gd`: edificios y solares desde sus piezas).
 - Paso 3 (2026-11-12): **Sitios** (86, `mapa/sitio.gd`): cruces al aire libre ya en el mundo (`Sitio.mundo(id)`,
   `Sitio.serie(nombre)`; `Sitio.original(id)` solo para funciones que aún traducen). Caso I: 3 marcas de edificio.
 
 ## c) Siguiente paso técnico inmediato
 Paso 4 por tandas, comparando con `tools/tests/volcado_mundo.gd` (choques, zonas, marcas, vecinos antes/después).
-**Hecho (2026-11-12):** todos los edificios, casas de solar (`Solar.a_mundo/giro_plano`), anexos
-(`EdificioEditor.con_centro`), alcantarillas y mirador escriben en su plano y van directos a su pieza
-(`Marca.mundo`, `EdificioEditor.a_mundo`, `choque_en_edificio`, `cofre_mundo`…). **Los vecinos nacen ya en el mundo**:
-`setup_npc` no traduce; `_tavern_*_pos`, fichas de oficio (`shop_house_layout_mundo`) y camas de huésped en el mundo;
-borrados `_sitios_cfg`, `sitios_traducir_npc`. Muebles de la taberna (barra, chimenea, póker…) sin pieza propia en el
-editor: chocan desde el código pero siguen al edificio (pasarlos a pieza = añadir muebles 3D, cambio visible).
-**Siguiente:** puntos 4–6: cementerio, claro del Caso I y corral (piezas); plaza/lago/ciénaga, río y mapa del valle;
-sitios al aire libre aún con `vm.sitio(Vector2(…))` (guardia, caravanas, plaza); trampillas de alcantarilla;
-`_construct_solid_building` y tabiques (aún registran anclas); al final quitar `anclas.gd` y el ×5.
+**Hecho (2026-11-12):** edificios, casas de solar, anexos, alcantarillas y mirador van directos a su pieza; los
+vecinos nacen ya en el mundo; cementerio, corral y sitios de fuera son cruces; zonas y mapa del valle salen de sus
+piezas. Muebles de la taberna sin pieza propia (pasarlos = muebles 3D nuevos, cambio visible).
+**Siguiente:** el río y sus puentes viven aún en el editor 2D viejo (`mapa/EditorMapa.tscn`, ya en coordenadas del
+mundo): pasarlos a `Mundo3D.tscn` cambia dónde los edita el usuario (preguntado). Luego `_construct_solid_building`,
+tabiques y envoltorios de VMBase (aún registran anclas), baldosas de `World.gd`, `mover_posiciones`; al final quitar
+`anclas.gd` y el ×5.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.

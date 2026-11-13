@@ -241,7 +241,7 @@ static func nearest_river_crossing(from_pos: Vector2, to_pos: Vector2) -> Dictio
 ## Lago del Oeste: posición del nodo en el mapa original (World.gd lo coloca) y orilla del agua (un solo muelle al este).
 const LAKE_NODE_POS := Vector2(-715, 105)
 const DOCK_INSET_PX: float = 18.0 ## lo que el muelle se mete en el agua desde la orilla este
-const AnclasZonas = preload("res://mapa/anclas.gd")
+const Zona = preload("res://mapa/zona.gd")
 const LAKE_WATER_WORLD: Array[Vector2] = [
 	Vector2(-710, 76), Vector2(-672, 82), Vector2(-665, 105), Vector2(-675, 142), Vector2(-720, 164),
 	Vector2(-785, 186), Vector2(-855, 214), Vector2(-925, 238), Vector2(-1005, 242), Vector2(-1065, 206),
@@ -269,7 +269,7 @@ static func lake_outline() -> PackedVector2Array:
 
 ## El mismo contorno en el mundo (mapa ×E).
 static func lake_outline_world() -> PackedVector2Array:
-	return AnclasZonas.estirar_puntos(lake_outline()) # va con la pieza del lago («Zonas» del editor)
+	return Zona.estirar_puntos(lake_outline()) # va con la pieza del lago («Zonas» del editor)
 
 
 ## El agua del lago que se ve: la cuenca del relieve se hunde hasta el contorno (factor 1); la lámina dibujada un poco
@@ -278,7 +278,7 @@ static func lake_water() -> PackedVector2Array:
 	return lake_outline()
 
 static func lake_water_world() -> PackedVector2Array:
-	return AnclasZonas.estirar_puntos(lake_water())
+	return Zona.estirar_puntos(lake_water())
 
 ## Orilla este del agua dibujada a la altura `y` (coordenadas del mapa original): la x mayor donde aún hay agua.
 static func lake_east_shore_x(y: float) -> float:
@@ -296,7 +296,7 @@ static func lake_east_shore_x(y: float) -> float:
 
 ## Centro del muelle del lago en el mundo: en la orilla este del agua dibujada, a la altura del nodo, metido 18 px.
 static func lake_dock_center() -> Vector2:
-	return AnclasZonas.estirar(Vector2(lake_east_shore_x(LAKE_NODE_POS.y), LAKE_NODE_POS.y)) - Vector2(DOCK_INSET_PX, 0.0)
+	return Zona.estirar(Vector2(lake_east_shore_x(LAKE_NODE_POS.y), LAKE_NODE_POS.y)) - Vector2(DOCK_INSET_PX, 0.0)
 
 
 ## Polígono escalado respecto a su centro (para la orilla de arena y la zona honda).

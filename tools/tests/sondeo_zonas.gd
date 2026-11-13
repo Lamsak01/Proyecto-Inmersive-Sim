@@ -19,12 +19,13 @@ var _fallos: int = 0
 func _initialize() -> void:
 	_mover_zonas()
 	var anclas: GDScript = load("res://mapa/anclas.gd")
+	var zona: GDScript = load("res://mapa/zona.gd")
 	var agua: GDScript = load("res://scripts/fisica/Agua.gd")
 	var relieve: GDScript = load("res://scripts/visuals/WorldStageBase3D.gd")
 	var pesca: GDScript = load("res://scripts/fisica/RioLago.gd")
 	var lago_viejo: Vector2 = LAGO_DENTRO * Mapa3D.E
 	var lago_nuevo: Vector2 = lago_viejo + DESPLAZAMIENTO_PX
-	_comprobar("el lago se estira a su sitio nuevo", (anclas.call("estirar", LAGO_DENTRO) as Vector2).is_equal_approx(lago_nuevo))
+	_comprobar("el lago se estira a su sitio nuevo", (zona.call("estirar", LAGO_DENTRO) as Vector2).is_equal_approx(lago_nuevo))
 	_comprobar("la lógica (mover) lleva el lago al sitio nuevo", (anclas.call("mover", LAGO_DENTRO) as Vector2).is_equal_approx(lago_nuevo))
 	_comprobar("desde el sitio nuevo se vuelve al original", (anclas.call("desmover", lago_nuevo) as Vector2).is_equal_approx(LAGO_DENTRO))
 	_comprobar("se nada en el lago nuevo", bool(agua.call("en_lago", lago_nuevo)))
@@ -32,13 +33,15 @@ func _initialize() -> void:
 	_comprobar("hay hondonada en el lago nuevo", float(relieve.call("terrain_height_px", lago_nuevo)) < HONDO_PX)
 	_comprobar("no queda hondonada en el sitio viejo", float(relieve.call("terrain_height_px", lago_viejo)) > HONDO_PX)
 	var muelle: Vector2 = pesca.call("lake_dock_center")
-	_comprobar("el muelle va con el lago", (anclas.call("desestirar", muelle) as Vector2).distance_to(LAGO_DENTRO) < 300.0)
+	_comprobar("el muelle va con el lago", (zona.call("desestirar", muelle) as Vector2).distance_to(LAGO_DENTRO) < 300.0)
 	_comprobar("el muelle no es agua", not bool(agua.call("en_lago", muelle)))
 	var cienaga_nueva: Vector2 = CIENAGA_DENTRO * Mapa3D.E + DESPLAZAMIENTO_PX
 	_comprobar("hay cuenca en la ciénaga nueva", float(relieve.call("terrain_height_px", cienaga_nueva)) < HONDO_PX)
 	_comprobar("no queda cuenca en la ciénaga vieja", float(relieve.call("terrain_height_px", CIENAGA_DENTRO * Mapa3D.E)) > HONDO_PX)
+	_comprobar("el jugador enferma en la ciénaga nueva", (zona.call("rect_mundo", "cienaga") as Rect2).has_point(cienaga_nueva))
+	_comprobar("y no en la vieja", not (zona.call("rect_mundo", "cienaga") as Rect2).has_point(CIENAGA_DENTRO * Mapa3D.E))
 	var campo := Vector2(-300.0, 1500.0)
-	_comprobar("el campo abierto no cambia", (anclas.call("estirar", campo) as Vector2).is_equal_approx(campo * Mapa3D.E))
+	_comprobar("el campo abierto no cambia", (zona.call("estirar", campo) as Vector2).is_equal_approx(campo * Mapa3D.E))
 	print("SONDEO zonas: %s" % ("bien" if _fallos == 0 else "%d fallos" % _fallos))
 	quit(1 if _fallos > 0 else 0)
 
