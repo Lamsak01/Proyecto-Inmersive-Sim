@@ -187,8 +187,12 @@ var corpse_records: Array[Dictionary] = []        # Archivo histórico forense c
 var _church_center := Vector2(745, 312)
 var _church_altar_pos: Vector2 = Marca.mundo(ID_CAPILLA, Marca.ALTAR)
 const SITIO_PUERTA_CEMENTERIO := "puerta_cementerio"
+const SITIO_ENTIERRO := "entierro" ## donde se cava la fosa del siguiente entierro
+const SITIO_PLAZA_ESPERA := "plaza_espera" ## donde espera quien llega a un oficio sin puesto
+const SITIO_PISTA_CLARO := "pista_claro" ## orilla de barro rojo junto al molino (pista del Caso I)
+const PISTA_CLARO_RADIO: float = 150.0 ## 30 px del mapa de antes, estirado ×5 como el campo abierto
 var _cemetery_gate_pos := Vector2.ZERO ## en el mundo: cruz de «Sitios», se lee al montar el pueblo
-var _cemetery_burial_pos := Vector2(888, 305)
+var _cemetery_burial_pos := Vector2.ZERO ## en el mundo: cruz «entierro» de «Sitios», se lee al montar el pueblo
 var _cemetery_grave_positions: Array[Vector2] = []
 
 var church_panel: PanelContainer = null
@@ -212,6 +216,9 @@ var _escort_limite_s: float = 0.0
 const ESCOLTA_VELOCIDAD: float = 64.0 ## px/s del guardia que escolta (VillageNPC)
 const ESCOLTA_MARGEN: float = 1.8 ## rodeos por calles y puertas
 const ESCOLTA_TOPE_MIN_S: float = 9.5
+## Hueco de un paso entre salas (tabique de 6 px y algo de margen a cada lado): lo que choque ahí se quita. Con 32×32
+## se llevaba por delante la mesa 2 de la morgue, que está justo delante del paso del hospital.
+const PASO_INTERIOR_TAM := Vector2(24.0, 16.0)
 const ESCOLTA_DISTANCIA: float = 12.0 ## px entre el guardia y el preso que lleva detrás
 const JAIL_MANDATORY_STAY_SECONDS: float = 10.0
 var jail_mandatory_stay_timer: float = 0.0
@@ -1274,7 +1281,7 @@ func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 		if prop_rect.intersects(Rect2(opr_pos - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
 			return true
 	for p_gap: Vector2 in [EdificioEditor.a_mundo(ID_HOSPITAL, Vector2(745.0, 152.0)), EdificioEditor.a_mundo(ID_COMISARIA, Vector2(902.0, 152.0))]: # pasos de sala y reja, en su plano
-		if prop_rect.intersects(Rect2(p_gap - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
+		if prop_rect.intersects(Rect2(p_gap - PASO_INTERIOR_TAM * 0.5, PASO_INTERIOR_TAM)):
 			return true
 	return false
 

@@ -477,14 +477,13 @@ static func build_sewers_world(vm) -> void:
 				if is_instance_valid(old_n):
 					old_n.queue_free()
 
-	var AN = load("res://mapa/anclas.gd")
 	# La red va entera con su pieza «bajo_alcantarillas» (movido + estirado); sus números siguen siendo los de siempre
 	var centro_red: Vector2 = Vector2(420.0, SEWER_Y)
 	desp_red = load("res://mapa/edificio.gd").call("a_mundo", ID_RED, centro_red) - centro_red
 	SEWER_LOCATIONS = SEWER_LOCATIONS_BASE.duplicate(true)
 	for k in SEWER_LOCATIONS.keys():
 		var dl: Dictionary = SEWER_LOCATIONS[k]
-		dl["pos"] = AN.mover(dl["pos"])
+		dl["pos"] = Sitio.mundo("trampilla_" + str(k)) # rejilla en la calle: cruz de «Sitios»
 		for f in ["chamber_center", "tunnel_pos", "ladder_pos", "chest_pos"]:
 			dl[f] = (dl[f] as Vector2) + desp_red
 

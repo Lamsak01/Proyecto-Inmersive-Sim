@@ -35,6 +35,7 @@ func setup_village(target_entities_root: Node) -> void:
 	_plaza_well_pos = ObjetoEditor.mundo(OBJETO_POZO_PLAZA)
 	_well_positions = [_well_pos, _tavern_well_pos, _plaza_well_pos]
 	_cemetery_gate_pos = Sitio.mundo(SITIO_PUERTA_CEMENTERIO)
+	_cemetery_burial_pos = Sitio.mundo(SITIO_ENTIERRO)
 	VillageWorldBuilder._spawn_signposts(self)
 	VillageWorldBuilder._spawn_tavern_and_rooms(self)
 	VillageWorldBuilder._spawn_five_family_houses_and_trades(self)
@@ -493,7 +494,6 @@ func interact(player: Node2D) -> void:
 	if not player or player_being_escorted_to_jail:
 		return
 	var pos := player.global_position
-	var o: Vector2 = _AN_SITIOS.desmover(pos) # mapa ×E: la pista de fuera escrita a mano se compara en el mapa original
 
 	# Caso I: si el jugador apunta a una pista o a la bandeja del caso, manda eso aunque haya una puerta o ventana cerca
 	var c1_sel0: Node = player.get("interaction_selector")
@@ -621,7 +621,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 5b. Pistas del Caso I en el Molino Viejo Abandonado y Claro del Arroyo
-	if o.distance_squared_to(Vector2(140.0, -1006.0)) <= 30.0 * 30.0:
+	if pos.distance_squared_to(Sitio.mundo(SITIO_PISTA_CLARO)) <= PISTA_CLARO_RADIO * PISTA_CLARO_RADIO:
 		_record_case_clue(
 			player,
 			"🧱 Orilla de arcilla",
@@ -1011,7 +1011,7 @@ func _process_daily_map_edge_arrivals() -> void:
 			role_key,
 			str(cfg.get("title", "Artesano")) + " (Recién Llegado)",
 			cfg.get("tex", null),
-			cfg.get("work_pos", sitio(Vector2(440, 44))),
+			cfg.get("work_pos", Sitio.mundo(SITIO_PLAZA_ESPERA)),
 			cfg.get("bed1_pos", _tavern_bed_pos),
 			inh_st,
 			cfg.get("table_pos", _tavern_social_pos),
@@ -1402,7 +1402,7 @@ func spawn_dynamic_npc_from_save(node_name: String, npc_data: Dictionary) -> Vil
 	entities_root.add_child(dyn_npc)
 	var default_tex := _load_tex("res://assests/world/village/villager_traveler.png")
 	var def_bed: Vector2 = VillageTavern.al_mundo(VillageTavern.guest_beds()[0])
-	var def_work: Vector2 = sitio(Vector2(440.0, 44.0)) # la plaza, si la partida no lo guardó
+	var def_work: Vector2 = Sitio.mundo(SITIO_PLAZA_ESPERA) # la plaza, si la partida no lo guardó
 	dyn_npc.setup_npc(
 		default_tex, Vector2(float(npc_data.get("work_x", def_work.x)), float(npc_data.get("work_y", def_work.y))),
 		Vector2(float(npc_data.get("bed_x", def_bed.x)), float(npc_data.get("bed_y", def_bed.y))), {},

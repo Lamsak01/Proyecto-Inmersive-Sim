@@ -369,7 +369,7 @@ static func seed_start_population(vm, target: int = START_POPULATION) -> int:
 			outsider = vm._pop_living_unemployed()
 		if outsider != null:
 			var inh_stock: Dictionary = (biz.get("stock_override", cfg.get("stock", {})) as Dictionary).duplicate()
-			outsider.promote_to_trade(role_key, str(cfg.get("title", "Artesano")), cfg.get("work_pos", vm.sitio(Vector2(440, 44))), inh_stock, cfg.get("tex", null), cfg.get("bed1_pos", vm._tavern_bed_pos), cfg.get("table_pos", vm._tavern_social_pos), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
+			outsider.promote_to_trade(role_key, str(cfg.get("title", "Artesano")), cfg.get("work_pos", Sitio.mundo("plaza_espera")), inh_stock, cfg.get("tex", null), cfg.get("bed1_pos", vm._tavern_bed_pos), cfg.get("table_pos", vm._tavern_social_pos), str(cfg.get("family_id", "none")), str(cfg.get("family_name", "Gremio")))
 			outsider.global_position = outsider.work_position
 			vm.trade_npcs[role_key] = outsider
 	prune_residents(vm)

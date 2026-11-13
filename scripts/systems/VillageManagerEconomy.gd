@@ -1215,7 +1215,7 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 		m_npc.set_meta("route_Bought_smith", false)
 		m_npc.set_meta("route_Bought_carp", false)
 		entities_root.add_child(m_npc)
-		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), sitio(Vector2(335, 12)), sitio(Vector2(-900, 48)), {"royal_ration": 3, "steel_ingot": 3, "copper_coil": 2, "repair_kit": 3}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
+		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_casimir.png"), VillageWork.Sitio.mundo("caravana_casimir"), VillageWork.Sitio.mundo("llegada_casimir"), {"royal_ration": 3, "steel_ingot": 3, "copper_coil": 2, "repair_kit": 3}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
 	else:
 		m_npc.name = "NPC_Merchant_Valeria"
 		m_npc.npc_name = "Valeria la Tratante"
@@ -1226,9 +1226,9 @@ func _check_weekly_merchant_arrival(current_day: int, ignore_suspension: bool = 
 		m_npc.set_meta("route_Bought_fish", false)
 		m_npc.set_meta("route_Bought_herb", false)
 		entities_root.add_child(m_npc)
-		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_valeria.png"), sitio(Vector2(585, 12)), sitio(Vector2(990, 48)), {"royal_ration": 4, "surgical_kit": 2, "sleeping_draught": 2}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
+		m_npc.setup_npc(_load_tex("res://assests/world/village/npcs_64/sprite_valeria.png"), VillageWork.Sitio.mundo("caravana_valeria"), VillageWork.Sitio.mundo("llegada_valeria"), {"royal_ration": 4, "surgical_kit": 2, "sleeping_draught": 2}, _tavern_social_pos, "none", "Comitiva Real de Extramuros")
 
-	m_npc.global_position = Vector2(-900, 48) if m_id == "casimir" else Vector2(990, 48)
+	m_npc.global_position = m_npc.bed_position # entra por su borde del valle (su «cama» es el sitio de llegada)
 	_active_traveling_merchant = m_npc
 
 	if not silent:

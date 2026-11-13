@@ -278,8 +278,8 @@ func _mark_morgue_case_resolved(victim_name: String, resolution_note: String = "
 func get_cemetery_burial_target_pos() -> Vector2:
 	var next_idx: int = buried_graves.size()
 	if next_idx >= 0 and next_idx < _cemetery_grave_positions.size():
-		return sitio(_cemetery_grave_positions[next_idx])
-	return sitio(_cemetery_burial_pos)
+		return _cemetery_grave_positions[next_idx]
+	return _cemetery_burial_pos
 
 ## B3.4: Devuelve la posición de la tumba de un difunto en el cementerio (o la puerta del cementerio si aún está en la morgue).
 
@@ -289,8 +289,8 @@ func get_grave_pos_for_victim(victim_name_str: String) -> Vector2:
 		if typeof(rec) == TYPE_DICTIONARY and str(rec.get("victim_name", "")).strip_edges() == clean:
 			var g_idx: int = int(rec.get("grave_index", -1))
 			if g_idx >= 0 and g_idx < _cemetery_grave_positions.size():
-				return sitio(_cemetery_grave_positions[g_idx] + Vector2(0, 10))
-			return sitio(_cemetery_burial_pos)
+				return _cemetery_grave_positions[g_idx] + Vector2(0, 10)
+			return _cemetery_burial_pos
 	return _cemetery_gate_pos
 
 func _refresh_morgue_table_sprites() -> void:
@@ -498,7 +498,7 @@ func get_hangout_spots() -> Array:
 	if not is_building_door_blocked("tavern"):
 		spots.append({"id": "tavern", "pos": _tavern_social_pos + Vector2(0, 14), "kind": "tavern", "label": "la Taberna"})
 	spots.append({"id": "plaza_well", "pos": _plaza_well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Plaza"})
-	spots.append({"id": "plaza_bench", "pos": sitio(Vector2(468, 54)), "kind": "bench", "label": "el Rincón de la Plaza"})
+	spots.append({"id": "plaza_bench", "pos": VillageWork.Sitio.mundo("rincon_plaza"), "kind": "bench", "label": "el Rincón de la Plaza"})
 	spots.append({"id": "plaza_board", "pos": _notice_board_pos + Vector2(0, 26), "kind": "plaza", "label": "la Plaza Central"})
 	spots.append({"id": "farm_well", "pos": _well_pos + Vector2(0, 24), "kind": "well", "label": "el Pozo de la Granja"})
 	spots.append_array(VillagePlaces.hangout_spots()) # V5c

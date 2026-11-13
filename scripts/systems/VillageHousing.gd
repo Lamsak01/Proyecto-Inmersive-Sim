@@ -47,10 +47,11 @@ const JUVENILE_DAYS: int = 3
 const ADULT_ANIMAL_DAYS: int = 6
 const RANCH_PEN_RECT: Rect2 = Rect2(Vector2(310.0, 404.0), Vector2(100.0, 134.0))
 
-## El corral del rancho en el mundo: el rectángulo de arriba está en el mapa original y sigue al rancho (anclas).
+## El corral del rancho en el mundo: centrado en la cruz «corral_rancho» de «Sitios» (en el centro de su valla).
+const SITIO_CORRAL := "corral_rancho"
 static func ranch_pen_rect_mundo() -> Rect2:
-	var AN = load("res://mapa/anclas.gd")
-	return AN.rect_con(AN.buscar(RANCH_PEN_RECT.get_center()), RANCH_PEN_RECT)
+	var centro: Vector2 = load("res://mapa/sitio.gd").call("mundo", SITIO_CORRAL)
+	return Rect2(centro - RANCH_PEN_RECT.size * 0.5, RANCH_PEN_RECT.size)
 const CATERING_COST_PER_GUEST: int = 4
 const TABLE_SEAT_DIST: float = 14.0
 const GATHERING_PLAYER_RADIUS: float = 90.0

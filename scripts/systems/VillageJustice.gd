@@ -338,7 +338,7 @@ static func _spawn_royal_investigator(vm: VillageManager) -> void:
 	inv_npc.tavern_social_pos = vm._tavern_social_pos
 	vm.entities_root.add_child(inv_npc)
 	# Alistair duerme en su propia cama de huéspedes en la Posada (`Vector2(400, -252)`), nunca en la cama del Comisario Vane
-	inv_npc.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"), vm.sitio(Vector2(465, 44)), vm.VillageTavern.mundo(vm.VillageTavern.M_CAMA_ALISTAIR), {}, vm._tavern_social_pos, "family_police", "Inquisición Real de la Corona")
+	inv_npc.setup_npc(vm._load_tex("res://assests/world/village/npcs_64/sprite_alistair.png"), vm.VillageWork.Sitio.mundo("puesto_inquisidor"), vm.VillageTavern.mundo(vm.VillageTavern.M_CAMA_ALISTAIR), {}, vm._tavern_social_pos, "family_police", "Inquisición Real de la Corona")
 	inv_npc.global_position = vm._get_map_edge_arrival_pos(1)
 	vm._royal_investigator_npc = inv_npc
 
@@ -760,7 +760,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 
 static func _process_inquisitor_field_recon(vm: VillageManager, inv_npc: VillageNPC, delta: float, done_cnt: int, max_cnt: int, days_inv: int) -> void:
 	var c_pos: Vector2 = _get_investigation_crime_pos(vm)
-	var recon_pts: Array[Vector2] = [c_pos, vm._morgue_table_positions[1], Marca.mundo(vm.ID_COMISARIA, Marca.ESCRITORIO), vm.sitio(Vector2(465, 36))]
+	var recon_pts: Array[Vector2] = [c_pos, vm._morgue_table_positions[1], Marca.mundo(vm.ID_COMISARIA, Marca.ESCRITORIO), vm.VillageWork.Sitio.mundo("reconstruccion_inquisidor")]
 	var r_idx: int = int(vm.active_royal_investigation.get("recon_spot_idx", 0)) % recon_pts.size()
 	var target_pt: Vector2 = recon_pts[r_idx]
 	if inv_npc.global_position.distance_to(target_pt) > 22.0:

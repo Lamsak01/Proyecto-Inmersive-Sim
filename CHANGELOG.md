@@ -4,6 +4,14 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: cementerio, corral y sitios de fuera como cruces (Claude Code)
+- 40 cruces nuevas en «Sitios» (donde el juego ya los ponía): `tumba_1…24`, `entierro`, `plaza_espera`,
+  `puesto_guardia`, `puesto_inquisidor`, `reconstruccion_inquisidor`, `rincon_plaza`, caravanas y llegadas de Casimir
+  y Valeria, `forrajeo`, `pista_claro`, tres `trampilla_*` y `corral_rancho`. El código las lee con `Sitio.mundo/serie`.
+- Arreglado: las tumbas de los enterrados se dibujaban en el sitio del mapa viejo; los mercaderes aparecían en un
+  punto sin traducir; el hueco de paso del hospital quitaba la pared de la mesa 2 de la morgue (`PASO_INTERIOR_TAM`).
+
+
 ## 2026-11-12 — La escolta a la celda llega andando (Claude Code)
 - Fallo del usuario: el guardia andaba un trecho y te teletransportaba a la celda. El tope fijo de 9,5 s (pueblo de
   antes del ×5) pasa a ser según la distancia (`_escort_limite_s`, `ESCOLTA_*`), y el preso va detrás del guardia según

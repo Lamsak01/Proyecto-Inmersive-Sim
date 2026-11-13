@@ -811,7 +811,6 @@ static func cart_default_pos() -> Vector2:
 	return Sitio.mundo(SITIO_CARRO)
 
 const CART_THEFT_CHANCE: float = 0.12
-const RANCH_CORRAL_RECT: Rect2 = Rect2(310, 400, 87, 140)
 const PlayerHorseScript = preload("res://scripts/obstacles/PlayerHorse.gd")
 const PlayerCartScript = preload("res://scripts/obstacles/PlayerCart.gd")
 
@@ -938,7 +937,7 @@ static func is_cart_near_player(vm, max_dist: float = 60.0) -> bool:
 	return (pl.global_position as Vector2).distance_to(c_pos) < max_dist
 
 static func is_cart_in_safe_place(vm, pos: Vector2) -> bool:
-	if RANCH_CORRAL_RECT.has_point(_AN_SITIOS.desmover(pos)):
+	if vm != null and "VillageHousing" in vm and vm.VillageHousing != null and vm.VillageHousing.ranch_pen_rect_mundo().has_point(pos): # el corral del rancho
 		return true
 	if vm != null and "VillageHousing" in vm and vm.VillageHousing != null:
 		for lid in vm.VillageHousing.player_lots(vm, true):
@@ -2023,8 +2022,8 @@ static func try_interact(vm, player, pos: Vector2) -> bool:
 static func _try_outpost_interact(vm, player, pos: Vector2) -> bool:
 	if vm == null or player == null or (vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode"))):
 		return false
-	var o: Vector2 = _AN_SITIOS.desmover(pos) # el puesto está escrito en el mapa original
-	if o.distance_to(outpost_gate_pos()) > 46.0 and o.distance_to(outpost_center()) > 58.0:
+	# El puesto está en el plano de su solar: se lleva al mundo (sin estirar, como lo construido en un solar)
+	if pos.distance_to(Solar.a_mundo(OUTPOST_SOLAR, outpost_gate_pos())) > 46.0 and pos.distance_to(Solar.a_mundo(OUTPOST_SOLAR, outpost_center())) > 58.0:
 		return false
 	var inv = player.get("inventory")
 	var op: Dictionary = outpost_state(vm)

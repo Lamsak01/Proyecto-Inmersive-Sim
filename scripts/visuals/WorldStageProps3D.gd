@@ -128,7 +128,7 @@ func rebuild_graves_3d() -> void:
 		if i < vm._cemetery_grave_positions.size():
 			g_pos = vm._cemetery_grave_positions[i]
 		else:
-			g_pos = Vector2(844.0 + float(i % 6) * 26.0, 282.0 + float(int(float(i) / 6.0) % 3) * 28.0)
+			g_pos = vm._cemetery_burial_pos + Vector2(float(i % 6) * 26.0, float(int(float(i) / 6.0) % 3) * 28.0) # más tumbas que lápidas: junto a la fosa
 		_add_box_2d(graves_root_3d, g_pos + Vector2(0, 3), Vector2(7.5, 8.5), 1.0, 1.8, m_mound)
 		var g_mdl: String = grave_models[i % grave_models.size()]
 		_add_model_2d(graves_root_3d, g_mdl, g_pos + Vector2(0, -4), 1.0, Vector2(6.8, 3.2), 8.8)

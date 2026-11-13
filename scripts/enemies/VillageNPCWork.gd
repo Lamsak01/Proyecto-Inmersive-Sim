@@ -847,7 +847,7 @@ func _process_amateur_survival_hunting(delta: float) -> void:
 
 	# Si tras 18s no logra encontrar o alcanzar animales, desentierra raíces y bayas amargas para no morir de hambre
 	if prey == null or _amateur_forage_timer >= 20.0:
-		var fallback_spot: Vector2 = _AN_SITIOS.mover(Vector2(88, 785))
+		var fallback_spot: Vector2 = Sitio.mundo("forrajeo") # raíces y bayas amargas, al sur
 		if global_position.distance_to(fallback_spot) > 22.0 and _amateur_forage_timer < 18.0:
 			_move_towards_point(fallback_spot, 48.0, delta)
 			return

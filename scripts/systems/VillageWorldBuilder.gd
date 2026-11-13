@@ -4,6 +4,8 @@ const Marca = preload("res://mapa/marca.gd")
 const EdificioEditor = preload("res://mapa/edificio.gd")
 const Cartel = preload("res://mapa/cartel.gd")
 const Sitio = preload("res://mapa/sitio.gd")
+const SITIO_TUMBA := "tumba" ## tumba_1 … tumba_24
+const SITIO_PUESTO_GUARDIA := "puesto_guardia" ## donde vigila el guardia de día, en la plaza
 ## Farolas de las calles (2026-11-12): cruces «farola_calle_N» del mapa (Sitios), ya en el mundo y movibles en el editor.
 const SERIE_FAROLAS_CALLE := "farola_calle"
 const ObjetoEditor = preload("res://mapa/objeto.gd")
@@ -257,7 +259,7 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._register_authority_npc(
 		"NPC_Guard_Rodric", "Guardia Rodric", "Oficial de Patrulla", VillageNPC.TradeRole.GUARD,
 		"res://assests/world/village/villager_guard.png",
-		vm.sitio(Vector2(510, 48)), Marca.mundo(vm.ID_COMISARIA, Marca.CAMA_1), Marca.mundo(vm.ID_COMISARIA, Marca.MESA), {},
+		Sitio.mundo(SITIO_PUESTO_GUARDIA), Marca.mundo(vm.ID_COMISARIA, Marca.CAMA_1), Marca.mundo(vm.ID_COMISARIA, Marca.MESA), {},
 		"family_police", "Guardia del Valle",
 		["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
 	)
@@ -284,13 +286,8 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 
 	vm.add_zona_uso_mundo("CemeteryGateArea", vm._cemetery_gate_pos, 24.0, "cemetery_gate")
 
-	# 4 filas × 6 columnas = 24 tumbas: sitio de cada una (entierros)
-	vm._cemetery_grave_positions.clear()
-	var row_ys: Array[float] = [286.0, 316.0, 372.0, 402.0]
-	var col_xs: Array[float] = [852.0, 924.0, 954.0, 984.0, 1014.0, 1044.0]
-	for ry in row_ys:
-		for cx in col_xs:
-			vm._cemetery_grave_positions.append(Vector2(cx, ry))
+	# 24 tumbas: cruces «tumba_N» de «Sitios», una sobre cada lápida (entierros)
+	vm._cemetery_grave_positions = Sitio.serie(SITIO_TUMBA)
 
 	# Río de norte a sur, arroyo del bosque norte, Claro del Caso I y Molino Viejo Abandonado
 	_spawn_river_arroyo_and_abandoned_mill(vm)
