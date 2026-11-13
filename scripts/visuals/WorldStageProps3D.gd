@@ -3,6 +3,8 @@ extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
 const Marca = preload("res://mapa/marca.gd") # sitios de los edificios (el generador del taller)
+const ID_COMISARIA := "building_police"
+const ID_AYUNTAMIENTO := "building_town_hall"
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
 const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
@@ -43,9 +45,9 @@ func rebuild_outpost_3d() -> void:
 	var upgs: Dictionary = op.get("upgrades", {})
 	var c: Vector2 = VillageCulture.outpost_center()
 	var gate_p: Vector2 = VillageCulture.outpost_gate_pos()
-	mover_posiciones = true # el puesto está escrito en el mapa original: sigue a su pieza de «Solares»
+	colocar_plano = _en_solar(VillageCulture.OUTPOST_SOLAR) # el puesto está escrito en el plano de su solar
 	_dibujar_puesto(founded, upgs, c, gate_p)
-	mover_posiciones = false
+	colocar_plano = Callable()
 
 
 func _dibujar_puesto(founded: bool, upgs: Dictionary, c: Vector2, gate_p: Vector2) -> void:
@@ -294,7 +296,6 @@ func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector
 	})
 
 func _build_epoch_props_3d(m_bulb: Material) -> void:
-	mover_posiciones = true # generador, cables y terminales están escritos en el mapa original: siguen a sus edificios
 	var m_cable := _mat("epoch_thick_cable", Color(0.08, 0.09, 0.11), 0.72, 0.25)
 	var m_insul := _mat("epoch_insulator", Color(0.76, 0.78, 0.74), 0.35, 0.10)
 	var m_gen_iron := _mat("epoch_gen_iron", Color(0.18, 0.21, 0.22), 0.48, 0.78)
@@ -303,7 +304,8 @@ func _build_epoch_props_3d(m_bulb: Material) -> void:
 	var m_pad := _mat("epoch_gen_pad", Color(0.44, 0.43, 0.40), 0.92, 0.0)
 
 	# 1. Generador diésel junto al muro este del Taller de Reparaciones (marca «generador» de su escena)
-	var gp: Vector2 = Marca.sitio(VillageCulture.TINKER_ID, Marca.GENERADOR) # en el plano: mover_posiciones lo lleva a su sitio
+	colocar_plano = _en_edificio(VillageCulture.TINKER_ID) # generador y cables del taller, en su plano
+	var gp: Vector2 = Marca.sitio(VillageCulture.TINKER_ID, Marca.GENERADOR)
 	_add_box_2d(streetlights_root_3d, gp, Vector2(18.0, 24.0), 0.0, 2.2, m_pad) # Losa de hormigón
 	_add_box_2d(streetlights_root_3d, gp, Vector2(13.5, 18.0), 2.2, 11.5, m_gen_iron) # Bloque motor diésel
 	_add_box_2d(streetlights_root_3d, gp + Vector2(0.0, -3.5), Vector2(11.0, 9.0), 13.7, 3.8, m_gen_rust) # Culata con aletas
@@ -323,6 +325,7 @@ func _build_epoch_props_3d(m_bulb: Material) -> void:
 		_add_cyl_2d(streetlights_root_3d, Vector2(ix_t, 88.5), 1.1, 23.5, 2.6, m_insul, 1.1, 6)
 
 	# Comisaría (building_police: rect x=844..986, y=100..196): cables gruesos por la fachada norte y esquina este hasta el poste del foco
+	colocar_plano = _en_edificio(ID_COMISARIA)
 	_add_box_2d(streetlights_root_3d, Vector2(915.0, 99.2), Vector2(140.0, 1.8), 24.5, 1.6, m_cable)
 	_add_box_2d(streetlights_root_3d, Vector2(915.0, 99.2), Vector2(140.0, 1.5), 21.5, 1.4, m_cable)
 	_add_box_2d(streetlights_root_3d, Vector2(986.8, 136.0), Vector2(1.8, 72.0), 23.0, 1.6, m_cable)
@@ -333,6 +336,7 @@ func _build_epoch_props_3d(m_bulb: Material) -> void:
 
 	# Ayuntamiento (building_town_hall: rect x=695..825, y=-468..-372): cables gruesos por la fachada sur y muro oeste hacia la terminal
 	if vm != null and VillageCulture.VillageLots.lot(vm, "n4").get("kind", "") == "town_hall":
+		colocar_plano = _en_edificio(ID_AYUNTAMIENTO)
 		_add_box_2d(streetlights_root_3d, Vector2(760.0, -371.2), Vector2(128.0, 1.8), 24.5, 1.6, m_cable)
 		_add_box_2d(streetlights_root_3d, Vector2(760.0, -371.2), Vector2(128.0, 1.5), 21.5, 1.4, m_cable)
 		_add_box_2d(streetlights_root_3d, Vector2(694.2, -412.0), Vector2(1.8, 82.0), 23.0, 1.6, m_cable)
@@ -340,16 +344,26 @@ func _build_epoch_props_3d(m_bulb: Material) -> void:
 		for ix_th in [704.0, 734.0, 786.0, 816.0]:
 			_add_cyl_2d(streetlights_root_3d, Vector2(ix_th, -370.5), 1.1, 24.0, 2.6, m_insul, 1.1, 6)
 
-	# 3. Sacos terreros y alambre de espino a la entrada de la Comisaría (dejando libre la puerta x=893..937) y en el Puesto del Paso
+	# 3. Sacos terreros y alambre de espino a la entrada de la Comisaría (dejando libre la puerta x=893..937) y en el Puesto
+	# del Paso; 4. focos en poste de madera en los dos (se apagan si se sabotea la red eléctrica)
+	colocar_plano = _en_edificio(ID_COMISARIA)
 	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(864.0, 92.0))
 	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(966.0, 92.0))
+	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(994.0, 96.0), Vector2(915.0, 62.0), m_bulb)
+	colocar_plano = _en_solar(VillageCulture.OUTPOST_SOLAR)
 	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 22.0))
 	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 78.0))
-
-	# 4. Focos en poste de madera en la Comisaría y en el Puesto del Paso (se apagan si se sabotea la red eléctrica)
-	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(994.0, 96.0), Vector2(915.0, 62.0), m_bulb)
 	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1538.0, 18.0), Vector2(1506.0, 50.0), m_bulb)
-	mover_posiciones = false
+	colocar_plano = Callable()
+
+## Plano → mundo de un edificio o un solar, para `colocar_plano` (lo dibujado en su plano va con su pieza).
+static func _en_edificio(id: String) -> Callable:
+	return func(p: Vector2) -> Vector2: return EdificioEditorScript.a_mundo(id, p)
+
+
+static func _en_solar(id: String) -> Callable:
+	return func(p: Vector2) -> Vector2: return VillageLots.Solar.a_mundo(id, p)
+
 
 ## Apaga poco a poco la luz de una farola cuando el jugador está lejos.
 func _fundir_de_lejos(luz: Light3D) -> void:
@@ -504,7 +518,6 @@ func _sync_home_props_3d() -> void:
 	root.name = "HomeProps3D"
 	stage_root_3d.add_child(root)
 	_home_props_3d = root
-	mover_posiciones = true # los muebles de la casa están escritos en el mapa original: siguen a la casa
 
 	var m_oak: StandardMaterial3D = _mat("hp_oak", Color(0.46, 0.30, 0.16), 0.85, 0.05)
 	var m_dark: StandardMaterial3D = _mat("hp_dark", Color(0.14, 0.10, 0.06), 0.95, 0.0)
@@ -514,6 +527,7 @@ func _sync_home_props_3d() -> void:
 	var m_dust: StandardMaterial3D = _mat("hp_dust", Color(0.74, 0.44, 0.96), 0.30, 0.15, Color(0.66, 0.36, 0.90), 0.55)
 
 	for lid in p_lots:
+		colocar_plano = _en_solar(lid) # los muebles de la casa están escritos en el plano de su solar
 		var st: Dictionary = VillageLots.lot(vm, lid)
 		var up: Dictionary = st.get("upgrades", {})
 		var tb_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_table")
@@ -569,7 +583,7 @@ func _sync_home_props_3d() -> void:
 				_add_box_2d(root, sc_pos + Vector2(-4.8, -0.4), Vector2(3.8, 3.6), 9.8, 2.4, m_herb) # Mercancía expuesta 1
 				if int(ps.get("stock", 0)) >= 2:
 					_add_box_2d(root, sc_pos + Vector2(-1.2, 0.4), Vector2(3.6, 3.4), 9.8, 2.2, m_gold) # Mercancía expuesta 2
-	mover_posiciones = false
+	colocar_plano = Callable()
 
 ## Paso a 3D, paso 2b: techo de roca justo bajo la calle sobre una sala subterránea (dentro de `raiz`, que ya está
 ## bajada Suelo.PROFUNDIDAD_SOTANO_PX). Solo se ve en 1.ª persona: desde arriba taparía la sala.

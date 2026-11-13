@@ -112,9 +112,6 @@ const GAP_POCKETS: Array = [
 	{"kind": "well", "sitio": "pozo_ronda", "title": "🪣 Pozo de la Ronda [E: Llenar Recipiente / Lavar Heridas y Sangre]"},
 ]
 
-## Bloque AA: molino de viento del Molino del Este (base sólida en 2D; en 3D, el modelo de molino).
-const EAST_MILL_POS: Vector2 = Vector2(1458, 250)
-
 ## Clases de edificio. `hours`: horas de trabajo del carpintero (a diligencia media). `beds`: camas para vecinos.
 const KINDS: Dictionary = {
 	"house": {"title": "Casa", "cost": 100, "hours": 24.0, "beds": 2, "zones": ["borde", "barrio"]},
@@ -174,12 +171,10 @@ static func site_work_pos(id: String) -> Vector2:
 	return (d["center"] as Vector2) + Vector2(0, off if bool(d["door_south"]) else -off)
 
 # ---------------------------------------------------------------- mapa
-## Al montar el pueblo: pozo de la ronda, Molino del Este y lo de cada solar. Las calles hacia los solares
+## Al montar el pueblo: pozo de la ronda y lo de cada solar (el Molino del Este no tiene pieza 3D: sin pared suelta). Las calles hacia los solares
 ## del borde se ven en 3D (terreno y «Caminos» del editor), así que aquí no se dibujan.
 static func build_world(vm) -> void:
 	_build_gap_pockets(vm)
-	# Molino del Este: base de piedra sólida (los vecinos lo rodean) y su cartel
-	vm._add_solid_wall_segment(EAST_MILL_POS, Vector2(34, 34), vm._load_tex("res://assests/world/village/wall_stone_h.png"))
 	for l in lots():
 		var id: String = str(l["id"])
 		var st: Dictionary = lot(vm, id)
@@ -282,7 +277,7 @@ static func _build_shop_house(vm, id: String, st: Dictionary) -> void:
 	var lay: Dictionary = shop_house_layout(shop_house_id(fam))
 	vm._construct_solid_building(shop_house_id(fam), str(st["title"]), c,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
-	vm._register_shop_business_stall(role, str(st["title"]), fam, lay["stall_pos"]) # mostrador y mesa chocan desde sus muebles
+	vm.mostrador_mundo(role, str(st["title"]), fam, shop_house_layout_mundo(shop_house_id(fam))["stall_pos"]) # mostrador y mesa chocan desde sus muebles
 	vm.cofre_en_edificio(shop_house_id(fam), lay["chest_pos"], "Cofre de " + str(st["title"]), fam)
 	load("res://scripts/systems/VillageTrades.gd").build_extras(vm, id) # V5d: campos, corrales, cantera…
 

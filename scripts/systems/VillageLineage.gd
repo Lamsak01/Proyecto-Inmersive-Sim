@@ -1,6 +1,5 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## Bloque P3: Hijos secretos, romances prohibidos y vida familiar (10 mecánicas).
 ## 1) Embarazo fruto de una infidelidad (el marido cree que es suyo mientras la aventura siga en secreto).

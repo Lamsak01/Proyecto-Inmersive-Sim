@@ -24,10 +24,12 @@ del mundo. Pasos 0 a 3 hechos; **paso 4: puntos 1–5 hechos** (falta el 6, el c
 Paso 4 por tandas, comparando con `tools/tests/volcado_mundo.gd` (choques, zonas, marcas, vecinos antes/después).
 **Hecho (2026-11-12):** edificios, casas de solar, anexos, alcantarillas y mirador van directos a su pieza; los
 vecinos nacen ya en el mundo; cementerio, corral y sitios de fuera son cruces; zonas y mapa del valle salen de sus
-piezas. Muebles de la taberna sin pieza propia (pasarlos = muebles 3D nuevos, cambio visible).
-El río y sus puentes ya están en `Mundo3D.tscn` («Rio», «Cruces»; `mapa/rio_forma.gd`); editor 2D borrado.
-**Siguiente:** `_construct_solid_building`, tabiques y envoltorios de VMBase (aún registran anclas), baldosas de
-`World.gd`, `mover_posiciones`; al final quitar `anclas.gd` y el ×5 (con el usuario).
+piezas; río y puentes en `Mundo3D.tscn` («Rio», «Cruces»), editor 2D borrado. Muebles de la taberna sin pieza propia.
+**El juego ya no traduce (2026-11-12):** constructor, tabiques, dibujos 3D (`colocar_plano`) y objetos van con su
+pieza; solo `Anclas.registrar_edificio` sigue para las pruebas que escriben en el mapa original.
+**Siguiente (corte final, con el usuario):** pasar esas pruebas (`M()` de verify_all, `fisica_3d`, `partida_caso1`,
+herramientas) a coordenadas del mundo; quitar `anclas.gd`, el ×5 (`Mapa3D.E`, `estirar_terreno`, `Zona.estirar`…) y
+`mapa/Mundo3D.antes-x5.tscn`.
 **Adiós al 2D (decisión del usuario, 2026-11-12): capas 1 y 2**, no el «cerebro» (vecinos y choques siguen en el mapa
 plano). Capa 1 hecha (lista visible 0). Capa 2 casi hecha (tandas 1–7 → marcas invisibles con `tipo_3d`; 2.818 → 44;
 sangre, huellas y vagabundos en 3D con `Rastros3D`). Quedan cuerpos de animales, objetos rompibles y espada de `World.tscn`.

@@ -1,6 +1,5 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## Economía y necesidades ampliadas (bloques E, `docs/PLAN_ECONOMIA_NECESIDADES.md`).
 ## - E1: higiene de vecinos y jugador; los vecinos caminan a lavarse (encargo «wash»).

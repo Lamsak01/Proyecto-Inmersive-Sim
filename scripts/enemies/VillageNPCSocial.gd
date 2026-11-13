@@ -1,6 +1,5 @@
 @tool
 extends "res://scripts/enemies/VillageNPCBase.gd"
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 const _MARCA = preload("res://mapa/marca.gd")
 const _EDIFICIO = preload("res://mapa/edificio.gd")
 const _HOSPITAL_ID := "building_hospital"

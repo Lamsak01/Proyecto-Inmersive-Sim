@@ -1,6 +1,5 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## V5e: biblioteca, escuela, mercado semanal y arreglos del Taller de Reparaciones.
 ## - Biblioteca (solar n5): un sitio de ocio bajo techo (VillagePlaces). Va más quien es curioso; con lluvia es casi

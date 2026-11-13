@@ -841,6 +841,8 @@ func _juntar_piezas(n: Node, out: Array) -> void:
 			_juntar_piezas(c, out)
 
 
+const TRONCO_CHOQUE_TAM := Vector2(7.0, 7.0) ## solo el tronco choca: se pasa por debajo de la copa
+
 func _choque_de_pieza(c: Node3D) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
 		return
@@ -849,7 +851,7 @@ func _choque_de_pieza(c: Node3D) -> void:
 		return
 	var p2 := _a_mapa_2d(c.global_position)
 	if tipo == "tronco":
-		vm.call("_add_prop_collider", p2, Vector2(7.0, 7.0))
+		vm.call("add_choque_mundo", p2, TRONCO_CHOQUE_TAM, 0.0) # la pieza ya está en el mundo: sin traducir
 		return
 	# «forma»: lo que ocupa visto desde arriba (esquinas de sus mallas, ya giradas)
 	var pts := PackedVector2Array()

@@ -17,18 +17,7 @@ const Planta = preload("res://mapa/planta.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const Vista = preload("res://scripts/fisica/Vista.gd")
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
-
-## Plan de sitios (docs/PLAN_SITIOS.md): traduce un punto escrito en coordenadas del mapa ORIGINAL a su sitio actual
-## (edificio, mueble u objeto movido en el editor del mapa 3D). Úsalo una sola vez, donde se escribe el número fijo.
-func sitio(p: Vector2) -> Vector2:
-	return p if p == Vector2.ZERO else Anclas.mover(p)
-
-## Lo mismo para una lista de puntos originales (para comparar con sitios ya traducidos de los vecinos).
-func sitios(lista: Array) -> Array:
-	var out: Array = []
-	for q in lista:
-		out.append(sitio(q))
-	return out
+const Solar = preload("res://mapa/solar.gd")
 
 var VillageJustice = load("res://scripts/systems/VillageJustice.gd")
 
@@ -412,23 +401,19 @@ func _construct_solid_building(
 	var door_offset_x: float = planta["door_offset"]
 	var window_offset: float = planta["window_offset"]
 	var center_orig: Vector2 = center
-	# Editor del mapa 3D (2026-11-10): si el usuario movió el edificio en mapa/Mundo3D.tscn, se construye en el sitio nuevo
-	var d_edif: Vector2 = EdificioEditor.desplazamiento(b_id)
-	var g_edif: float = EdificioEditor.giro(b_id)
-	var solar: Dictionary = {} if EdificioEditor.tiene_pieza(b_id) else Anclas.buscar(center)
-	if not solar.is_empty(): # casa levantada en un solar (sin pieza propia): va, y gira, con su solar
-		d_edif = Anclas.aplicar(solar, center) - center * Anclas.E
-		g_edif = float(solar["g"])
-	Anclas.registrar_edificio(Rect2(center - size * 0.5, size), d_edif, g_edif)
+	# El edificio se levanta donde está su pieza del editor (o la de su solar), movida y girada: plano → mundo
+	var solar: String = "" if EdificioEditor.tiene_pieza(b_id) else Solar.con_punto(center)
+	var colocar: Callable = _colocador(b_id, solar)
+	var g_edif: float = EdificioEditor.giro(b_id) if solar.is_empty() else Solar.giro(solar)
+	var d_edif: Vector2 = colocar.call(center) - center
+	Anclas.registrar_edificio(Rect2(center - size * 0.5, size), d_edif - center * (Mapa3D.E - 1.0), g_edif) # lo que aún traduce (escena 2D vieja)
 	var orig_info := {"rect_orig": Rect2(center - size * 0.5, size)}
-	d_edif = Anclas.mover(center) - center # con el mapa estirado incluye el estirado (E·c − c) además de lo movido
 	center += d_edif
-	Anclas.pausa += 1 # sus muros ya van desplazados; que las anclas no los muevan otra vez
 	var half := size * 0.5
 	var rect := Rect2(center - half, size)
 	if g_edif > 0.5:
 		# Girado en el editor (de 90 en 90): se gira la planta, la puerta y su sitio; el resto del código no cambia
-		var m_g: Transform2D = Anclas.matriz(g_edif)
+		var m_g := Transform2D(-deg_to_rad(g_edif), Vector2.ZERO)
 		var horiz0: bool = door_dir in ["south", "north"]
 		var v_door: Vector2 = Vector2(door_offset_x, half.y if door_dir == "south" else -half.y) if horiz0 else Vector2(half.x if door_dir == "east" else -half.x, door_offset_x)
 		orig_info["door_pos_orig"] = center - d_edif + v_door
@@ -511,13 +496,22 @@ func _construct_solid_building(
 		_add_solid_wall_segment(Vector2(door_pos.x, rect.end.y - bot_seg_h * 0.5), Vector2(wall_t, bot_seg_h), tex_v)
 
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir, window_pos)
-	Anclas.pausa -= 1
-	# Paredes de dentro (grupo «Tabiques» de la escena): van escritas respecto al centro y siguen al edificio por sus anclas
+	# Paredes de dentro (grupo «Tabiques» de la escena): van escritas respecto al centro, en el plano del edificio
 	var tabiques: Array[StaticBody2D] = []
 	for tabique: Dictionary in planta["partitions"]:
 		var tam: Vector2 = tabique["size"]
-		tabiques.append(_add_solid_wall_segment(center_orig + (tabique["offset"] as Vector2), tam, tex_h if tam.x >= tam.y else tex_v, bool(tabique["blocks_vision"])))
+		var p_tabique: Vector2 = colocar.call(center_orig + (tabique["offset"] as Vector2))
+		tabiques.append(_add_solid_wall_segment(p_tabique, tam, tex_h if tam.x >= tam.y else tex_v, bool(tabique["blocks_vision"]), -deg_to_rad(g_edif)))
 	interior_walls[b_id] = tabiques
+
+## Del plano de un edificio al mundo: su pieza del editor o, si es una casa levantada en un solar, la de su solar.
+func _colocador(b_id: String, solar: String) -> Callable:
+	if not solar.is_empty():
+		return func(p: Vector2) -> Vector2: return Solar.a_mundo(solar, p)
+	if not EdificioEditor.tiene_pieza(b_id):
+		push_error("EDIFICIO: «%s» no tiene pieza ni cae en un solar; se levanta en campo abierto" % b_id)
+		return func(p: Vector2) -> Vector2: return p * Mapa3D.E
+	return func(p: Vector2) -> Vector2: return EdificioEditor.a_mundo(b_id, p)
 
 func _spawn_building_door_and_window(
 	b_id: String,
@@ -547,7 +541,7 @@ func _spawn_building_door_and_window(
 	d_body.add_child(d_col)
 	entities_root.add_child(d_body)
 
-	_add_station_area("DoorArea_" + b_id, door_pos, 20.0, "building_door")
+	add_zona_uso_mundo("DoorArea_" + b_id, door_pos, 20.0, "building_door")
 
 	var occ_rect: Rect2 = Rect2(door_pos - Vector2(door_width * 0.5, 4.0), Vector2(door_width, 8.0)) if is_horiz_door else Rect2(door_pos - Vector2(4.0, door_width * 0.5), Vector2(8.0, door_width))
 	building_doors.append({
@@ -558,7 +552,7 @@ func _spawn_building_door_and_window(
 		"manual_override_timer": 0.0, "npc_pass_timer": 0.0, "police_breach_timer": 0.0
 	})
 
-	_add_station_area("WindowArea_" + b_id, win_pos, 11.0, "building_window")
+	add_zona_uso_mundo("WindowArea_" + b_id, win_pos, 11.0, "building_window")
 
 	building_windows.append({
 		"building_id": b_id, "building_title": b_title, "building_rect": rect, "pos": win_pos,
@@ -566,9 +560,8 @@ func _spawn_building_door_and_window(
 		"is_shuttered": false, "manual_override_timer": 0.0
 	})
 
-func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_vision: bool = true) -> StaticBody2D:
-	var ancla: Dictionary = Anclas.buscar(pos) # mapa ×E (2026-11-11): los tabiques escritos a mano siguen a su edificio
-	pos = Anclas.aplicar(ancla, pos)
+## Pared con su sitio ya en el mundo; `giro` en radianes del mapa plano (el de un tabique en un edificio girado).
+func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_vision: bool = true, giro: float = 0.0) -> StaticBody2D:
 	var sb := StaticBody2D.new()
 	sb.global_position = pos
 	sb.collision_layer = 1
@@ -579,7 +572,8 @@ func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_v
 	rect.size = sz
 	col.shape = rect
 	sb.add_child(col)
-	Anclas.girar_choque(ancla, sb, sz)
+	if absf(rad_to_deg(giro)) >= GIRO_MINIMO_GRADOS:
+		sb.rotation = giro
 
 	if blocks_vision:
 		_wall_occluder_rects.append(Rect2(pos - sz * 0.5, sz))
@@ -800,10 +794,6 @@ static func _leer_mesas_morgue() -> Array[Vector2]:
 	for i in range(1, MESAS_MORGUE + 1):
 		mesas.append(Marca.mundo(ID_HOSPITAL, Marca.MESA_MORGUE % i))
 	return mesas
-
-## `pos` en el mapa ORIGINAL (se traduce a su sitio actual, como el choque que la acompaña).
-func register_no_stand_furniture(pos: Vector2, sz: Vector2) -> void:
-	no_pisar_mundo(sitio(pos), sz, 0.0)
 
 ## Sitio del mundo donde ningún vecino se queda de pie (un mueble): `giro` en radianes del mapa plano.
 func no_pisar_mundo(pos: Vector2, sz: Vector2, giro: float) -> void:
@@ -1251,10 +1241,6 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 			cur_target = best_step_c
 	return cur_target
 
-## Cofre pedido en el mapa ORIGINAL: va a su sitio actual.
-func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> void:
-	cofre_mundo(Anclas.mover(pos), chest_title, fam_id, -deg_to_rad(Anclas.giro(pos)))
-
 ## Cofre de una casa o tienda con su sitio ya en el mundo (`giro` en radianes del mapa plano, el de su edificio).
 ## Sin dibujo plano (2026-11-12): el cofre 3D sale de esta entrada (WorldStageBuildings3D).
 func cofre_mundo(pos: Vector2, chest_title: String, fam_id: String, giro: float) -> void:
@@ -1299,13 +1285,6 @@ func _prune_door_blocking_prop_colliders() -> void:
 					sz = (ch.shape as RectangleShape2D).size
 			if _is_prop_collider_blocking_passage(sb.global_position, sz):
 				sb.queue_free()
-
-## Pared invisible pedida en el mapa ORIGINAL: se traduce a su sitio actual y gira con su ancla.
-func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> StaticBody2D:
-	var ancla: Dictionary = Anclas.buscar(pos)
-	var sb: StaticBody2D = add_choque_mundo(Anclas.aplicar(ancla, pos), sz, 0.0, group_tag)
-	Anclas.girar_choque(ancla, sb, sz)
-	return sb
 
 ## Lo que va dentro de un edificio se escribe en su PLANO (sus medidas de fábrica: marcas y números de su script) y
 ## estas funciones lo llevan a donde esté ahora su pieza, movida o girada en el editor (mapa/edificio.gd).
@@ -1358,10 +1337,6 @@ func add_choque_mundo(pos: Vector2, sz: Vector2, giro: float, group_tag: String 
 	entities_root.add_child(sb)
 	return sb
 
-## Mueble o adorno con choque pedido en el mapa ORIGINAL: va a su sitio actual.
-func _spawn_decor_prop(tex_path: String, pos: Vector2) -> void:
-	adorno_mundo(tex_path, Anclas.mover(pos), -deg_to_rad(Anclas.giro(pos)))
-
 ## Mueble o adorno con choque, ya en el mundo. Ya no se dibuja en plano (2026-11-12): su versión 3D está en la escena
 ## del edificio o en una pieza del mapa; aquí solo queda la pared invisible que lo hace sólido, según el dibujo de origen.
 func adorno_mundo(tex_path: String, pos: Vector2, giro: float) -> void:
@@ -1388,14 +1363,10 @@ func adorno_mundo(tex_path: String, pos: Vector2, giro: float) -> void:
 			no_pisar_mundo(pos, col_sz, giro)
 
 ## Paso a 3D, paso 3c: un sitio con [E] en el fondo del río o del lago: solo se alcanza buceando (InteractionSelector).
-## Para las pistas de los casos que el usuario decida; se usa como `_add_station_area` y luego `marcar_bajo_el_agua`.
+## Para las pistas de los casos que el usuario decida; se usa como `add_zona_uso_mundo` y luego `marcar_bajo_el_agua`.
 func marcar_bajo_el_agua(area: Area2D) -> Area2D:
 	area.set_meta("bajo_el_agua", true)
 	return area
-
-## Zona de uso pedida en el mapa ORIGINAL: va a su sitio actual.
-func _add_station_area(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
-	return add_zona_uso_mundo(area_name, Anclas.mover(pos), radius, meta_tag)
 
 ## Zona de uso (donde se pulsa [E]) con su sitio ya en el mundo (sale de una pieza del editor).
 func add_zona_uso_mundo(area_name: String, pos: Vector2, radius: float, meta_tag: String) -> Area2D:
@@ -1771,30 +1742,6 @@ func _find_npc_by_name(target_name: String) -> VillageNPC:
 func refresh_world_stage_3d() -> void:
 	if is_instance_valid(world_stage_3d) and world_stage_3d.has_method("rebuild_all_3d"):
 		world_stage_3d.rebuild_all_3d()
-
-func _add_poly(pts: PackedVector2Array, col: Color, z_idx: int = -1, pos: Vector2 = Vector2.ZERO, parent_node: Node = null) -> Polygon2D:
-	if pos != Vector2.ZERO:
-		pos = Anclas.mover(pos)
-	else:
-		pts = Anclas.mover_puntos(pts)
-	var p := Polygon2D.new()
-	p.polygon = pts
-	p.color = col
-	if pos != Vector2.ZERO:
-		p.global_position = pos
-	p.z_index = z_idx
-	(parent_node if parent_node else entities_root).add_child(p)
-	return p
-
-func _add_rect_poly(pos: Vector2, half_sz: Vector2, col: Color, z_idx: int = -1, parent_node: Node = null) -> Polygon2D:
-	var pts := PackedVector2Array([Vector2(-half_sz.x, -half_sz.y), Vector2(half_sz.x, -half_sz.y), Vector2(half_sz.x, half_sz.y), Vector2(-half_sz.x, half_sz.y)])
-	return _add_poly(pts, col, z_idx, pos, parent_node)
-
-## Objetos quietos sin dibujo plano (2026-11-12): una marca invisible dice al 3D (WorldStageProps3D/Terrain3D) qué
-## poner y dónde; si el objeto choca, se le pone su choque. Sustituye a los dibujos planos que hacían de plano del 3D.
-## `pos` en el mapa ORIGINAL: va a su sitio actual y gira con su ancla.
-func _add_marca_3d(tipo: String, pos: Vector2) -> Node2D:
-	return add_marca_3d_mundo(tipo, Anclas.mover(pos), Anclas.giro(pos))
 
 ## La misma marca con su sitio ya en el mundo (una cruz de «Sitios»); `giro` en grados, como en el editor.
 func add_marca_3d_mundo(tipo: String, pos: Vector2, giro: float = 0.0) -> Node2D:

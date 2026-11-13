@@ -75,7 +75,7 @@ static func hay(id_edificio: String, marca: String) -> bool:
 
 
 ## Sitio de una marca en el mapa ORIGINAL (el edificio en su sitio de fábrica y sin girar): es lo que esperan las
-## funciones que colocan cosas y vecinos, que luego lo llevan a donde esté de verdad el edificio (mapa/anclas.gd).
+## funciones que colocan cosas y vecinos, que luego lo llevan a donde esté de verdad el edificio (`mundo` / `EdificioEditor.a_mundo`).
 ## El interior de la escena está en metros respecto al centro del edificio, así que basta sumarle ese centro.
 static func sitio(id_edificio: String, marca: String) -> Vector2:
 	var marcas: Dictionary = _marcas_de(id_edificio)

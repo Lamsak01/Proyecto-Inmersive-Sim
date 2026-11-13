@@ -17,8 +17,8 @@ func _initialize() -> void:
 	var wc = root.get_node("/root/WorldClock")
 	wc.current_hour = 14
 	var tex: Texture2D = vm._load_tex("res://assests/world/village/villager_innkeeper.png")
-	var beds: Array = vm.sitios([Vector2(342, -252), Vector2(400, -252), Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)]) # al mundo
-	var spots: Array = vm.sitios([Vector2(412, 54), Vector2(745, 312), Vector2(300, 120), Vector2(560, 80), Vector2(200, -60), Vector2(650, -40)]) # al mundo
+	var beds: Array = [Vector2(342, -252), Vector2(400, -252), Vector2(435, -252), Vector2(468, -252), Vector2(502, -252)].map(func(b: Vector2) -> Vector2: return vm.VillageTavern.al_mundo(b)) # al mundo
+	var spots: Array = [Vector2(412, 54), Vector2(745, 312), Vector2(300, 120), Vector2(560, 80), Vector2(200, -60), Vector2(650, -40)].map(func(q: Vector2) -> Vector2: return q * vm.Mapa3D.E) # al mundo
 	var i: int = 0
 	while get_nodes_in_group("village_npcs").size() < target:
 		var n = vm._spawn_generated_newcomer("NPC_Perf_", 0, 0, "Forastero (prueba)", tex, spots[i % spots.size()], beds[i % beds.size()], {}, spots[0], "none", "")

@@ -4,6 +4,21 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — El juego ya no traduce nada con las anclas (Claude Code)
+- Constructor de edificios: se levanta con la función de su pieza (`EdificioEditor.a_mundo`) o de su solar
+  (`Solar.a_mundo`, nuevo `Solar.con_punto`/`giro`); tabiques girados con su edificio, sin anclas ni «pausa».
+- Dibujos 3D en el plano de una pieza (obras de solares, Puesto del Paso, generador y cables, muebles de casa):
+  `colocar_plano` con la función de su pieza en vez de `mover_posiciones`.
+- Borrados los envoltorios que traducían (`sitio`, `sitios`, `_add_station_area`, `_spawn_decor_prop`,
+  `_spawn_house_chest`, `_add_prop_collider`, `_add_marca_3d`, `_add_poly`, `_register_shop_business_stall`,
+  `register_no_stand_furniture`, `Sitio.original`) y preloads sin uso.
+- **Arreglos:** un repaso final movía otra vez ×5 lo que ya estaba en el mundo (terminales del taller y de la
+  comisaría, cuadro eléctrico, armero y animales del rancho acababan fuera del mapa): borrado. Los troncos del editor
+  traducían su choque dos veces. Pared invisible suelta del «Molino del Este» (sin pieza 3D) y 84 baldosas-pared del
+  campamento borrado: fuera. Estacas de dos solares, sacos y foco del Puesto del Paso siguen ya a su propia pieza.
+- Solo queda `Anclas.registrar_edificio` para las pruebas que aún escriben en el mapa original (`M()` de verify_all,
+  `fisica_3d`, `partida_caso1`…); se pasan en el corte final.
+
 ## 2026-11-12 — Borrada la copia vieja del mundo (Claude Code)
 - `scenes/World.antes-x5.tscn` tenía el mismo uid que `World.tscn` (aviso de Godot): el juego podía cargar la copia
   de antes del ×5. Sigue en el historial de git.

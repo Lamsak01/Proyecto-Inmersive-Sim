@@ -388,12 +388,6 @@ func _use_water_well(player: Node2D) -> void:
 # ==============================================================================
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._hangout_plan_timer)
 
-## `stall_original`: sitio del mostrador en el mapa ORIGINAL (su marca). La zona de uso y el letrero lo siguen a donde
-## esté de verdad; en la ficha del negocio se guarda ya en el mundo actual.
-## Mostrador pedido en el mapa ORIGINAL: va a su sitio actual.
-func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_original: Vector2) -> void:
-	mostrador_mundo(role_id, shop_title, fam_id, Anclas.mover(stall_original))
-
 ## Mostrador de un negocio (donde se gestiona: caja, proveedores, sabotaje), con su sitio ya en el mundo.
 func mostrador_mundo(role_id: int, shop_title: String, fam_id: String, stall_pos: Vector2) -> void:
 	add_zona_uso_mundo("ShopBusinessStall_%d" % role_id, stall_pos, 18.0, "shop_business_stall")

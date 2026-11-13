@@ -1,6 +1,5 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## Bloque P7: Mercado negro, contrabando y bajos fondos (10 mecánicas).
 ## 1) Perista nocturno tras la taberna (21:00–04:00) o contacto clandestino una vez descubierto.

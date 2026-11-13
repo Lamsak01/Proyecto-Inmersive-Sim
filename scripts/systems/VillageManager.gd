@@ -3,6 +3,7 @@ extends "res://scripts/systems/VillageManagerEconomy.gd"
 class_name VillageManager
 const ObjetoEditor = preload("res://mapa/objeto.gd")
 const Sitio = preload("res://mapa/sitio.gd")
+const MESA_TABERNA_VIEJA := Vector2(376.0, -184.0) ## plano de la taberna: mesa de vecinos de partidas viejas
 
 
 func setup_village(target_entities_root: Node) -> void:
@@ -68,7 +69,6 @@ func setup_village(target_entities_root: Node) -> void:
 		VillageTavern.seed_initial_patrons(self) # Paso 3: clientes sentados en el salón y partida de póker en curso al abrir la taberna
 	else:
 		VillageTavern.seed_initial_patrons(self)
-	_anclas_repaso_final()
 	_prune_door_blocking_prop_colliders()
 	if is_instance_valid(world_stage_3d):
 		world_stage_3d.queue_free()
@@ -1435,7 +1435,7 @@ func reconcile_npc_registries_after_load() -> void:
 		if n is VillageNPC:
 			var v := n as VillageNPC
 			v.tavern_social_pos = _tavern_social_pos # los vecinos guardan sitios del mundo
-			if v.home_table_pos.distance_to(sitio(Vector2(376.0, -184.0))) < 2.0:
+			if v.home_table_pos.distance_to(VillageTavern.al_mundo(MESA_TABERNA_VIEJA)) < 2.0:
 				v.home_table_pos = _tavern_social_pos
 			if v.trade_role == VillageNPC.TradeRole.ROYAL_INVESTIGATOR and not v.is_dead and not str(v.name).begins_with("NPC_Royal_Investigator_Corpse_"):
 				_royal_investigator_npc = v
@@ -1481,26 +1481,3 @@ func reconcile_npc_registries_after_load() -> void:
 				_spawn_or_update_vagrant_camp_visual(v, v.vagrant_camp_pos)
 
 
-## Editor del mapa 3D (2026-11-10): los objetos que el juego crea sin pasar por las funciones _add_* (huertos, gallinero,
-## animales de granja con su corral, campamento, muro débil, cajas y carteles con uso, carro y caballo) también siguen
-## a las anclas del editor (mapa/anclas.gd).
-func _anclas_repaso_final() -> void:
-	var AN = load("res://mapa/anclas.gd")
-	var clases := ["LivestockAnimal.gd", "DestructibleObject.gd", "WorldInteractableProp.gd", "PlayerCart.gd", "PlayerHorse.gd"]
-	for c in entities_root.get_children():
-		if not (c is Node2D) or c is HarvestableNode or c.get_script() == null:
-			continue
-		var f: String = String(c.get_script().resource_path).get_file()
-		if not (f in clases):
-			continue
-		if c.is_in_group("club_world") or String(c.name).begins_with("Sewer"):
-			continue # bajo tierra y sus trampillas ya se colocan solos (VillageClub / VillageUnderworld)
-		var p0: Vector2 = (c as Node2D).global_position
-		var a_obj: Dictionary = AN.buscar(p0)
-		var p1: Vector2 = AN.mover(p0)
-		var d := p1 - p0
-		if d == Vector2.ZERO:
-			continue
-		(c as Node2D).global_position = p1
-		if c.get("pen_rect") is Rect2 and (c.get("pen_rect") as Rect2).has_area():
-			c.set("pen_rect", AN.rect_con(a_obj, c.get("pen_rect") as Rect2))

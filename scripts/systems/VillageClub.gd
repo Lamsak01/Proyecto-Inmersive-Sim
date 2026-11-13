@@ -14,6 +14,7 @@ const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const VillageUnderworld = preload("res://scripts/systems/VillageUnderworld.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 
+const TAVERN_ID := "building_tavern" ## el club está en el plano de la taberna
 const TRAPDOOR_POS_BASE: Vector2 = Vector2(516.0, -286.0) # cuarto trasero de escalera y bodega de la taberna (planta 0)
 const CLUB_CENTER_BASE: Vector2 = Vector2(434.0, -224.0) # sótano directamente bajo la taberna (nivel -1, misma huella X/Y)
 const CLUB_SIZE: Vector2 = Vector2(240.0, 136.0)
@@ -553,13 +554,10 @@ static func build_world(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
 		return
 	var PropScript = load("res://scripts/obstacles/WorldInteractableProp.gd")
-	var AN = load("res://mapa/anclas.gd")
-	var ED = load("res://mapa/edificio.gd")
-	var g_tab: float = ED.giro("building_tavern")
-	var a_tab := {"c": (load("res://scripts/systems/VillageTavern.gd").RECT as Rect2).get_center(), "d": ED.desplazamiento("building_tavern"), "g": g_tab, "m": AN.matriz(g_tab)}
-	TRAPDOOR_POS = AN.aplicar(a_tab, TRAPDOOR_POS_BASE)
-	CLUB_CENTER = AN.aplicar(a_tab, CLUB_CENTER_BASE)
-	LADDER_POS = AN.aplicar(a_tab, LADDER_POS_BASE)
+	var ED = load("res://mapa/edificio.gd") # trampilla, sótano y escalerilla van en el plano de la taberna
+	TRAPDOOR_POS = ED.a_mundo(TAVERN_ID, TRAPDOOR_POS_BASE)
+	CLUB_CENTER = ED.a_mundo(TAVERN_ID, CLUB_CENTER_BASE)
+	LADDER_POS = ED.a_mundo(TAVERN_ID, LADDER_POS_BASE)
 	if vm.is_inside_tree():
 		for old_n in vm.get_tree().get_nodes_in_group("club_world"):
 			if is_instance_valid(old_n):

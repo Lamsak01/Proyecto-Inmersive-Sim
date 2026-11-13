@@ -265,7 +265,7 @@ static func setup_world(vm) -> void:
 		"table_pos": mundo(M_MESA_CENTRAL),
 	}
 	vm.add_choque_mundo(mundo(M_PASAPLATOS), vm.COLISOR_PUESTO, Edificio.giro_plano(BUILDING_ID))
-	vm._register_shop_business_stall(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, sitio(M_PASAPLATOS))
+	vm.mostrador_mundo(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, mundo(M_PASAPLATOS))
 
 # ------------------------------------------------------------------ asientos de comedor y póker
 ## Los asientos, en el mundo: las sillas van pegadas a su mesa en el plano y giran con la posada.

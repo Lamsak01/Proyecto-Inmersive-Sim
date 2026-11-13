@@ -18,6 +18,7 @@ const LETRERO_TAM_PIXEL: float = 0.02
 const LETRERO_VISTO_HASTA_M: float = 400.0
 const GIRO_RECTO: float = 90.0 ## lo construido en un solar gira de 90 en 90 grados (paredes rectas)
 const VUELTA: float = 360.0
+const LETRERO_FRANJA_PX: float = 16.0 ## franja al norte y al sur del terreno: ahí va su letrero de «solar libre»
 
 ## Nombre interno del solar en el juego (no lo cambies).
 @export var id_solar: String = ""
@@ -40,7 +41,7 @@ const VUELTA: float = 360.0
 
 static var _lista: Array[Dictionary] = []
 static var _marcas: Dictionary = {} ## id del solar → {id de la marca → sitio en el mapa original}
-static var _piezas: Dictionary = {} ## id del solar → [centro original, desplazamiento en el mundo, giro en grados]
+static var _piezas: Dictionary = {} ## id del solar → [centro original, desplazamiento en el mundo, giro en grados, terreno]
 static var _leida: bool = false
 
 
@@ -78,7 +79,7 @@ static func lista() -> Array[Dictionary]:
 
 
 ## Sitio de una marca de un solar (grupo «Marcas» dentro de su pieza: mapa/marca.gd), en el mapa ORIGINAL: como las
-## de los edificios, está en metros respecto al centro del solar sin girar; mapa/anclas.gd la lleva a donde esté.
+## de los edificios, está en metros respecto al centro del solar sin girar; `a_mundo` la lleva a donde esté.
 static func marca(id_solar: String, id_marca: String) -> Vector2:
 	_leer()
 	var marcas: Dictionary = _marcas.get(id_solar, {})
@@ -100,10 +101,26 @@ static func a_mundo(id_solar: String, p_plano: Vector2) -> Vector2:
 	return centro * Mapa3D.E + (pieza[1] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(pieza[2])))
 
 
+## Solar en cuyo terreno (mapa original, con la franja de su letrero) cae el punto p ("" si ninguno): el de una casa
+## levantada en él, que no tiene pieza propia.
+static func con_punto(p: Vector2) -> String:
+	_leer()
+	for id: String in _piezas:
+		if ((_piezas[id] as Array)[3] as Rect2).has_point(p):
+			return id
+	return ""
+
+
+## Giro del solar en grados (de 90 en 90, como en el editor).
+static func giro(id_solar: String) -> float:
+	_leer()
+	return float((_piezas.get(id_solar, [Vector2.ZERO, Vector2.ZERO, 0.0]) as Array)[2])
+
+
 ## Giro del solar como lo usa el mapa plano (radianes): el de las paredes invisibles de lo construido en él.
 static func giro_plano(id_solar: String) -> float:
 	_leer()
-	return -deg_to_rad(float((_piezas.get(id_solar, [Vector2.ZERO, Vector2.ZERO, 0.0]) as Array)[2]))
+	return -deg_to_rad(giro(id_solar))
 
 
 static func _leer() -> void:
@@ -140,7 +157,9 @@ static func _anadir_pieza(p: Dictionary) -> void:
 	var xf: Transform3D = p.get("transform", Transform3D.IDENTITY)
 	var giro: float = rad_to_deg(xf.basis.orthonormalized().get_euler().y)
 	var giro_recto: float = fposmod(roundf(giro / GIRO_RECTO) * GIRO_RECTO, VUELTA)
-	_piezas[String(p.get("id_solar", ""))] = [centro, Mapa3D.a_mapa(xf.origin) - centro * Mapa3D.E, giro_recto]
+	var tam: Vector2 = (p.get("terreno_m", Vector2.ZERO) as Vector2) / Mapa3D.ESCALA
+	var terreno := Rect2(centro - tam * 0.5, tam).grow_individual(0.0, LETRERO_FRANJA_PX, 0.0, LETRERO_FRANJA_PX)
+	_piezas[String(p.get("id_solar", ""))] = [centro, Mapa3D.a_mapa(xf.origin) - centro * Mapa3D.E, giro_recto, terreno]
 
 
 static func _anadir(p: Dictionary) -> void:

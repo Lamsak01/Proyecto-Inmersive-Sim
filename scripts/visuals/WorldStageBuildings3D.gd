@@ -245,7 +245,6 @@ func rebuild_lots_3d() -> void:
 	var m_scaffold := _mat("lot_scaffold", Color(0.64, 0.48, 0.30), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
 	var m_found := _mat("lot_foundation", Color(0.56, 0.54, 0.50), 0.90, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
 
-	mover_posiciones = true
 	for l_entry in VillageLots.lots():
 		var l_dict: Dictionary = l_entry
 		var id: String = str(l_dict["id"])
@@ -253,7 +252,8 @@ func rebuild_lots_3d() -> void:
 		var status: String = str(st.get("status", "empty"))
 		if status == "built":
 			continue
-		var c: Vector2 = VillageLots.lot_def(id)["center"] # en el mapa original: las estacas y la obra van con la pieza del solar
+		colocar_plano = _en_solar(id) # estacas y obra, en el plano del solar
+		var c: Vector2 = VillageLots.lot_def(id)["center"]
 		var h: Vector2 = (l_dict["size"] as Vector2) * 0.5 - Vector2(6, 6)
 		if status == "empty":
 			for p in [Vector2(-h.x, -h.y), Vector2(h.x, -h.y), Vector2(h.x, h.y), Vector2(-h.x, h.y)]:
@@ -268,5 +268,5 @@ func rebuild_lots_3d() -> void:
 			_add_box_2d(lots_root_3d, c + Vector2(0, -40.0), Vector2(118.0, 3.0), cur_h * 0.6, 2.5, m_scaffold)
 			_add_box_2d(lots_root_3d, c + Vector2(0, 40.0), Vector2(118.0, 3.0), cur_h * 0.6, 2.5, m_scaffold)
 			_add_model_2d(lots_root_3d, "props/Workbench.gltf", c + Vector2(-28.0, 0.0), 2.5, Vector2(24.0, 14.0), 8.0)
-	mover_posiciones = false
+	colocar_plano = Callable()
 

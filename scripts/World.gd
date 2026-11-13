@@ -32,21 +32,13 @@ func _ready() -> void:
 			ambient_modulate.color = WorldClock.get_ambient_color()
 			WorldClock.time_updated.connect(_on_world_time_updated)
 
-	var obs_small := get_node_or_null("Environment/Obstacles Small") as TileMapLayer
-	if obs_small:
-		obs_small.clear()
-		obs_small.add_to_group("ranch_fence_2d")
-	var obs_large := get_node_or_null("Environment/Obstacles Large") as TileMapLayer
-	if obs_large:
-		for cell in obs_large.get_used_cells():
-			var src_id: int = obs_large.get_cell_source_id(cell)
-			if src_id == 13 or (cell.x >= -6 and cell.y >= 8) or (cell.x <= -20 and cell.y >= 8):
-				obs_large.erase_cell(cell)
-		obs_large.add_to_group("ranch_fence_2d")
-		_estirar_baldosas(obs_large)
-	var suelo_2d := get_node_or_null("Environment/Floor") as TileMapLayer
-	if suelo_2d:
-		_estirar_baldosas(suelo_2d)
+	# Baldosas del mapa plano viejo: vallas y choques del campamento del jugador, borrado el 2026-11-12 (se rehace en
+	# 3D tras el Caso I). Sin dibujo 3D serían paredes invisibles: se vacían.
+	for ruta: String in ["Environment/Obstacles Small", "Environment/Obstacles Large"]:
+		var capa := get_node_or_null(ruta) as TileMapLayer
+		if capa:
+			capa.clear()
+			capa.add_to_group("ranch_fence_2d")
 
 	# Ajustar zoom inicial de la cámara para ver un área más amplia y cómoda en pantalla completa
 	if not in_editor:
@@ -157,21 +149,6 @@ func _draw_weather_overlay() -> void:
 	elif w_mode == 2: # FOG
 		_weather_canvas.draw_rect(Rect2(Vector2.ZERO, sz), Color(0.76, 0.82, 0.86, 0.07), true)
 
-## Mapa ×E (2026-11-11): las baldosas antiguas (vallas del rancho y choques) están pintadas en el mapa original; cada
-## celda se recoloca por las anclas (las vallas del corral van juntas como grupo compacto).
-func _estirar_baldosas(capa: TileMapLayer) -> void:
-	var AN = load("res://mapa/anclas.gd")
-	if AN.E == 1.0:
-		return
-	var datos: Array = []
-	for c in capa.get_used_cells():
-		datos.append([c, capa.get_cell_source_id(c), capa.get_cell_atlas_coords(c), capa.get_cell_alternative_tile(c)])
-	capa.clear()
-	for d in datos:
-		var nueva: Vector2i = capa.local_to_map(capa.to_local(AN.mover(capa.to_global(capa.map_to_local(d[0])))))
-		capa.set_cell(nueva, d[1], d[2], d[3])
-
-
 ## Lago del Oeste (su choque de agua) y, en el modo demo, la espada del suelo oculta. El huerto, el campamento, el
 ## gallinero y la pesca se borraron el 2026-11-12: se rehacen en 3D después del Caso I.
 func _spawn_lago_y_demo(entities_root: Node) -> void:
@@ -183,7 +160,7 @@ func _spawn_lago_y_demo(entities_root: Node) -> void:
 	var lake := RioLago.new()
 	lake.name = "LagoOeste"
 	entities_root.add_child(lake)
-	lake.global_position = load("res://mapa/anclas.gd").mover(RioLago.LAKE_NODE_POS) # mapa ×E
+	lake.global_position = load("res://mapa/zona.gd").estirar(RioLago.LAKE_NODE_POS) # va con la pieza del lago
 
 func _unhandled_input(event: InputEvent) -> void:
 	var player := get_node_or_null("Entities/PlayerGood")

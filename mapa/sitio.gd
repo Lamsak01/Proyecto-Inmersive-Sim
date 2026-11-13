@@ -1,7 +1,6 @@
 @tool
 extends Marker3D
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
-const Anclas = preload("res://mapa/anclas.gd")
 
 ## Sitio al aire libre en el editor del mapa 3D (mapa/Mundo3D.tscn → «Sitios»), 2026-11-12: un punto sin dibujo que usa
 ## la lógica de los vecinos fuera de los edificios (dónde pasean, dónde esperan, dónde trabajan los jornaleros, por dónde
@@ -79,12 +78,6 @@ static func cementerio() -> Rect2:
 	for p: Vector2 in puntos:
 		caja = caja.expand(p)
 	return caja.grow(CEMENTERIO_MARGEN_PX)
-
-
-## El mismo sitio en el mapa ORIGINAL, para las funciones antiguas que todavía traducen lo que reciben (al crear un
-## vecino, por ejemplo). Desaparecerá con la traducción (paso 4 del plan).
-static func original(id: String) -> Vector2:
-	return Anclas.desmover(mundo(id))
 
 
 static func _todos() -> Dictionary:

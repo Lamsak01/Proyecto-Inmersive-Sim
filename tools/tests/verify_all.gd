@@ -2707,7 +2707,7 @@ func _initialize() -> void:
 	vm.arrivals_today_count = 0
 	var v3_n = vmi._spawn_one(vm, vmi.SETTLER_KINDS[0], 0)
 	assert(vmi.population(vm) == v3_pop + 1, "V3: A settler arrives")
-	assert(vmi.move_into_house(vm, v3_n) and vmi.house_of(v3_n) == "n0" and v3_n.bed_position in vm.sitios(v3_st["beds"]), "V3: The settler moves into a free house")
+	assert(vmi.move_into_house(vm, v3_n) and vmi.house_of(v3_n) == "n0" and v3_n.bed_position in (v3_st["beds"] as Array).map(func(b: Vector2) -> Vector2: return vl.Solar.a_mundo("n0", b)), "V3: The settler moves into a free house")
 	v3_n.personal_gold = 5
 	var v3_tr: int = int(vm.town_state.get("treasury", 0))
 	assert(vmi.nightly(vm, v3_n) and v3_n.personal_gold == 3 and int(vm.town_state["treasury"]) == v3_tr + 2, "V3: Town houses pay a small rent to the coffers")

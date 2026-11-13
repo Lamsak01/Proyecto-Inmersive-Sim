@@ -1,6 +1,5 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## V5d: jornaleros y lavadero.
 ## - Jornaleros: cada mañana (7 h) los dueños de la granja, el rancho, la cantera y el leñador contratan a vecinos sin
