@@ -4,6 +4,12 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-13 — La Escuela, de tamaño real (Claude Code)
+- De 7,2 × 5,4 m a 11,2 × 9,8 m (ladrillo arenisca y teja gris, puerta al sur como siempre): aula con seis filas de
+  pupitres y banquetas a cada lado del pasillo, pizarra, mesa del maestro, estufa, librería y colgador junto a la
+  puerta; detrás de la pizarra, el despacho del maestro. Caben doce alumnos sentados (antes seis). Solar ensanchado.
+- Probado: rutas de los niños y del maestro sin choques, 29 puertas y fotos. Sin ver: una clase con niños de verdad.
+
 ## 2026-11-13 — La Capilla del Alba, de tamaño real (Claude Code)
 - De 7,4 × 5,2 m a 14 × 9,8 m (de piedra, sin luz eléctrica, puerta al norte como siempre): un atrio junto a la puerta
   y, por un arco, la nave con seis filas de bancos a cada lado del pasillo, alfombra, altar con candelabros y atril; a
