@@ -770,16 +770,6 @@ func _route_internal_plano(b_id: String, from_pos: Vector2, target_pos: Vector2)
 				return Vector2(745.0, 163.0 if absf(from_pos.x - 745.0) > 16.0 else 138.0)
 		"building_restaurant": # R1: varias salas; cruza por los pasos (ver VillageRestaurant.OPENINGS)
 			return VillageRestaurant.route(from_pos, target_pos)
-		"building_police":
-			if from_pos.y > 154.0 and target_pos.y > 154.0 and ((from_pos.x < 915.0 and target_pos.x > 915.0) or (from_pos.x > 915.0 and target_pos.x < 915.0)):
-				var exit_x: float = 902.0 if from_pos.x < 915.0 else 928.0
-				return Vector2(exit_x, 165.0 if absf(from_pos.x - exit_x) > 8.0 else 138.0)
-			if from_pos.y < 149.0 and target_pos.y > 155.0:
-				var pass_x: float = 902.0 if target_pos.x < 915.0 else 928.0
-				return Vector2(pass_x, 138.0 if absf(from_pos.x - pass_x) > 8.0 else 165.0)
-			elif from_pos.y > 155.0 and target_pos.y < 149.0:
-				var pass_x2: float = 902.0 if from_pos.x < 915.0 else 928.0
-				return Vector2(pass_x2, 165.0 if absf(from_pos.x - pass_x2) > 8.0 else 138.0)
 	return target_pos
 
 static func _leer_mesas_morgue() -> Array[Vector2]:

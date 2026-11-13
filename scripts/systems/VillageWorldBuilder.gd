@@ -234,11 +234,9 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm.entities_root.add_child(vm._jail_cell_gate_body)
 
 
-	# Mesas y cama del comisario chocan desde sus muebles; la cama de la celda y el archivo, aún desde aquí
+	# Los muebles chocan desde su escena; la cama de la celda y el archivo, aún desde aquí
 	var id: String = vm.ID_COMISARIA
 	var giro: float = EdificioEditor.giro_plano(id)
-	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, Vector2(952, 185)), Vector2(7.0, 6.0), giro)
-	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, Vector2(936, 189)), Vector2(18.0, 7.0), giro)
 	vm.choque_en_edificio(id, Marca.sitio(id, Marca.CAMA_CELDA), Vector2(19.0, 11.0))
 	# Punto 4 (Caso I): Mesa / Archivador de Pruebas con la denuncia de desaparición archivada
 	var pol_rep_pos: Vector2 = Marca.sitio(id, Marca.ARCHIVO)

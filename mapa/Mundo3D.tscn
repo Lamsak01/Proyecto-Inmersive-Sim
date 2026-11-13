@@ -13596,8 +13596,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 256.2, 0.33816472, 41.44)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_police"
 centro_original = Vector2(915, 148)
-planta_m = Vector2(7.952, 5.376)
-puerta_ancho_m = 2.464
+planta_m = Vector2(14.0, 9.8)
+puerta_ancho_m = 1.6
 
 [node name="building_church" type="Node3D" parent="Edificios" unique_id=1242936884 instance=ExtResource("16_5nkda")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 208.6, 0.33816472, 87.36)
@@ -23655,7 +23655,7 @@ alto = 29.0
 nombre_visible = "Farola 5"
 
 [node name="Farola_6" type="Node3D" parent="Objetos" unique_id=1626619899]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 253.232, 0.33816472, 38.08)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 253.232, 0.33816472, 35.3)
 script = ExtResource("29_bojho")
 clave = "farola_5"
 pos_original = Vector2(862, 88)

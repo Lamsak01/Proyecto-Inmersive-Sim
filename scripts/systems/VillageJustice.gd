@@ -1659,7 +1659,7 @@ static func get_royal_investigation_detailed_suspects_text(vm: VillageManager) -
 # BLOQUE B2: CALABOZO DE VERDAD (Vecinos detenidos en la celda de la comisaría)
 # ==============================================================================
 const POLICE_ID := "building_police"
-const CELL_SIZE: Vector2 = Vector2(44.0, 32.0) ## tamaño del calabozo en el plano de la comisaría, centrado en su marca «celda»
+const CELL_SIZE: Vector2 = Vector2(84.0, 50.0) ## calabozo de 4,8 × 2,9 m (tools/casas/plano_comisaria.gd), centrado en su marca «celda»
 
 ## ¿Está ese punto del mundo dentro del calabozo? Un rectángulo alrededor de la marca «celda», en el plano de la comisaría.
 static func en_celda(p_mundo: Vector2) -> bool:
