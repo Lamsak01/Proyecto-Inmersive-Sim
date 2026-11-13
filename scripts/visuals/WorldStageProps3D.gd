@@ -3,7 +3,6 @@ extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
 const ID_COMISARIA := "building_police"
-const ID_AYUNTAMIENTO := "building_town_hall"
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
 const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
@@ -298,8 +297,8 @@ func _build_epoch_props_3d(m_bulb: Material) -> void:
 	var m_cable := _mat("epoch_thick_cable", Color(0.08, 0.09, 0.11), 0.72, 0.25)
 	var m_insul := _mat("epoch_insulator", Color(0.76, 0.78, 0.74), 0.35, 0.10)
 
-	# Cables gruesos por las fachadas de la Comisaría y el Ayuntamiento (el generador del Arreglador y su cable los trae
-	# ya su casa, tools/casas/plano_casa_acomodada_taller.gd, 2026-11-13)
+	# Cables gruesos por la fachada de la Comisaría (los del Ayuntamiento y el generador del Arreglador con su cable los
+	# traen ya sus planos, tools/casas/plano_ayuntamiento.gd y plano_casa_acomodada_taller.gd, 2026-11-13)
 	# Comisaría (building_police: rect x=844..986, y=100..196): cables gruesos por la fachada norte y esquina este hasta el poste del foco
 	colocar_plano = _en_edificio(ID_COMISARIA)
 	_add_box_2d(streetlights_root_3d, Vector2(915.0, 99.2), Vector2(140.0, 1.8), 24.5, 1.6, m_cable)
@@ -309,16 +308,6 @@ func _build_epoch_props_3d(m_bulb: Material) -> void:
 	_add_box_2d(streetlights_root_3d, Vector2(990.0, 97.5), Vector2(9.0, 1.6), 24.5, 1.6, m_cable) # Ramal al poste del foco
 	for ix_p in [852.0, 886.0, 944.0, 980.0]:
 		_add_cyl_2d(streetlights_root_3d, Vector2(ix_p, 98.5), 1.1, 24.0, 2.6, m_insul, 1.1, 6)
-
-	# Ayuntamiento (building_town_hall: rect x=695..825, y=-468..-372): cables gruesos por la fachada sur y muro oeste hacia la terminal
-	if vm != null and VillageCulture.VillageLots.lot(vm, "n4").get("kind", "") == "town_hall":
-		colocar_plano = _en_edificio(ID_AYUNTAMIENTO)
-		_add_box_2d(streetlights_root_3d, Vector2(760.0, -371.2), Vector2(128.0, 1.8), 24.5, 1.6, m_cable)
-		_add_box_2d(streetlights_root_3d, Vector2(760.0, -371.2), Vector2(128.0, 1.5), 21.5, 1.4, m_cable)
-		_add_box_2d(streetlights_root_3d, Vector2(694.2, -412.0), Vector2(1.8, 82.0), 23.0, 1.6, m_cable)
-		_add_box_2d(streetlights_root_3d, Vector2(716.0, -371.0), Vector2(1.6, 1.8), 11.0, 13.5, m_cable)
-		for ix_th in [704.0, 734.0, 786.0, 816.0]:
-			_add_cyl_2d(streetlights_root_3d, Vector2(ix_th, -370.5), 1.1, 24.0, 2.6, m_insul, 1.1, 6)
 
 	# 3. Sacos terreros y alambre de espino a la entrada de la Comisaría (dejando libre la puerta x=893..937) y en el Puesto
 	# del Paso; 4. focos en poste de madera en los dos (se apagan si se sabotea la red eléctrica)

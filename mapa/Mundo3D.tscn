@@ -13644,8 +13644,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.4438412, -120.4)
 script = ExtResource("3_jgq7j")
 id_edificio = "building_town_hall"
 centro_original = Vector2(760, -430)
-planta_m = Vector2(7.168, 5.376)
-puerta_ancho_m = 2.352
+planta_m = Vector2(14.0, 9.8)
+puerta_ancho_m = 2.0
 
 [node name="building_library" type="Node3D" parent="Edificios" unique_id=437821966 instance=ExtResource("22_gts6w")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 255.92, 0.4438412, -120.4)
@@ -13776,7 +13776,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.8, 0.4438412, -120.4)
 script = ExtResource("33_nou5s")
 id_solar = "n4"
 centro_original = Vector2(760, -430)
-terreno_m = Vector2(7.28, 5.376)
+terreno_m = Vector2(16, 12)
 zona = "borde"
 casa = "small"
 
@@ -14244,7 +14244,7 @@ script = ExtResource("35_7jlh3")
 id_sitio = "paseo_13"
 
 [node name="paseo_14" type="Marker3D" parent="Sitios" unique_id=344691228]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 211.68, 0, -116.032)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 211.68, 0, -114.6)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "paseo_14"
@@ -16627,7 +16627,7 @@ material_override = SubResource("StandardMaterial3D_f1gs5")
 mesh = SubResource("BoxMesh_1f0xw")
 
 [node name="Caja_16" type="Node3D" parent="Decorado/Zona_1_-2" unique_id=1884014381]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 211.82, 0.6855961, -125.07035)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 211.82, 0.6855961, -126.6)
 metadata/pos_original = Vector2(742.5, -513.3992)
 metadata/radio = 8.0
 
@@ -16719,7 +16719,7 @@ mesh = SubResource("BoxMesh_3qxea")
 [node name="Zona_2_-2" type="Node3D" parent="Decorado" unique_id=1144142322]
 
 [node name="Caja_17" type="Node3D" parent="Decorado/Zona_2_-2" unique_id=363011860]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 214.34, 0.7060605, -125.23748)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 214.34, 0.7060605, -126.6)
 metadata/pos_original = Vector2(787.5, -516.38354)
 metadata/radio = 8.0
 
