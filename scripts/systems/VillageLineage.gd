@@ -27,6 +27,8 @@ const SUPPORT_GOLD: int = 5
 const PAST_DEBT_GOLD: int = 25
 const ARRANGED_DOWRY: int = 30
 const Sitio = preload("res://mapa/sitio.gd")
+const Marca = preload("res://mapa/marca.gd")
+const Edificio = preload("res://mapa/edificio.gd")
 const SITIO_MIRADOR := "mirador" ## cruz de «Sitios»
 
 static func state(vm) -> Dictionary:
@@ -137,8 +139,8 @@ static func leave_foundling_at_chapel(vm, mother, kid) -> void:
 	var kk: String = kid.get_person_key()
 	kid.family_id = "family_chapel"
 	kid.family_name = "Capilla del Alba"
-	kid.bed_position = vm.sitio(vm._church_altar_pos + Vector2(24, 16))
-	kid.home_table_pos = vm.sitio(vm._church_center + Vector2(0, 12))
+	kid.bed_position = Marca.mundo(vm.ID_CAPILLA, Marca.ALTAR, Vector2(24, 16))
+	kid.home_table_pos = Edificio.a_mundo(vm.ID_CAPILLA, vm._church_center + Vector2(0, 12))
 	kid.work_position = kid.home_table_pos
 	st["foundlings"][kk] = {"kid_key": kk, "kid_name": kid.npc_name, "mother_key": mother.get_person_key() if mother else "", "day": today()}
 	var priest = vm.VillageFaith.priest_of(vm)

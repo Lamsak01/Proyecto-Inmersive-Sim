@@ -2,6 +2,7 @@
 extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
+const Marca = preload("res://mapa/marca.gd") # sitios de los edificios (el generador del taller)
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
 const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
@@ -302,7 +303,7 @@ func _build_epoch_props_3d(m_bulb: Material) -> void:
 	var m_pad := _mat("epoch_gen_pad", Color(0.44, 0.43, 0.40), 0.92, 0.0)
 
 	# 1. Generador diésel junto al muro este del Taller de Reparaciones (marca «generador» de su escena)
-	var gp: Vector2 = VillageCulture.tinker_generator_pos()
+	var gp: Vector2 = Marca.sitio(VillageCulture.TINKER_ID, Marca.GENERADOR) # en el plano: mover_posiciones lo lleva a su sitio
 	_add_box_2d(streetlights_root_3d, gp, Vector2(18.0, 24.0), 0.0, 2.2, m_pad) # Losa de hormigón
 	_add_box_2d(streetlights_root_3d, gp, Vector2(13.5, 18.0), 2.2, 11.5, m_gen_iron) # Bloque motor diésel
 	_add_box_2d(streetlights_root_3d, gp + Vector2(0.0, -3.5), Vector2(11.0, 9.0), 13.7, 3.8, m_gen_rust) # Culata con aletas
@@ -738,7 +739,7 @@ func _sync_club_3d() -> void:
 func _sync_town_ledger_3d() -> void:
 	if vm == null or stage_root_3d == null or is_instance_valid(_town_ledger_3d):
 		return
-	var pos: Vector2 = vm.sitio(load("res://scripts/systems/VillageCollections.gd").ledger_pos()) # en el mundo (mapa ×E)
+	var pos: Vector2 = load("res://scripts/systems/VillageCollections.gd").ledger_pos() # ya en el mundo
 	var root := Node3D.new()
 	root.name = "TownLedger3D"
 	stage_root_3d.add_child(root)

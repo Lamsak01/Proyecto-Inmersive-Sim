@@ -1,6 +1,7 @@
 @tool
 extends RefCounted
 const Marca = preload("res://mapa/marca.gd")
+const EdificioEditor = preload("res://mapa/edificio.gd")
 const Cartel = preload("res://mapa/cartel.gd")
 const Sitio = preload("res://mapa/sitio.gd")
 ## Farolas de las calles (2026-11-12): cruces «farola_calle_N» del mapa (Sitios), ya en el mundo y movibles en el editor.
@@ -155,56 +156,54 @@ static func _build_enclosed_shop_visuals(vm: VillageManager, sc: Vector2, shop_t
 
 	vm._construct_solid_building("shop_" + fam_id, shop_title, sc,
 		floor_p, wall_h_p, wall_v_p)
-	var stall_pos: Vector2 = Marca.sitio("shop_" + fam_id, Marca.PUESTO) # el mostrador choca desde su mueble
-	if role_id >= 0:
-		vm._register_shop_business_stall(role_id, shop_title, fam_id, stall_pos)
+	var shop_id: String = "shop_" + fam_id
+	if role_id >= 0: # el mostrador choca desde su mueble
+		vm.mostrador_mundo(role_id, shop_title, fam_id, Marca.mundo(shop_id, Marca.PUESTO))
 
-	vm._spawn_house_chest(Marca.sitio("shop_" + fam_id, Marca.COFRE), "Cofre de " + shop_title, fam_id)
+	vm.cofre_en_edificio(shop_id, Marca.sitio(shop_id, Marca.COFRE), "Cofre de " + shop_title, fam_id)
 	if is_blacksmith:
-		vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/fireplace_0.png", sc + Vector2(-36, -16))
+		vm.adorno_en_edificio(shop_id, "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/fireplace_0.png", sc + Vector2(-36, -16))
 
 static func _build_residential_house_visuals(vm: VillageManager, hc: Vector2, house_title: String, fam_id: String) -> void:
 	vm._construct_solid_building("house_" + fam_id, house_title, hc,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
-	vm._spawn_house_chest(Marca.sitio("house_" + fam_id, Marca.COFRE), "Cofre Familiar (" + house_title + ")", fam_id)
+	vm.cofre_en_edificio("house_" + fam_id, Marca.sitio("house_" + fam_id, Marca.COFRE), "Cofre Familiar (" + house_title + ")", fam_id)
 
 static func _build_mixed_shop_house_visuals(vm: VillageManager, center: Vector2, title: String, fam_id: String, role_id: int = -1) -> void:
 	vm._construct_solid_building("mixed_" + fam_id, title, center,
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
 
-	var stall_pos: Vector2 = Marca.sitio("mixed_" + fam_id, Marca.PUESTO)
+	var id: String = "mixed_" + fam_id
+	var stall_pos: Vector2 = Marca.sitio(id, Marca.PUESTO)
 	if role_id >= 0:
-		vm._register_shop_business_stall(role_id, title, fam_id, stall_pos)
-	vm._add_prop_collider(stall_pos, Vector2(21.0, 9.5))
-	vm.register_no_stand_furniture(stall_pos, Vector2(21.0, 9.5))
-	vm._add_prop_collider(center + Vector2(35, -14), Vector2(12.0, 12.0))
-	vm.register_no_stand_furniture(center + Vector2(35, -14), Vector2(12.0, 12.0))
-	vm._add_prop_collider(center + Vector2(28, -38), Vector2(16.0, 8.5))
-	vm.register_no_stand_furniture(center + Vector2(28, -38), Vector2(16.0, 8.5))
+		vm.mostrador_mundo(role_id, title, fam_id, Marca.mundo(id, Marca.PUESTO))
+	vm.choque_en_edificio(id, stall_pos, Vector2(21.0, 9.5), true)
+	vm.choque_en_edificio(id, center + Vector2(35, -14), Vector2(12.0, 12.0), true)
+	vm.choque_en_edificio(id, center + Vector2(28, -38), Vector2(16.0, 8.5), true)
 	# Camas y mesa chocan desde sus muebles
-	vm._spawn_house_chest(Marca.sitio("mixed_" + fam_id, Marca.COFRE), "Cofre de la Botica Raíz Verde", fam_id)
+	vm.cofre_en_edificio(id, Marca.sitio(id, Marca.COFRE), "Cofre de la Botica Raíz Verde", fam_id)
 
 # PASO 1: 🏥 HOSPITAL DE URGENCIAS Y ⚰️ MORGUE FORENSE (`Vector2(745, 148)`)
 static func _spawn_hospital_and_morgue(vm: VillageManager) -> void:
 	vm._construct_solid_building("building_hospital", "🏥 Hospital de Urgencias y ⚰️ Morgue Forense", vm._hospital_center,
 		"res://assests/world/village/floor_hospital_tile.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 
-	for b_pos in [vm._hospital_bed_pos, Marca.sitio(vm.ID_HOSPITAL, Marca.CAMA_1)]:
-		vm._add_prop_collider(b_pos, Vector2(13.5, 19.5))
+	var id: String = vm.ID_HOSPITAL
+	for marca: String in [Marca.CAMILLA, Marca.CAMA_1]:
+		vm.choque_en_edificio(id, Marca.sitio(id, marca), Vector2(13.5, 19.5))
 
-	vm._add_station_area("HospitalEmergencyBedArea", vm._hospital_bed_pos, 16.0, "hospital_bed")
+	vm.add_zona_uso_mundo("HospitalEmergencyBedArea", vm._hospital_bed_pos, 16.0, "hospital_bed")
 
 	# Camillas y cuerpos se ven en 3D (escena del hospital y WorldStageProps3D); aquí solo su choque
-	for m_pos in vm._morgue_table_positions:
-		vm._add_prop_collider(m_pos, Vector2(13.6, 21.6))
-		vm.register_no_stand_furniture(m_pos, Vector2(13.6, 21.6))
-	vm.register_no_stand_furniture(Vector2(723.5, 189.0), Vector2(11.0, 6.2))
-	vm.register_no_stand_furniture(Vector2(766.5, 189.0), Vector2(7.0, 7.0))
+	for i in range(1, vm.MESAS_MORGUE + 1):
+		vm.choque_en_edificio(id, Marca.sitio(id, Marca.MESA_MORGUE % i), Vector2(13.6, 21.6), true)
+	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, Vector2(723.5, 189.0)), Vector2(11.0, 6.2), EdificioEditor.giro_plano(id))
+	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, Vector2(766.5, 189.0)), Vector2(7.0, 7.0), EdificioEditor.giro_plano(id))
 
-	vm._add_station_area("MorgueAutopsyArea", vm._morgue_table_positions[1], 24.0, "morgue_table")
+	vm.add_zona_uso_mundo("MorgueAutopsyArea", vm._morgue_table_positions[1], 24.0, "morgue_table")
 
 	# Dr. Valen (Médico Cirujano y Forense) — Mesa de comedor propia dentro del Hospital
-	vm._spawn_decor_prop("res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(vm.ID_HOSPITAL, Marca.MESA))
+	vm.adorno_en_edificio(id, "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/table_chairs_1.png", Marca.sitio(id, Marca.MESA))
 	vm._register_authority_npc(
 		"NPC_Dr_Valen", "Dr. Valen", "Cirujano y Forense", VillageNPC.TradeRole.DOCTOR,
 		"res://assests/world/village/villager_doctor.png",
@@ -221,7 +220,8 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	# Reja de la celda: solo su choque (la reja 3D está en la escena de la comisaría)
 	vm._jail_cell_gate_body = StaticBody2D.new()
 	vm._jail_cell_gate_body.name = "JailCellGateBody"
-	vm._jail_cell_gate_body.global_position = vm.sitio(Vector2(902, 152)) # la celda sigue a la comisaría
+	vm._jail_cell_gate_body.global_position = EdificioEditor.a_mundo(vm.ID_COMISARIA, Vector2(902, 152)) # en el plano de la comisaría
+	vm._jail_cell_gate_body.rotation = EdificioEditor.giro_plano(vm.ID_COMISARIA)
 	vm._jail_cell_gate_body.collision_layer = 1
 	vm._jail_cell_gate_body.collision_mask = 0
 	vm._jail_cell_gate_col = CollisionShape2D.new()
@@ -234,15 +234,17 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 
 
 	# Mesas y cama del comisario chocan desde sus muebles; la cama de la celda y el archivo, aún desde aquí
-	vm.register_no_stand_furniture(Vector2(952, 185), Vector2(7.0, 6.0))
-	vm.register_no_stand_furniture(Vector2(936, 189), Vector2(18.0, 7.0))
-	vm._add_prop_collider(Marca.sitio(vm.ID_COMISARIA, Marca.CAMA_CELDA), Vector2(19.0, 11.0))
+	var id: String = vm.ID_COMISARIA
+	var giro: float = EdificioEditor.giro_plano(id)
+	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, Vector2(952, 185)), Vector2(7.0, 6.0), giro)
+	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, Vector2(936, 189)), Vector2(18.0, 7.0), giro)
+	vm.choque_en_edificio(id, Marca.sitio(id, Marca.CAMA_CELDA), Vector2(19.0, 11.0))
 	# Punto 4 (Caso I): Mesa / Archivador de Pruebas con la denuncia de desaparición archivada
-	var pol_rep_pos: Vector2 = Marca.sitio(vm.ID_COMISARIA, Marca.ARCHIVO)
-	vm._add_prop_collider(pol_rep_pos, Vector2(15.0, 9.0))
-	vm.register_no_stand_furniture(pol_rep_pos, Vector2(16.0, 9.5))
-	vm._add_station_area("PoliceArchivedReportArea", pol_rep_pos, 22.0, "police_archived_report")
-	vm._add_station_area("PoliceJailCellArea", vm._jail_cell_pos, 22.0, "police_jail")
+	var pol_rep_pos: Vector2 = Marca.sitio(id, Marca.ARCHIVO)
+	vm.choque_en_edificio(id, pol_rep_pos, Vector2(15.0, 9.0))
+	vm.no_pisar_mundo(EdificioEditor.a_mundo(id, pol_rep_pos), Vector2(16.0, 9.5), giro)
+	vm.zona_en_edificio(id, "PoliceArchivedReportArea", pol_rep_pos, 22.0, "police_archived_report")
+	vm.add_zona_uso_mundo("PoliceJailCellArea", vm._jail_cell_pos, 22.0, "police_jail")
 
 	# Comisario Vane y Guardia Rodric (con mesa de comedor propia en la Comisaría)
 	vm._register_authority_npc(
@@ -265,13 +267,13 @@ static func _spawn_church_and_cemetery(vm: VillageManager) -> void:
 	vm._construct_solid_building("building_church", "☀️ Capilla del Alba", vm._church_center,
 		"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 	# Bancos, altar, atril, cama y mesa del sacerdote chocan desde sus muebles (escena de la capilla)
-	vm._add_station_area("ChurchAltarArea", vm._church_altar_pos, 22.0, "church_altar")
+	vm.add_zona_uso_mundo("ChurchAltarArea", vm._church_altar_pos, 22.0, "church_altar")
 
 	# G3: el sacerdote vive en la capilla (cama en la esquina noreste y mesa propia en la noroeste)
 	vm._register_authority_npc(
 		"NPC_Priest_Anselmo", "Hermano Anselmo", "Sacerdote del Alba", VillageNPC.TradeRole.PRIEST,
 		"res://assests/world/village/villager_traveler.png",
-		vm._church_altar_pos + Vector2(0, -18), Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Marca.sitio(vm.ID_CAPILLA, Marca.MESA), {},
+		Marca.sitio(vm.ID_CAPILLA, Marca.ALTAR) + Vector2(0, -18), Marca.sitio(vm.ID_CAPILLA, Marca.CAMA_1), Marca.sitio(vm.ID_CAPILLA, Marca.MESA), {},
 		"family_chapel", "Capilla del Alba",
 		["Hermano Teodoro", "Hermana Clara", "Hermano Bastián", "Hermana Inés", "Hermano Lucio"]
 	)
@@ -364,27 +366,27 @@ static func _spawn_river_arroyo_and_abandoned_mill(vm: VillageManager) -> void:
 	# Sus sitios son marcas de la escena del molino (mapa/marca.gd)
 	# (a) Pajar con paja seca (esquina noroeste)
 	var straw_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.PAJAR)
-	vm._add_prop_collider(straw_pos, Vector2(24.0, 16.0))
-	vm._add_station_area("MillHayloftArea", straw_pos, 26.0, "mill_hayloft")
+	vm.choque_en_edificio(vm.ID_MOLINO, straw_pos, Vector2(24.0, 16.0))
+	vm.zona_en_edificio(vm.ID_MOLINO, "MillHayloftArea", straw_pos, 26.0, "mill_hayloft")
 
 	# (b) Hogar viejo con ceniza de carbón (esquina noreste)
 	var hearth_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.HOGAR)
-	vm._add_prop_collider(hearth_pos, Vector2(24.0, 14.0))
-	vm._add_station_area("MillHearthArea", hearth_pos, 28.0, "mill_hearth")
+	vm.choque_en_edificio(vm.ID_MOLINO, hearth_pos, Vector2(24.0, 14.0))
+	vm.zona_en_edificio(vm.ID_MOLINO, "MillHearthArea", hearth_pos, 28.0, "mill_hearth")
 
 	# (c) Cordel de cáñamo encerado (esquina suroeste)
 	var cord_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.CORDEL)
-	vm._add_prop_collider(cord_pos, Vector2(18.0, 12.0))
-	vm._add_station_area("MillHempCordArea", cord_pos, 26.0, "mill_hemp_cord")
+	vm.choque_en_edificio(vm.ID_MOLINO, cord_pos, Vector2(18.0, 12.0))
+	vm.zona_en_edificio(vm.ID_MOLINO, "MillHempCordArea", cord_pos, 26.0, "mill_hemp_cord")
 
 	# (d) Mesa con papel («Lista de nombres — texto pendiente del autor») (sureste)
 	var table_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.MESA_PAPEL)
-	vm._add_prop_collider(table_pos, Vector2(22.0, 14.0))
-	vm._add_station_area("MillPaperTableArea", table_pos, 26.0, "mill_table_paper")
+	vm.choque_en_edificio(vm.ID_MOLINO, table_pos, Vector2(22.0, 14.0))
+	vm.zona_en_edificio(vm.ID_MOLINO, "MillPaperTableArea", table_pos, 26.0, "mill_table_paper")
 
 	# (e) Punto 4 (Caso I): Sótano del molino con reja de hierro al canal de la rueda (oeste)
 	var cellar_pos: Vector2 = Marca.sitio(vm.ID_MOLINO, Marca.SOTANO)
-	vm._add_station_area("MillCellarGrateArea", cellar_pos, 26.0, "mill_cellar_grate")
+	vm.zona_en_edificio(vm.ID_MOLINO, "MillCellarGrateArea", cellar_pos, 26.0, "mill_cellar_grate")
 	vm.add_zona_uso_mundo("MillRedClayArea", Sitio.mundo(SITIO_BARRO_ROJO), 28.0, "mill_red_clay")
 
 # ==============================================================================

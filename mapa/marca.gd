@@ -85,6 +85,12 @@ static func sitio(id_edificio: String, marca: String) -> Vector2:
 	return marcas[marca]
 
 
+## Sitio de una marca en el mundo: donde está ahora la pieza de su edificio (movida o girada en el editor).
+## `desfase`: lo que se aparta de la marca, medido en el plano del edificio (gira con él).
+static func mundo(id_edificio: String, marca: String, desfase: Vector2 = Vector2.ZERO) -> Vector2:
+	return load(EDIFICIO).call("a_mundo", id_edificio, sitio(id_edificio, marca) + desfase)
+
+
 static func _marcas_de(id_edificio: String) -> Dictionary:
 	if not _por_edificio.has(id_edificio):
 		_por_edificio[id_edificio] = de_escena(load(EDIFICIO).call("escena", id_edificio) as PackedScene)

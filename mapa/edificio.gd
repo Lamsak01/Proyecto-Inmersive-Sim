@@ -128,6 +128,11 @@ static func a_mundo(id: String, p_plano: Vector2) -> Vector2:
 	return centro * Mapa3D.E + (datos[0] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(datos[1])))
 
 
+## Giro del edificio como lo usa el mapa plano (radianes, sentido del plano): el de sus paredes invisibles.
+static func giro_plano(id: String) -> float:
+	return -deg_to_rad(giro(id))
+
+
 ## Lo contrario: un punto del mundo (un vecino, el jugador) visto desde el plano del edificio, para preguntar
 ## «¿está en este cuarto?» con las medidas de fábrica.
 static func a_plano(id: String, p_mundo: Vector2) -> Vector2:

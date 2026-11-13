@@ -142,7 +142,7 @@ func _initialize() -> void:
 	assert(pre_gold > 0 and casimir.carries_royal_safe_conduct, "Casimir should still have his gold and Royal Safe Conduct")
 	vm.register_npc_death_and_corpse(casimir, casimir.death_world_pos, casimir.last_hit_weapon_name, true, "Jugador", 0.5)
 	assert(casimir.corpse_in_morgue and not casimir.corpse_buried, "Casimir should be in the Morgue and not buried")
-	assert(casimir.global_position == M(vm._morgue_table_positions[0]), "Casimir should be placed physically on Morgue Table #1")
+	assert(casimir.global_position == vm._morgue_table_positions[0], "Casimir should be placed physically on Morgue Table #1")
 
 	# Simulate 48 hours passing while investigation is still active -> Corpse MUST remain in Morgue!
 	for d_pass in range(2, 5):
@@ -1938,7 +1938,7 @@ func _initialize() -> void:
 	var g_pl_pos: Vector2 = Vector2.ZERO
 	if g_pl != null:
 		g_pl_pos = g_pl.global_position
-		g_pl.global_position = M(vm._church_altar_pos)
+		g_pl.global_position = vm._church_altar_pos
 	var g_res: Dictionary = vfa.finish_rite(vm)
 	assert(int(g_res["attendees"]) >= 2 and g_a.rite_pos == Vector2.ZERO, "G2: The rite ends and counts who came")
 	assert(g_a.get_relationship_with_npc(g_pk) > 0, "G2: Attendees bond")
@@ -2489,7 +2489,7 @@ func _initialize() -> void:
 		vm.evict_npc_to_vagrant_camp(n5)
 	var v5b_in: int = v5b_n.filter(func(x): return x.in_shelter).size()
 	assert(v5b_in == 4 and not v5b_n[4].in_shelter and v5b_n[4].is_vagrant_camper, "V5b: The shelter takes four; the fifth sleeps outdoors")
-	assert(v5b_n[0].bed_position in vm.sitios(vc.shelter_beds()), "V5b: Sheltered people sleep in the shelter beds")
+	assert(v5b_n[0].bed_position in vc.shelter_beds(), "V5b: Sheltered people sleep in the shelter beds")
 	for i5 in range(v5b_n.size()):
 		var n5 = v5b_n[i5]
 		n5.in_shelter = false
@@ -2630,8 +2630,8 @@ func _initialize() -> void:
 	if v5e_pl != null:
 		vcu.state(vm)["player_read_day"] = -1
 		var v5e_rd: int = int(vcu.state(vm)["readings"])
-		assert(vcu.try_interact(vm, v5e_pl, M(vcu.reading_spot())) and int(vcu.state(vm)["readings"]) == v5e_rd + 1, "V5e: The player reads at the library")
-		vcu.try_interact(vm, v5e_pl, M(vcu.reading_spot()))
+		assert(vcu.try_interact(vm, v5e_pl, vcu.reading_spot()) and int(vcu.state(vm)["readings"]) == v5e_rd + 1, "V5e: The player reads at the library")
+		vcu.try_interact(vm, v5e_pl, vcu.reading_spot())
 		assert(int(vcu.state(vm)["readings"]) == v5e_rd + 1, "V5e: Only once a day")
 	# Mercado: quien tiene género de sobra baja a la plaza y vuelve a su tienda al cerrar
 	var v5e_s = v5b_people[2]
@@ -3470,7 +3470,7 @@ func _initialize() -> void:
 	var t3_priest = vm.VillageFaith.priest_of(vm)
 	var t3_ppos_bak: Vector2 = t3_priest.global_position if t3_priest != null else Vector2.ZERO
 	if t3_priest != null:
-		t3_priest.global_position = M(vm._church_altar_pos) + Vector2(300, 0)
+		t3_priest.global_position = vm._church_altar_pos + Vector2(300, 0)
 	vcf.on_player_action(vm, p70_c, "faith_impersonate_priest:" + p70_c.get_person_key(), p70_inv)
 	if t3_priest != null:
 		t3_priest.global_position = t3_ppos_bak
@@ -3498,7 +3498,7 @@ func _initialize() -> void:
 	# Tanda 4 (16): Fingir un milagro en el altar
 	var t4_bel_rep0: int = vm.VillageFaith.rep_of(vm, "believers")
 	if t3_priest != null:
-		t3_priest.global_position = M(vm._church_altar_pos) + Vector2(300, 0)
+		t3_priest.global_position = vm._church_altar_pos + Vector2(300, 0)
 	vcf.on_player_action(vm, p70_a, "faith_stage_miracle", p70_inv)
 	if t3_priest != null:
 		t3_priest.global_position = t3_ppos_bak
@@ -4556,8 +4556,8 @@ func _initialize() -> void:
 	p70_a.is_dead = false
 	p70_a.is_downed = false
 	p70_a.is_sleeping = false
-	p70_a.global_position = M(vcu_pj.tinker_terminal_pos()) + Vector2(24.0, 0.0)
-	p70_pl.global_position = M(vcu_pj.tinker_terminal_pos()) + Vector2(0.0, 12.0)
+	p70_a.global_position = vcu_pj.tinker_terminal_pos() + Vector2(24.0, 0.0)
+	p70_pl.global_position = vcu_pj.tinker_terminal_pos() + Vector2(0.0, 12.0)
 	vm.set_player_elevation_level(0)
 	vcu_pj.terminal_state(vm)["last_hack_day"] = -99
 	var fis2_hack_res: Dictionary = vcu_pj.hack_terminal(vm, "census_ledger", 0)
@@ -5295,7 +5295,7 @@ func _initialize() -> void:
 	b5_ts["mayor"] = "player"
 	b5_ts["treasury"] = 100
 	b5_ts["player_embezzle_risk"] = 0
-	var b5_cof: Vector2 = M(vm.VillageCivic.hall_spots()["coffers"])
+	var b5_cof: Vector2 = vm.VillageCivic.hall_spot("coffers")
 	p70_pl.global_position = b5_cof
 	var b5_wit = null
 	for b5_n in vm.VillageNeeds.living(vm):
@@ -5305,7 +5305,7 @@ func _initialize() -> void:
 	var b5_wit_pos: Vector2 = b5_wit.global_position
 	var b5_wit_slp: bool = b5_wit.is_sleeping
 	var b5_wit_lvl: int = int(b5_wit.elevation_level)
-	b5_wit.global_position = M(vm.VillageCivic.hall_spots()["mayor"]) # dentro del ayuntamiento, con vista al cofre
+	b5_wit.global_position = vm.VillageCivic.hall_spot("mayor") # dentro del ayuntamiento, con vista al cofre
 	b5_wit.is_sleeping = false
 	b5_wit.elevation_level = int(vm.player_elevation_level)
 	var b5_take: int = b5_col.embezzle(vm, p70_pl)

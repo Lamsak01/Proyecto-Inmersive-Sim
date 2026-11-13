@@ -4,6 +4,18 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: casa de comidas, hospital, comisaría, capilla, molino, biblioteca, taller y ayuntamiento (Claude Code)
+- Lo de dentro de estos edificios se escribe en su plano y va directo a su pieza (`EdificioEditor.a_mundo`), sin la
+  capa de anclas: `Marca.mundo(id, marca, desfase)`, y en VillageManagerBase `choque_en_edificio`, `zona_en_edificio`,
+  `cofre_en_edificio`, `adorno_en_edificio`, `cofre_mundo`, `adorno_mundo`; en Economy `mostrador_mundo`. Las rutas por
+  dentro de todos los edificios se calculan en su plano.
+- Camilla, morgue, altar y celda (`vm._hospital_bed_pos`…) ya están en el mundo; también terminales, cuadro eléctrico,
+  expositor de armas, sitios de la biblioteca y del ayuntamiento, camas del albergue y de El Candil, pistas del Caso I
+  dentro de la comisaría, el molino y la biblioteca.
+- Arreglado: 4 macetas de la terraza tenían su pared invisible en medio del campo; en las misas los vecinos iban a
+  bancos del mapa viejo; la terraza y los asientos se reconocían mal desde fuera del local.
+
+
 ## 2026-11-12 — Mudanza al editor: la posada sale ya en su sitio (Claude Code)
 - La posada calcula sola dónde está cada cosa suya: `mapa/edificio.gd` gana `a_mundo` / `a_plano` (plano de fábrica
   del edificio ↔ mundo, con su sitio y giro del editor) y `VillageTavern` los usa con `al_mundo`, `al_plano`,

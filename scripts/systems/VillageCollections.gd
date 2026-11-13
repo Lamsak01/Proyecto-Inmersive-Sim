@@ -205,7 +205,7 @@ static func embezzle(vm, player: Node2D) -> int:
 		ts["player_embezzle_risk"] = int(ts.get("player_embezzle_risk", 0)) + 1
 	VillageChronicle.add(vm, "player_embezzle", "Desviaste %d de oro de las arcas municipales a tu bolsillo" % take, false)
 	_msg(player, "💼🪙 Desviaste +%d de oro de las arcas" % take, Color.GOLD)
-	var wpos: Vector2 = player.global_position if player != null else vm.sitio(VillageCivic.hall_spots()["coffers"])
+	var wpos: Vector2 = player.global_position if player != null else VillageCivic.hall_spot("coffers")
 	var wit = vm._find_conscious_witness_near(wpos, WITNESS_PX, null)
 	if wit != null:
 		ts["player_embezzle_risk"] = int(ts.get("player_embezzle_risk", 0)) + 2
@@ -242,7 +242,7 @@ static func cook_books(vm, player: Node2D) -> bool:
 
 # ------------------------------------------------------------------ objetos con [E]
 static func ledger_pos() -> Vector2:
-	return VillageCivic.hall_spots()["desk"] + LEDGER_OFFSET
+	return VillageCivic.hall_spot("desk", LEDGER_OFFSET)
 
 ## Crea los puntos de cobro de los locales que te deben y, una sola vez, el desfalco y el libro del ayuntamiento.
 static func sync_points(vm) -> void:
@@ -272,12 +272,12 @@ static func sync_points(vm) -> void:
 		p.setup_prop(vm, "collect_point", str(key), "")
 	if tree.get_nodes_in_group("town_coffers_prop").is_empty():
 		var c: Node2D = PropScript.new()
-		c.global_position = vm.sitio(VillageCivic.hall_spots()["coffers"] + Vector2(0, 2))
+		c.global_position = VillageCivic.hall_spot("coffers", Vector2(0, 2))
 		parent.add_child(c)
 		c.setup_prop(vm, "town_coffers", "", "")
 	if tree.get_nodes_in_group("town_ledger_prop").is_empty():
 		var l: Node2D = PropScript.new()
-		l.global_position = vm.sitio(ledger_pos())
+		l.global_position = ledger_pos()
 		parent.add_child(l)
 		l.setup_prop(vm, "town_ledger", "", "")
 

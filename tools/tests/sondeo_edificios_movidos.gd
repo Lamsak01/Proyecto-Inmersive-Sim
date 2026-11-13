@@ -48,8 +48,8 @@ func _initialize() -> void:
 		"z.taberna_asiento": VT.dining_seats()[0], "z.taberna_poker": VT.poker_seats()[0],
 		"z.taberna_mesa": VT.table_center_for_seat(VT.dining_seats()[0]),
 		"z.restaurante_asiento": VR.seats()[0], "z.restaurante_terraza": VR.terrace_seats()[0],
-		"z.altar": vm.sitio(vm._church_altar_pos), "z.celda": vm.sitio(vm._jail_cell_pos),
-		"z.hospital": vm.sitio(vm._hospital_bed_pos), "z.tumba": vm.get_cemetery_burial_target_pos(),
+		"z.altar": vm._church_altar_pos, "z.celda": vm._jail_cell_pos,
+		"z.hospital": vm._hospital_bed_pos, "z.tumba": vm.get_cemetery_burial_target_pos(),
 		"z.taberna_ocio": vm.get_hangout_spots()[0]["pos"],
 	}
 	for pid in ["park_lawn", "plaza_benches", "lake_view", "library"]:

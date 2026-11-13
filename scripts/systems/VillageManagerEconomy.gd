@@ -194,7 +194,7 @@ func force_lock_or_shutter_by_player(player: Node2D) -> bool:
 			return true
 
 	# 4. ¿Está junto al expositor de armas de la Herrería (marca «expositor»)? -> [F] Robar arma o munición
-	if player.global_position.distance_to(sitio(VillageCulture.armory_rack_pos())) <= 32.0:
+	if player.global_position.distance_to(VillageCulture.armory_rack_pos()) <= 32.0:
 		var inv_arm = player.get("inventory")
 		if inv_arm != null:
 			var want_rf: bool = inv_arm.has_item("flintlock_pistol", 1) and not inv_arm.has_item("assault_rifle", 1)
@@ -324,7 +324,7 @@ func _use_hospital_emergency_bed(player: Node2D) -> void:
 		if inv:
 			inv.add_gold(-10)
 			pay_into(role_npc(int(VillageNPC.TradeRole.DOCTOR)), 10) # Regla 1: cobra el médico (o las arcas)
-	player.global_position = sitio(_hospital_bed_pos)
+	player.global_position = _hospital_bed_pos
 	if "velocity" in player:
 		player.velocity = Vector2.ZERO
 	if health:
@@ -390,9 +390,13 @@ func _use_water_well(player: Node2D) -> void:
 
 ## `stall_original`: sitio del mostrador en el mapa ORIGINAL (su marca). La zona de uso y el letrero lo siguen a donde
 ## esté de verdad; en la ficha del negocio se guarda ya en el mundo actual.
+## Mostrador pedido en el mapa ORIGINAL: va a su sitio actual.
 func _register_shop_business_stall(role_id: int, shop_title: String, fam_id: String, stall_original: Vector2) -> void:
-	_add_station_area("ShopBusinessStall_%d" % role_id, stall_original, 18.0, "shop_business_stall")
-	var stall_pos: Vector2 = Anclas.mover(stall_original)
+	mostrador_mundo(role_id, shop_title, fam_id, Anclas.mover(stall_original))
+
+## Mostrador de un negocio (donde se gestiona: caja, proveedores, sabotaje), con su sitio ya en el mundo.
+func mostrador_mundo(role_id: int, shop_title: String, fam_id: String, stall_pos: Vector2) -> void:
+	add_zona_uso_mundo("ShopBusinessStall_%d" % role_id, stall_pos, 18.0, "shop_business_stall")
 
 	var sup_items: Array[String] = []
 	match role_id:

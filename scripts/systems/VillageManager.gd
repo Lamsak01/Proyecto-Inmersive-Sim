@@ -125,21 +125,21 @@ func _process(delta: float) -> void:
 				player.global_position = player.global_position.move_toward(follow_pos, 96.0 * delta)
 			if "velocity" in player:
 				player.velocity = Vector2.ZERO
-			if escorting_officer.global_position.distance_to(sitio(_jail_cell_pos)) <= 26.0 or player.global_position.distance_to(sitio(_jail_cell_pos)) <= 24.0 or _escort_elapsed_timer >= 9.5:
+			if escorting_officer.global_position.distance_to(_jail_cell_pos) <= 26.0 or player.global_position.distance_to(_jail_cell_pos) <= 24.0 or _escort_elapsed_timer >= 9.5:
 				complete_police_escort_to_jail(player)
 		else:
-			var nav_wp: Vector2 = get_navigation_waypoint(player.global_position, sitio(_jail_cell_pos), player)
+			var nav_wp: Vector2 = get_navigation_waypoint(player.global_position, _jail_cell_pos, player)
 			player.global_position = player.global_position.move_toward(nav_wp, 84.0 * delta)
-			if player.global_position.distance_to(sitio(_jail_cell_pos)) <= 24.0 or _escort_elapsed_timer >= 9.5:
+			if player.global_position.distance_to(_jail_cell_pos) <= 24.0 or _escort_elapsed_timer >= 9.5:
 				complete_police_escort_to_jail(player)
 
 	# Si el jugador está cumpliendo condena dentro de la celda de la cárcel, mantenerlo dentro y descontar el tiempo mínimo en celda
 	if player_in_jail and player:
 		if jail_mandatory_stay_timer > 0.0:
 			jail_mandatory_stay_timer = maxf(0.0, jail_mandatory_stay_timer - real_delta)
-		var cell_rect := Rect2(sitio(_jail_cell_pos) - Vector2(22, 16), Vector2(44, 32))
+		var cell_rect := Rect2(_jail_cell_pos - Vector2(22, 16), Vector2(44, 32))
 		if not cell_rect.has_point(player.global_position):
-			player.global_position = sitio(_jail_cell_pos)
+			player.global_position = _jail_cell_pos
 
 	# Paso 2: Rastreo realista de entrada/salida a edificios por testigos
 	_sighting_check_timer -= delta
@@ -492,7 +492,7 @@ func interact(player: Node2D) -> void:
 	if not player or player_being_escorted_to_jail:
 		return
 	var pos := player.global_position
-	var o: Vector2 = _AN_SITIOS.desmover(pos) # mapa ×E: las pistas escritas a mano se comparan en el mapa original
+	var o: Vector2 = _AN_SITIOS.desmover(pos) # mapa ×E: la pista de fuera escrita a mano se compara en el mapa original
 
 	# Caso I: si el jugador apunta a una pista o a la bandeja del caso, manda eso aunque haya una puerta o ventana cerca
 	var c1_sel0: Node = player.get("interaction_selector")
@@ -535,8 +535,8 @@ func interact(player: Node2D) -> void:
 	var sel_node: Node = player.get("interaction_selector") if player != null else null
 	var sel_cand: Dictionary = sel_node.call("selected") if (sel_node != null and sel_node.has_method("selected")) else {}
 	var sel_kind: String = str(sel_cand.get("station", ""))
-	if sel_kind == "library_secret_ledger" or (sel_kind != "library_torn_book" and o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= 22.0 * 22.0 and o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO))):
-		if o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= 26.0 * 26.0:
+	if sel_kind == "library_secret_ledger" or (sel_kind != "library_torn_book" and pos.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= 22.0 * 22.0 and pos.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= pos.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO))):
+		if pos.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_MAYOR)) <= 26.0 * 26.0:
 			_record_case_clue(
 				player,
 				"🖋️ Cuaderno",
@@ -547,8 +547,8 @@ func interact(player: Node2D) -> void:
 				Color(0.95, 0.88, 0.68)
 			)
 			return
-	if sel_kind == "library_torn_book" or o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO)) <= 22.0 * 22.0:
-		if o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO)) <= 26.0 * 26.0:
+	if sel_kind == "library_torn_book" or pos.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO)) <= 22.0 * 22.0:
+		if pos.distance_squared_to(VillageCulture.library_site(VillageCulture.M_LIBRO_ROTO)) <= 26.0 * 26.0:
 			_record_case_clue(
 				player,
 				"📖 Libro antiguo",
@@ -559,7 +559,7 @@ func interact(player: Node2D) -> void:
 				Color(0.88, 0.78, 0.96)
 			)
 			return
-	if sel_kind == "library_book_lever" or o.distance_squared_to(VillageCulture.library_site(VillageCulture.M_PALANCA)) <= 24.0 * 24.0: # como los otros dos: vale lo que el jugador tiene seleccionado
+	if sel_kind == "library_book_lever" or pos.distance_squared_to(VillageCulture.library_site(VillageCulture.M_PALANCA)) <= 24.0 * 24.0: # como los otros dos: vale lo que el jugador tiene seleccionado
 		_record_case_clue(
 			player,
 			"📕 Estantería",
@@ -588,22 +588,22 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 3. Morgue Forense
-	if pos.distance_squared_to(sitio(_morgue_table_positions[1])) <= 36.0 * 36.0:
+	if pos.distance_squared_to(_morgue_table_positions[1]) <= 36.0 * 36.0:
 		_open_morgue_autopsy_ui()
 		return
 
 	# 3b. Capilla del Alba y Cementerio Parroquial
-	if pos.distance_squared_to(sitio(_church_altar_pos)) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Rect2(Vector2(822, 260), Vector2(268, 168)).has_point(_AN_SITIOS.desmover(pos)):
+	if pos.distance_squared_to(_church_altar_pos) <= 34.0 * 34.0 or pos.distance_squared_to(_cemetery_gate_pos) <= 34.0 * 34.0 or Rect2(Vector2(822, 260), Vector2(268, 168)).has_point(_AN_SITIOS.desmover(pos)):
 		_open_church_registry_ui()
 		return
 
 	# 4. Cama de Urgencias del Hospital
-	if pos.distance_squared_to(sitio(_hospital_bed_pos)) <= 28.0 * 28.0:
+	if pos.distance_squared_to(_hospital_bed_pos) <= 28.0 * 28.0:
 		_use_hospital_emergency_bed(player)
 		return
 
 	# 5. Celda de la Comisaría y Archivo de Pruebas (Caso I)
-	if o.distance_squared_to(Marca.sitio(ID_COMISARIA, Marca.ARCHIVO)) <= 26.0 * 26.0 or o.distance_squared_to(Vector2(856.0, 107.0)) <= 24.0 * 24.0:
+	if pos.distance_squared_to(Marca.mundo(ID_COMISARIA, Marca.ARCHIVO)) <= 26.0 * 26.0 or pos.distance_squared_to(EdificioEditor.a_mundo(ID_COMISARIA, Vector2(856.0, 107.0))) <= 24.0 * 24.0:
 		_record_case_clue(
 			player,
 			"📋 Carpeta de archivo",
@@ -614,7 +614,7 @@ func interact(player: Node2D) -> void:
 			Color(0.95, 0.88, 0.68)
 		)
 		return
-	if player_in_jail or pos.distance_squared_to(sitio(_jail_cell_pos)) <= 32.0 * 32.0:
+	if player_in_jail or pos.distance_squared_to(_jail_cell_pos) <= 32.0 * 32.0:
 		_police_confront_cooldown = 0.0
 		trigger_police_confrontation(null)
 		return
@@ -631,7 +631,7 @@ func interact(player: Node2D) -> void:
 			Color(0.92, 0.52, 0.42)
 		)
 		return
-	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.SOTANO)) <= 28.0 * 28.0:
+	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.SOTANO)) <= 28.0 * 28.0:
 		_record_case_clue(
 			player,
 			"🔩 Reja de hierro",
@@ -642,7 +642,7 @@ func interact(player: Node2D) -> void:
 			Color(0.76, 0.88, 0.96)
 		)
 		return
-	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.MESA_PAPEL)) <= 28.0 * 28.0 and o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.MESA_PAPEL)) <= o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.HOGAR)):
+	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.MESA_PAPEL)) <= 28.0 * 28.0 and pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.MESA_PAPEL)) <= pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.HOGAR)):
 		_record_case_clue(
 			player,
 			"📄 Papel sobre la mesa",
@@ -653,7 +653,7 @@ func interact(player: Node2D) -> void:
 			Color(0.96, 0.90, 0.72)
 		)
 		return
-	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.CORDEL)) <= 26.0 * 26.0:
+	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.CORDEL)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🪢 Rollo de cordel",
@@ -664,7 +664,7 @@ func interact(player: Node2D) -> void:
 			Color(0.90, 0.80, 0.58)
 		)
 		return
-	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.HOGAR)) <= 26.0 * 26.0:
+	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.HOGAR)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🪨 Hogar de piedra",
@@ -675,7 +675,7 @@ func interact(player: Node2D) -> void:
 			Color(0.78, 0.78, 0.82)
 		)
 		return
-	if o.distance_squared_to(Marca.sitio(ID_MOLINO, Marca.PAJAR)) <= 26.0 * 26.0:
+	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.PAJAR)) <= 26.0 * 26.0:
 		_record_case_clue(
 			player,
 			"🌾 Pajar",

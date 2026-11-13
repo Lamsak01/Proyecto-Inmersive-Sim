@@ -356,7 +356,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 			var cur_h_m: int = int(WorldClock.current_hour) if WorldClock else 12
 			if not is_night_env and cur_h_m >= 8 and cur_h_m < 23 and (_tavern_seat != Vector2.ZERO or _restaurant_seat != Vector2.ZERO):
 				var linger_seat: Vector2 = _restaurant_seat if _restaurant_seat != Vector2.ZERO else _tavern_seat
-				var linger_place: String = ("restaurant_terrace" if _VillageRestaurant.TERRACE.grow(10.0).has_point(linger_seat) else "restaurant_hall") if _restaurant_seat != Vector2.ZERO else "tavern_hall"
+				var linger_place: String = ("restaurant_terrace" if _VillageRestaurant.en_terraza(linger_seat, 10.0) else "restaurant_hall") if _restaurant_seat != Vector2.ZERO else "tavern_hall"
 				if not _is_mandatory_work_hours() or randf() < 0.65:
 					set_meta("leisure_place", linger_place)
 					start_errand("leisure", linger_seat)

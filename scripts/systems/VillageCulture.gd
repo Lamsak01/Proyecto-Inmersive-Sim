@@ -16,6 +16,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const Marca = preload("res://mapa/marca.gd")
+const Edificio = preload("res://mapa/edificio.gd")
 const VillageTrades = preload("res://scripts/systems/VillageTrades.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
@@ -515,7 +516,7 @@ static func steal_armory_ammo(vm, inv, for_rifle: bool = false) -> Dictionary:
 				c_ctrl.rifle_mag_loaded = 5
 			elif not for_rifle and int(c_ctrl.get("pistol_mag_loaded")) <= 0:
 				c_ctrl.pistol_mag_loaded = 6
-	var pl_pos: Vector2 = pl.global_position if pl != null else _AN_SITIOS.mover(armory_rack_pos())
+	var pl_pos: Vector2 = pl.global_position if pl != null else armory_rack_pos()
 	var in_stealth: bool = pl != null and pl.has_method("is_stealthing") and bool(pl.call("is_stealthing"))
 	var cloak_mult: float = float(pl.call("get_stealth_detection_multiplier")) if (pl != null and pl.has_method("get_stealth_detection_multiplier")) else 1.0
 	var detect_rad: float = (44.0 if in_stealth else 145.0) * cloak_mult
@@ -542,7 +543,7 @@ static func steal_armory_weapon(vm, inv, for_rifle: bool = false) -> Dictionary:
 		inv.add_item("powder_charge", 2)
 	_auto_equip_and_load_firearm(vm, for_rifle)
 	var pl = VillageNeeds.player_of(vm)
-	var pl_pos: Vector2 = pl.global_position if pl != null else _AN_SITIOS.mover(armory_rack_pos())
+	var pl_pos: Vector2 = pl.global_position if pl != null else armory_rack_pos()
 	var in_stealth: bool = pl != null and pl.has_method("is_stealthing") and bool(pl.call("is_stealthing"))
 	var cloak_mult: float = float(pl.call("get_stealth_detection_multiplier")) if (pl != null and pl.has_method("get_stealth_detection_multiplier")) else 1.0
 	var detect_rad: float = (46.0 if in_stealth else 150.0) * cloak_mult
@@ -585,30 +586,28 @@ static func terminal_state(vm) -> Dictionary:
 	return tm
 
 const TINKER_LOT: String = "e5"
-## Máquinas y expositor dentro de edificios: son marcas de sus escenas (mapa/marca.gd), en el mapa original.
+## Máquinas y expositor dentro de edificios: son marcas de sus escenas (mapa/marca.gd), ya en el mundo.
 const M_TERMINAL: String = "terminal"
 const M_EXPOSITOR: String = "expositor" ## armas y munición de la herrería
 
 static func armory_rack_pos() -> Vector2:
-	return Marca.sitio("shop_family_smith", M_EXPOSITOR)
+	return Marca.mundo("shop_family_smith", M_EXPOSITOR)
 
 static func tinker_terminal_pos() -> Vector2:
-	return Marca.sitio("mixed_family_tinker", M_TERMINAL)
+	return Marca.mundo("mixed_family_tinker", M_TERMINAL)
 
 static func police_terminal_pos() -> Vector2:
-	return Marca.sitio("building_police", M_TERMINAL)
+	return Marca.mundo("building_police", M_TERMINAL)
 
 static func town_hall_terminal_pos() -> Vector2:
-	return Marca.sitio("building_town_hall", M_TERMINAL)
+	return Marca.mundo("building_town_hall", M_TERMINAL)
 
 const TINKER_ID := "mixed_family_tinker"
+const GENERADOR_TAM := Vector2(16.0, 22.0) ## choque del generador diésel
 
-## Cuadro eléctrico y generador del Taller de Reparaciones: marcas de su escena, en el mapa original.
+## Cuadro eléctrico y generador del Taller de Reparaciones: marcas de su escena, ya en el mundo.
 static func tinker_grid_panel_pos() -> Vector2:
-	return Marca.sitio(TINKER_ID, Marca.CUADRO_ELECTRICO)
-
-static func tinker_generator_pos() -> Vector2:
-	return Marca.sitio(TINKER_ID, Marca.GENERADOR)
+	return Marca.mundo(TINKER_ID, Marca.CUADRO_ELECTRICO)
 
 static func build_tinker_stations(vm) -> void:
 	if vm == null or not ("entities_root" in vm) or not is_instance_valid(vm.entities_root):
@@ -625,39 +624,39 @@ static func build_tinker_stations(vm) -> void:
 				old_c.queue_free()
 	var armory_rack: Node2D = PropScript.new()
 	armory_rack.name = "ArmoryWeaponRack"
-	armory_rack.global_position = _AN_SITIOS.mover(armory_rack_pos())
+	armory_rack.global_position = armory_rack_pos()
 	vm.entities_root.add_child(armory_rack)
 	armory_rack.setup_prop(vm, "armory_rack", "smith", "Expositor de Armas y Munición")
 
 	var term: Node2D = PropScript.new()
 	term.name = "TinkerLogicTerminal"
-	term.global_position = _AN_SITIOS.mover(tinker_terminal_pos())
+	term.global_position = tinker_terminal_pos()
 	vm.entities_root.add_child(term)
 	term.setup_prop(vm, "terminal")
 
 	var p_term: Node2D = PropScript.new()
 	p_term.name = "PoliceLogicTerminal"
-	p_term.global_position = _AN_SITIOS.mover(police_terminal_pos())
+	p_term.global_position = police_terminal_pos()
 	vm.entities_root.add_child(p_term)
 	p_term.setup_prop(vm, "terminal", "police", "Terminal Policial de Fósforo Verde")
 
 	if VillageLots.lot(vm, "n4").get("kind", "") == "town_hall":
 		var th_term: Node2D = PropScript.new()
 		th_term.name = "TownHallLogicTerminal"
-		th_term.global_position = _AN_SITIOS.mover(town_hall_terminal_pos())
+		th_term.global_position = town_hall_terminal_pos()
 		vm.entities_root.add_child(th_term)
 		th_term.setup_prop(vm, "terminal", "town_hall", "Terminal Municipal de Fósforo Verde")
 
 	var panel: Node2D = PropScript.new()
 	panel.name = "TinkerElectricPanel"
-	panel.global_position = _AN_SITIOS.mover(tinker_grid_panel_pos())
+	panel.global_position = tinker_grid_panel_pos()
 	vm.entities_root.add_child(panel)
 	panel.setup_prop(vm, "grid_panel")
 
 	# §3b.3: Colisionadores 2D para elementos de la época (generador, sacos terreros con alambre y postes de foco) sin tapar puertas ni caminos
+	vm.choque_en_edificio(TINKER_ID, Marca.sitio(TINKER_ID, Marca.GENERADOR), GENERADOR_TAM, false, "epoch_prop_collider")
 	if vm.has_method("_add_prop_collider"):
 		for ep in [
-			[tinker_generator_pos(), Vector2(16.0, 22.0)],
 			[Vector2(864.0, 92.0), Vector2(22.0, 8.0)],
 			[Vector2(966.0, 92.0), Vector2(22.0, 8.0)],
 			[Vector2(994.0, 96.0), Vector2(6.0, 6.0)],
@@ -761,7 +760,7 @@ static func hack_terminal(vm, subsystem: String, inv, force_outcome: int = 0) ->
 	var pl = VillageNeeds.player_of(vm)
 	# Si el arreglador u otro vecino despierto te está viendo en ese momento (misma planta y cerca), cuenta como delito
 	if force_outcome == 0 and vm.has_method("_find_conscious_witness_near"):
-		var check_pos: Vector2 = pl.global_position if pl != null else _AN_SITIOS.mover(tinker_terminal_pos())
+		var check_pos: Vector2 = pl.global_position if pl != null else tinker_terminal_pos()
 		var wit = vm._find_conscious_witness_near(check_pos, 120.0, null)
 		if wit != null:
 			tm["last_hack_day"] = today
@@ -1927,8 +1926,9 @@ const M_PALANCA: String = "palanca"       ## libro-palanca de la sala oculta (Ca
 const M_LIBRO_MAYOR: String = "libro_mayor" ## cuaderno secreto (Caso I)
 const M_LIBRO_ROTO: String = "libro_roto" ## libro con hojas arrancadas (Caso I)
 
+## Sitio de la biblioteca en el mundo.
 static func library_site(marca: String) -> Vector2:
-	return Marca.sitio(LIBRARY_ID, marca)
+	return Marca.mundo(LIBRARY_ID, marca)
 
 static func reading_spot() -> Vector2:
 	return library_site(M_LECTURA)
@@ -1958,19 +1958,19 @@ static func build(vm, id: String, st: Dictionary) -> void:
 		"library":
 			# Estanterías, mesa de lectura y mostrador chocan desde sus muebles (escena de la biblioteca)
 			# Punto 5 (Caso I): Sala oculta tras estantería con libro-palanca en el cuadrante noreste (`c + Vector2(24..62, -46..-4)`)
-			vm._add_prop_collider(c + Vector2(24, 34 * m), Vector2(4.0, 20.0)) # Tabique oeste de la sala oculta
-			vm._add_prop_collider(c + Vector2(46, 40 * m), Vector2(24.0, 4.0)) # Mesa y estantería interior prohibida
-			vm.register_no_stand_furniture(c + Vector2(42, 28 * m), Vector2(25.0, 10.5))
-			vm.register_no_stand_furniture(c + Vector2(43.5, 40.5 * m), Vector2(24.0, 7.0))
-			var lever_pos: Vector2 = library_site(M_PALANCA)
-			var ledger_pos: Vector2 = library_site(M_LIBRO_MAYOR)
-			var torn_book_pos: Vector2 = library_site(M_LIBRO_ROTO)
-			vm._add_station_area("LibraryBookLeverArea", lever_pos, 26.0, "library_book_lever")
-			vm._add_station_area("LibrarySecretLedgerArea", ledger_pos, 26.0, "library_secret_ledger")
-			vm._add_station_area("LibraryTornBookArea", torn_book_pos, 26.0, "library_torn_book")
-			vm._add_prop_collider(c + Vector2(42, -38 * m), Vector2(14.0, 6.0))
-			vm.register_no_stand_furniture(c + Vector2(36, -22 * m), Vector2(16.0, 9.0))
-			vm._add_station_area("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
+			# (en el plano de la biblioteca: `c` es su centro de fábrica)
+			var id_b: String = LIBRARY_ID
+			var giro: float = Edificio.giro_plano(id_b)
+			vm.choque_en_edificio(id_b, c + Vector2(24, 34 * m), Vector2(4.0, 20.0)) # Tabique oeste de la sala oculta
+			vm.choque_en_edificio(id_b, c + Vector2(46, 40 * m), Vector2(24.0, 4.0)) # Mesa y estantería interior prohibida
+			vm.no_pisar_mundo(Edificio.a_mundo(id_b, c + Vector2(42, 28 * m)), Vector2(25.0, 10.5), giro)
+			vm.no_pisar_mundo(Edificio.a_mundo(id_b, c + Vector2(43.5, 40.5 * m)), Vector2(24.0, 7.0), giro)
+			vm.add_zona_uso_mundo("LibraryBookLeverArea", library_site(M_PALANCA), 26.0, "library_book_lever")
+			vm.add_zona_uso_mundo("LibrarySecretLedgerArea", library_site(M_LIBRO_MAYOR), 26.0, "library_secret_ledger")
+			vm.add_zona_uso_mundo("LibraryTornBookArea", library_site(M_LIBRO_ROTO), 26.0, "library_torn_book")
+			vm.choque_en_edificio(id_b, c + Vector2(42, -38 * m), Vector2(14.0, 6.0))
+			vm.no_pisar_mundo(Edificio.a_mundo(id_b, c + Vector2(36, -22 * m)), Vector2(16.0, 9.0), giro)
+			vm.add_zona_uso_mundo("LibraryReadingArea", reading_spot(), 24.0, "library_reading")
 
 # ---------------------------------------------------------------- biblioteca
 ## VillagePlaces: alguien ha llegado a la biblioteca.
@@ -1984,16 +1984,15 @@ static func on_read(vm, n) -> void:
 static func try_interact(vm, player, pos: Vector2) -> bool:
 	if _try_outpost_interact(vm, player, pos):
 		return true
-	var o: Vector2 = _AN_SITIOS.desmover(pos) # los sitios fijos de abajo están escritos en el mapa original
-	if o.distance_to(tinker_terminal_pos()) <= 26.0 or o.distance_to(police_terminal_pos()) <= 26.0 or (VillageLots.lot(vm, "n4").get("kind", "") == "town_hall" and o.distance_to(town_hall_terminal_pos()) <= 26.0):
+	if pos.distance_to(tinker_terminal_pos()) <= 26.0 or pos.distance_to(police_terminal_pos()) <= 26.0 or (VillageLots.lot(vm, "n4").get("kind", "") == "town_hall" and pos.distance_to(town_hall_terminal_pos()) <= 26.0):
 		var term_node: Node = vm.get_tree().get_first_node_in_group("tinker_terminal") if vm.is_inside_tree() else null
 		open_terminal_menu(vm, term_node, player)
 		return true
-	if o.distance_to(tinker_grid_panel_pos()) <= 26.0:
+	if pos.distance_to(tinker_grid_panel_pos()) <= 26.0:
 		var panel_node: Node = vm.get_tree().get_first_node_in_group("tinker_grid_panel") if vm.is_inside_tree() else null
 		open_grid_panel_menu(vm, panel_node, player)
 		return true
-	if VillageLots.lot(vm, LIBRARY_LOT).get("kind", "") != "library" or pos.distance_to(vm.sitio(reading_spot())) > 36.0:
+	if VillageLots.lot(vm, LIBRARY_LOT).get("kind", "") != "library" or pos.distance_to(reading_spot()) > 36.0:
 		return false
 	var st: Dictionary = state(vm)
 	var day: int = int(WorldClock.current_day) if WorldClock else 0
@@ -2499,7 +2498,7 @@ static func on_player_action(vm, npc, action_id: String, inv) -> void:
 		var target: String = action_id.substr("culture_sabotage_grid:".length())
 		# El arreglador o cualquier otro vecino despierto cerca (misma planta) puede verte tocar el cuadro eléctrico
 		var pl_sab = VillageNeeds.player_of(vm)
-		var sab_pos: Vector2 = pl_sab.global_position if pl_sab != null else _AN_SITIOS.mover(tinker_grid_panel_pos())
+		var sab_pos: Vector2 = pl_sab.global_position if pl_sab != null else tinker_grid_panel_pos()
 		var wit_sab = vm._find_conscious_witness_near(sab_pos, 120.0, npc) if vm.has_method("_find_conscious_witness_near") else null
 		if wit_sab != null:
 			g["last_op_day"] = today

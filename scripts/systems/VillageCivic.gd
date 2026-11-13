@@ -1,6 +1,5 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al aire libre siguen a lo movido
 
 ## V5b: edificios del pueblo en los solares (nombres provisionales, en docs/APORTES_CREATIVOS.md).
 ## - Ayuntamiento (solar n4): allí se vota y se guardan las arcas. El día de elecciones los vecinos van EN PERSONA a
@@ -14,6 +13,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: sitios al a
 
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const Marca = preload("res://mapa/marca.gd")
+const Edificio = preload("res://mapa/edificio.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 
 const HALL_LOT: String = "n4"
@@ -53,7 +53,7 @@ static func ensure_lots(vm) -> void:
 			st["role"] = int(VillageNPC.TradeRole.LODGEKEEPER)
 			st["family_id"] = INN_FAMILY
 
-## Sitios del ayuntamiento y del albergue: son marcas de sus escenas (mapa/marca.gd), en el mapa original.
+## Sitios del ayuntamiento y del albergue: son marcas de sus escenas (mapa/marca.gd), ya en el mundo.
 const HALL_ID: String = "building_town_hall"
 const SHELTER_ID: String = "building_shelter"
 const HALL_MARKS: Dictionary = {"desk": Marca.MESA, "ballot": "urna", "coffers": Marca.COFRE, "mayor": "alcalde"}
@@ -63,24 +63,28 @@ const SHELTER_BEDS: int = 4
 static func hall_spots() -> Dictionary:
 	var out: Dictionary = {}
 	for sitio: String in HALL_MARKS:
-		out[sitio] = Marca.sitio(HALL_ID, HALL_MARKS[sitio])
+		out[sitio] = hall_spot(sitio)
 	return out
+
+## Un sitio del ayuntamiento («desk», «ballot», «coffers», «mayor»); `desfase` en su plano (gira con el edificio).
+static func hall_spot(sitio: String, desfase: Vector2 = Vector2.ZERO) -> Vector2:
+	return Marca.mundo(HALL_ID, HALL_MARKS[sitio], desfase)
 
 static func shelter_beds() -> Array:
 	var out: Array = []
 	for i in range(1, SHELTER_BEDS + 1):
-		out.append(Marca.sitio(SHELTER_ID, SHELTER_BED_MARK % i))
+		out.append(Marca.mundo(SHELTER_ID, SHELTER_BED_MARK % i))
 	return out
 
-## Camas para huéspedes de la posada: la segunda de la casa y dos más (marcas de su escena), en el mapa original.
+## Camas para huéspedes de la posada: la segunda de la casa y dos más (marcas de su escena), ya en el mundo.
 const INN_GUEST_MARK: String = "cama_huesped_%d"
 const INN_EXTRA_BEDS: int = 2
 
 static func inn_guest_beds() -> Array:
 	var id: String = VillageLots.shop_house_id(INN_FAMILY)
-	var out: Array = [Marca.sitio(id, Marca.CAMA_2)]
+	var out: Array = [Marca.mundo(id, Marca.CAMA_2)]
 	for i in range(1, INN_EXTRA_BEDS + 1):
-		out.append(Marca.sitio(id, INN_GUEST_MARK % i))
+		out.append(Marca.mundo(id, INN_GUEST_MARK % i))
 	return out
 
 ## Dibujo de cada clase (lo llama VillageLots._build_kind).
@@ -91,8 +95,7 @@ static func build(vm, id: String, st: Dictionary) -> void:
 		"civic":
 			vm._construct_solid_building(HALL_ID, HALL_TITLE, c,
 				"res://assests/world/village/floor_stone_forge.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
-			var sp: Dictionary = hall_spots()
-			vm._spawn_house_chest(sp["coffers"], "Arcas del Pueblo", "town_hall")
+			vm.cofre_mundo(hall_spot("coffers"), "Arcas del Pueblo", "town_hall", Edificio.giro_plano(HALL_ID))
 		"shelter":
 			vm._construct_solid_building(SHELTER_ID, SHELTER_TITLE, c,
 				"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_timber_h.png", "res://assests/world/village/wall_timber_v.png")
@@ -123,11 +126,11 @@ static func on_hour(vm, hour: int) -> void:
 	if hour == MAYOR_OFFICE_HOUR and WorldClock != null and WorldClock.has_method("get_weekday") and int(WorldClock.get_weekday()) == 5:
 		var mayor = vm.VillageTown.mayor_of(vm)
 		if mayor != null and VillageNeeds.is_free(mayor):
-			mayor.start_errand("mayor_office", _AN_SITIOS.mover(hall_spots()["mayor"]))
+			mayor.start_errand("mayor_office", hall_spot("mayor"))
 
 static func _send_voters(vm, hour: int) -> void:
 	var voted: Array = vm.town_state.get("voted", [])
-	var ballot: Vector2 = _AN_SITIOS.mover(hall_spots()["ballot"])
+	var ballot: Vector2 = hall_spot("ballot")
 	for n in VillageNeeds.living(vm):
 		if n.get_person_key() in voted or not VillageNeeds.is_free(n) or (n.person_profile != null and int(n.person_profile.age) < 16):
 			continue
@@ -238,7 +241,7 @@ static func free_shelter_bed(vm) -> Vector2:
 		if n.in_shelter:
 			used.append(n.bed_position)
 	for b in shelter_beds():
-		if not vm.sitio(b) in used: # las camas ocupadas están en el mundo
+		if not b in used:
 			return b
 	return Vector2.ZERO
 
@@ -250,7 +253,7 @@ static func try_shelter(vm, npc) -> bool:
 	npc.is_vagrant_camper = true
 	npc.in_shelter = true
 	npc.lodging = ""
-	npc.bed_position = vm.sitio(b)
+	npc.bed_position = b
 	if vm.vagrant_camp_nodes.has(npc.npc_name) and is_instance_valid(vm.vagrant_camp_nodes[npc.npc_name]):
 		vm.vagrant_camp_nodes[npc.npc_name].visible = false
 	npc.add_thought("Sin dinero, pero con techo en el Albergue del Alba (-3)", -3.0)
@@ -272,7 +275,7 @@ static func free_inn_bed(vm) -> Vector2:
 		if n.lodging == "candil":
 			used.append(n.bed_position)
 	for b in inn_guest_beds():
-		if not vm.sitio(b) in used: # las camas ocupadas están en el mundo
+		if not b in used:
 			return b
 	return Vector2.ZERO
 
@@ -295,7 +298,7 @@ static func nightly_guest(vm, guest, tavern_rent: int) -> bool:
 	guest.personal_gold -= INN_RENT
 	keeper.personal_gold = maxi(0, keeper.personal_gold) + INN_RENT
 	guest.lodging = "candil"
-	guest.bed_position = vm.sitio(b)
+	guest.bed_position = b
 	guest.add_thought("No llega para El Jabalí; duerme en El Candil (-2)", -2.0)
 	guest._spawn_floating_text("🕯️ Se aloja en El Candil (-%d Oro)" % INN_RENT, Color(1.0, 0.85, 0.5), -34.0)
 	return true

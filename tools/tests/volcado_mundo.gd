@@ -12,6 +12,7 @@ const SALIDA := "user://volcado_%s.txt"
 const SEMILLA: int = 11
 const FOTOGRAMAS_ESPERA: int = 150 ## lo que tarda en crearse todo, incluidos árboles talables y vecinos
 const GRUPOS_VIVOS: Array[String] = ["destructible", "wild_flora", "village_npcs"]
+const CAMPOS_OFICIO: Array[String] = ["work_pos", "kin_work_pos", "bed1_pos", "bed2_pos", "table_pos", "stall_pos", "shop_center", "house_center"]
 const CAMPOS_VECINO: Array[String] = ["work_position", "bed_position", "home_table_pos", "tavern_social_pos"] ## sitios que guarda cada vecino
 
 
@@ -25,6 +26,7 @@ func _initialize() -> void:
 	var lineas: Array[String] = _choques()
 	lineas.append_array(_zonas_y_marcas(vm))
 	lineas.append_array(_vivos())
+	lineas.append_array(_oficios_y_cofres(vm))
 	lineas.sort() # el orden de creación no importa: solo dónde acaba cada cosa
 	for r: Rect2 in vm.get("_no_stand_furniture_rects") + vm.get("_no_pisar_muebles"):
 		lineas.append("NO_PISAR %s" % str(r))
@@ -79,4 +81,21 @@ func _vivos() -> Array[String]:
 	for n: Node in get_nodes_in_group("village_npcs"):
 		for campo: String in CAMPOS_VECINO:
 			out.append("VECINO %s %s %s" % [n.name, campo, str((n.get(campo) as Vector2).round())])
+	return out
+
+
+## Sitios de cada oficio (los que ocupa quien llega a cubrir una vacante), mostradores y cofres.
+func _oficios_y_cofres(vm: Node) -> Array[String]:
+	var out: Array[String] = []
+	var oficios: Dictionary = vm.get("trade_configs")
+	for rol: Variant in oficios.keys():
+		for campo: String in CAMPOS_OFICIO:
+			var v: Variant = (oficios[rol] as Dictionary).get(campo)
+			if v is Vector2:
+				out.append("OFICIO %s %s %s" % [str(rol), campo, str((v as Vector2).round())])
+	var negocios: Dictionary = vm.get("shop_businesses")
+	for rol: Variant in negocios.keys():
+		out.append("MOSTRADOR %s %s" % [str(rol), str(((negocios[rol] as Dictionary)["stall_pos"] as Vector2).round())])
+	for cofre: Dictionary in vm.get("house_chests"):
+		out.append("COFRE %s %s" % [String(cofre["title"]), str((cofre["pos"] as Vector2).round())])
 	return out

@@ -745,7 +745,7 @@ func _on_died() -> void:
 	if vm and vm.has_method("set_player_elevation_level"):
 		vm.call("set_player_elevation_level", 0)
 	if vm: # la camilla de urgencias, donde esté hoy el hospital
-		global_position = vm.call("sitio", vm.get("_hospital_bed_pos"))
+		global_position = vm.get("_hospital_bed_pos")
 	_spawn_floating_text("🚑 ¡Rescatado de urgencia en el Hospital!", Color.SPRING_GREEN, -46.0)
 	show_hint("🏥 Caíste inconsciente: el Dr. Valen te curó en el Hospital.")
 

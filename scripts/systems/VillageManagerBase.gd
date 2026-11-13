@@ -9,6 +9,8 @@ const GIRO_MINIMO_GRADOS: float = 0.5
 const COLISOR_MARCA: Dictionary = {"well": Vector2(14.0, 14.0), "sign": Vector2(7.0, 6.0)}
 const GRUPO_CHOQUE_MUEBLE := "choque_mueble"
 const COLISOR_PUESTO := Vector2(16.0, 9.0)   ## mostrador o puesto de trabajo
+const COFRE_TAM := Vector2(11.0, 8.0)          ## cofre de una casa o tienda
+const COFRE_RADIO_USO: float = 15.0
 const COLISOR_TABLON := Vector2(7.0, 6.0)    ## tablón de encargos y farolas
 const Marca = preload("res://mapa/marca.gd")
 const Planta = preload("res://mapa/planta.gd")
@@ -173,8 +175,8 @@ const ID_COMISARIA: String = "building_police"
 const ID_CAPILLA: String = "building_church"
 const ID_MOLINO: String = "building_abandoned_mill"
 const MESAS_MORGUE: int = 3
-## Los sitios de estos edificios son marcas de su escena (mapa/marca.gd), en el mapa original como todo lo de aquí
-var _hospital_bed_pos: Vector2 = Marca.sitio(ID_HOSPITAL, Marca.CAMILLA)
+## Los sitios de estos edificios son marcas de su escena (mapa/marca.gd), ya en el mundo (donde está su pieza)
+var _hospital_bed_pos: Vector2 = Marca.mundo(ID_HOSPITAL, Marca.CAMILLA)
 var _morgue_table_positions: Array[Vector2] = _leer_mesas_morgue()
 var morgue_active_corpses: Array[Dictionary] = [] # Máximo 3 cuerpos simultáneos en las camillas de la Morgue
 var buried_graves: Array[Dictionary] = []         # Cuerpos sepultados físicamente en el Cementerio de la Iglesia
@@ -183,7 +185,7 @@ var corpse_records: Array[Dictionary] = []        # Archivo histórico forense c
 # Capilla del Alba y Cementerio Parroquial (Sur del Hospital y la Comisaría)
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._church_center)
 var _church_center := Vector2(745, 312)
-var _church_altar_pos: Vector2 = Marca.sitio(ID_CAPILLA, Marca.ALTAR)
+var _church_altar_pos: Vector2 = Marca.mundo(ID_CAPILLA, Marca.ALTAR)
 const SITIO_PUERTA_CEMENTERIO := "puerta_cementerio"
 var _cemetery_gate_pos := Vector2.ZERO ## en el mundo: cruz de «Sitios», se lee al montar el pueblo
 var _cemetery_burial_pos := Vector2(888, 305)
@@ -195,7 +197,7 @@ var church_info_lbl: Label = null
 # Paso 2: Comisaría, Cárcel y Sistema Realista de Testigos ("Me vieron entrar a la casa")
 @warning_ignore("unused_private_class_variable") # Se usa desde otro script (vm._police_center)
 var _police_center := Vector2(915, 148)
-var _jail_cell_pos: Vector2 = Marca.sitio(ID_COMISARIA, Marca.CELDA)
+var _jail_cell_pos: Vector2 = Marca.mundo(ID_COMISARIA, Marca.CELDA)
 var wanted_level: int = 0
 var bounty_gold: int = 0
 var player_arrests_count: int = 0
@@ -728,18 +730,20 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 	# PASADA 3: Navegación exterior esquivando edificios intermedios
 	return _avoid_outdoor_buildings(from_pos, to_pos, "")
 
-## Plan de sitios: los tabiques y pasos interiores están escritos en el mapa original. Se calcula allí y se devuelve el
-## paso en su sitio actual (sigue al edificio movido o girado en el editor 3D).
+## Los tabiques y pasos interiores están escritos en el plano de cada edificio (sus medidas de fábrica). Se calcula
+## allí y se devuelve el paso en el mundo (sigue al edificio movido o girado en el editor 3D).
 func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
 	if b_id == "building_tavern":
 		return VillageTavern.route(from_pos, target_pos, agent, self) # trabaja en el mundo
-	var o_from: Vector2 = _AN_SITIOS.desmover(from_pos)
-	var o_to: Vector2 = _AN_SITIOS.desmover(target_pos)
-	var r: Vector2 = _route_internal_original(b_id, o_from, o_to, agent)
-	return target_pos if r == o_to else _AN_SITIOS.mover(r)
+	if not EdificioEditor.tiene_pieza(b_id):
+		return target_pos # las casas de solar no tienen tabiques
+	var o_from: Vector2 = EdificioEditor.a_plano(b_id, from_pos)
+	var o_to: Vector2 = EdificioEditor.a_plano(b_id, target_pos)
+	var r: Vector2 = _route_internal_plano(b_id, o_from, o_to)
+	return target_pos if r == o_to else EdificioEditor.a_mundo(b_id, r)
 
 
-func _route_internal_original(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
+func _route_internal_plano(b_id: String, from_pos: Vector2, target_pos: Vector2) -> Vector2:
 	match b_id:
 		"mixed_family_herbalist":
 			if from_pos.y > 156.0 and target_pos.y < 162.0:
@@ -767,7 +771,7 @@ func _route_internal_original(b_id: String, from_pos: Vector2, target_pos: Vecto
 		for b in building_footprints:
 			if str(b.get("id", "")) == b_id:
 				var br: Rect2 = b["rect"]
-				var c: Vector2 = br.get_center()
+				var c: Vector2 = EdificioEditor.a_plano(b_id, br.get_center()) # (2026-11-12: antes mezclaba plano y mundo)
 				var d_south: bool = bool(b.get("door_south", false))
 				var y_wall: float = c.y + (-4.0 if d_south else 4.0)
 				if from_pos.y < y_wall - 2.0 and target_pos.y > y_wall + 2.0:
@@ -780,7 +784,7 @@ func _route_internal_original(b_id: String, from_pos: Vector2, target_pos: Vecto
 static func _leer_mesas_morgue() -> Array[Vector2]:
 	var mesas: Array[Vector2] = []
 	for i in range(1, MESAS_MORGUE + 1):
-		mesas.append(Marca.sitio(ID_HOSPITAL, Marca.MESA_MORGUE % i))
+		mesas.append(Marca.mundo(ID_HOSPITAL, Marca.MESA_MORGUE % i))
 	return mesas
 
 ## `pos` en el mapa ORIGINAL (se traduce a su sitio actual, como el choque que la acompaña).
@@ -1233,12 +1237,16 @@ func _avoid_outdoor_buildings(from_pos: Vector2, target_pos: Vector2, ignore_b_i
 			cur_target = best_step_c
 	return cur_target
 
+## Cofre pedido en el mapa ORIGINAL: va a su sitio actual.
 func _spawn_house_chest(pos: Vector2, chest_title: String, fam_id: String) -> void:
-	# Sin dibujo plano (2026-11-12): el cofre 3D sale de esta entrada (WorldStageBuildings3D)
-	_add_prop_collider(pos, Vector2(11.0, 8.0))
-	_add_station_area("", pos, 15.0, "house_chest")
-	# El sitio del cofre se guarda en el mundo, como su dibujo (mapa ×E)
-	house_chests.append({"pos": Anclas.mover(pos), "title": chest_title, "family_id": fam_id, "looted_day": -1})
+	cofre_mundo(Anclas.mover(pos), chest_title, fam_id, -deg_to_rad(Anclas.giro(pos)))
+
+## Cofre de una casa o tienda con su sitio ya en el mundo (`giro` en radianes del mapa plano, el de su edificio).
+## Sin dibujo plano (2026-11-12): el cofre 3D sale de esta entrada (WorldStageBuildings3D).
+func cofre_mundo(pos: Vector2, chest_title: String, fam_id: String, giro: float) -> void:
+	add_choque_mundo(pos, COFRE_TAM, giro)
+	add_zona_uso_mundo("", pos, COFRE_RADIO_USO, "house_chest")
+	house_chests.append({"pos": pos, "title": chest_title, "family_id": fam_id, "looted_day": -1})
 
 func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 	var prop_rect := Rect2(pos - sz * 0.5, sz)
@@ -1285,6 +1293,28 @@ func _add_prop_collider(pos: Vector2, sz: Vector2, group_tag: String = "") -> St
 	Anclas.girar_choque(ancla, sb, sz)
 	return sb
 
+## Lo que va dentro de un edificio se escribe en su PLANO (sus medidas de fábrica: marcas y números de su script) y
+## estas funciones lo llevan a donde esté ahora su pieza, movida o girada en el editor (mapa/edificio.gd).
+## Mueble sólido: pared invisible girada con el edificio y, con `no_pisar`, sitio donde nadie se queda de pie.
+func choque_en_edificio(id: String, p_plano: Vector2, sz: Vector2, no_pisar: bool = false, group_tag: String = "") -> StaticBody2D:
+	var pos: Vector2 = EdificioEditor.a_mundo(id, p_plano)
+	var giro: float = EdificioEditor.giro_plano(id)
+	if no_pisar:
+		no_pisar_mundo(pos, sz, giro)
+	return add_choque_mundo(pos, sz, giro, group_tag)
+
+## Zona de uso (donde se pulsa [E]) dentro de un edificio, escrita en su plano.
+func zona_en_edificio(id: String, area_name: String, p_plano: Vector2, radius: float, meta_tag: String) -> Area2D:
+	return add_zona_uso_mundo(area_name, EdificioEditor.a_mundo(id, p_plano), radius, meta_tag)
+
+## Cofre de un edificio, escrito en su plano.
+func cofre_en_edificio(id: String, p_plano: Vector2, chest_title: String, fam_id: String) -> void:
+	cofre_mundo(EdificioEditor.a_mundo(id, p_plano), chest_title, fam_id, EdificioEditor.giro_plano(id))
+
+## Mueble o adorno con choque según su dibujo de origen, dentro de un edificio y escrito en su plano.
+func adorno_en_edificio(id: String, tex_path: String, p_plano: Vector2) -> void:
+	adorno_mundo(tex_path, EdificioEditor.a_mundo(id, p_plano), EdificioEditor.giro_plano(id))
+
 ## Pared invisible con su sitio ya en el mundo (sale de una pieza del editor): `giro` en radianes del mapa plano.
 ## La de la taberna solo choca en su planta («tavern_floor0_walls» / «tavern_upper_walls»).
 func add_choque_mundo(pos: Vector2, sz: Vector2, giro: float, group_tag: String = "") -> StaticBody2D:
@@ -1314,9 +1344,13 @@ func add_choque_mundo(pos: Vector2, sz: Vector2, giro: float, group_tag: String 
 	entities_root.add_child(sb)
 	return sb
 
-## Mueble o adorno con choque. Ya no se dibuja en plano (2026-11-12): su versión 3D está en la escena del edificio
-## o en una pieza del mapa; aquí solo queda la pared invisible que lo hace sólido, según el dibujo de origen.
+## Mueble o adorno con choque pedido en el mapa ORIGINAL: va a su sitio actual.
 func _spawn_decor_prop(tex_path: String, pos: Vector2) -> void:
+	adorno_mundo(tex_path, Anclas.mover(pos), -deg_to_rad(Anclas.giro(pos)))
+
+## Mueble o adorno con choque, ya en el mundo. Ya no se dibuja en plano (2026-11-12): su versión 3D está en la escena
+## del edificio o en una pieza del mapa; aquí solo queda la pared invisible que lo hace sólido, según el dibujo de origen.
+func adorno_mundo(tex_path: String, pos: Vector2, giro: float) -> void:
 	var fname: String = tex_path.get_file()
 	var col_sz := Vector2.ZERO
 	match fname:
@@ -1335,9 +1369,9 @@ func _spawn_decor_prop(tex_path: String, pos: Vector2) -> void:
 		"plants_3.png", "plants_5.png", "plants_8.png", "kitchen_props_3.png", "pots_pack_0.png":
 			col_sz = Vector2(8.0, 8.0)
 	if col_sz != Vector2.ZERO:
-		_add_prop_collider(pos, col_sz)
+		add_choque_mundo(pos, col_sz, giro)
 		if fname in ["round_table_0.png", "table_chairs_0.png", "table_chairs_1.png", "big_round_table_chairs_0.png", "piano.png", "drinks_shelf_0.png", "drinks_shelf_1.png", "fireplace_0.png", "stand-1_part5.png"]:
-			register_no_stand_furniture(pos, col_sz)
+			no_pisar_mundo(pos, col_sz, giro)
 
 ## Paso a 3D, paso 3c: un sitio con [E] en el fondo del río o del lago: solo se alcanza buceando (InteractionSelector).
 ## Para las pistas de los casos que el usuario decida; se usa como `_add_station_area` y luego `marcar_bajo_el_agua`.

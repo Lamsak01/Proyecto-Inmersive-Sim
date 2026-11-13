@@ -11,6 +11,8 @@ extends RefCounted
 
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
+const Marca = preload("res://mapa/marca.gd")
+const Edificio = preload("res://mapa/edificio.gd")
 
 const FAITH_NAME: String = "la Fe del Alba"
 const RITE_NAME: String = "Oficio del Alba"
@@ -166,7 +168,8 @@ static func _pew_spot(vm, i: int) -> Vector2:
 	var row: int = int(float(i) / 2.0) % 4
 	var row_y: float = [-22.5, -7.5, 6.8, 13.5][row]
 	var col_x_off: float = float((int(float(i) / 8.0) % 2) * 12 - 6)
-	return vm._church_center + Vector2(side + col_x_off, row_y)
+	# en el plano de la capilla, llevado a donde está (2026-11-12: antes se quedaba en el mapa viejo)
+	return Edificio.a_mundo(vm.ID_CAPILLA, vm._church_center + Vector2(side + col_x_off, row_y))
 
 static func on_hour(vm, hour: int) -> void:
 	if not is_rite_day():
@@ -186,7 +189,7 @@ static func call_to_rite(vm) -> int:
 			continue
 		if not wants_attend(n, week) or not can_join(n):
 			continue
-		var spot: Vector2 = vm.sitio(vm._church_altar_pos + Vector2(0, -18)) if is_priest(n) else _pew_spot(vm, idx)
+		var spot: Vector2 = Marca.mundo(vm.ID_CAPILLA, Marca.ALTAR, Vector2(0, -18)) if is_priest(n) else _pew_spot(vm, idx)
 		if not is_priest(n):
 			idx += 1
 		n.join_rite(spot)
@@ -256,7 +259,7 @@ static func finish_rite(vm) -> Dictionary:
 			res["sermon"] = worst.npc_name
 	# El jugador
 	var pl = vm.get_tree().get_first_node_in_group("player") if vm.is_inside_tree() else null
-	var player_here: bool = pl is Node2D and (pl as Node2D).global_position.distance_to(vm.sitio(vm._church_altar_pos)) <= PLAYER_RADIUS
+	var player_here: bool = pl is Node2D and (pl as Node2D).global_position.distance_to(vm._church_altar_pos) <= PLAYER_RADIUS
 	res["player"] = player_here
 	if player_here:
 		for m in att:

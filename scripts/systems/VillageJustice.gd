@@ -452,7 +452,7 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 
 		# 2. Amanecer (06:00 a 07:00): Revisa brevemente el expediente con el Comisario Vane en la Comisaría (marca «escritorio»)
 		if h >= 6 and h < 7 and not vm.player_in_jail:
-			var desk_pt: Vector2 = vm.sitio(Marca.sitio(vm.ID_COMISARIA, Marca.ESCRITORIO))
+			var desk_pt: Vector2 = Marca.mundo(vm.ID_COMISARIA, Marca.ESCRITORIO)
 			if inv_npc.global_position.distance_to(desk_pt) > 18.0:
 				inv_npc._move_towards_point(desk_pt, 82.0, delta)
 			else:
@@ -510,7 +510,7 @@ static func update_royal_investigator_ai(vm: VillageManager, inv_npc: VillageNPC
 					vm.active_royal_investigation["stage"] = "MORGUE"
 					vm.active_royal_investigation["stage_timer"] = 0.0
 		"MORGUE":
-			var m_pos: Vector2 = vm.sitio(vm._morgue_table_positions[1])
+			var m_pos: Vector2 = vm._morgue_table_positions[1]
 			if inv_npc.global_position.distance_to(m_pos) > 26.0:
 				inv_npc._stop_crafting_bar()
 				inv_npc._move_towards_point(m_pos, 62.0, delta)
@@ -693,7 +693,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 					vm.active_sheriff_investigation["stage_timer"] = 0.0
 			return true
 		"MORGUE":
-			var m_pos: Vector2 = vm.sitio(vm._morgue_table_positions[1])
+			var m_pos: Vector2 = vm._morgue_table_positions[1]
 			if sheriff.global_position.distance_to(m_pos) > 26.0:
 				sheriff._stop_crafting_bar()
 				sheriff._move_towards_point(m_pos, 62.0, delta)
@@ -753,7 +753,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 
 static func _process_inquisitor_field_recon(vm: VillageManager, inv_npc: VillageNPC, delta: float, done_cnt: int, max_cnt: int, days_inv: int) -> void:
 	var c_pos: Vector2 = _get_investigation_crime_pos(vm)
-	var recon_pts: Array[Vector2] = [c_pos, vm.sitio(vm._morgue_table_positions[1]), vm.sitio(Marca.sitio(vm.ID_COMISARIA, Marca.ESCRITORIO)), vm.sitio(Vector2(465, 36))]
+	var recon_pts: Array[Vector2] = [c_pos, vm._morgue_table_positions[1], Marca.mundo(vm.ID_COMISARIA, Marca.ESCRITORIO), vm.sitio(Vector2(465, 36))]
 	var r_idx: int = int(vm.active_royal_investigation.get("recon_spot_idx", 0)) % recon_pts.size()
 	var target_pt: Vector2 = recon_pts[r_idx]
 	if inv_npc.global_position.distance_to(target_pt) > 22.0:

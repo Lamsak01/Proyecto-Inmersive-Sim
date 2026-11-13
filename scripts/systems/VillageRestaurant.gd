@@ -1,6 +1,5 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## R1 (crimen interno, 2026-11-06): el restaurante de aire italiano de película de cine negro. Nombre provisional
 ## «Trattoria Il Corvo» (anotado en docs/APORTES_CREATIVOS.md). Un local GRANDE con varias salas de verdad:
@@ -14,6 +13,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const Marca = preload("res://mapa/marca.gd")
+const Edificio = preload("res://mapa/edificio.gd")
 
 const BUILDING_ID: String = "building_restaurant"
 const TITLE: String = "🍲 Casa de Comidas 'El Fogón del Valle'"
@@ -49,8 +49,10 @@ const OPENINGS: Array = [
 ## Terraza exterior y acceso directo desde la Calle Mayor (camino principal hacia la Plaza).
 const TERRACE: Rect2 = Rect2(BASE + Vector2(0, 196), Vector2(275, 40))
 ## Sitios con uso: son marcas de la escena del edificio (mapa/edificios/building_restaurant.tscn → «Marcas»), no
-## números aquí. Se piden con sitio(M_…), dining_tables() y terrace_tables(); llegan en el mapa original, como
-## esperan las funciones que colocan cosas y vecinos.
+## números aquí. Salas, pasos y terraza (RECT, ROOMS, OPENINGS, TERRACE) son el PLANO del local: medidas de fábrica.
+## al_mundo() lleva un punto del plano a donde está el local ahora (movido o girado en el editor) y al_plano() al revés.
+## mundo(M_…) y los asientos ya están en el mundo; sitio(), dining_tables() y terrace_tables() dan el plano para
+## quien aún crea vecinos con sitios de fábrica (se traducen al crearlos).
 const M_FOGONES: String = "fogones"        ## donde trabaja el cocinero
 const M_COLGADERO: String = "colgadero"    ## colgadero de carne en la cámara
 const M_BARRA: String = Marca.PUESTO       ## barra y caja del comedor (gestionar el negocio)
@@ -66,12 +68,41 @@ const MESAS_TERRAZA: int = 5
 const MESA_FAMILIA: int = 3 ## (contando desde 0) la mesa de la familia del cocinero: no se ofrece a clientes
 const MESA_JEFE: int = 4    ## (contando desde 0) la mesa del rincón, donde almuerza el jefe de la Familia
 
-static var _mesas: Dictionary = {} ## nombre de marca con %d → lista de sitios (se leen una vez)
+static var _mesas: Dictionary = {} ## nombre de marca con %d (o de lista del mundo) → lista de sitios (se leen una vez)
 
 const PROPS: String = "res://assests/Comprados/Epic RPG World - Village(interiors) V1.3/assets/furniture_and_props_sprites/"
 
 static func sitio(marca: String) -> Vector2:
 	return Marca.sitio(BUILDING_ID, marca)
+
+## Una marca del local en el mundo.
+static func mundo(marca: String) -> Vector2:
+	return al_mundo(sitio(marca))
+
+## Plano del local → mundo.
+static func al_mundo(p_plano: Vector2) -> Vector2:
+	return Edificio.a_mundo(BUILDING_ID, p_plano)
+
+## Mundo → plano del local (para preguntar «¿en qué sala está?» con las medidas de fábrica).
+static func al_plano(p_mundo: Vector2) -> Vector2:
+	return Edificio.a_plano(BUILDING_ID, p_mundo)
+
+## ¿Está ese punto del mundo en la terraza, contando `margen` px de más alrededor?
+static func en_terraza(p_mundo: Vector2, margen: float) -> bool:
+	return TERRACE.grow(margen).has_point(al_plano(p_mundo))
+
+## Puntos del plano llevados al mundo, guardados con su nombre (los asientos se miran a menudo; no cambian en partida).
+static func _en_mundo(clave: String, plano: Array[Vector2]) -> Array[Vector2]:
+	if not _mesas.has(clave):
+		var lista: Array[Vector2] = []
+		for q: Vector2 in plano:
+			lista.append(al_mundo(q))
+		_mesas[clave] = lista
+	return _mesas[clave]
+
+## Adorno con choque (sus muebles 3D están en la escena del local), escrito en el plano.
+static func _adorno(vm, textura: String, p_plano: Vector2) -> void:
+	vm.adorno_mundo(PROPS + textura, al_mundo(p_plano), Edificio.giro_plano(BUILDING_ID))
 
 static func dining_tables() -> Array[Vector2]:
 	return _lista_de_mesas(M_MESA, MESAS_COMEDOR)
@@ -107,32 +138,33 @@ static func build(vm) -> void:
 		"res://assests/world/village/floor_wood_planks.png", "res://assests/world/village/wall_stone_h.png", "res://assests/world/village/wall_stone_v.png")
 	_build_furniture(vm)
 	_build_terrace(vm)
-	vm._add_prop_collider(sitio(M_BARRA), vm.COLISOR_PUESTO)
-	vm._register_shop_business_stall(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, sitio(M_BARRA))
-	vm._spawn_house_chest(sitio(M_COFRE), "Cofre de " + TITLE, FAMILY_ID)
+	var giro: float = Edificio.giro_plano(BUILDING_ID)
+	vm.add_choque_mundo(mundo(M_BARRA), vm.COLISOR_PUESTO, giro)
+	vm.mostrador_mundo(int(VillageNPC.TradeRole.RESTAURATEUR), TITLE, FAMILY_ID, mundo(M_BARRA))
+	vm.cofre_mundo(mundo(M_COFRE), "Cofre de " + TITLE, FAMILY_ID, giro)
 
 static func _build_furniture(vm) -> void:
 	# Mesas, estantes, encimera, cajas y toneles chocan desde sus muebles (escena del restaurante)
-	vm._spawn_decor_prop(PROPS + "piano.png", sitio(M_PIANO))
-	vm._spawn_decor_prop(PROPS + "plants_3.png", BASE + Vector2(8, 88))
-	vm._spawn_decor_prop(PROPS + "plants_5.png", BASE + Vector2(187, 88))
+	_adorno(vm, "piano.png", sitio(M_PIANO))
+	_adorno(vm, "plants_3.png", BASE + Vector2(8, 88))
+	_adorno(vm, "plants_5.png", BASE + Vector2(187, 88))
 	# Cocina
-	vm._spawn_decor_prop(PROPS + "stove.png", sitio(M_FOGONES))
-	vm._spawn_decor_prop(PROPS + "kitchen_props_3.png", BASE + Vector2(210, 116))
+	_adorno(vm, "stove.png", sitio(M_FOGONES))
+	_adorno(vm, "kitchen_props_3.png", BASE + Vector2(210, 116))
 	# Cámara frigorífica
 	# Bodega
 	# Reservado y despacho del dueño
-	vm._spawn_decor_prop(PROPS + "big_round_table_chairs_0.png", sitio(M_RESERVADO))
-	vm._spawn_decor_prop(PROPS + "fireplace_0.png", BASE + Vector2(10, 12))
-	vm._spawn_decor_prop(PROPS + "table_chairs_0.png", sitio(M_CAMA_DUENO))
-	vm._spawn_decor_prop(PROPS + "storage_countertop_0.png", BASE + Vector2(154, 8))
+	_adorno(vm, "big_round_table_chairs_0.png", sitio(M_RESERVADO))
+	_adorno(vm, "fireplace_0.png", BASE + Vector2(10, 12))
+	_adorno(vm, "table_chairs_0.png", sitio(M_CAMA_DUENO))
+	_adorno(vm, "storage_countertop_0.png", BASE + Vector2(154, 8))
 
 static func _build_terrace(vm) -> void:
 	# Terraza: mesas y macetas (pasan a 3D)
 	for t in terrace_tables():
-		vm._spawn_decor_prop(PROPS + "round_table_0.png", t)
+		_adorno(vm, "round_table_0.png", t)
 	for pp in [BASE + Vector2(4, 232), BASE + Vector2(80, 232), BASE + Vector2(120, 232), BASE + Vector2(270, 232)]:
-		vm._spawn_decor_prop(PROPS + "plants_8.png", pp)
+		_adorno(vm, "plants_8.png", pp)
 
 # ---------------------------------------------------------------- recorrido por dentro
 static func room_of(p: Vector2) -> String:
@@ -226,7 +258,7 @@ static func is_serving(vm) -> bool:
 		return false
 	if vm.has_method("is_trade_sabotaged") and bool(vm.call("is_trade_sabotaged", int(VillageNPC.TradeRole.RESTAURATEUR))):
 		return false
-	return room_of(_AN_SITIOS.desmover(c.global_position)) != ""
+	return room_of(al_plano(c.global_position)) != ""
 
 static func has_food(vm) -> bool:
 	var c = cook(vm)
@@ -246,36 +278,33 @@ static func indoor_seats() -> Array[Vector2]:
 			continue
 		out.append(mesas[i] + Vector2(-14.5, 0.0))
 		out.append(mesas[i] + Vector2(14.5, 0.0))
-	var act: Array[Vector2] = [] # plan de sitios: en su sitio actual (sigue al restaurante movido)
-	act.assign(_AN_SITIOS.mover_lista("restaurante_comedor", out))
-	return act
+	return _en_mundo("mundo_comedor", out)
 
 static func terrace_seats() -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	for t in terrace_tables():
 		out.append(t + Vector2(-12.5, 0.0))
 		out.append(t + Vector2(12.5, 0.0))
-	var act: Array[Vector2] = []
-	act.assign(_AN_SITIOS.mover_lista("restaurante_terraza", out))
-	return act
+	return _en_mundo("mundo_terraza", out)
 
 static func seats() -> Array[Vector2]:
 	var out: Array[Vector2] = indoor_seats()
 	out.append_array(terrace_seats())
 	return out
 
-## Recibe y devuelve sitios actuales.
+## Recibe y devuelve sitios del mundo.
 static func table_center_for_seat(seat: Vector2) -> Vector2:
-	for t in _AN_SITIOS.mover_lista("restaurante_mesas_terraza", terrace_tables()):
+	for t: Vector2 in _en_mundo("mundo_mesas_terraza", terrace_tables()):
 		if seat.distance_to(t) <= 18.0:
 			return t
-	for t in _AN_SITIOS.mover_lista("restaurante_mesas", dining_tables()):
+	for t: Vector2 in _en_mundo("mundo_mesas", dining_tables()):
 		if seat.distance_to(t) <= 20.0:
 			return t
-	return _AN_SITIOS.mover(RECT.get_center())
+	return al_mundo(RECT.get_center())
 
 static func is_at_seat(pos: Vector2) -> bool:
-	if not RECT.grow(6.0).has_point(_AN_SITIOS.desmover(pos)) and not TERRACE.grow(10.0).has_point(_AN_SITIOS.desmover(pos)):
+	var en_plano: Vector2 = al_plano(pos)
+	if not RECT.grow(6.0).has_point(en_plano) and not TERRACE.grow(10.0).has_point(en_plano):
 		return false
 	for s in seats():
 		if pos.distance_to(s) <= 6.5:
@@ -440,7 +469,7 @@ static func tick(vm, delta: float) -> void:
 				var tc: Vector2 = table_center_for_seat(snapped)
 				if tc.distance_to(snapped) > 1.0:
 					n.facing_direction = (tc - snapped).normalized()
-				if TERRACE.grow(10.0).has_point(_AN_SITIOS.desmover(snapped)):
+				if en_terraza(snapped, 10.0):
 					seated_terrace.append(n)
 	if is_open_hours and seated_terrace.is_empty():
 		on_hour(vm, cur_h)
@@ -466,7 +495,7 @@ static func serve_meal(vm, npc) -> bool:
 		npc.personal_gold -= price
 		c.personal_gold += price
 		var dname: String = str(SimpleInventory.CATALOG.get(dish, {}).get("name", dish))
-		var where: String = "en la terraza" if TERRACE.grow(14.0).has_point(_AN_SITIOS.desmover(npc.global_position)) else "en el comedor"
+		var where: String = "en la terraza" if en_terraza(npc.global_position, 14.0) else "en el comedor"
 		vm.set_meta("restaurant_meals", int(vm.get_meta("restaurant_meals", 0)) + 1) # para la sonda
 		npc.add_thought("Comió %s en la casa de comidas (-%d Oro, +8)" % [dname, price], 8.0)
 		npc._spawn_floating_text("🍲 %s %s (-%d Oro)" % [dname, where, price], Color(1.0, 0.82, 0.55), -32.0)
@@ -479,9 +508,9 @@ static func cook_cold_room_trip(npc, rec: Dictionary, delta: float) -> bool:
 		return false
 	if npc.has_meta("cold_room_fetched"):
 		return false
-	if npc.global_position.distance_to(_AN_SITIOS.mover(sitio(M_COLGADERO))) > 10.0:
+	if npc.global_position.distance_to(mundo(M_COLGADERO)) > 10.0:
 		npc._update_craft_bar_visual(0.3, "🥩 A la cámara fría a por carne", Color(0.6, 0.85, 1.0, 0.9))
-		npc._move_towards_point(_AN_SITIOS.mover(sitio(M_COLGADERO)), 46.0, delta)
+		npc._move_towards_point(mundo(M_COLGADERO), 46.0, delta)
 		return true
 	npc.velocity = Vector2.ZERO
 	npc.set_meta("cold_room_fetched", true)

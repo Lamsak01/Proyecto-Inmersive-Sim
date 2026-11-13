@@ -303,7 +303,7 @@ func _refresh_morgue_table_sprites() -> void:
 				c_node.corpse_on_ground = false
 				c_node.corpse_in_morgue = true
 				c_node.corpse_buried = false
-				c_node.global_position = sitio(_morgue_table_positions[i])
+				c_node.global_position = _morgue_table_positions[i]
 				if c_node.sprite:
 					c_node.sprite.visible = false
 				c_node._set_area_col_disabled(c_node.interact_area, false)
@@ -478,7 +478,7 @@ func is_position_near_water_source(world_pos: Vector2, max_meters: float = 2.0) 
 	if world_pos.distance_squared_to(VillageWork.Sitio.mundo(VillageWork.SITIO_LAVADERO)) <= max_well_dist * max_well_dist:
 		return true
 	# Lavabo quirúrgico junto a la Cama de Urgencias del Hospital
-	if world_pos.distance_squared_to(sitio(_hospital_bed_pos)) <= max_well_dist * max_well_dist:
+	if world_pos.distance_squared_to(_hospital_bed_pos) <= max_well_dist * max_well_dist:
 		return true
 	# Cauce del río de norte a sur y arroyo del bosque norte
 	if world_pos.y >= RioLago.river_y_start() and world_pos.y <= RioLago.river_y_end():

@@ -126,18 +126,14 @@ static func _en_mundo(clave: String, plano: Array) -> Array:
 		_listas[clave] = lista
 	return _listas[clave]
 
-## Giro de las paredes invisibles de la posada en el mapa plano (la posada gira de 90 en 90 en el editor).
-static func _giro_choque() -> float:
-	return -deg_to_rad(Edificio.giro(BUILDING_ID))
-
 ## Mueble sólido en una marca: su pared invisible de la planta baja y el sitio donde nadie se queda de pie.
 static func _mueble(vm, marca: String, sz: Vector2) -> void:
-	vm.add_choque_mundo(mundo(marca), sz, _giro_choque(), "tavern_floor0_walls")
-	vm.no_pisar_mundo(mundo(marca), sz, _giro_choque())
+	vm.add_choque_mundo(mundo(marca), sz, Edificio.giro_plano(BUILDING_ID), "tavern_floor0_walls")
+	vm.no_pisar_mundo(mundo(marca), sz, Edificio.giro_plano(BUILDING_ID))
 
 ## Tabique o barandilla de la Planta +1, escrito en el plano.
 static func _pared_alta(vm, p_plano: Vector2, sz: Vector2) -> StaticBody2D:
-	return vm.add_choque_mundo(al_mundo(p_plano), sz, _giro_choque(), "tavern_upper_walls")
+	return vm.add_choque_mundo(al_mundo(p_plano), sz, Edificio.giro_plano(BUILDING_ID), "tavern_upper_walls")
 
 const BAR_COUNTER_SIZE: Vector2 = Vector2(108.0, 10.0)
 
@@ -268,7 +264,7 @@ static func setup_world(vm) -> void:
 		"bed2_pos": guest_beds()[2],
 		"table_pos": sitio(M_MESA_CENTRAL),
 	}
-	vm.add_choque_mundo(mundo(M_PASAPLATOS), vm.COLISOR_PUESTO, _giro_choque())
+	vm.add_choque_mundo(mundo(M_PASAPLATOS), vm.COLISOR_PUESTO, Edificio.giro_plano(BUILDING_ID))
 	vm._register_shop_business_stall(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, sitio(M_PASAPLATOS))
 
 # ------------------------------------------------------------------ asientos de comedor y póker
