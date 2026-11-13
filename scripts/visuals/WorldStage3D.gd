@@ -1308,6 +1308,10 @@ func _update_roof_cutaways_and_lighting() -> void:
 # Van en su propia raíz (hermana de los edificios) para que reconstruir los edificios no los borre.
 # ==============================================================================
 var _case1_props_root_3d: Node3D = null
+## Terrones del montón de tierra junto a la fosa del claro: (x, y) respecto a la fosa, (ancho, fondo) en píxeles.
+const FOSA_HUNDIDO_PX: float = 2.5 ## cuánto se hunde cada pieza de la fosa bajo el suelo
+const FOSA_TERRONES: Array[Vector4] = [Vector4(-6.0, -15.0, 22.0, 10.0), Vector4(5.0, -16.0, 18.0, 9.0),
+	Vector4(-1.0, -17.0, 13.0, 7.0), Vector4(-11.0, -13.0, 9.0, 6.0), Vector4(13.0, -12.0, 8.0, 5.0)]
 var _case1_props_key: String = ""
 
 func sync_case1_props_3d() -> void:
@@ -1346,6 +1350,19 @@ func sync_case1_props_3d() -> void:
 		_add_box_2d(_case1_props_root_3d, page + Vector2(0.3, -0.2), Vector2(4.2, 3.0), 9.0, 0.2, m_paper, 12.0)
 		for j in range(3):
 			_add_box_2d(_case1_props_root_3d, page + Vector2(-0.4, -1.0 + j * 0.9), Vector2(2.6, 0.18), 9.2, 0.05, m_ink, 12.0)
+	# Fosa a medio cavar junto al cuerpo del claro (idea del usuario, 2026-11-13): hoyo oscuro, montón de tierra y pala
+	var fosa: Vector2 = C1.fosa_pos()
+	var m_hoyo := _mat("case1_hoyo", Color(0.13, 0.09, 0.06), 1.0, 0.0)
+	var m_tierra := _mat("case1_tierra", Color(0.36, 0.25, 0.16), 0.95, 0.0)
+	var m_hierro := _mat("case1_hierro", Color(0.42, 0.43, 0.45), 0.5, 0.7)
+	# Hoyo: mancha oscura a ras de suelo con un reborde de tierra suelta; montón de tierra hecho de terrones que menguan
+	# Todo va medio enterrado (FOSA_HUNDIDO_PX): el prado baja hacia el arroyo y una losa a ras flotaría por un lado
+	_add_box_2d(_case1_props_root_3d, fosa, Vector2(36.0, 17.0), -FOSA_HUNDIDO_PX, FOSA_HUNDIDO_PX + 0.12, m_tierra)
+	_add_box_2d(_case1_props_root_3d, fosa, Vector2(31.0, 12.0), -FOSA_HUNDIDO_PX, FOSA_HUNDIDO_PX + 0.16, m_hoyo)
+	for t in FOSA_TERRONES:
+		_add_box_2d(_case1_props_root_3d, fosa + Vector2(t.x, t.y), Vector2(t.z, t.w), -FOSA_HUNDIDO_PX, FOSA_HUNDIDO_PX + t.w * 0.22, m_tierra, t.x * 3.0)
+	_add_box_2d(_case1_props_root_3d, fosa + Vector2(10.0, -15.0), Vector2(1.0, 1.0), 1.5, 9.0, m_walnut, 0.0) # mango de la pala (~1 m)
+	_add_box_2d(_case1_props_root_3d, fosa + Vector2(10.0, -15.0), Vector2(3.6, 0.5), 0.0, 2.6, m_hierro, 0.0) # hoja, medio hundida
 	# Bandeja de informes de la comisaría: atril de madera con una bandeja y papeles en blanco
 	var rp: Vector2 = C1.report_pos()
 	_add_box_2d(_case1_props_root_3d, rp, Vector2(7.0, 5.0), 2.0, 9.0, m_walnut)

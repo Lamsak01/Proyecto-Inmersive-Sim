@@ -25,6 +25,9 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E
 const SITIO_CUERPO := "cuerpo_caso1" ## cruz de «Sitios»: dónde aparece el cuerpo en el claro del arroyo
 const SITIO_CLARO := "claro_caso1"   ## cruz de «Sitios»: centro del claro (zona que se puede examinar)
 const CLARO_RADIO_PX: float = 28.0   ## en el mapa original: a esta distancia del centro se examina el claro
+## Fosa a medio cavar junto al cuerpo (idea del usuario, 2026-11-13): a ~2 m al norte, en píxeles del mundo.
+const FOSA_DESFASE_PX: Vector2 = Vector2(0.0, -40.0)
+const FOSA_RADIO_PX: float = 18.0
 const POLICE_ID: String = "building_police"
 const MILL_ID: String = "building_abandoned_mill"
 const MANSION_ID: String = "building_mansion"
@@ -45,6 +48,7 @@ const REPORT_EVIDENCE: Dictionary = {
 	"clue_library_secret_ledger": "Registro de la sala oculta",
 	"clue_mill_hemp_cord": "Cordel del molino",
 	"clue_mill_red_clay": "Barro rojo del molino",
+	"clue_case1_grave": "Fosa a medio cavar junto al cuerpo",
 	"clue_mill_cellar_grate": "Reja del sótano del molino",
 	"clue_mill_hayloft": "Pajar del molino",
 	"clue_mill_hearth": "Hogar del molino",
@@ -193,6 +197,11 @@ static func cuerpo_pos() -> Vector2:
 	return Sitio.mundo(SITIO_CUERPO)
 
 
+## La fosa a medio cavar junto al cuerpo, en el mundo.
+static func fosa_pos() -> Vector2:
+	return cuerpo_pos() + FOSA_DESFASE_PX
+
+
 ## Cada segundo (VillageManager._process): el guardia que viene a avisarte te sigue hasta alcanzarte.
 static func tick(vm) -> void:
 	if vm == null or not empezado():
@@ -223,6 +232,8 @@ static func sync(vm) -> void:
 	if page_pos != Vector2.INF and vm.get_node_or_null("Case1RelativePageArea") == null:
 		vm.add_zona_uso_mundo("Case1RelativePageArea", page_pos, 18.0, "case1_relative_page") # a los pies de una cama: ya en el mundo
 		st["page_pos"] = [page_pos.x, page_pos.y]
+	if vm.get_node_or_null("Case1GraveArea") == null:
+		vm.add_zona_uso_mundo("Case1GraveArea", fosa_pos(), FOSA_RADIO_PX, "case1_grave")
 	if vm.get_node_or_null("Case1ReportArea") == null:
 		vm.add_zona_uso_mundo("Case1ReportArea", report_pos(), 20.0, "case1_report_desk")
 		vm.choque_en_edificio(POLICE_ID, Marca.sitio(POLICE_ID, Marca.INFORME), Vector2(7.0, 5.0), true)
@@ -276,6 +287,17 @@ static func try_interact(vm, player: Node2D, pos: Vector2, sel_kind: String) -> 
 			"Pista: Gabinete forzado",
 			"clue_case1_forced_cabinet",
 			Color(0.90, 0.80, 0.62)
+		)
+		return true
+	if empezado() and (sel_kind == "case1_grave" or (sel_kind == "" and pos.distance_squared_to(fosa_pos()) <= FOSA_RADIO_PX * FOSA_RADIO_PX)):
+		vm._record_case_clue(
+			player,
+			"⚰️ Fosa",
+			"⚰️ A dos pasos del cuerpo hay una fosa a medio cavar, del largo de una persona y poco honda. La tierra recién sacada está amontonada a un lado, todavía húmeda, y una pala sigue clavada en el montón.",
+			"Claro: fosa a medio cavar junto al cuerpo, con la tierra húmeda amontonada y la pala clavada; quien cavaba no terminó.",
+			"Pista: Fosa a medio cavar",
+			"clue_case1_grave",
+			Color(0.78, 0.66, 0.50)
 		)
 		return true
 	var pp = st.get("page_pos", null)

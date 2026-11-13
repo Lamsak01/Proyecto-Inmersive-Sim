@@ -14670,13 +14670,13 @@ script = ExtResource("35_7jlh3")
 id_sitio = "mascota_sombra"
 
 [node name="claro_caso1" type="Marker3D" parent="Sitios" unique_id=521408794]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.64, 0, -240.8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.5, 0, -149.2)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "claro_caso1"
 
 [node name="cuerpo_caso1" type="Marker3D" parent="Sitios" unique_id=2005434945]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.64, 0, -241.36)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.5, 0, -149.76)
 gizmo_extents = 1.0
 script = ExtResource("35_7jlh3")
 id_sitio = "cuerpo_caso1"
