@@ -41,6 +41,8 @@ static func dibujar(pieza: Node3D, m: Dictionary) -> void:
 			Pobre.tajo(pieza)
 		"horno":
 			Oficio.horno(pieza)
+		"mesa_morgue":
+			Oficio.mesa_morgue(pieza)
 		"ventilador":
 			Acomodada.ventilador(pieza, Cascaron.MURO_ALTO_M - Cascaron.SUELO_Y_M)
 		"inodoro":

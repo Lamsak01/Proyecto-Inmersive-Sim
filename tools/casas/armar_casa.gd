@@ -43,6 +43,7 @@ static func armar(plano: Dictionary, centro_original: Vector2) -> Node3D:
 	Cascaron.armar(grupos[PARTES.MUROS], grupos[PARTES.TEJADO], grupos[PARTES.PISO_ALTO], plano)
 	if plano.has("REJA"): # calabozo: la reja corredera, suelta para que el juego la mueva
 		Oficio.reja_celda(grupos[PARTES.INTERIOR], plano["REJA"], Cascaron.SUELO_Y_M)
+	Oficio.cuerpos_morgue(grupos[PARTES.INTERIOR], plano["MARCAS"], Cascaron.SUELO_Y_M) # solo si hay mesas de morgue
 	var cuenta_muebles: Dictionary = {}
 	for piso: int in range(LeerPlano.PLANTAS.size()):
 		var planta: String = LeerPlano.PLANTAS[piso]

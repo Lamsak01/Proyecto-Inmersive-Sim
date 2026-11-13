@@ -1,13 +1,14 @@
 extends RefCounted
 
-## Cosas armadas a mano propias de un oficio (2026-11-13), para lo que no hay modelo comprado: el horno de pan y la
-## reja corredera del calabozo de la comisaría.
+## Cosas armadas a mano propias de un oficio (2026-11-13), para lo que no hay modelo comprado: el horno de pan, la
+## reja corredera del calabozo de la comisaría y las mesas de la morgue con su cuerpo bajo la sábana.
 ## Metros respecto a la pieza (tools/casas/armar_casa.gd las dibuja); el suelo de la pieza es y = 0; la boca del
 ## horno mira al sur (+z) sin giro.
 
 const Piezas = preload("res://tools/casas/piezas_casa.gd")
 const Cosas = preload("res://tools/casas/cosas_casa.gd")
 const PARTES = preload("res://scripts/visuals/PartesEdificio3D.gd")
+const Marca = preload("res://mapa/marca.gd")
 
 const LADRILLO := "wall_brick_small_sand.png"
 const TINTE_LADRILLO := Color(0.85, 0.6, 0.45)
@@ -25,6 +26,13 @@ const BARROTE_GROSOR_M: float = 0.04
 const BARROTE_PASO_M: float = 0.15     ## de barrote a barrote
 const REJA_ALTO_M: float = 2.2
 const TRAVESANO_ALTO_M: float = 0.05
+const ACERO := Color(0.62, 0.64, 0.66)
+const SABANA := Color(0.88, 0.88, 0.84)
+const MESA_MORGUE_TAM := Vector3(0.8, 0.85, 1.9)  ## tablero de acero sobre cuatro patas (su choque lo pone el juego)
+const TABLERO_GROSOR_M: float = 0.05
+const PATA_GROSOR_M: float = 0.06
+const CUERPO_TAM := Vector3(0.5, 0.22, 1.7)       ## el bulto bajo la sábana…
+const CABEZA_TAM := Vector3(0.24, 0.18, 0.26)     ## …y la cabeza, más alta, hacia el norte
 
 
 ## Horno de leña de ladrillo: base de obra, bóveda redonda, boca con brasas y su chimenea; la pala de pie al lado.
@@ -67,3 +75,31 @@ static func reja_celda(interior: Node3D, reja: Dictionary, suelo_y: float) -> vo
 		x += BARROTE_PASO_M
 	for alto: float in [0.0, REJA_ALTO_M * 0.5, REJA_ALTO_M - TRAVESANO_ALTO_M]:
 		Piezas.caja(pivote, Vector3(ancho * 0.5, alto, 0.0), Vector3(ancho, TRAVESANO_ALTO_M, BARROTE_GROSOR_M * 1.5), hierro)
+
+
+## Mesa de autopsias de acero, a lo largo de z (la cosa «mesa_morgue» de un plano).
+static func mesa_morgue(padre: Node3D) -> void:
+	var acero: Material = Piezas.material("", ACERO, 0.8)
+	var t: Vector3 = MESA_MORGUE_TAM
+	Piezas.caja(padre, Vector3(0.0, t.y - TABLERO_GROSOR_M, 0.0), Vector3(t.x, TABLERO_GROSOR_M, t.z), acero)
+	for esquina: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		var en := Vector3(esquina.x * (t.x - PATA_GROSOR_M) * 0.5, 0.0, esquina.y * (t.z - PATA_GROSOR_M) * 0.5)
+		Piezas.caja(padre, en, Vector3(PATA_GROSOR_M, t.y - TABLERO_GROSOR_M, PATA_GROSOR_M), acero)
+
+
+## Un cuerpo bajo la sábana sobre cada mesa de la morgue (marcas «mesa_morgue_1», «_2»…, en orden): escondidos; el juego
+## enseña tantos como muertos haya (rol «cuerpo_morgue»).
+static func cuerpos_morgue(interior: Node3D, marcas: Dictionary, suelo_y: float) -> void:
+	var sabana: Material = Piezas.material("", SABANA)
+	var i: int = 1
+	while marcas.has(Marca.MESA_MORGUE % i):
+		var en: Vector2 = marcas[Marca.MESA_MORGUE % i]
+		var cuerpo := Node3D.new()
+		cuerpo.name = "CuerpoMorgue%d" % i
+		cuerpo.position = Vector3(en.x, suelo_y + MESA_MORGUE_TAM.y, en.y)
+		cuerpo.visible = false
+		cuerpo.set_meta(PARTES.ROL, PARTES.CUERPO_MORGUE)
+		interior.add_child(cuerpo)
+		Piezas.caja(cuerpo, Vector3.ZERO, CUERPO_TAM, sabana)
+		Piezas.caja(cuerpo, Vector3(0.0, 0.0, -(CUERPO_TAM.z - CABEZA_TAM.z) * 0.5), CABEZA_TAM + Vector3(0.0, CUERPO_TAM.y, 0.0), sabana)
+		i += 1
