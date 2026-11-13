@@ -6,11 +6,15 @@
 > Cada línea: **pregunta que aparece en misiones** · la abre… · se cierra (o avanza) con…
 
 ## Arranque
-- **A1 · «Preséntate ante el alguacil mayor Vane»** · la carta (que queda en la mochila) · hablar con Vane.
-- **A2 · «Examina a la mujer hallada junto al arroyo del norte»** · Vane te habla del cuerpo · examinar el cuerpo.
-  *(Pendiente: si te manda Vane o da la voz un vecino; pregunta 0c.)*
+- **La carta (usuario, 2026-11-13):** es tu contrato de detective del pueblo, solo historia de fondo; **no habla del
+  asesinato**. Queda en la mochila para releerla. Su texto actual (lavandera desaparecida, denuncia) hay que cambiarlo.
+- **El asesinato ocurre después de que llegues** (usuario): no vienes a resolverlo. Propuesta: el día 1 conoces el
+  pueblo; al alba del día 2 un vecino encuentra el cuerpo junto al arroyo y da la voz; la policía pone un guardia en la
+  escena y Vane te manda llamar.
+- **A1 · «Han encontrado a una mujer muerta junto al arroyo del norte»** · Vane te llama (o te enteras por el pueblo) ·
+  examinar el cuerpo.
 - **Escena custodiada (usuario, 2026-11-13):** un guardia de la comisaría vigila el claro junto al cuerpo («no tiene
-  sentido que la policía deje el cuerpo a la intemperie»). Te deja pasar porque vas de parte de Vane; se queda hasta
+  sentido que la policía deje el cuerpo a la intemperie»). Te deja pasar porque eres el detective; se queda hasta
   que el cuerpo se lleva a la morgue, y luego vuelve a su ronda.
 
 ## Cómo murió
@@ -40,7 +44,7 @@
 - **12 · «La hoja arrancada viene de un libro: ¿de cuál?»** · la hoja de casa del familiar · el libro de la
   biblioteca → abre la 13.
 - **13 · «Un libro viejo con dosis corregidas: ¿quién lo usó?»** · el libro · hablar con el familiar.
-- **14 · «Su desaparición se denunció y nadie la buscó: ¿por qué?»** · la carta o Vane · la denuncia archivada.
+- **14 · «Su desaparición se denunció y nadie la buscó: ¿por qué?»** · Vane o el pueblo · la denuncia archivada.
 
 ## Pistas falsas (abren objetivos que no llevan al culpable)
 - **F1 · «El boticario guarda hierbas de embalsamar bajo llave: ¿fue él?»** · tablero de sospechosos · se queda

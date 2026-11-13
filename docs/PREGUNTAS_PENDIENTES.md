@@ -14,9 +14,9 @@
 
 ## Abiertas
 
-0c. **(2026-11-13) Arranque del Caso I:** ¿el cuerpo está en el claro desde el primer día y el Comisario Vane te manda
-   allí al día siguiente (como dice la carta), o lo encuentra un vecino y da la voz de alarma? Sin respuesta: se propone
-   lo primero porque encaja con la carta.
+0c. **(2026-11-13) Arranque del Caso I:** respondido en parte: la carta es solo tu contrato de detective y el asesinato
+   ocurre después de llegar. Falta: ¿Vane te manda llamar o te enteras por el pueblo? (propuesta: al alba del día 2 un
+   vecino lo encuentra, un guardia custodia la escena y Vane te llama).
 
 0b. **(2026-11-13, noche) Pisos de la taberna con el sistema de las casas de dos plantas:** no se ha tocado. La posada
    tiene su propio sistema (~800 líneas en `VillageTavern.gd`: escalera, galería, losa, alturas, sótano del club; lo
