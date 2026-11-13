@@ -11,7 +11,6 @@ extends RefCounted
 ## - Donde aún no hay alturas conocidas (pisos de las casas, hasta el paso 2e), dos niveles distintos no se ven, como antes.
 
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
-const Anclas = preload("res://mapa/anclas.gd")
 const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
 
 const ALTO_OJOS_PX: float = WorldStageBase3D.FP_EYE_HEIGHT_PX
@@ -64,7 +63,6 @@ static func tapa_un_suelo(a: Vector2, ha: float, b: Vector2, hb: float) -> bool:
 		var h: float = losa["h"]
 		if (ha - h) * (hb - h) >= 0.0:
 			continue # los dos ojos al mismo lado de la losa
-		var cruce: Vector2 = Anclas.desmover(a.lerp(b, (h - ha) / (hb - ha)))
-		if (losa["rect"] as Rect2).has_point(cruce) and not (losa["hueco"] as Rect2).has_point(cruce):
+		if Suelo.en_losa(losa, a.lerp(b, (h - ha) / (hb - ha))):
 			return true
 	return false

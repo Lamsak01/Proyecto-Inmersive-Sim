@@ -1039,14 +1039,14 @@ func _get_social_target_pos() -> Vector2:
 			return vm_g.call("get_grave_pos_for_victim", str(person_profile.deceased_partner_name))
 		return global_position # sin pueblo no hay cementerio: se queda donde está
 	var vm_s = _get_vm()
-	if _VillageTavern.RECT.has_point(_AN_SITIOS.desmover(global_position)) or (family_id == "none" and not is_vagrant_camper) or home_table_pos == tavern_social_pos:
+	if _VillageTavern.dentro(global_position) or (family_id == "none" and not is_vagrant_camper) or home_table_pos == tavern_social_pos:
 		if not (trade_role in [TradeRole.INNKEEPER, TradeRole.WAITER]):
 			if _tavern_seat == Vector2.ZERO or _tavern_seat == tavern_social_pos or _VillageTavern.is_seat_taken(vm_s, _tavern_seat, self):
 				_tavern_seat = _VillageTavern.pick_seat_for(vm_s, self)
 			if _tavern_seat != Vector2.ZERO and _tavern_seat != tavern_social_pos:
 				return _tavern_seat
 	if is_instance_valid(_social_partner) and not _social_partner.is_dead and not _social_partner.is_downed and not _social_partner.is_sleeping:
-		if _VillageTavern.RECT.has_point(_AN_SITIOS.desmover(_social_partner.global_position)):
+		if _VillageTavern.dentro(_social_partner.global_position):
 			if _tavern_seat == Vector2.ZERO or _tavern_seat == tavern_social_pos or _VillageTavern.is_seat_taken(vm_s, _tavern_seat, self):
 				_tavern_seat = _VillageTavern.pick_seat_for(vm_s, self)
 			if _tavern_seat != Vector2.ZERO and _tavern_seat != tavern_social_pos:

@@ -11,7 +11,8 @@ const ESCENA_JUEGO := "uid://dsoiuct8kdsk3"
 const SALIDA := "user://volcado_%s.txt"
 const SEMILLA: int = 11
 const FOTOGRAMAS_ESPERA: int = 150 ## lo que tarda en crearse todo, incluidos árboles talables y vecinos
-const GRUPOS_VIVOS: Array[String] = ["destructible", "wild_flora", "village_npc"]
+const GRUPOS_VIVOS: Array[String] = ["destructible", "wild_flora", "village_npcs"]
+const CAMPOS_VECINO: Array[String] = ["work_position", "bed_position", "home_table_pos", "tavern_social_pos"] ## sitios que guarda cada vecino
 
 
 func _initialize() -> void:
@@ -68,11 +69,14 @@ func _zonas_y_marcas(vm: Node) -> Array[String]:
 	return out
 
 
-## Lo que se recoge o se tala y los vecinos, con su nombre y su sitio.
+## Lo que se recoge o se tala y los vecinos, con su nombre y su sitio (y, de cada vecino, dónde trabaja, duerme y come).
 func _vivos() -> Array[String]:
 	var out: Array[String] = []
 	for g: String in GRUPOS_VIVOS:
 		for n: Node in get_nodes_in_group(g):
 			if n is Node2D:
 				out.append("%s %s %s" % [g, n.name, str((n as Node2D).global_position.round())])
+	for n: Node in get_nodes_in_group("village_npcs"):
+		for campo: String in CAMPOS_VECINO:
+			out.append("VECINO %s %s %s" % [n.name, campo, str((n.get(campo) as Vector2).round())])
 	return out

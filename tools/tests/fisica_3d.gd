@@ -186,7 +186,7 @@ func _paso2_pisos() -> void:
 	var abajo_px: float = VillageTavern.FLOOR_0_SURFACE_H
 	# Abajo, al pie de la escalera
 	vm.set_player_elevation_level(0)
-	pl.global_position = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, -4))
+	pl.global_position = VillageTavern.al_mundo(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, -4))
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	_ok(absf(mc.altura_pies_px() - abajo_px) < 0.5, "2: al pie de la escalera pisa la Planta 0 (%.1f px)" % mc.altura_pies_px())
 	await _andar(pl, mc, Vector2.DOWN, 100.0, 1.0) # sube la rampa (hacia el sur) hasta la galería
@@ -195,9 +195,9 @@ func _paso2_pisos() -> void:
 	await _andar(pl, mc, Vector2.LEFT, 100.0, 1.2) # por la galería hacia el oeste
 	_ok(int(vm.player_elevation_level) == 1 and absf(mc.altura_pies_px() - arriba_px) < 0.5, "2: anda por la galería sin caerse (" + str(pl.global_position.round()) + ")")
 	await _andar(pl, mc, Vector2.DOWN, 100.0, 1.0) # contra la barandilla sur
-	_ok(Anclas.desmover(pl.global_position).y < VillageTavern.GALLERY_EDGE_Y and int(vm.player_elevation_level) == 1, "2: la barandilla de la galería lo para (" + str(pl.global_position.round()) + ")")
+	_ok(VillageTavern.al_plano(pl.global_position).y < VillageTavern.GALLERY_EDGE_Y and int(vm.player_elevation_level) == 1, "2: la barandilla de la galería lo para (" + str(pl.global_position.round()) + ")")
 	# Bajar: vuelve al desembarco y baja la rampa hacia el norte
-	pl.global_position = Anclas.mover(VillageTavern.STAIRS_TOP_POS + Vector2(0, 4))
+	pl.global_position = VillageTavern.al_mundo(VillageTavern.STAIRS_TOP_POS + Vector2(0, 4))
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.2)
 	await _andar(pl, mc, Vector2.UP, 100.0, 1.4)
 	_ok(int(vm.player_elevation_level) == 0 and absf(mc.altura_pies_px() - abajo_px) < 0.5, "2: bajando la escalera vuelve a la Planta 0 (piso %d, %.1f px)" % [int(vm.player_elevation_level), mc.altura_pies_px()])
@@ -249,7 +249,7 @@ func _paso2c_caidas() -> void:
 	hc.current_health = hc.max_health
 	var heridas_antes: int = hc.wounds.size()
 	vm.set_player_elevation_level(0)
-	pl.global_position = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(0, 80)
+	pl.global_position = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(0, 80)
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	var c: CharacterBody3D = mc.cuerpo()
 	c.global_position.y += 4.0
@@ -349,7 +349,7 @@ func _paso3_nadar() -> void:
 	mc.buceando = false
 	_ok(not en_superficie and buceando_ve, "3c: lo del fondo solo se alcanza buceando (superficie %s, buceando %s)" % [str(en_superficie), str(buceando_ve)])
 	fondo_area.queue_free()
-	pl.global_position = Anclas.mover(Vector2(454.0, -100.0))
+	pl.global_position = Anclas.mover(Vector2(454.0, -100.0)) # delante de la posada, fuera del agua
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
 	mc.set_physics_process(true)
 
@@ -406,9 +406,9 @@ func _paso4_vecino_sube() -> void:
 		return
 	n.set_physics_process(false)
 	n.set_process(false)
-	n.global_position = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(-14.0, -4.0))
+	n.global_position = VillageTavern.al_mundo(VillageTavern.STAIRS_BOTTOM_POS + Vector2(-14.0, -4.0))
 	vm.set_npc_elevation_level(n, 0)
-	var cama: Vector2 = Anclas.mover(VillageTavern.guest_beds()[0])
+	var cama: Vector2 = VillageTavern.al_mundo(VillageTavern.guest_beds()[0])
 	var h_antes: float = Suelo.altura_px(n.global_position, 0, vm)
 	var salto_max: float = 0.0
 	var h_max: float = h_antes
@@ -447,7 +447,7 @@ func _paso4b_contacto() -> void:
 		return
 	n.set_physics_process(false)
 	n.set_process(false)
-	var inicio: Vector2 = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(-20, 80)
+	var inicio: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-20, 80)
 	# Sin nadie delante, el protagonista pasa
 	n.global_position = inicio + Vector2(0, 400)
 	pl.global_position = inicio
@@ -500,7 +500,7 @@ func _paso4c_animales() -> void:
 	# Un jabalí o ciervo delante para al protagonista
 	grande.set_physics_process(false)
 	grande.set_process(false)
-	var inicio: Vector2 = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(-20, 80)
+	var inicio: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-20, 80)
 	pl.global_position = inicio
 	grande.global_position = inicio + Vector2(30, 0)
 	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
@@ -508,7 +508,7 @@ func _paso4c_animales() -> void:
 	_ok(pl.global_position.x < inicio.x + 25.0 or grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)) > 3.0, "4c: no se atraviesa a un animal grande sin más: choca y lo aparta (animal desplazado %.1f px)" % grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)))
 	# Opción B: el ciervo cercano tiene cuerpo completo y, andando contra la pared de la posada, se para
 	var AndarMapa = load("res://scripts/fisica/AndarMapa.gd")
-	var pared: Vector2 = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(-60.0, 40.0) # al suroeste de la puerta, delante de la pared sur
+	var pared: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-60.0, 40.0) # al suroeste de la puerta, delante de la pared sur
 	grande.global_position = pared
 	pl.global_position = pared + Vector2(0.0, 40.0)
 	for _i in range(12):
@@ -518,7 +518,7 @@ func _paso4c_animales() -> void:
 		grande.velocity = Vector2.UP * 60.0
 		AndarMapa.paso(grande, 1.0 / 60.0)
 		await physics_frame
-	_ok(Anclas.desmover(grande.global_position).y > VillageTavern.RECT.end.y - 2.0, "B: y la pared de la posada lo para (y %.0f; pared en %.0f)" % [Anclas.desmover(grande.global_position).y, VillageTavern.RECT.end.y])
+	_ok(VillageTavern.al_plano(grande.global_position).y > VillageTavern.RECT.end.y - 2.0, "B: y la pared de la posada lo para (y %.0f; pared en %.0f)" % [VillageTavern.al_plano(grande.global_position).y, VillageTavern.RECT.end.y])
 	grande.set_physics_process(true)
 	grande.set_process(true)
 
@@ -529,10 +529,10 @@ func _paso5_vista() -> void:
 	var pl = get_first_node_in_group("player")
 	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
 	# El salón (Planta 0) va de la galería (y -166) a la pared sur (y -132); x 440 evita un tabique en x 479
-	var borde_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
-	var salon: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
-	var bajo_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 30.0))
-	var fuera: Vector2 = Anclas.mover(Vector2(330.0, -100.0)) # al suroeste: la mirada cruza la pared sur lejos de la puerta
+	var borde_galeria: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+	var salon: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+	var bajo_galeria: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 30.0))
+	var fuera: Vector2 = VillageTavern.al_mundo(Vector2(330.0, -100.0)) # al suroeste: la mirada cruza la pared sur lejos de la puerta
 	_ok(vm.ve(salon, 0, borde_galeria, 1), "5: desde el salón se ve a quien está en el borde de la galería")
 	_ok(vm.ve(borde_galeria, 1, salon, 0), "5: y desde la galería se ve el salón")
 	_ok(not vm.ve(bajo_galeria, 0, borde_galeria, 1), "5: bajo la galería no se ve a quien está encima")
@@ -563,9 +563,9 @@ func _paso5_vista() -> void:
 func _paso5b_oido() -> void:
 	var vm = get_first_node_in_group("village_manager")
 	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
-	var borde_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
-	var salon: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
-	var bajo_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 30.0))
+	var borde_galeria: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+	var salon: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+	var bajo_galeria: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 30.0))
 	_ok(vm.oye(salon, 0, borde_galeria, 1) == 1.0, "5b: un ruido en el salón llega entero al borde de la galería")
 	_ok(vm.oye(bajo_galeria, 0, borde_galeria, 1) == 0.35, "5b: a través del suelo de la galería llega a un tercio")
 	_ok(vm.oye(salon, 0, salon, -1) == 0.1, "5b: de la calle a bajo tierra casi no llega")
@@ -577,9 +577,9 @@ func _paso5c_golpes() -> void:
 	var vm = get_first_node_in_group("village_manager")
 	var pl = get_first_node_in_group("player")
 	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
-	var borde_galeria: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
-	var salon: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
-	var pie: Vector2 = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, 10))
+	var borde_galeria: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+	var salon: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+	var pie: Vector2 = VillageTavern.al_mundo(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, 10))
 	_ok(not vm.alcanza(salon, 0, borde_galeria, 1), "5c: desde el salón no se golpea a quien está en la galería")
 	_ok(vm.alcanza(pie, 0, pie + Vector2(0, 12), 0), "5c: en la escalera sí se golpea a quien va unos peldaños más arriba")
 	var ciervo = null
@@ -591,7 +591,7 @@ func _paso5c_golpes() -> void:
 		_ok(false, "5c: hay un ciervo para probar las flechas")
 		return
 	ciervo.set_physics_process(false)
-	var sitio: Vector2 = Anclas.mover(VillageTavern.DOOR_POS) + Vector2(-20.0, 80.0)
+	var sitio: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-20.0, 80.0)
 	vm.set_player_elevation_level(0)
 	pl.global_position = sitio
 	ciervo.global_position = sitio + Vector2(60.0, 0.0)
@@ -623,7 +623,7 @@ func _paso5d_alcance() -> void:
 		_ok(false, "5d: hay un vecino para la prueba")
 		return
 	n.set_physics_process(false)
-	var pie: Vector2 = Anclas.mover(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, 6))
+	var pie: Vector2 = VillageTavern.al_mundo(VillageTavern.STAIRS_BOTTOM_POS + Vector2(0, 6))
 	vm.set_player_elevation_level(0)
 	pl.global_position = pie
 	n.global_position = pie + Vector2(0, 14) # unos peldaños más arriba (la rampa sube hacia el sur)
@@ -632,9 +632,9 @@ func _paso5d_alcance() -> void:
 	await physics_frame
 	sel.refresh()
 	_ok(sel.candidates.any(func(c): return c["target"] == n), "5d: en la escalera se llega a hablar con quien va unos peldaños más arriba")
-	var salon: Vector2 = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+	var salon: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
 	pl.global_position = salon
-	n.global_position = Anclas.mover(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+	n.global_position = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
 	vm.set_npc_elevation_level(n, 1)
 	await physics_frame
 	await physics_frame
@@ -652,8 +652,8 @@ func _arreglo_bandido_pared() -> void:
 	var pl = get_first_node_in_group("player")
 	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
 	var r = load("res://scripts/enemies/Raider.gd").new()
-	var dentro: Vector2 = Anclas.mover(Vector2(500.0, VillageTavern.GALLERY_EDGE_Y + 16.0)) # salón; la pared este está en x 608
-	var pared_x: float = Anclas.mover(Vector2(VillageTavern.RECT.end.x, dentro.y)).x
+	var dentro: Vector2 = VillageTavern.al_mundo(Vector2(500.0, VillageTavern.GALLERY_EDGE_Y + 16.0)) # salón; la pared este está en x 608
+	var pared_x: float = VillageTavern.al_mundo(Vector2(VillageTavern.RECT.end.x, dentro.y)).x
 	r.setup("bandit", dentro, 1.0)
 	pl.get_parent().add_child(r)
 	r.fleeing = true
@@ -734,7 +734,7 @@ func _hueco_bajo_barandilla(pl, VillageTavern) -> Vector2:
 	q.exclude = [pl.get_rid()]
 	var r: Rect2 = VillageTavern.RECT
 	for x in range(int(r.position.x) + 20, int(r.end.x) - 20, 4):
-		var p: Vector2 = Anclas.mover(Vector2(float(x), -168.0))
+		var p: Vector2 = VillageTavern.al_mundo(Vector2(float(x), -168.0))
 		q.transform = Transform2D(0.0, p)
 		var solo_arriba := true
 		for h in pl.get_world_2d().direct_space_state.intersect_shape(q, 16):

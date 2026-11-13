@@ -64,9 +64,15 @@ static func pisos_en(pos: Vector2) -> Array[float]:
 	return VillageTavern.floor_heights_at(pos)
 
 
-## Losas: suelos altos que tapan la vista (Vista.gd). Cada una: `rect` y `hueco` (mapa original) y `h` (px de altura).
+## Losas: suelos altos que tapan la vista (Vista.gd). Cada una: `rect` y `hueco` (plano de la posada) y `h` (px de altura).
 static func losas() -> Array[Dictionary]:
 	return [VillageTavern.losa_planta_1()]
+
+
+## ¿Cae ese punto del mundo sobre la losa (y no en su hueco)? Solo la posada tiene losas.
+static func en_losa(losa: Dictionary, p_mundo: Vector2) -> bool:
+	var en_plano: Vector2 = VillageTavern.al_plano(p_mundo)
+	return (losa["rect"] as Rect2).has_point(en_plano) and not (losa["hueco"] as Rect2).has_point(en_plano)
 
 
 ## De los `pisos`, el que pisa alguien cuyos pies están a `alto_px`: el más alto al que llega subiendo como mucho

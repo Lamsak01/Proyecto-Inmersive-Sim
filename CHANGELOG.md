@@ -4,6 +4,17 @@ Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar 
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
 
+## 2026-11-12 — Mudanza al editor: la posada sale ya en su sitio (Claude Code)
+- La posada calcula sola dónde está cada cosa suya: `mapa/edificio.gd` gana `a_mundo` / `a_plano` (plano de fábrica
+  del edificio ↔ mundo, con su sitio y giro del editor) y `VillageTavern` los usa con `al_mundo`, `al_plano`,
+  `dentro()` y `mundo(marca)`. Barra, chimenea, fogones, toneles, póker y billar, barandillas y tabiques de arriba,
+  zonas de uso, asientos, camas, escalera, rutas y alturas ya no pasan por la capa de anclas.
+- Arreglado: el camarero nunca atendía a nadie (miraba las salas de fábrica con sitios del mundo) y la mesa de cartas
+  sentaba a los rivales en sillas del mapa viejo. Las losas que tapan la vista se miran con `Suelo.en_losa`.
+- `volcado_mundo.gd` ahora también apunta a los vecinos y dónde trabajan, duermen y comen (antes miraba un grupo
+  equivocado). Volcado antes/después idéntico; `fisica_3d` y `verify_all` en verde.
+
+
 ## 2026-11-12 — Mudanza al editor: zonas de uso al aire libre y barandillas de los puentes (Claude Code)
 - Puerta del cementerio, barro rojo del molino y pozo de la ronda son cruces de «Sitios» (`puerta_cementerio`,
   `barro_rojo_molino`, `pozo_ronda`); el claro del Caso I y el zapato del puente ya no se traducen. Borradas las 5

@@ -1,6 +1,5 @@
 @tool
 extends RefCounted
-const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas siguen a lo movido
 
 ## Paso 3: La Gran Posada, Taberna y Casino «El Jabalí Dorado» (2 pisos + sótano de peleas).
 ## - Primer edificio de 2 plantas reales:
@@ -18,6 +17,7 @@ const _AN_SITIOS = preload("res://mapa/anclas.gd") # plan de sitios: zonas fijas
 
 const VillageNPC = preload("res://scripts/enemies/VillageNPC.gd")
 const Marca = preload("res://mapa/marca.gd")
+const Edificio = preload("res://mapa/edificio.gd")
 const SimpleInventory = preload("res://scripts/systems/SimpleInventory.gd")
 const WorldInteractableProp = preload("res://scripts/obstacles/WorldInteractableProp.gd")
 
@@ -52,8 +52,11 @@ const OPENINGS_FLOOR_0: Array = [
 ]
 
 ## Puntos clave (barra, cocina, salón, casino y camas de la Planta +1): son marcas de la escena del edificio
-## (mapa/edificios/building_tavern.tscn → «Marcas»), no números aquí. Se piden con sitio(M_…), dining_tables(),
-## guest_beds() y all_upper_beds(); llegan en el mapa original, como esperan las funciones que colocan cosas y vecinos.
+## (mapa/edificios/building_tavern.tscn → «Marcas»), no números aquí. Las salas, la escalera y los tabiques de arriba
+## (RECT, STAIRS_…, BEDROOM_…) son el PLANO de la posada: sus medidas de fábrica. al_mundo() lleva un punto del plano a
+## donde está la posada ahora (movida o girada en el editor) y al_plano() hace lo contrario.
+## Casi todo se pide ya en el mundo: mundo(M_…), dining_tables(), all_upper_beds() y los asientos. sitio() y
+## guest_beds() dan el plano para quien aún crea vecinos con sitios de fábrica (se traducen al crearlos).
 const M_BARRA: String = "barra"
 const M_TRABAJO: String = Marca.TRABAJO     ## Marta detrás del mostrador
 const M_PASAPLATOS: String = "pasaplatos"   ## donde el camarero recoge comandas
@@ -70,30 +73,41 @@ const M_CAMA_HUESPED: String = "cama_huesped_%d"
 const M_CAMA_JUGADOR: String = "cama_jugador"
 const MESAS_COMEDOR: int = 6
 const CAMAS_HUESPED: int = 3
+const RONDA_ANTE_MESA: Vector2 = Vector2(0.0, 10.0) ## el camarero pasa por delante de las mesas, no por encima
+const MESAS_DE_LA_RONDA: Array[int] = [0, 2, 4]
 
-static var _listas: Dictionary = {} ## nombre de lista → sitios (se leen una vez de las marcas)
+static var _listas: Dictionary = {} ## nombre de lista → sitios (se leen una vez de las marcas: no cambian en partida)
 
+## Plano de la posada → mundo.
+static func al_mundo(p_plano: Vector2) -> Vector2:
+	return Edificio.a_mundo(BUILDING_ID, p_plano)
+
+## Mundo → plano de la posada (para preguntar «¿en qué sala está?» con las medidas de fábrica).
+static func al_plano(p_mundo: Vector2) -> Vector2:
+	return Edificio.a_plano(BUILDING_ID, p_mundo)
+
+## ¿Está ese punto del mundo dentro de la posada, contando `margen` px de más alrededor?
+static func dentro(p_mundo: Vector2, margen: float = 0.0) -> bool:
+	return RECT.grow(margen).has_point(al_plano(p_mundo))
+
+## Una marca de la posada en el mundo.
+static func mundo(marca: String) -> Vector2:
+	return al_mundo(sitio(marca))
+
+## Una marca de la posada en su plano (mapa original).
 static func sitio(marca: String) -> Vector2:
 	return Marca.sitio(BUILDING_ID, marca)
 
 static func dining_tables() -> Array:
-	return _lista(M_MESA, MESAS_COMEDOR)
+	return _en_mundo("mundo_mesas", _lista(M_MESA, MESAS_COMEDOR))
 
+## En el plano: las usan los vecinos que se crean con sitios de fábrica.
 static func guest_beds() -> Array:
 	return _lista(M_CAMA_HUESPED, CAMAS_HUESPED)
 
-## Las seis camas de la Planta +1: dueños, huéspedes y la tuya.
+## Las seis camas de la Planta +1 en el mundo: dueños, huéspedes y la tuya.
 static func all_upper_beds() -> Array:
-	if not _listas.has("camas"):
-		_listas["camas"] = [sitio(M_CAMA_MARTA), sitio(M_CAMA_ALISTAIR)] + guest_beds() + [sitio(M_CAMA_JUGADOR)]
-	return _listas["camas"]
-
-## Las cuatro sillas de la mesa de póker, pegadas a ella.
-static func poker_chairs() -> Array[Vector2]:
-	var out: Array[Vector2] = []
-	for off: Vector2 in POKER_CHAIR_OFFSETS:
-		out.append(sitio(M_POKER) + off)
-	return out
+	return _en_mundo("mundo_camas", [sitio(M_CAMA_MARTA), sitio(M_CAMA_ALISTAIR)] + guest_beds() + [sitio(M_CAMA_JUGADOR)])
 
 static func _lista(marca: String, cuantas: int) -> Array:
 	if not _listas.has(marca):
@@ -102,6 +116,28 @@ static func _lista(marca: String, cuantas: int) -> Array:
 			lista.append(sitio(marca % i))
 		_listas[marca] = lista
 	return _listas[marca]
+
+## Puntos del plano llevados al mundo, guardados con su nombre (los asientos se miran a menudo).
+static func _en_mundo(clave: String, plano: Array) -> Array:
+	if not _listas.has(clave):
+		var lista: Array = []
+		for q: Vector2 in plano:
+			lista.append(al_mundo(q))
+		_listas[clave] = lista
+	return _listas[clave]
+
+## Giro de las paredes invisibles de la posada en el mapa plano (la posada gira de 90 en 90 en el editor).
+static func _giro_choque() -> float:
+	return -deg_to_rad(Edificio.giro(BUILDING_ID))
+
+## Mueble sólido en una marca: su pared invisible de la planta baja y el sitio donde nadie se queda de pie.
+static func _mueble(vm, marca: String, sz: Vector2) -> void:
+	vm.add_choque_mundo(mundo(marca), sz, _giro_choque(), "tavern_floor0_walls")
+	vm.no_pisar_mundo(mundo(marca), sz, _giro_choque())
+
+## Tabique o barandilla de la Planta +1, escrito en el plano.
+static func _pared_alta(vm, p_plano: Vector2, sz: Vector2) -> StaticBody2D:
+	return vm.add_choque_mundo(al_mundo(p_plano), sz, _giro_choque(), "tavern_upper_walls")
 
 const BAR_COUNTER_SIZE: Vector2 = Vector2(108.0, 10.0)
 
@@ -150,11 +186,6 @@ const POKER_CALLOUTS: Array[String] = [
 
 # ------------------------------------------------------------------ montaje del mundo
 static func setup_world(vm) -> void:
-	vm._tavern_social_pos = sitio(M_MESA_CENTRAL)
-	vm._tavern_games_pos = sitio(M_POKER)
-	vm._tavern_pool_pos = sitio(M_BILLAR)
-	vm._tavern_bed_pos = sitio(M_CAMA_JUGADOR)
-
 	var tex_innkeeper: Texture2D = vm._load_tex("res://assests/world/village/villager_innkeeper.png")
 
 	vm._construct_solid_building(BUILDING_ID, TITLE, CENTER,
@@ -167,50 +198,43 @@ static func setup_world(vm) -> void:
 		sb_w.collision_layer = load("res://scripts/fisica/Suelo.gd").capa(int(vm.player_elevation_level) == 0)
 
 	# Mostrador largo de Marta y pasa-platos del camarero
-	vm._add_prop_collider(sitio(M_BARRA), Vector2(96.0, 10.0), "tavern_floor0_walls")
-	vm.register_no_stand_furniture(sitio(M_BARRA), Vector2(96.0, 10.0))
+	_mueble(vm, M_BARRA, Vector2(96.0, 10.0))
 
 	# Chimenea del gran salón, fogón de cocina, mesa de preparación y toneles tras la barra: se ven en 3D; aquí solo su choque
-	vm._add_prop_collider(sitio(M_CHIMENEA), Vector2(12.0, 28.0), "tavern_floor0_walls")
-	vm.register_no_stand_furniture(sitio(M_CHIMENEA), Vector2(12.0, 28.0))
-	vm._add_prop_collider(sitio(M_FOGONES), Vector2(24.0, 11.0), "tavern_floor0_walls")
-	vm.register_no_stand_furniture(sitio(M_FOGONES), Vector2(24.0, 11.0))
-	vm._add_prop_collider(sitio(M_TONELES), Vector2(52.0, 10.0), "tavern_floor0_walls")
-	vm.register_no_stand_furniture(sitio(M_TONELES), Vector2(52.0, 10.0))
+	_mueble(vm, M_CHIMENEA, Vector2(12.0, 28.0))
+	_mueble(vm, M_FOGONES, Vector2(24.0, 11.0))
+	_mueble(vm, M_TONELES, Vector2(52.0, 10.0))
 	# Mesa de corte, toneles y cajas de la bodega y las 6 mesas del salón chocan desde sus muebles (escena de la taberna)
 
 	# 1. Mesa Verde de Póker / Blackjack / Ruleta con 4 sillas
-	vm._add_prop_collider(sitio(M_POKER), Vector2(14.0, 10.0), "tavern_floor0_walls")
-	vm.register_no_stand_furniture(sitio(M_POKER), Vector2(14.0, 10.0))
-
-	vm._add_station_area("TavernGamesTableArea", sitio(M_POKER), 24.0, "tavern_games")
+	_mueble(vm, M_POKER, Vector2(14.0, 10.0))
+	vm.add_zona_uso_mundo("TavernGamesTableArea", mundo(M_POKER), 24.0, "tavern_games")
 
 	# 2. Mesa de Billar de la Posada
-	vm._add_prop_collider(sitio(M_BILLAR), Vector2(26.0, 16.0), "tavern_floor0_walls")
-	vm.register_no_stand_furniture(sitio(M_BILLAR), Vector2(26.0, 16.0))
-	vm._add_station_area("TavernPoolTableArea", sitio(M_BILLAR), 24.0, "tavern_pool")
+	_mueble(vm, M_BILLAR, Vector2(26.0, 16.0))
+	vm.add_zona_uso_mundo("TavernPoolTableArea", mundo(M_BILLAR), 24.0, "tavern_pool")
 
 	# 3b. Barandillas sólidas y tabiques de los 3 cuartos en Planta +1 ("tavern_upper_walls")
 	# Paso a 3D, paso 2c: las barandillas son bajas (grupo «barandilla»): se pueden saltar… y caer al salón.
 	for bar in [[Vector2(434.0, -168.0), Vector2(348.0, 6.0)], # Barandilla sur de la galería alta
 			[Vector2(558.0, -261.0), Vector2(6.0, 110.0)],     # Barandilla oeste del hueco de escalera
 			[Vector2(582.0, -298.0), Vector2(48.0, 6.0)]]:     # Tope norte del hueco de escalera en Planta +1
-		var sb_bar: StaticBody2D = vm._add_prop_collider(bar[0], bar[1], "tavern_upper_walls")
+		var sb_bar: StaticBody2D = _pared_alta(vm, bar[0], bar[1])
 		if sb_bar != null:
 			sb_bar.add_to_group("barandilla")
 	var cur_ux: float = 264.0
 	for dx in BEDROOM_DOORS_X:
 		var a_ux: float = float(dx) - BEDROOM_DOOR_HALF_W
 		if a_ux - cur_ux > 2.0:
-			vm._add_prop_collider(Vector2((cur_ux + a_ux) * 0.5, BEDROOM_WALL_Y), Vector2(a_ux - cur_ux, 5.0), "tavern_upper_walls")
+			_pared_alta(vm, Vector2((cur_ux + a_ux) * 0.5, BEDROOM_WALL_Y), Vector2(a_ux - cur_ux, 5.0))
 		cur_ux = float(dx) + BEDROOM_DOOR_HALF_W
 	if 558.0 - cur_ux > 2.0:
-		vm._add_prop_collider(Vector2((cur_ux + 558.0) * 0.5, BEDROOM_WALL_Y), Vector2(558.0 - cur_ux, 5.0), "tavern_upper_walls")
+		_pared_alta(vm, Vector2((cur_ux + 558.0) * 0.5, BEDROOM_WALL_Y), Vector2(558.0 - cur_ux, 5.0))
 	for part_ux in BEDROOM_PARTITIONS_X:
 		if float(part_ux) < 556.0:
-			vm._add_prop_collider(Vector2(float(part_ux), -265.0), Vector2(5.0, 98.0), "tavern_upper_walls")
+			_pared_alta(vm, Vector2(float(part_ux), -265.0), Vector2(5.0, 98.0))
 
-	vm._add_station_area("TavernPlayerBedArea", sitio(M_CAMA_JUGADOR), 20.0, "tavern_bed")
+	vm.add_zona_uso_mundo("TavernPlayerBedArea", mundo(M_CAMA_JUGADOR), 20.0, "tavern_bed")
 
 	vm._spawn_house_chest(Vector2(365.0, -300.0), "Cofre de la Posada El Jabalí", FAMILY_ID) # rincón del cuarto de los dueños (2026-11-11: chocaba con la cama de Marta)
 
@@ -244,36 +268,36 @@ static func setup_world(vm) -> void:
 		"bed2_pos": guest_beds()[2],
 		"table_pos": sitio(M_MESA_CENTRAL),
 	}
-	vm._add_prop_collider(sitio(M_PASAPLATOS), vm.COLISOR_PUESTO)
+	vm.add_choque_mundo(mundo(M_PASAPLATOS), vm.COLISOR_PUESTO, _giro_choque())
 	vm._register_shop_business_stall(waiter_role, "🍺 Servicio de Mesas 'El Jabalí Dorado'", FAMILY_ID, sitio(M_PASAPLATOS))
 
 # ------------------------------------------------------------------ asientos de comedor y póker
-## Plan de sitios: los asientos se devuelven en su sitio ACTUAL (siguen a la taberna movida en el editor 3D).
+## Los asientos, en el mundo: las sillas van pegadas a su mesa en el plano y giran con la posada.
 static func dining_seats() -> Array:
-	var out: Array = []
-	for tp in dining_tables():
-		for off in CHAIR_OFFSETS:
-			out.append((tp as Vector2) + (off as Vector2))
-	return _AN_SITIOS.mover_lista("taberna_comedor", out)
+	var plano: Array = []
+	for tp: Vector2 in _lista(M_MESA, MESAS_COMEDOR):
+		for off: Vector2 in CHAIR_OFFSETS:
+			plano.append(tp + off)
+	return _en_mundo("mundo_comedor", plano)
 
 static func poker_seats() -> Array:
-	var out: Array = []
-	for off in POKER_CHAIR_OFFSETS:
-		out.append(sitio(M_POKER) + (off as Vector2))
-	return _AN_SITIOS.mover_lista("taberna_poker", out)
+	var plano: Array = []
+	for off: Vector2 in POKER_CHAIR_OFFSETS:
+		plano.append(sitio(M_POKER) + off)
+	return _en_mundo("mundo_poker", plano)
 
-## Recibe y devuelve sitios actuales.
+## Recibe y devuelve sitios del mundo.
 static func table_center_for_seat(seat: Vector2) -> Vector2:
-	for tp in _AN_SITIOS.mover_lista("taberna_mesas", dining_tables()): # también si se movió un mueble
-		if seat.distance_to(tp as Vector2) <= 20.0:
-			return tp as Vector2
-	var g: Vector2 = _AN_SITIOS.mover(sitio(M_POKER))
+	for tp: Vector2 in dining_tables():
+		if seat.distance_to(tp) <= 20.0:
+			return tp
+	var g: Vector2 = mundo(M_POKER)
 	if seat.distance_to(g) <= 22.0:
 		return g
-	return _AN_SITIOS.mover(sitio(M_MESA_CENTRAL))
+	return mundo(M_MESA_CENTRAL)
 
 static func is_at_seat(pos: Vector2) -> bool:
-	if not RECT.grow(4.0).has_point(_AN_SITIOS.desmover(pos)): # plan de sitios: la zona se compara en el mapa original
+	if not dentro(pos, 4.0):
 		return false
 	for s in dining_seats():
 		if pos.distance_to(s as Vector2) <= 6.5:
@@ -312,7 +336,7 @@ static func pick_seat_for(vm, npc) -> Vector2:
 		if not is_seat_taken(vm, s, npc):
 			free.append(s)
 	if free.is_empty():
-		return _AN_SITIOS.mover(sitio(M_MESA_CENTRAL))
+		return mundo(M_MESA_CENTRAL)
 	return free[absi(npc.npc_name.hash() + (vm.VillageNeeds.total_hours() if vm != null else 0)) % free.size()] # hora del juego, no reloj real: misma partida, mismo resultado
 
 static func pick_poker_seat_for(vm, npc) -> Vector2:
@@ -325,16 +349,12 @@ static func pick_poker_seat_for(vm, npc) -> Vector2:
 	return free[absi(npc.npc_name.hash()) % free.size()]
 
 # ------------------------------------------------------------------ navegación entre salas y entre pisos (Planta 0 y Planta +1)
+## ¿Es ese sitio del mundo una de las camas de la Planta +1?
 static func is_upper_floor_target(pos: Vector2) -> bool:
-	return es_cama_alta_original(_AN_SITIOS.desmover(pos)) # plan de sitios: se compara en el mapa original
-
-
-## Lo mismo con un punto YA en el mapa original (dentro de `_route_original`; traducirlo dos veces lo estropea con el mapa ×E).
-static func es_cama_alta_original(pos: Vector2) -> bool:
-	if not RECT.grow(6.0).has_point(pos):
+	if not dentro(pos, 6.0):
 		return false
-	for b in all_upper_beds():
-		if pos.distance_to(b as Vector2) <= 3.5:
+	for b: Vector2 in all_upper_beds():
+		if pos.distance_to(b) <= 3.5:
 			return true
 	return false
 
@@ -430,15 +450,15 @@ static func route_floor_1(from_pos: Vector2, target_pos: Vector2) -> Vector2:
 	return target_pos
 
 ## Ruta completa dentro de la taberna teniendo en cuenta las dos plantas (0 y +1) y la escalera física.
-## Plan de sitios: la ruta se calcula en el mapa original (las constantes de la taberna) y se devuelve en el sitio actual.
+## Recibe y devuelve sitios del mundo; la ruta se calcula en el plano (salas, arcos y escalera de fábrica).
 static func route(from_pos: Vector2, target_pos: Vector2, agent: Node2D = null, vm = null) -> Vector2:
-	return _AN_SITIOS.mover(_route_original(_AN_SITIOS.desmover(from_pos), _AN_SITIOS.desmover(target_pos), agent, vm))
+	var to_elev: int = 1 if is_upper_floor_target(target_pos) else 0
+	return al_mundo(_route_plano(al_plano(from_pos), al_plano(target_pos), to_elev, agent, vm))
 
-static func _route_original(from_pos: Vector2, target_pos: Vector2, agent: Node2D = null, vm = null) -> Vector2:
+static func _route_plano(from_pos: Vector2, target_pos: Vector2, to_elev: int, agent: Node2D = null, vm = null) -> Vector2:
 	var from_elev: int = 0
 	if agent != null and "elevation_level" in agent:
 		from_elev = int(agent.elevation_level)
-	var to_elev: int = 1 if es_cama_alta_original(target_pos) else 0 # target_pos ya está en el mapa original
 
 	# Subir de Planta 0 a Planta +1 por la escalera
 	if from_elev == 0 and to_elev == 1:
@@ -466,7 +486,7 @@ static func _route_original(from_pos: Vector2, target_pos: Vector2, agent: Node2
 
 ## Altura 3D adicional (`2.95..22.55 px`) para que los pies apoyen sobre las tablas/alfombras de Planta 0, escalera y Planta +1.
 static func elevation_height_for(pos: Vector2, elev_level: int) -> float:
-	pos = _AN_SITIOS.desmover(pos)
+	pos = al_plano(pos)
 	if RECT.grow(10.0).has_point(pos) and STAIRS_RAMP_RECT.has_point(pos):
 		var t: float = clampf((pos.y - STAIRS_BOTTOM_POS.y) / maxf(1.0, STAIRS_TOP_POS.y - STAIRS_BOTTOM_POS.y), 0.0, 1.0)
 		return lerpf(2.95, FLOOR_1_H + 0.55, t)
@@ -479,7 +499,7 @@ static func elevation_height_for(pos: Vector2, elev_level: int) -> float:
 ## Paso a 3D, paso 2: los suelos que hay en `pos` dentro de la posada, en px de altura sobre el relieve y de abajo
 ## arriba: la tarima de la Planta 0, la rampa de la escalera (en su hueco) o el suelo de la Planta +1. Fuera, ninguno.
 static func floor_heights_at(pos: Vector2) -> Array[float]:
-	pos = _AN_SITIOS.desmover(pos)
+	pos = al_plano(pos)
 	var out: Array[float] = []
 	if not RECT.grow(2.0).has_point(pos):
 		return out
@@ -492,6 +512,7 @@ static func floor_heights_at(pos: Vector2) -> Array[float]:
 	return out
 
 ## Paso a 3D, paso 5a: el suelo de la Planta +1 como losa que tapa la vista (galería y cuartos; el hueco de la escalera no).
+## `rect` y `hueco` en el plano de la posada (Suelo.en_losa lo compara con al_plano).
 static func losa_planta_1() -> Dictionary:
 	return {"rect": Rect2(RECT.position, Vector2(RECT.size.x, GALLERY_EDGE_Y - RECT.position.y)), "hueco": STAIRS_WELL_RECT, "h": FLOOR_1_SURFACE_H}
 
@@ -506,12 +527,12 @@ static func use_stairs(vm, player: Node2D) -> void:
 	if vm == null or player == null:
 		return
 	if int(vm.player_elevation_level) == 1:
-		player.global_position = _AN_SITIOS.mover(STAIRS_BOTTOM_POS + Vector2(-12.0, 6.0))
+		player.global_position = al_mundo(STAIRS_BOTTOM_POS + Vector2(-12.0, 6.0))
 		vm.set_player_elevation_level(0)
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("🪜🍺 Bajaste al Gran Salón (Planta 0)", Color(0.95, 0.85, 0.55), -38.0)
 	else:
-		player.global_position = _AN_SITIOS.mover(STAIRS_TOP_POS + Vector2(-12.0, 4.0))
+		player.global_position = al_mundo(STAIRS_TOP_POS + Vector2(-12.0, 4.0))
 		vm.set_player_elevation_level(1)
 		if player.has_method("_spawn_floating_text"):
 			player._spawn_floating_text("🪜🛌 Subiste a los Cuartos de Huéspedes (Planta +1)", Color(0.85, 0.95, 1.0), -38.0)
@@ -520,8 +541,8 @@ static func use_stairs(vm, player: Node2D) -> void:
 static func tick_waiter(vm, waiter, delta: float) -> void:
 	if vm == null or waiter == null or not is_instance_valid(waiter):
 		return
-	if int(waiter.elevation_level) != 0 and RECT.grow(8.0).has_point(_AN_SITIOS.desmover(waiter.global_position)):
-		var wp_down: Vector2 = route(waiter.global_position, _AN_SITIOS.mover(sitio(M_PASAPLATOS)), waiter, vm)
+	if int(waiter.elevation_level) != 0 and dentro(waiter.global_position, 8.0):
+		var wp_down: Vector2 = route(waiter.global_position, mundo(M_PASAPLATOS), waiter, vm)
 		waiter._approach_or_stop(wp_down, 6.0, 46.0, delta)
 		return
 
@@ -538,7 +559,7 @@ static func tick_waiter(vm, waiter, delta: float) -> void:
 			waiter.set_meta("waiter_timer", 0.0)
 			return
 		# Patrulla entre el pasa-platos y las mesas del salón limpiando jarras
-		var patrol_pts: Array = _AN_SITIOS.mover_lista("taberna_ronda", [sitio(M_PASAPLATOS), dining_tables()[0] + Vector2(0, 10), dining_tables()[2] + Vector2(0, 10), dining_tables()[4] + Vector2(0, 10)])
+		var patrol_pts: Array = _ronda_camarero()
 		var p_idx: int = int(waiter.get_meta("waiter_patrol_idx", 0)) % patrol_pts.size()
 		var p_target: Vector2 = patrol_pts[p_idx]
 		waiter._update_craft_bar_visual(0.35, "🍺 Atendiendo el salón...", Color(0.95, 0.78, 0.36, 0.90))
@@ -553,7 +574,7 @@ static func tick_waiter(vm, waiter, delta: float) -> void:
 
 	var target_key: String = str(waiter.get_meta("waiter_target_key", ""))
 	var customer = vm._get_npcs_by_person_key().get(target_key, null)
-	if customer == null or not is_instance_valid(customer) or not customer.is_conscious() or not RECT.has_point(_AN_SITIOS.desmover(customer.global_position)):
+	if customer == null or not is_instance_valid(customer) or not customer.is_conscious() or not dentro(customer.global_position):
 		waiter.set_meta("waiter_step", "idle")
 		return
 
@@ -574,8 +595,8 @@ static func tick_waiter(vm, waiter, delta: float) -> void:
 
 	if step == "pickup_kitchen":
 		waiter._update_craft_bar_visual(0.72, "🍲 Recogiendo comanda en barra...", Color(1.0, 0.78, 0.35, 0.95))
-		if waiter.global_position.distance_to(_AN_SITIOS.mover(sitio(M_PASAPLATOS))) > 16.0:
-			waiter._move_towards_point(_AN_SITIOS.mover(sitio(M_PASAPLATOS)), 50.0, delta)
+		if waiter.global_position.distance_to(mundo(M_PASAPLATOS)) > 16.0:
+			waiter._move_towards_point(mundo(M_PASAPLATOS), 50.0, delta)
 			return
 		waiter.velocity = Vector2.ZERO
 		if timer <= 0.0:
@@ -607,6 +628,13 @@ static func tick_waiter(vm, waiter, delta: float) -> void:
 		waiter.set_meta("waiter_step", "idle")
 		waiter.set_meta("waiter_timer", 3.0)
 
+## Ronda del camarero sin comandas, en el mundo: el pasa-platos y por delante de tres mesas del salón.
+static func _ronda_camarero() -> Array:
+	var plano: Array = [sitio(M_PASAPLATOS)]
+	for i: int in MESAS_DE_LA_RONDA:
+		plano.append((_lista(M_MESA, MESAS_COMEDOR)[i] as Vector2) + RONDA_ANTE_MESA)
+	return _en_mundo("mundo_ronda", plano)
+
 static func _pick_unserved_customer(vm, waiter):
 	var now_ms: int = Time.get_ticks_msec()
 	var best = null
@@ -614,7 +642,8 @@ static func _pick_unserved_customer(vm, waiter):
 	for n in vm.VillageNeeds.living(vm):
 		if n == waiter or n == vm._innkeeper_npc or not n.is_conscious() or int(n.elevation_level) != 0:
 			continue
-		if not (ROOMS_FLOOR_0["salon"].has_point(n.global_position) or ROOMS_FLOOR_0["casino"].has_point(n.global_position)):
+		var en_plano: Vector2 = al_plano(n.global_position) # (2026-11-12: antes miraba el mundo con las salas de fábrica y nunca atendía a nadie)
+		if not (ROOMS_FLOOR_0["salon"].has_point(en_plano) or ROOMS_FLOOR_0["casino"].has_point(en_plano)):
 			continue
 		if n.velocity.length_squared() > 16.0:
 			continue
@@ -664,7 +693,7 @@ static func on_hour(vm, hour: int) -> void:
 	for cand in candidates:
 		if table_count < 4 and (demo_active or poker_count >= 2):
 			var d_seat0: Vector2 = pick_seat_for(vm, cand)
-			if d_seat0 != Vector2.ZERO and d_seat0 != _AN_SITIOS.mover(sitio(M_MESA_CENTRAL)):
+			if d_seat0 != Vector2.ZERO and d_seat0 != mundo(M_MESA_CENTRAL):
 				cand.set_meta("leisure_place", "tavern_hall")
 				cand.start_errand("leisure", d_seat0)
 				table_count += 1
@@ -678,7 +707,7 @@ static func on_hour(vm, hour: int) -> void:
 				continue
 		if table_count < 7:
 			var d_seat: Vector2 = pick_seat_for(vm, cand)
-			if d_seat != Vector2.ZERO and d_seat != _AN_SITIOS.mover(sitio(M_MESA_CENTRAL)):
+			if d_seat != Vector2.ZERO and d_seat != mundo(M_MESA_CENTRAL):
 				cand.set_meta("leisure_place", "tavern_hall")
 				cand.start_errand("leisure", d_seat)
 				if table_count < 4:
@@ -706,7 +735,7 @@ static func seed_initial_patrons(vm) -> void:
 				continue
 			if int(n.trade_role) in [int(VillageNPC.TradeRole.FAMILY_MEMBER), int(VillageNPC.TradeRole.UNEMPLOYED)]:
 				var d_s: Vector2 = pick_seat_for(vm, n)
-				if d_s != Vector2.ZERO and d_s != _AN_SITIOS.mover(sitio(M_MESA_CENTRAL)):
+				if d_s != Vector2.ZERO and d_s != mundo(M_MESA_CENTRAL):
 					n.set_meta("leisure_place", "tavern_hall")
 					n.start_errand("leisure", d_s)
 					seated_hall += 1
@@ -728,17 +757,17 @@ static func tick(vm, delta: float) -> void:
 	# 1. Mantener la capa vertical (`elevation_level = 1`) de los vecinos que duermen en las camas del Piso +1,
 	#    y orientar a Marta (detrás de la barra) y a los jugadores de póker/comensales sentados hacia su mesa.
 	if is_instance_valid(vm._innkeeper_npc) and not vm._innkeeper_npc.is_dead:
-		if vm._innkeeper_npc.global_position.distance_to(_AN_SITIOS.mover(sitio(M_TRABAJO))) <= 14.0 and vm._innkeeper_npc.velocity.length_squared() < 4.0:
+		if vm._innkeeper_npc.global_position.distance_to(mundo(M_TRABAJO)) <= 14.0 and vm._innkeeper_npc.velocity.length_squared() < 4.0:
 			vm._innkeeper_npc.facing_direction = Vector2.DOWN
 
 	var poker_seated: Array = []
 	var hall_seated_count: int = 0
-	var games_act: Vector2 = _AN_SITIOS.mover(sitio(M_POKER)) # plan de sitios: la mesa de póker en su sitio actual
-	var mesas_act: Array = _AN_SITIOS.mover_lista("taberna_mesas", dining_tables())
+	var games_act: Vector2 = mundo(M_POKER)
+	var mesas_act: Array = dining_tables()
 	for n in vm.VillageNeeds.living(vm):
 		if n.is_sleeping and is_upper_floor_target(n.global_position) and int(n.elevation_level) != 1:
 			vm.set_npc_elevation_level(n, 1)
-		elif not n.is_sleeping and not RECT.grow(10.0).has_point(_AN_SITIOS.desmover(n.global_position)) and int(n.elevation_level) == 1:
+		elif not n.is_sleeping and not dentro(n.global_position, 10.0) and int(n.elevation_level) == 1:
 			# Si salió de la posada y no está en una casa con altillo, asegurar nivel 0
 			if str(n.lodging) == "":
 				vm.set_npc_elevation_level(n, 0)

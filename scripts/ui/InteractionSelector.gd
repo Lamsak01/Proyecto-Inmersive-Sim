@@ -2,7 +2,6 @@ extends Node2D
 
 const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
-const Anclas = preload("res://mapa/anclas.gd")
 
 ## Selector de la tecla [E] (2026-11-05). Antes, con varias cosas cerca (puerta, mostrador, vecino, cofre, caballo…),
 ## el juego elegía una por su cuenta. Ahora:
@@ -261,9 +260,8 @@ func _buceando() -> bool:
 func _nivel_de(a: Area2D, tgt: Node, nivel_prota: int) -> int:
 	if "elevation_level" in tgt:
 		return int(tgt.get("elevation_level"))
-	var pos: Vector2 = Anclas.desmover(a.global_position)
-	if a.has_meta("village_station") and VillageTavern.RECT.has_point(pos):
-		return 1 if VillageTavern.es_cama_alta_original(pos) else 0 # pos ya está en el mapa original
+	if a.has_meta("village_station") and VillageTavern.dentro(a.global_position):
+		return 1 if VillageTavern.is_upper_floor_target(a.global_position) else 0
 	return nivel_prota
 
 

@@ -100,20 +100,40 @@ static func nombre_legible(id: String) -> String:
 
 
 ## Cuánto se ha movido cada edificio en el mapa 2D (id → Vector2). Lo usa VillageManagerBase al construirlos.
-static var _cache: Dictionary = {}
+static var _cache: Dictionary = {} ## id → [desplazamiento, giro en grados, centro_original]
 static var _leido: bool = false
+const _SIN_PIEZA: Array = [Vector2.ZERO, 0.0, Vector2.ZERO]
 
 static func desplazamiento(id: String) -> Vector2:
-	if not _leido:
-		_leido = true
-		_cache = _leer_escena()
-	return (_cache.get(id, [Vector2.ZERO, 0.0]) as Array)[0]
+	return _datos(id)[0]
 
 
 ## Giro del edificio en el juego: 0, 90, 180 o 270 grados (el del editor redondeado).
 static func giro(id: String) -> float:
-	desplazamiento(id)
-	return (_cache.get(id, [Vector2.ZERO, 0.0]) as Array)[1]
+	return _datos(id)[1]
+
+
+static func _datos(id: String) -> Array:
+	if not _leido:
+		_leido = true
+		_cache = _leer_escena()
+	return _cache.get(id, _SIN_PIEZA)
+
+
+## Del plano del edificio (sus medidas de fábrica: marcas, salas, escalera…) al mundo, donde está su pieza ahora,
+## movida y girada en el editor. Es lo que hacía la capa de anclas para cada edificio, sin buscar a quién pertenece.
+static func a_mundo(id: String, p_plano: Vector2) -> Vector2:
+	var datos: Array = _datos(id)
+	var centro: Vector2 = datos[2]
+	return centro * Mapa3D.E + (datos[0] as Vector2) + (p_plano - centro).rotated(-deg_to_rad(float(datos[1])))
+
+
+## Lo contrario: un punto del mundo (un vecino, el jugador) visto desde el plano del edificio, para preguntar
+## «¿está en este cuarto?» con las medidas de fábrica.
+static func a_plano(id: String, p_mundo: Vector2) -> Vector2:
+	var datos: Array = _datos(id)
+	var centro: Vector2 = datos[2]
+	return centro + (p_mundo - centro * Mapa3D.E - (datos[0] as Vector2)).rotated(deg_to_rad(float(datos[1])))
 
 
 ## ¿Tiene ese edificio pieza propia en el valle? (Las casas levantadas en un solar no: van con su solar.)
@@ -175,6 +195,5 @@ static func _leer_escena() -> Dictionary:
 		var ahora := Mapa3D.a_mapa(xf.origin)
 		var d := ahora - centro * Mapa3D.E # mapa estirado: lo que el usuario movió la pieza, aparte del estirado
 		var g := fposmod(roundf(rad_to_deg(xf.basis.orthonormalized().get_euler().y) / 90.0) * 90.0, 360.0)
-		if d.length() > 0.5 or g > 0.5:
-			out[id] = [d, g]
+		out[id] = [d if d.length() > 0.5 else Vector2.ZERO, g, centro]
 	return out

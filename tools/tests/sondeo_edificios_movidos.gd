@@ -15,9 +15,9 @@ func _initialize() -> void:
 	var cache := {}
 	var viejos := {}
 	for e in ref["edificios"]:
-		cache[str(e["id"])] = [D, 0.0]
 		var r: Array = e["r"]
 		viejos[str(e["id"])] = Rect2(r[0], r[1], r[2], r[3])
+		cache[str(e["id"])] = [D, 0.0, (viejos[str(e["id"])] as Rect2).get_center()] # desplazamiento, giro, centro
 	ED._leido = true
 	ED._cache = cache
 	root.add_child(load("uid://dsoiuct8kdsk3").instantiate())
@@ -58,7 +58,7 @@ func _initialize() -> void:
 		volcado[k] = [zonas[k].x, zonas[k].y]
 	var asiento: Vector2 = VT.dining_seats()[0]
 	print("SONDEO zonas: asiento de taberna reconocido=%s, en la taberna=%s, asiento del restaurante=%s" % [
-		VT.is_at_seat(asiento), VT.RECT.has_point(load("res://mapa/anclas.gd").desmover(asiento)), VR.is_at_seat(VR.seats()[0])])
+		VT.is_at_seat(asiento), VT.dentro(asiento), VR.is_at_seat(VR.seats()[0])])
 	var tag := "quieto" if D == Vector2.ZERO else "movido"
 	var f := FileAccess.open("user://sondeo_%s.json" % tag, FileAccess.WRITE)
 	f.store_string(JSON.stringify(volcado))

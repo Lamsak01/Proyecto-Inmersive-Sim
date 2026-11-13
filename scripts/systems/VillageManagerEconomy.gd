@@ -548,7 +548,7 @@ func consume_village_meal_for_npc(npc: VillageNPC) -> bool:
 		return false
 
 	var p_key: String = npc.family_id if (npc.family_id != "none" and npc.family_id != "") else npc.npc_name
-	var near_tavern: bool = VillageTavern.RECT.grow(8.0).has_point(_AN_SITIOS.desmover(npc.global_position))
+	var near_tavern: bool = VillageTavern.dentro(npc.global_position, 8.0)
 
 	# 1º PRIORIDAD: Si está en su casa/cuartel (no en la Taberna) y su despensa doméstica (`house_pantry`) tiene suministros, cocina en casa gratis
 	var cur_pantry: int = int(house_pantry.get(p_key, 0))

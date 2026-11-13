@@ -308,8 +308,11 @@ const ROMANCE_STAGE_NAMES: Dictionary = {"interest": "sienten interés mutuo", "
 
 ## El trozo del letrero que ocupa el texto de verdad (los letreros son más anchos que su texto y van centrados).
 
+## Sillas de la mesa de póker, en el mundo (la mesa de cartas las usa para sentar a los rivales).
 func get_poker_chair_positions() -> Array[Vector2]:
-	return VillageTavern.poker_chairs()
+	var out: Array[Vector2] = []
+	out.assign(VillageTavern.poker_seats())
+	return out
 
 func _is_near(player: Node2D, mouse_pos: Vector2, target_pos: Vector2, p_rad: float, m_rad: float) -> bool:
 	return (player != null and player.global_position.distance_squared_to(target_pos) <= p_rad * p_rad) or (target_pos.distance_squared_to(mouse_pos) <= m_rad * m_rad)
@@ -729,7 +732,7 @@ func get_navigation_waypoint(from_pos: Vector2, to_pos: Vector2, agent: Node2D =
 ## paso en su sitio actual (sigue al edificio movido o girado en el editor 3D).
 func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
 	if b_id == "building_tavern":
-		return VillageTavern.route(from_pos, target_pos, agent, self) # ya traduce por su cuenta
+		return VillageTavern.route(from_pos, target_pos, agent, self) # trabaja en el mundo
 	var o_from: Vector2 = _AN_SITIOS.desmover(from_pos)
 	var o_to: Vector2 = _AN_SITIOS.desmover(target_pos)
 	var r: Vector2 = _route_internal_original(b_id, o_from, o_to, agent)
@@ -738,8 +741,6 @@ func _route_internal_building_partitions(b_id: String, from_pos: Vector2, target
 
 func _route_internal_original(b_id: String, from_pos: Vector2, target_pos: Vector2, agent: Node2D = null) -> Vector2:
 	match b_id:
-		"building_tavern":
-			return VillageTavern.route(from_pos, target_pos, agent, self)
 		"mixed_family_herbalist":
 			if from_pos.y > 156.0 and target_pos.y < 162.0:
 				return Vector2(325.0, 171.0 if absf(from_pos.x - 325.0) > 9.0 else 145.0)
@@ -784,9 +785,13 @@ static func _leer_mesas_morgue() -> Array[Vector2]:
 
 ## `pos` en el mapa ORIGINAL (se traduce a su sitio actual, como el choque que la acompaña).
 func register_no_stand_furniture(pos: Vector2, sz: Vector2) -> void:
+	no_pisar_mundo(sitio(pos), sz, 0.0)
+
+## Sitio del mundo donde ningún vecino se queda de pie (un mueble): `giro` en radianes del mapa plano.
+func no_pisar_mundo(pos: Vector2, sz: Vector2, giro: float) -> void:
 	if sz.x <= 0.0 or sz.y <= 0.0:
 		return
-	_no_stand_furniture_rects.append(Rect2(sitio(pos) - sz * 0.5, sz))
+	_no_stand_furniture_rects.append(Transform2D(giro, pos) * Rect2(-sz * 0.5, sz))
 
 ## Choque de un mueble del editor (mapa/mueble.gd), ya en el mundo: su pared invisible y, en la planta baja, el sitio
 ## donde ningún vecino puede quedarse de pie. Lo pone el escenario 3D al colocar cada edificio.
@@ -929,8 +934,8 @@ func _slide_or_stay(prev_pos: Vector2, candidate_pos: Vector2, elev: int, allow_
 func sanitize_npc_separation_pos(prev_pos: Vector2, candidate_pos: Vector2, elev: int = 0, allow_slide: bool = true) -> Vector2:
 	if elev == 1:
 		var r_up: Rect2 = VillageTavern.RECT.grow(-13.0)
-		var c_orig: Vector2 = _AN_SITIOS.desmover(candidate_pos) # plan de sitios: el piso de arriba sigue a la taberna
-		return _AN_SITIOS.mover(Vector2(
+		var c_orig: Vector2 = VillageTavern.al_plano(candidate_pos) # el piso de arriba se mide en el plano de la posada
+		return VillageTavern.al_mundo(Vector2(
 			clampf(c_orig.x, r_up.position.x, r_up.end.x),
 			clampf(c_orig.y, r_up.position.y, r_up.end.y)
 		))
@@ -1288,7 +1293,7 @@ func add_choque_mundo(pos: Vector2, sz: Vector2, giro: float, group_tag: String 
 	if group_tag != "tavern_upper_walls" and _is_prop_collider_blocking_passage(pos, sz):
 		return null
 	var tag: String = group_tag
-	if tag == "" and VillageTavern.RECT.has_point(_AN_SITIOS.desmover(pos)):
+	if tag == "" and VillageTavern.dentro(pos):
 		tag = "tavern_floor0_walls"
 	var sb := StaticBody2D.new()
 	sb.name = "PropCollider"
@@ -1443,7 +1448,7 @@ func set_player_elevation_level(new_level: int) -> void:
 func check_elevation_exit(player: Node2D) -> void:
 	if VillageUnderworld.is_player_in_sewers(self) or VillageClub.is_player_in_club(self):
 		return
-	if player != null and player_elevation_level == 1 and VillageTavern.RECT.grow(14.0).has_point(_AN_SITIOS.desmover(player.global_position)):
+	if player != null and player_elevation_level == 1 and VillageTavern.dentro(player.global_position, 14.0):
 		return
 	if player_elevation_level != 0 and player != null and _elevation_anchor != Vector2.INF and player.global_position.distance_to(_elevation_anchor) > ELEVATION_LEAVE_DIST:
 		set_player_elevation_level(0)
