@@ -313,7 +313,7 @@ func start_police_escort_to_jail(player: Node2D, officer: VillageNPC = null) -> 
 	# El guardia viene andando desde donde esté (EscoltaPolicial): nada de aparecer al lado del preso
 	_hint_player("🚔 Te entregas: %s viene a ponerte las esposas" % chosen_officer.npc_name, player)
 
-## Controla físicamente la puerta de barrotes de la celda (`Vector2(902, 152)`) y abre la puerta principal de la Comisaría al quedar en libertad
+## Controla físicamente la puerta de barrotes de la celda (marca «celda_puerta») y abre la puerta principal de la Comisaría al quedar en libertad
 
 func set_jail_cell_gate_locked(locked: bool) -> void:
 	if is_instance_valid(_jail_cell_gate_col):
@@ -477,7 +477,7 @@ func _on_police_jailbreak_or_resist(player: Node2D) -> void:
 		var has_master_pick: bool = player.has_method("has_master_lockpick") and bool(player.call("has_master_lockpick"))
 		var stealth_sk_bonus: float = float(player.call("get_skill_bonus", "stealth")) if player.has_method("get_skill_bonus") else 0.0
 		var detect_jb_rad: float = (58.0 if in_stealth_jb else 135.0) * (0.35 if has_master_pick else 1.0) * clampf(1.0 - stealth_sk_bonus, 0.40, 1.0)
-		var gate_pos: Vector2 = EdificioEditor.a_mundo(ID_COMISARIA, Vector2(902, 152)) # reja, en el plano de la comisaría
+		var gate_pos: Vector2 = Marca.mundo(ID_COMISARIA, Marca.CELDA_PUERTA) # la reja, por su marca
 		var watching_officer: VillageNPC = null
 		if was_in_cell:
 			for n_off in get_tree().get_nodes_in_group("village_npcs"):

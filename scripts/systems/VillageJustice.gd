@@ -8,13 +8,11 @@ const Sitio = preload("res://mapa/sitio.gd")
 const SITIO_SALIDA := "entrada_este"             ## cruz de «Sitios» por la que sale del valle
 const JUICIO_PLAZA_ORIGINAL := Vector2(465, 38)   ## donde celebra el juicio en la plaza
 const PLAZA_ORIGINAL := Vector2(465, 44)          ## centro de la plaza (mapa original)
-const ANTE_CELDA_PLANO := Vector2(902, 144) ## delante de la reja, por fuera (plano de la comisaría)
-const CAMA_CELDA_PLANO := Vector2(872, 176) ## catre de la celda (plano de la comisaría)
 
 
 ## Delante de la reja de la celda, en el mundo: ahí se planta el inquisidor para hablar con el preso.
 static func _ante_celda(vm) -> Vector2:
-	return Edificio.a_mundo(vm.ID_COMISARIA, ANTE_CELDA_PLANO)
+	return Marca.mundo(vm.ID_COMISARIA, Marca.ANTE_CELDA)
 
 ## Justicia: investigaciones del Comisario y del Inquisidor Real, interrogatorios, veredictos y juicio público.
 ## Extraído de VillageManager.gd: cada función recibe al VillageManager como primer parámetro (`vm`).
@@ -747,7 +745,7 @@ static func update_sheriff_investigator_ai(vm: VillageManager, sheriff: VillageN
 				arr_npc._spawn_floating_text("⛓️😱 ¡Alguacil mayor Vane, juro que me han incriminado!", Color.ORANGE_RED, -40.0)
 				sheriff._spawn_floating_text("🚓⛓️ ¡%s, quedas detenido! ¡Camina hacia la Celda Policial!" % arr_npc.npc_name, Color.GOLD, -42.0)
 				return true
-			var cell_dest: Vector2 = Edificio.a_mundo(vm.ID_COMISARIA, CAMA_CELDA_PLANO)
+			var cell_dest: Vector2 = Marca.mundo(vm.ID_COMISARIA, Marca.CAMA_CELDA)
 			if sheriff.global_position.distance_to(cell_dest) > 28.0:
 				sheriff._move_towards_point(cell_dest, 74.0, delta)
 				var follow_pt: Vector2 = sheriff.global_position + Vector2(-16, 4)

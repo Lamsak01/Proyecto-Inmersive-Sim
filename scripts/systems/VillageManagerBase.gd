@@ -1271,7 +1271,7 @@ func _is_prop_collider_blocking_passage(pos: Vector2, sz: Vector2) -> bool:
 		var opr_pos: Vector2 = VillageRestaurant.al_mundo(op_r.get("pos", Vector2.ZERO))
 		if prop_rect.intersects(Rect2(opr_pos - Vector2(16.0, 16.0), Vector2(32.0, 32.0))):
 			return true
-	for p_gap: Vector2 in [EdificioEditor.a_mundo(ID_HOSPITAL, Vector2(745.0, 152.0)), EdificioEditor.a_mundo(ID_COMISARIA, Vector2(902.0, 152.0))]: # pasos de sala y reja, en su plano
+	for p_gap: Vector2 in [EdificioEditor.a_mundo(ID_HOSPITAL, Vector2(745.0, 152.0)), Marca.mundo(ID_COMISARIA, Marca.CELDA_PUERTA)]: # paso de sala del hospital (en su plano) y reja de la comisaría
 		if prop_rect.intersects(Rect2(p_gap - PASO_INTERIOR_TAM * 0.5, PASO_INTERIOR_TAM)):
 			return true
 	return false

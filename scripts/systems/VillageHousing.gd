@@ -18,6 +18,7 @@ const VillageChronicle = preload("res://scripts/systems/VillageChronicle.gd")
 const VillageNeeds = preload("res://scripts/systems/VillageNeeds.gd")
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
 const Solar = preload("res://mapa/solar.gd")
+const Marca = preload("res://mapa/marca.gd")
 const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
@@ -1588,11 +1589,10 @@ static func caterer_npc_of(vm):
 	return null
 
 
-## Preso: su cama es el catre de la celda (plano de la comisaría, llevado al mundo).
-const CAMA_CELDA_PLANO := Vector2(872.0, 176.0)
+## Preso: su cama es el catre de la celda (su marca en la comisaría).
 const CAMA_CELDA_RADIO: float = 24.0
 static func _duerme_en_celda(npc) -> bool:
-	return npc.bed_position.distance_to(VillageLots.EdificioEditor.a_mundo("building_police", CAMA_CELDA_PLANO)) <= CAMA_CELDA_RADIO
+	return npc.bed_position.distance_to(Marca.mundo("building_police", Marca.CAMA_CELDA)) <= CAMA_CELDA_RADIO
 
 static func can_walk_to_gathering(npc) -> bool:
 	if npc == null or not is_instance_valid(npc):

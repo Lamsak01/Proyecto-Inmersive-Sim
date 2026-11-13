@@ -221,7 +221,7 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	# Reja de la celda: solo su choque (la reja 3D está en la escena de la comisaría)
 	vm._jail_cell_gate_body = StaticBody2D.new()
 	vm._jail_cell_gate_body.name = "JailCellGateBody"
-	vm._jail_cell_gate_body.global_position = EdificioEditor.a_mundo(vm.ID_COMISARIA, Vector2(902, 152)) # en el plano de la comisaría
+	vm._jail_cell_gate_body.global_position = Marca.mundo(vm.ID_COMISARIA, Marca.CELDA_PUERTA) # su marca en la comisaría
 	vm._jail_cell_gate_body.rotation = EdificioEditor.giro_plano(vm.ID_COMISARIA)
 	vm._jail_cell_gate_body.collision_layer = 1
 	vm._jail_cell_gate_body.collision_mask = 0

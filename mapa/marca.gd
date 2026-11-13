@@ -35,6 +35,7 @@ const INFORME := "informe"                ## comisaría (Caso I): bandeja donde 
 const SECUESTRADOR := "secuestrador_%s"   ## molino abandonado (Caso I): dónde espera cada forastero (young, driver)
 const CELDA_PUERTA := "celda_puerta"     ## comisaría: reja del calabozo (por donde se fuerza)
 const CELDA_SALIDA := "celda_salida"     ## comisaría: donde queda quien sale del calabozo
+const ANTE_CELDA := "ante_celda"         ## comisaría: delante de la reja, por fuera (ahí se habla con el preso)
 const LIBRO_GREMIAL := "libro_gremial"   ## ayuntamiento: el libro mayor que encarga robar el perista
 const TERRAZA := "terraza"               ## casa de comidas: donde se toma algo en la terraza
 const COMEDOR := "comedor"               ## casa de comidas: donde se cena dentro
