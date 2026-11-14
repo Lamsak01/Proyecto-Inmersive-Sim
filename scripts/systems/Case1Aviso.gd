@@ -19,6 +19,9 @@ const RECADO: String = "💂 Un guardia: «Detective, el alguacil mayor Vane le 
 const RECADO_HABLADO: String = "Detective, por fin le encuentro. El alguacil mayor Vane le manda llamar a la comisaría. Es urgente: han encontrado a alguien junto al arroyo."
 const RESPUESTA_RECADO: String = "Voy enseguida."
 const RECADO_CHICO_HABLADO: String = "¡Señor detective! Me manda el alguacil mayor Vane: que vaya usted a la comisaría, que es urgente."
+const MINUTOS_PARA_PLANTARSE: int = 20 ## si en 20 min de juego no te alcanza (tiempo acelerado…), aparece a tu espalda
+const ESPALDA_PX: float = 35.0         ## ~2 m detrás de ti, fuera de lo que ves
+const RUTA_VISTA: String = "res://scripts/visuals/WorldStageBase3D.gd" ## hacia dónde miras (se carga al usarlo)
 const ALEJADO_FACTOR: float = 1.5 ## si te alejas más de 1,5 veces la distancia de salida, el guardia vuelve a salir cerca
 const RECADO_SIN_GUARDIA: String = "🔔 Un chico del pueblo te trae un recado: el alguacil mayor Vane te manda llamar a la comisaría."
 const ENCARGO_VANE: String = "«Al alba han encontrado a una mujer muerta junto al arroyo del norte. He dejado a un guardia vigilando para que nadie toque nada. Mírela usted antes de que la llevemos a la morgue.»"
@@ -31,6 +34,7 @@ static func empezar(vm, st: Dictionary, cuerpo_pos: Vector2) -> void:
 		return
 	st["aviso"] = "en_camino"
 	st["aviso_desde"] = VillageNeeds.total_hours()
+	st["aviso_minuto"] = _minuto_de_juego()
 	var guardia = _guardia(vm, st)
 	if guardia == null:
 		_dar_recado(vm, st, null, cuerpo_pos)
@@ -54,6 +58,8 @@ static func tick(vm, st: Dictionary, cuerpo_pos: Vector2) -> void:
 	guardia.errand_pos = destino
 	if guardia.global_position.distance_to(destino) > SALIDA_PX * ALEJADO_FACTOR:
 		_acercar(vm, guardia) # te has ido lejos (o se entretuvo): vuelve a salir a ~50 m de ti
+	if _minuto_de_juego() - int(st.get("aviso_minuto", _minuto_de_juego())) >= MINUTOS_PARA_PLANTARSE:
+		_a_tu_espalda(vm, guardia) # el aviso no puede perderse: llega sí o sí
 	if guardia.global_position.distance_to(destino) <= LLEGA_PX and not _jugador_ocupado(vm):
 		_dar_recado(vm, st, guardia, cuerpo_pos)
 
@@ -128,6 +134,15 @@ static func _acercar(vm, guardia) -> void:
 		if not Agua.en_agua(punto) and not vm._is_pos_inside_any_building(punto):
 			guardia.global_position = punto
 			return
+
+## Coloca al guardia ~2 m detrás de ti (en 1.ª persona, a tu espalda; desde arriba, al sur) para que te hable ya.
+static func _a_tu_espalda(vm, guardia) -> void:
+	var vista = load(RUTA_VISTA)
+	var delante: Vector2 = vista.get_fp_forward_2d() if bool(vista.first_person_active) else Vector2.UP
+	guardia.global_position = _jugador_pos(vm) - delante.normalized() * ESPALDA_PX
+
+static func _minuto_de_juego() -> int:
+	return int(WorldClock.current_day) * 1440 + int(WorldClock.current_hour) * 60 + int(WorldClock.current_minute)
 
 ## El guardia del caso: el primero de patrulla (se guarda por nombre para que sea siempre el mismo).
 static func _guardia(vm, st: Dictionary):

@@ -3,6 +3,7 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
+- 2026-11-14 · Caso I: seguro del aviso: si a los 20 min de juego el guardia no te ha alcanzado (p. ej. con el tiempo acelerado), aparece a tu espalda y te habla; probado con el guardia congelado (06:20).
 - 2026-11-14 · Caso I: el guardia mensajero va corriendo, vuelve a salir cerca si te alejas, te llama a ~4 m y el recado de reserva (un chico) también sale en la caja de diálogo; la prueba `aviso_caso1` hace andar al jugador sin parar.
 - 2026-11-14 · Caso I: las pistas no se pueden examinar antes del día 2 y el zapato del Puente Viejo no se ve hasta entonces. Prueba `tools/tests/pistas_dia1.gd`.
 - 2026-11-14 · Pozos: el cuadrado con tejadillo se cambia por uno clásico (brocal redondo de piedra, dos postes, rodillo con manivela, cuerda y cubo), hecho con `tools/hornear_pozo.gd`; foto `docs/capturas_arreglos/pozo_clasico.png`.

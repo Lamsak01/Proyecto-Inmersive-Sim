@@ -7,7 +7,8 @@
 ## Pendientes
 - ✅ (2026-11-14, usuario; falta que lo veas jugando) **Nadie vino a hablar conmigo el día 2** (partida nueva). *(El guardia
   iba andando a un tercio de tu paso y, si te movías, no te alcanzaba; a las 2 h salía una línea que se pierde. Ahora va
-  corriendo, vuelve a salir a ~50 m si te alejas, te llama a ~4 m y, si aun así no llega, un chico te lo dice en la caja.)*
+  corriendo, vuelve a salir a ~50 m si te alejas, te llama a ~4 m y, si aun así no llega, un chico te lo dice en la caja. 2.ª vez (el usuario, quieto fuera): no se
+  reprodujo; ahora, si a los 20 min de juego no te ha alcanzado, aparece a tu espalda y te habla, pase lo que pase.)*
 - ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **Las pistas del caso salen desde el día antes** · zapato del
   Puente Viejo el lunes 13:23. *(Ninguna pista del Caso I se puede examinar antes del día 2, ni apuntando ni de cerca, y el
   zapato, que es una pieza del mapa (grupo «pista_caso1»), no se ve hasta entonces.)*
