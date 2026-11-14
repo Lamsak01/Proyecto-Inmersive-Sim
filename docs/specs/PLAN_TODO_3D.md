@@ -6,7 +6,7 @@
 
 ## Qué significa «terminado» (se mide, no se opina)
 `bash tools/contar_2d.sh` cuenta los restos 2D (cuerpos, áreas, dibujos, cámara, navegación, píxeles, pisos de mentira,
-estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Hoy: 2.457. Terminado = 0.** Lo único plano que queda es la interfaz
+estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Hoy: 2.454 (con lo de Antigravity). Terminado = 0.** Lo único plano que queda es la interfaz
 (menús, HUD, paneles), como en cualquier juego 3D; la vista desde arriba se mantiene como **cámara 3D**.
 
 ## Reglas de honestidad (obligatorias para cualquier agente)
