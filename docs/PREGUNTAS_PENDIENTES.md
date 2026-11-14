@@ -18,7 +18,9 @@
    llegar; Vane te manda llamar; un guardia custodia la escena; junto al cuerpo hay una tumba a medio cavar; el claro
    más lejos del molino. Detalle en `docs/specs/OBJETIVOS_CASO1.md`.
 
-0b. **(2026-11-13, noche) Pisos de la taberna con el sistema de las casas de dos plantas:** no se ha tocado. La posada
+0b. ✅ **Respondido (2026-11-14): se deja como está** hasta la tanda 3b del plan todo 3D (pisos = alturas de verdad), que
+   sustituye a la vez al sistema de la posada y al de las casas; no se rehace antes. Pregunta original:
+   **(2026-11-13, noche) Pisos de la taberna con el sistema de las casas de dos plantas:** no se ha tocado. La posada
    tiene su propio sistema (~800 líneas en `VillageTavern.gd`: escalera, galería, losa, alturas, sótano del club; lo
    usan 16 llamadas). Unificar = rehacer la posada como plano de dos plantas (`…_ARRIBA` y `ESCALERA`), pasar sus marcas
    y borrar ese código. Al jugar no se nota; evita que se rompa al tocarla. Coste: mucho. ¿Ahora o tras el Caso I?

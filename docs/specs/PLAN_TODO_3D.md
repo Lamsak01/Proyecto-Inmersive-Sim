@@ -51,6 +51,7 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    (cada pared es «gemela» de su choque plano); baja cuando cada fuente dé su choque desde su pieza 3D (paso v del diseño).
    ✅ Tanda 4a hecha sobre esta base (abajo). **Siguiente: 4b** (el personaje ES su cuerpo 3D; fuera su nodo plano).
    **3b:** pisos = altura real (losas 3D de verdad); se borran `Suelo`/`PisosCasas` como reglas y los niveles de piso.
+   (Usuario, 2026-11-14: la posada conserva su sistema propio de pisos hasta esta tanda; aquí se unifica con las casas.)
 4. **Personajes 3D siempre:** jugador, vecinos, animales y bandidos son cuerpos 3D todo el tiempo (los lejanos, con
    simulación barata pero en 3D). Se borran `CuerposDelPueblo3D`, `CuerposCercanos3D` y los dibujos planos.
    ✅ **4a (2026-11-14):** TODOS llevan su `Cuerpo3D` desde que entran en el juego (`Poblacion3D.gd`: todo
