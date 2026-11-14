@@ -15,6 +15,7 @@ const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7: 
 
 # Components
 @onready var health_comp: HealthComponent = $HealthComponent
+var _salud_anterior: float = 0.0 ## para notar un golpe mientras duermes
 @onready var stun_comp: StunComponent = $StunComponent
 @onready var hurtbox: Hurtbox = $Hurtbox
 @onready var combat_ctrl: PlayerCombatController = get_node_or_null("PlayerCombatController")
@@ -300,6 +301,9 @@ func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	add_to_group("player")
 	_setup_tools()
+	if health_comp != null:
+		_salud_anterior = health_comp.current_health
+		health_comp.health_changed.connect(_despertar_si_te_hieren)
 	
 	inventory = get_node_or_null("SimpleInventory")
 	if not inventory:
@@ -651,10 +655,21 @@ func _handle_interactions() -> void:
 			best_area.get_parent().get_parent().interact(self)
 			get_viewport().set_input_as_handled()
 
+## Dormido no te puedes mover; si algo te hiere, te despiertas de golpe para poder defenderte o huir.
+func _despertar_si_te_hieren(actual: float, _maximo: float) -> void:
+	var herido: bool = actual < _salud_anterior
+	_salud_anterior = actual
+	if herido and WorldClock and bool(WorldClock.get("is_fast_forwarding")):
+		WorldClock.stop_organic_fast_forward(false)
+		show_hint("⚠️ ¡Algo te ha despertado de golpe!")
+
 func is_any_ui_modal_open() -> bool:
 	if dialogue_manager and dialogue_manager.has_method("is_active") and bool(dialogue_manager.call("is_active")):
 		return true
 	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
+		return true
+	# Durmiendo (o esperando) el mundo va acelerado: te quedas quieto en la cama hasta que acaba (usuario, 2026-11-13)
+	if WorldClock and bool(WorldClock.get("is_fast_forwarding")):
 		return true
 	var ui_root = get_tree().current_scene.get_node_or_null("UI/UIRoot") if get_tree().current_scene else null
 	if ui_root:

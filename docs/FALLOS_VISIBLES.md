@@ -8,7 +8,8 @@
 - ✅ (2026-11-13, usuario, captura; falta que lo veas jugando) **El día 2 nadie te habla de la misión** · 1.ª persona. A las 10:22 dos guardias
   iguales, uno encima del otro, de pie sobre la cama de una casa. *(El recado hoy es solo una línea de aviso que se
   pierde; el guardia mensajero quizá se atasca o se queda en la casa.)*
-- [ ] (2026-11-13, usuario, captura) **Al dormir solo se acelera el tiempo y puedes seguir andando** · 1.ª persona, cama.
+- ✅ (2026-11-13, usuario, captura; falta que lo veas jugando) **Al dormir solo se acelera el tiempo y puedes seguir
+  andando** · 1.ª persona, cama. *(Ahora te quedas quieto hasta el alba; un golpe te despierta. Falta, si lo quiere, fundido a negro.)*
 - [ ] (2026-11-13, usuario, captura) **Las trampillas no se pueden usar en primera persona** · rejilla en el suelo, 06:17.
 - [ ] (2026-11-13, usuario, captura) **El pozo con tejadillo no le gusta** (no sabe qué es) · camino del pueblo, 06:44.
 - [ ] (2026-11-13, usuario, 2 capturas) **El tablón de encargos solo responde si apuntas a su esquina de arriba a la
