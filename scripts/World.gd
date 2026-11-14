@@ -32,14 +32,6 @@ func _ready() -> void:
 			ambient_modulate.color = WorldClock.get_ambient_color()
 			WorldClock.time_updated.connect(_on_world_time_updated)
 
-	# Baldosas del mapa plano viejo: vallas y choques del campamento del jugador, borrado el 2026-11-12 (se rehace en
-	# 3D tras el Caso I). Sin dibujo 3D serían paredes invisibles: se vacían.
-	for ruta: String in ["Environment/Obstacles Small", "Environment/Obstacles Large"]:
-		var capa := get_node_or_null(ruta) as TileMapLayer
-		if capa:
-			capa.clear()
-			capa.add_to_group("ranch_fence_2d")
-
 	# Ajustar zoom inicial de la cámara para ver un área más amplia y cómoda en pantalla completa
 	if not in_editor:
 		var player_cam := get_node_or_null("Entities/PlayerGood/Camera2D") as Camera2D

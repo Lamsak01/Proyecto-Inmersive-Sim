@@ -12,9 +12,6 @@ const ESPERA_ENTRE_PULSACIONES: float = 0.15 ## evita que la E que abre el diál
 const XP_CARISMA_POR_CHARLA: int = 3
 const NODO_TIENDA: String = "tienda"
 
-@export var dialogue_box: Control ## caja antigua de la escena: se esconde
-@export var dialogue_text: Label
-@export var choices_box: VBoxContainer
 
 signal dialogue_finished(last_id: String, speaker: Node)
 signal choice_action_triggered(action_id: String, speaker: Node)
@@ -33,8 +30,6 @@ var _opciones_puestas: bool = false
 var _espera: float = 0.0
 
 func _ready() -> void:
-	if dialogue_box:
-		dialogue_box.visible = false
 	_construir()
 
 func _construir() -> void:

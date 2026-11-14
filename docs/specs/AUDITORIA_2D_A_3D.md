@@ -87,11 +87,12 @@ decisión escrita del plan («cuerpo en 3D, cerebro en el mapa», híbrido por r
    con claves «Paso 3b / P7 / G3»).
 
 ## D. Innecesario o muerto
-1. **En la escena principal:** baldosas que se vacían al arrancar, caja, barril, muro débil, arma en el suelo, el
-   vecino «Guia», enemigos de prueba (`DummyEnemy`, `FastEnemy`, 2 `BanditEnemy`), la caja de diálogo vieja
-   (`DialogueBox_NEW`), el dibujo animado 2D del jugador.
-2. **Escenas que nadie usa:** `mapa/Mundo3D.antes-3d.tscn` (952 KB), `scenes/obstacles/WoodenDoor.tscn`,
-   `scenes/prototypes/Playground.tscn`, `scenes/Entities/Player.tscn`. Revisar también `mapa/pincel_nucleo.gd`.
+1. **En la escena principal** (corregido el 2026-11-14 al hacer la tanda 0): estaban muertas las tres capas de baldosas
+   (con ~29.000 líneas de datos) y la caja de diálogo vieja → **quitadas**. **No** eran de prueba, sino contenido vivo
+   que hay que pasar a 3D: los bandidos de la ciénaga (`DummyEnemy`, `FastEnemy`, 2 `BanditEnemy`), el vigía del oeste
+   («Guia», `scenes/npc.gd`), la caja, el barril, el muro débil y el arma del suelo (tienen su dibujo 3D).
+2. **Escenas que nadie usaba** (`Mundo3D.antes-3d.tscn`, `WoodenDoor.tscn`, `Playground.tscn`, `Entities/Player.tscn`):
+   **borradas** en la tanda 0. Revisar todavía `mapa/pincel_nucleo.gd`.
 3. **Sistemas dormidos por el modo demo** (109 comprobaciones): bajos fondos, secta, linaje, migración, clanes, fama,
    alcalde, préstamos, enfermedades, club, trabajos nocturnos, ecosistema… **más de 10.000 líneas** que viajan con el
    juego, cada una con sus posiciones a mano. Decisión del usuario: ¿se archivan hasta después del Caso I o se migran?

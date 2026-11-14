@@ -6,7 +6,7 @@
 
 ## Qué significa «terminado» (se mide, no se opina)
 `bash tools/contar_2d.sh` cuenta los restos 2D (cuerpos, áreas, dibujos, cámara, navegación, píxeles, pisos de mentira,
-estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Terminado = 0.** Lo único plano que queda es la interfaz
+estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Hoy: 2.441. Terminado = 0.** Lo único plano que queda es la interfaz
 (menús, HUD, paneles), como en cualquier juego 3D; la vista desde arriba se mantiene como **cámara 3D**.
 
 ## Reglas de honestidad (obligatorias para cualquier agente)
@@ -16,8 +16,10 @@ estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Terminado = 0.** Lo �
 4. Los atajos (colocar a un vecino, copiar choques, niveles de piso) se nombran como atajos y se apuntan aquí para quitarlos.
 
 ## Tandas (cada una deja el juego jugable y la partida automática del Caso I en verde)
-0. **Limpieza:** fuera de la escena principal lo muerto del 2D (baldosas, cajas, enemigos y vecino de prueba, caja de
-   diálogo vieja) y las escenas que nadie usa. Poco.
+0. ✅ **Limpieza (hecha el 2026-11-14, contador 2.495 → 2.441):** fuera las tres capas de baldosas y la caja de
+   diálogo vieja de la escena principal (382 KB → 25 KB) y cuatro escenas sin uso. Los bandidos, el vigía «Guia», la caja,
+   el barril, el muro débil y el arma del suelo **no** eran restos: son contenido vivo y se migran en la tanda 4.
+   Pendiente menor (archivo de Antigravity): el bucle «ranch_fence_2d» de `WorldStageProps3D.gd` ya no encuentra nada.
 1. **Sistemas dormidos** (>10.000 líneas tras el modo demo): **decidido por el usuario el 2026-11-14: se migran ahora
    también**, no se archivan. Cada tanda los incluye (secta, bajos fondos, linaje, migración, clanes, fama, alcalde,
    préstamos, enfermedades, club, trabajos nocturnos, ecosistema…); el contador los cuenta desde el principio.
