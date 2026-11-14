@@ -459,7 +459,7 @@ func _execute_dynamic_activity(delta: float) -> void:
 		ActivityState.SOCIALIZING:
 			var soc_t: Vector2 = _get_social_target_pos()
 			var soc_tol: float = 2.0 if (_VillageTavern.is_at_seat(soc_t) or _VillageRestaurant.is_at_seat(soc_t)) else (8.0 if (is_instance_valid(_social_partner) and errand_kind == "" and rite_pos == Vector2.ZERO) else 16.0)
-			_approach_or_stop(soc_t, soc_tol, 38.0, delta)
+			_approach_or_stop(soc_t, soc_tol, ERRAND_RUN_SPEED if errand_kind in URGENT_ERRANDS else 38.0, delta)
 		ActivityState.WORKING:
 			if _is_morning_expedition_hours():
 				_stop_crafting_bar()

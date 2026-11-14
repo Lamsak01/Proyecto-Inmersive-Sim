@@ -10,7 +10,7 @@ const Agua = preload("res://scripts/fisica/Agua.gd")
 
 const MENSAJERO: String = "case1_mensajero" ## encargo del guardia que va a buscarte
 const CUSTODIA: String = "case1_custodia"   ## encargo del guardia que vigila el cuerpo
-const LLEGA_PX: float = 40.0                ## a ~2 m de ti, te da el recado
+const LLEGA_PX: float = 70.0                ## a ~4 m de ti te llama y te da el recado
 const CUSTODIA_DESFASE_PX: Vector2 = Vector2(55.0, 10.0) ## de pie a ~3 m del cuerpo, sin pisarlo
 const HORAS_SIN_LLEGAR: int = 2             ## si el guardia no te alcanza en 2 horas, el recado llega igual (un chico)
 const SALIDA_PX: float = 900.0              ## aparece a ~50 m de ti, en su dirección (lo ves llegar sin esperar horas)
@@ -18,6 +18,8 @@ const SALIDA_GIRO_GRADOS: float = 30.0      ## si ese punto cae en agua o dentro
 const RECADO: String = "💂 Un guardia: «Detective, el alguacil mayor Vane le manda llamar a la comisaría. Es urgente.»"
 const RECADO_HABLADO: String = "Detective, por fin le encuentro. El alguacil mayor Vane le manda llamar a la comisaría. Es urgente: han encontrado a alguien junto al arroyo."
 const RESPUESTA_RECADO: String = "Voy enseguida."
+const RECADO_CHICO_HABLADO: String = "¡Señor detective! Me manda el alguacil mayor Vane: que vaya usted a la comisaría, que es urgente."
+const ALEJADO_FACTOR: float = 1.5 ## si te alejas más de 1,5 veces la distancia de salida, el guardia vuelve a salir cerca
 const RECADO_SIN_GUARDIA: String = "🔔 Un chico del pueblo te trae un recado: el alguacil mayor Vane te manda llamar a la comisaría."
 const ENCARGO_VANE: String = "«Al alba han encontrado a una mujer muerta junto al arroyo del norte. He dejado a un guardia vigilando para que nadie toque nada. Mírela usted antes de que la llevemos a la morgue.»"
 const PREGUNTA_VANE: String = "🔎 «¿Para qué me ha mandado llamar?»"
@@ -43,12 +45,15 @@ static func tick(vm, st: Dictionary, cuerpo_pos: Vector2) -> void:
 	var guardia = _guardia(vm, st)
 	var tarde: bool = VillageNeeds.total_hours() - int(st.get("aviso_desde", 0)) >= HORAS_SIN_LLEGAR
 	if guardia == null or tarde:
-		_dar_recado(vm, st, null, cuerpo_pos)
+		if not _jugador_ocupado(vm): # el chico también espera a que acabes lo que estés haciendo
+			_dar_recado(vm, st, null, cuerpo_pos)
 		return
 	var destino: Vector2 = _jugador_pos(vm)
 	if guardia.errand_kind != MENSAJERO:
 		guardia.start_errand(MENSAJERO, destino)
 	guardia.errand_pos = destino
+	if guardia.global_position.distance_to(destino) > SALIDA_PX * ALEJADO_FACTOR:
+		_acercar(vm, guardia) # te has ido lejos (o se entretuvo): vuelve a salir a ~50 m de ti
 	if guardia.global_position.distance_to(destino) <= LLEGA_PX and not _jugador_ocupado(vm):
 		_dar_recado(vm, st, guardia, cuerpo_pos)
 
@@ -89,16 +94,17 @@ static func _dar_recado(vm, st: Dictionary, guardia, cuerpo_pos: Vector2) -> voi
 	vm._hint_player(RECADO if guardia != null else RECADO_SIN_GUARDIA)
 	if guardia != null:
 		guardia.end_errand()
-		_hablar(vm, guardia)
+	_hablar(vm, guardia)
 	vigilar(vm, st, cuerpo_pos)
 
-## El guardia te lo dice de viva voz, con la caja de diálogo: una línea suelta abajo se perdía (usuario, 2026-11-13).
+## El guardia (o, si no llegó, un chico) te lo dice de viva voz, con la caja de diálogo: una línea suelta se perdía.
 static func _hablar(vm, guardia) -> void:
 	var jugador = vm.get_tree().get_first_node_in_group("player")
 	var dm = jugador.get("dialogue_manager") if jugador != null else null
 	if dm == null:
 		return
-	var grafo: Dictionary = {"start": {"text": RECADO_HABLADO, "choices": [{"label": RESPUESTA_RECADO, "next": "END"}]}}
+	var texto: String = RECADO_HABLADO if guardia != null else RECADO_CHICO_HABLADO
+	var grafo: Dictionary = {"start": {"text": texto, "choices": [{"label": RESPUESTA_RECADO, "next": "END"}]}}
 	dm.start_dialogue(grafo, "start", guardia)
 
 ## ¿Estás ya hablando o con un panel abierto? Entonces el guardia espera a tu lado en vez de cortarte.

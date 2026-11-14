@@ -160,6 +160,9 @@ var rite_kind: String = "" # "rite" (Oficio del Alba), "sect" (reunión de la se
 var errand_kind: String = ""
 ## Recados que se hacen de noche: no se cancelan al caer la noche (P5b: el perista en el callejón; B4: paseos nocturnos; B5: acecho).
 const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "gathering", "catering", "club_go", "club_watch", "night_job", "familia_meet", "night_stroll", "sleepwalk", "prowl_victim", "case1_mensajero", "case1_custodia"]
+## Encargos con prisa: el vecino va corriendo, no paseando (el guardia que te busca el día 2 nunca te alcanzaba andando)
+const URGENT_ERRANDS: Array[String] = ["case1_mensajero"]
+const ERRAND_RUN_SPEED: float = 110.0 ## px/s; pasear es 38 y tú andas a 120
 var errand_pos: Vector2 = Vector2.ZERO
 var errand_since: int = 0
 ## B4.1: Los vecinos despiertos llevan farol encendido de 20:00 a 6:00, salvo si van en sigilo, sonámbulos o de faena turbia.
