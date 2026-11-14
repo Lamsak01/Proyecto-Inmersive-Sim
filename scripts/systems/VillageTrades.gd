@@ -13,8 +13,10 @@ extends RefCounted
 ## Nombres provisionales (anotados en docs/APORTES_CREATIVOS.md).
 
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
+const Planta = preload("res://mapa/planta.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const TIPO_3D_ROCA := "roca"     ## las rocas de la cantera comparten dibujo con las que se pican: se marcan aparte
+const MARGEN_SOLAR: float = 8.0  ## holgura interior al borde del solar y al muro este del edificio
 
 const CONFIG: Dictionary = {
 	"baker": {"lot": "n2", "role_name": "BAKER", "family_id": "family_baker", "family_name": "Casa de la Espiga",
@@ -81,13 +83,24 @@ static func setup_world(vm) -> void:
 			vm.house_pantry[str(c["family_id"])] = 2
 	ensure_lots(vm)
 
+## Mitad del ancho real (este-oeste) de la pieza del edificio levantado en ese solar.
+static func _mitad_ancho_edificio(id: String) -> float:
+	var bc: Vector2 = VillageLots.building_center(id)
+	var edificio: String = VillageLots.EdificioEditor.con_centro(bc)
+	if edificio.is_empty():
+		return VillageLots.house_size(id).x * 0.5
+	var tam: Vector2 = Planta.de_edificio(edificio).get("size", Vector2.ZERO)
+	var girado: bool = absf(fmod(absf(VillageLots.EdificioEditor.giro(edificio)), 180.0) - 90.0) < 1.0
+	return (tam.y if girado else tam.x) * 0.5
+
+
 ## K1: centro de la explanada de roca de la cantera (la franja a la derecha del edificio).
 static func yard_pos(id: String) -> Vector2:
 	var d: Dictionary = VillageLots.lot_def(id)
 	var lc: Vector2 = d["center"]
 	var half: Vector2 = (d["size"] as Vector2) * 0.5
-	var x0: float = VillageLots.building_center(id).x + 70.0
-	return Vector2((x0 + lc.x + half.x - 8.0) * 0.5, lc.y)
+	var x0: float = maxf(lc.x - half.x + MARGEN_SOLAR, VillageLots.building_center(id).x + _mitad_ancho_edificio(id) + MARGEN_SOLAR)
+	return Vector2((x0 + lc.x + half.x - MARGEN_SOLAR) * 0.5, lc.y)
 
 ## K1: partidas de antes: el cantero, granjero, ganadero y leñador trabajan en su roca, campo, corral o pila de troncos.
 static func fix_quarry_post(vm) -> void:
@@ -154,9 +167,10 @@ static func build_extras(vm, id: String) -> void:
 
 static func _build_extras_en_mundo(vm, id: String, c: Dictionary, lc: Vector2, half: Vector2, is_fields_lot: bool, props: String) -> void:
 	var dc: Vector2 = VillageLots.anexo(id, Vector2.ZERO)
-	# Franja libre del solar (a la derecha del edificio, o el solar entero si es solo de campos)
-	var x0: float = lc.x - half.x + 8.0 if is_fields_lot else VillageLots.building_center(id).x + dc.x + 70.0
-	var x1: float = lc.x + half.x - 8.0
+	var borde_solar: float = lc.x - half.x + MARGEN_SOLAR
+	# Franja libre del solar (a la derecha del edificio según su ancho real, o el solar entero si es solo de campos)
+	var x0: float = borde_solar if is_fields_lot else maxf(borde_solar, VillageLots.building_center(id).x + dc.x + _mitad_ancho_edificio(id) + MARGEN_SOLAR)
+	var x1: float = lc.x + half.x - MARGEN_SOLAR
 	var y0: float = lc.y - half.y + 10.0
 	var y1: float = lc.y + half.y - 10.0
 	match str(c["extras"]):

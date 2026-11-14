@@ -32,12 +32,9 @@
 - ✅ 3. El mundo dibujado por código pasa a ser piezas del editor: 0 llamadas `_add_box/cyl/model_2d` en `WorldStageProps3D` y `WorldStageTerrain3D`, 481 matas de pradera en `Vegetacion/MatasPradera`, 33 escenas de objetos/bajo tierra/puesto horneadas y las 416 piezas anónimas del `Decorado` nombradas y agrupadas en 32 objetos (`contar_2d.sh` 2.428 → 2.409), 2026-11-14.
 - ✅ 4. Interiores de tamaño real de la casa de la cantera (`mixed_family_quarry`, 8,4 × 9,8 m con taller de cantero al este) y del restaurante (`building_restaurant`, 15,4 × 10,64 m con terraza iluminada, comedor, cocina, cámara fría, reservado, bodega y alcoba de dos camas; `contar_2d.sh` 2.406 → 2.407 por una `Texture2D` de material 3D), 2026-11-14.
 - ✅ 5. Quitado el estirón ×5 y el «mapa original» del relieve, lago, ciénaga, plaza y mapa cartográfico del valle (`WorldStageBase3D`, `WorldStageTerrain3D`, `mapa/zona.gd`, `mapa/mundo3d.gd`, `RioLago.gd`, `Agua.gd`, `ValleyMapUI.gd` y `ValleMapaPiezas.gd` en coordenadas reales; movido además `Banco_Plaza_Oeste` delante de la pescadería → `puertas_3d` 29/29; `contar_2d.sh` 2.407 → 2.312), 2026-11-14.
+- ✅ 5b. Franja de rocas de la cantera y puesto exterior (`VillageTrades.gd`: `yard_pos` y `_build_extras_en_mundo` leen el ancho real de la pieza del edificio en `mapa/planta.gd` sin `+ 70.0` a mano; fotos `2026-11-14_t5b_cantera_{antes,despues}.png`; `contar_2d.sh` 2.240 → 2.240), 2026-11-14.
 
 ## Tareas (revisadas las 4 y 5 por Claude el 2026-11-14 con fotos propias, `puertas_3d`, `fisica_3d` y la partida del Caso I)
-5b. **Resto de tu tarea 4 (poco):** las rocas de la cantera siguen colocándose con el ancho viejo del edificio
-   (`VillageTrades.gd`, `yard_pos` y `_build_extras_en_mundo`: `+ 70.0`) y dos quedan pegadas al muro este. Que la franja
-   de rocas salga del ancho real de la pieza del edificio (sin número a mano). Foto desde arriba de antes y después.
-
 6. **Malla de navegación 3D del mundo y de cada edificio** (prepara la tanda 5 del plan; Claude la conectará a los
    vecinos, tú NO toques vecinos ni rutas). Hoy no hay ninguna `NavigationRegion3D` en el proyecto.
    a) Herramienta `tools/hornear_navegacion.gd` que hornea la malla UNA vez y la guarda como recurso en `mapa/navegacion/`
