@@ -7,7 +7,8 @@
 morgue y tablero arreglados el 14 (`Case1Aviso.gd`, `VillageCase1.gd`, `DetectiveUI.gd`; partida automática 25/25).
 Pendiente: molino con aspecto de molino (para después); preguntar a cualquier vecino por «la mujer del arroyo» (propuesto).
 **Diálogos provisionales**: `scripts/ui/dialogo/`, `NPCMenuDialogo.gd`, `NPCCharla.gd` + `resources/dialogos/frases_vecinos.json`.
-**Fin de semana 14/15**: Antigravity en paralelo con `docs/TAREAS_ANTIGRAVITY.md` (regla temporal en `CLAUDE.md`).
+**Fin de semana 14/15**: Antigravity en paralelo (`docs/TAREAS_ANTIGRAVITY.md`): tareas 1–5 hechas y revisadas con fotos y
+pruebas; encargadas 6–8 (malla de navegación 3D, no crear dibujos planos escondidos, lugares dormidos a marcas).
 **Casas de dos plantas** (2026-11-13): campos «…_ARRIBA» y `ESCALERA` en el plano (`planta_alta.gd`); en el juego
 `scripts/fisica/PisosCasas.gd`; el trozo alto de los muros va en «PisoAlto» (se esconde desde arriba).
 
@@ -29,15 +30,14 @@ Pendiente: molino con aspecto de molino (para después); preguntar a cualquier v
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c0) Mandato del usuario (2026-11-14): TODO en 3D, nada de 2D → `docs/specs/PLAN_TODO_3D.md`
-El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.406**
+El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.312**
 (partió de 2.495; terminado = 0). Hechas: tanda 0, 3a (paredes 3D compartidas, `ChoquesMundo3D`) y 4a (todo personaje
 lleva su `Cuerpo3D` siempre: `Poblacion3D`, `TallaCuerpo3D`, `AndarMapa`). Siguiente: 4b (el personaje ES su cuerpo) o 5.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
 1. **Tandas de `PLAN_TODO_3D.md`** en orden; las piezas (sillas, camas…) son su tanda 6.
 2. **Medir fps con ventana** tras la 4a (sin ventana la física no cambia: 3,8 → 4,1 ms). 3. **Vecinos atascados**: 0 en
-8 h; falta que lo confirme él. Banco ante la puerta de la pescadería (`puertas_3d` 28/29, en `FALLOS_VISIBLES.md`).
-4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
+8 h; falta que lo confirme él. 4. **Interior de la taberna** (pregunta 0b). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
 
 ## d) Bloqueos activos
 - `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre.
