@@ -36,7 +36,6 @@ Pendiente: molino con aspecto de molino (para después); preguntar a cualquier v
 1. **Fase 1 del plan c0** (sillas y camas), con el «sí» del usuario; absorbe los clientes sentados en el aire.
 2. **Rendimiento**: sombras del sol (duplican el dibujo). Medio. 3. **Vecinos atascados**: a 0; falta que lo confirme él.
 4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
-**Contexto:** ×5 (`Mapa3D.E`) invisible; pesca, huerto, corral y campamento se rehacen en 3D tras el Caso I.
 
 ## d) Bloqueos activos
 - `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre.
