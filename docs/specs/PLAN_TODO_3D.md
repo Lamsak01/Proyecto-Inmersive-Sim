@@ -9,6 +9,13 @@
 estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Hoy: 2.454 (con lo de Antigravity). Terminado = 0.** Lo único plano que queda es la interfaz
 (menús, HUD, paneles), como en cualquier juego 3D; la vista desde arriba se mantiene como **cámara 3D**.
 
+## Solo 1.ª persona (decisión del usuario, 2026-11-14)
+La vista desde arriba ya no cuenta: no se diseña, prueba ni arregla nada para ella. Simplifica el plan: en la tanda 8
+(escena raíz 3D) sobran la cámara inclinada, el estirón vertical de los muñecos (`_cos_p`) y el cuadre del 3D con el
+mapa plano; en la 7, el apuntado y los rótulos con el ratón sobre el mapa (`Crosshair2D`, familia «Ratón sobre el mapa
+2D» del contador) y la rama «desde arriba» del selector de la E (`Tocable3D.cerca`). Se borran al tocar cada archivo.
+Quitada ya la «cortina» de la flecha (era solo para esa vista): la flecha da siempre justo donde se apunta.
+
 ## Reglas de honestidad (obligatorias para cualquier agente)
 1. Nadie escribe «migrado», «terminado» o «3D de verdad» sin dar el número del contador antes y después.
 2. Cada cierre de tarea de este plan dice **qué sigue siendo 2D** tras el cambio, sin que el usuario lo pregunte.
@@ -180,9 +187,7 @@ rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 
 - Traductores de quien ya ES su cuerpo (4b-1): `CuerpoBase3D.suelo_y` (altura del suelo desde el mapa plano → 3b),
   `VillageHousing.ranch_pen_m` (corral desde el sitio plano → cuando el rancho dé su valla desde su pieza) y
   `AnimalModel3D._pos_mapa`/`attach` (el modelo aún mide en píxeles → al pasar a 3D el último animal).
-- «Cortina» de la flecha (`Diana3D.en_cortina`, `ArrowProjectile.CORTINA_M`, 2026-11-14): fuera de la 1.ª persona
-  no se puede apuntar hacia abajo, así que la flecha alcanza lo que tiene debajo hasta 1,7 m → se decide con el
-  usuario si la vista desde arriba se queda (pregunta apuntada).
+- ✅ (quitada el 2026-11-14: el juego es solo en 1.ª persona) «Cortina» de la flecha para la vista desde arriba.
 - `Lugar.gd` (traductor metros ↔ mapa plano, 2026-11-14) y sus usos `Lugar.en_mapa(...)` en código que aún piensa en
   plano → se borra cuando no quede ningún personaje en el mapa plano.
 - ✅ (quitado en la 7e-1) `ZonaDespiece.gd`: área del mapa plano para despiezar un animal 3D con [E].

@@ -24,6 +24,8 @@
 5. **Prohibido añadir nada en 2D ni en píxeles.** Lo nuevo va en metros y en nodos 3D. Normas de código de `CLAUDE.md` §4.
 6. Di siempre **qué sigue siendo 2D** tras tu cambio. Nunca «terminado» sin el número del contador. Mira fotos de verdad.
 7. Dudas de diseño: a `docs/PREGUNTAS_PENDIENTES.md` y sigue con la siguiente tarea.
+8. **Solo 1.ª persona (usuario, 2026-11-14):** la vista desde arriba ya no cuenta. No diseñes, pruebes ni arregles nada
+   para ella; las fotos de antes y después, en 1.ª persona (`CLAUDE.md` §5).
 
 ## Hecho
 - ✅ Clientes sentados encima de su silla (restaurante y posada), 2026-11-14.

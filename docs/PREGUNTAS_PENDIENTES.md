@@ -30,16 +30,12 @@
    *(2026-11-13: el sistema ya existe y lo estrena la casona de los rentistas; poner arriba al herrero es ahora poco
    trabajo si el usuario lo quiere.)*
 
-2. **(2026-11-14, golpes en 3D) Flechas en la vista desde arriba:** en 1.ª persona la flecha ya da justo donde apuntas
-   (a un conejo hay que apuntarle abajo). En la vista desde arriba no se puede apuntar en vertical, así que ahí la flecha
-   alcanza también lo que tiene debajo (como antes). ¿Se queda así, o la caza con arco pasa a ser solo de 1.ª persona?
-   Decidido de momento: se queda así. De paso: las dianas miden ahora lo que el cuerpo (un conejo es más difícil que antes).
+2. ✅ **(2026-11-14) Flechas en la vista desde arriba:** respondido: **el juego es solo en 1.ª persona**; la vista desde
+   arriba no se desarrolla más ni se tiene en cuenta. Quitada la regla especial: la flecha da siempre donde se apunta.
 3. **(2026-11-14) Carpeta `archived_systems/`:** guarda escenas viejas en 2D (interiores con teletransporte, red eléctrica)
    que el juego no usa; una apunta a un archivo de golpes que ya no existe. ¿Se borra la carpeta (queda en el historial de
    GitHub) o la quieres conservar? No se ha tocado.
-4. **(2026-11-14) La flecha cae por su peso:** ahora vuela en arco de verdad. Un tiro recto llega igual de lejos que
-   antes, pero apuntando algo hacia arriba (1.ª persona) llega más lejos, y apuntando abajo, menos. ¿Te gusta así
-   («balística» de verdad) o prefieres que el alcance sea fijo como antes? Decidido de momento: arco de verdad.
+4. ✅ **(2026-11-14) La flecha cae por su peso:** respondido: **se queda así** (arco de verdad).
 5. **(2026-11-14) Rótulo de los animales:** antes, al pasar el ratón por encima de un animal salía qué estaba haciendo.
    Eso era del mapa plano. Ahora el rótulo sale solo cuando estás a menos de 8 m de él (acercándote con sigilo), tanto
    en 1.ª persona como desde arriba. ¿Te vale así? Decidido de momento: sí. De paso se han quitado los emojis de esos textos.

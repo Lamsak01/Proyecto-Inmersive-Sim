@@ -1,6 +1,6 @@
 # La Placa de Petri
 
-Immersive sim **3D** en primera persona (con vista desde arriba opcional) hecho con **Godot 4.7.2** (GDScript, Flatpak).
+Immersive sim **3D** en primera persona (solo 1.ª persona: la vista desde arriba ya no cuenta) hecho con **Godot 4.7.2** (GDScript, Flatpak).
 Un forastero llega a un valle con ~17 vecinos con rutina propia; el bucle principal es **detective** (Caso I). El usuario
 no programa (audita leyendo la lógica general) y trabaja en **dos ordenadores Linux sincronizados por GitHub**.
 Este archivo lo leen por igual Claude Code, Gemini y Antigravity (`GEMINI.md` y `AGENTS.md` son enlaces a él).
@@ -74,6 +74,11 @@ Este archivo lo leen por igual Claude Code, Gemini y Antigravity (`GEMINI.md` y 
   en píxeles. Plan y reglas de honestidad en `docs/specs/PLAN_TODO_3D.md`; el avance se mide con
   `bash tools/contar_2d.sh` (2.495 el 2026-11-14; terminado = 0). **Prohibido** decir «migrado» o «terminado» sin ese
   número, y prohibido añadir nada nuevo en 2D o en píxeles. Cómo funciona el híbrido actual: `docs/specs/MUNDO_3D.md`.
+- **Solo 1.ª persona (decisión del usuario, 2026-11-14).** La vista desde arriba ([P]) no se desarrolla más: solo
+  servía para buscar fallos visuales. **Prohibido** diseñar, probar, arreglar o preguntar nada pensando en ella, y
+  prohibido añadir casos especiales para ella (apuntar con el ratón sobre el mapa, rótulos al pasar el ratón…). Se
+  puede dejar inactiva o borrar cuando se toque un archivo por otra razón; no se le dedica tiempo propio. Las fotos
+  de comprobación se sacan en 1.ª persona.
 - **Época definitiva:** tecnofeudal / medieval-balística (`docs/specs/REVISION_EPOCA.md`). Historia principal antigua
   descartada; la nueva se diseña con el usuario. **Nunca inventar lore de la secta.**
 - **Foco:** primero fallos visibles y estabilidad; el Caso I jugable después; todo lo demás congelado.

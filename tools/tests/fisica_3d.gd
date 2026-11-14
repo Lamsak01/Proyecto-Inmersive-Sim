@@ -771,7 +771,7 @@ func _paso5c_golpes() -> void:
 	await physics_frame
 	var cuerpo = load("res://scripts/fisica/AndarMapa.gd").cuerpo(pl)
 	var dano = load("res://scripts/systems/combat/DamageData.gd").new()
-	var f = load("res://scripts/systems/combat/Flecha3D.gd").disparar(pl, cuerpo.global_position + Vector3(0.0, 1.4, -0.5), Vector3(0.0, 0.0, -1.0), 16.8, 12.0, dano, false)
+	var f = load("res://scripts/systems/combat/Flecha3D.gd").disparar(pl, cuerpo.global_position + Vector3(0.0, 1.4, -0.5), Vector3(0.0, 0.0, -1.0), 16.8, 12.0, dano)
 	for _i in range(90):
 		await physics_frame
 		if f.clavada:
@@ -936,14 +936,14 @@ func _arreglo_bandido_pared() -> void:
 
 
 ## Dispara una flecha desde `desde` (mapa) hacia el este, con la `pendiente` dada (lo que sube por cada metro que
-## avanza), sin apuntar a ojo (como en la vista desde arriba), y espera a que acabe su vuelo. Devuelve la flecha.
+## avanza), y espera a que acabe su vuelo. Devuelve si acabó clavada (en el suelo o en una pared).
 func _flechazo(pl, desde: Vector2, pendiente: float):
 	var cuerpo = load("res://scripts/fisica/AndarMapa.gd").cuerpo(pl)
 	var origen: Vector3 = Mapa3D.a_3d(desde + Vector2(12.0, 0.0))
 	origen.y = cuerpo.global_position.y + 1.4
 	var dano = load("res://scripts/systems/combat/DamageData.gd").new()
 	dano.amount = 5.0
-	var f = load("res://scripts/systems/combat/Flecha3D.gd").disparar(pl, origen, Vector3(1.0, pendiente, 0.0), 16.8, 6.7, dano, false)
+	var f = load("res://scripts/systems/combat/Flecha3D.gd").disparar(pl, origen, Vector3(1.0, pendiente, 0.0), 16.8, 6.7, dano)
 	var acabo: Array = [false, false] # [terminó su vuelo, y fue clavada en el suelo o en una pared]
 	f.tree_exiting.connect(func(): acabo[0] = true)
 	for _i in range(90):

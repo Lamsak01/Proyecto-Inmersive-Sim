@@ -6,8 +6,7 @@ extends Node3D
 ## - La flecha sale con la fuerza de la tensión del arco y cae por su peso: describe un arco y se clava donde aterriza
 ##   (suelo, pared u objeto). Su caída está medida para que un tiro recto llegue justo a su alcance; apuntando algo
 ##   hacia arriba llega más lejos. La bala va recta y desaparece al acabar su alcance.
-## - En cada paso hiere a la diana 3D que cruza (Diana3D). En 1.ª persona da justo donde se apunta; si no se puede
-##   apuntar en vertical (vista desde arriba), alcanza también lo que tiene debajo («cortina»).
+## - En cada paso hiere a la diana 3D que cruza (Diana3D): da justo donde se apunta, a la altura de verdad.
 ## TRADUCTOR (se quita con las paredes y suelos 3D de verdad, tandas 3a-v y 3b): para tener paredes delante avisa a
 ## ChoquesMundo3D con su sitio en el mapa plano, y las losas de los pisos altos se preguntan a Vista.gd.
 
@@ -18,7 +17,6 @@ const ChoquesMundo3D = preload("res://scripts/fisica/ChoquesMundo3D.gd")
 const CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd")
 const FlechaFigura3D = preload("res://scripts/systems/combat/FlechaFigura3D.gd")
 
-const CORTINA_M: float = 1.7        ## sin poder apuntar hacia abajo, alcanza lo que tiene debajo hasta esta altura
 const FRENO_FINAL: float = 0.65     ## la flecha acaba su vuelo a esta parte de su velocidad de salida
 const PAREDES_RADIO_M: float = 3.6  ## pide las paredes del mundo a esta distancia a la redonda
 const CLAVADA_S: float = 1.5        ## tiempo que se queda clavada antes de desvanecerse
@@ -38,14 +36,13 @@ var _caida: float = 0.0             ## m/s² hacia abajo (0 para la bala)
 var _alcance: float = 0.0
 var _recorrido: float = 0.0
 var _vuelo_s: float = 0.0
-var _a_ojo: bool = false
 var _nivel: int = 0                 ## piso de quien dispara (para saber qué suelo hay debajo)
 var _vm: Node = null
 
 
 ## Dispara desde `origen` hacia `direccion` (mundo 3D). `alcance` es lo que recorre un tiro recto antes de caer (flecha)
-## o de perderse (bala). `a_ojo`: la dispara el protagonista en 1.ª persona. Devuelve null si aún no hay escenario 3D.
-static func disparar(p_tirador: Node, origen: Vector3, direccion: Vector3, rapidez: float, alcance: float, p_dano: DamageData, a_ojo: bool) -> Flecha3D:
+## o de perderse (bala). Devuelve null si aún no hay escenario 3D.
+static func disparar(p_tirador: Node, origen: Vector3, direccion: Vector3, rapidez: float, alcance: float, p_dano: DamageData) -> Flecha3D:
 	var raiz: Node = CuerpoBase3D.escenario(p_tirador.get_tree())
 	if raiz == null:
 		return null
@@ -53,7 +50,6 @@ static func disparar(p_tirador: Node, origen: Vector3, direccion: Vector3, rapid
 	f.tirador = p_tirador
 	f.dano = p_dano
 	f.es_bala = p_dano.is_firearm_bullet
-	f._a_ojo = a_ojo
 	f._alcance = alcance
 	f._rapidez_salida = rapidez
 	f._velocidad = direccion.normalized() * rapidez
@@ -102,8 +98,7 @@ func _physics_process(delta: float) -> void:
 
 ## ¿Cruza la diana de alguien en este paso? Entonces le hiere y la flecha se acaba.
 func _herir(a: Vector3, b: Vector3) -> bool:
-	var mundo: World3D = get_world_3d()
-	var diana: Diana3D = Diana3D.en_tramo(mundo, a, b, tirador) if _a_ojo else Diana3D.en_cortina(mundo, a, b, CORTINA_M, tirador)
+	var diana: Diana3D = Diana3D.en_tramo(get_world_3d(), a, b, tirador)
 	if diana == null:
 		return false
 	dano.shot_distance_px = (_recorrido + a.distance_to(b)) / Mapa3D.ESCALA # HealthComponent aún mide en el mapa plano

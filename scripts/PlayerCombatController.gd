@@ -839,18 +839,17 @@ func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 	_disparar(shoot_dir, lerpf(FLECHA_RAPIDEZ_M_S.x, FLECHA_RAPIDEZ_M_S.y, tension), lerpf(FLECHA_ALCANCE_M.x, FLECHA_ALCANCE_M.y, tension), dano_flecha)
 
 
-## Suelta un proyectil 3D (flecha o bala) desde el pecho del protagonista hacia `hacia_mapa`; en 1.ª persona, con la
-## pendiente de la mirada, y da justo donde se apunta.
+## Suelta un proyectil 3D (flecha o bala) desde el pecho del protagonista hacia `hacia_mapa`, con la pendiente de la
+## mirada: da justo donde se apunta.
 func _disparar(hacia_mapa: Vector2, rapidez_m_s: float, alcance_m: float, dano: DamageData) -> void:
 	var cuerpo: Node3D = _AndarMapa.cuerpo(player) as Node3D
 	if cuerpo == null:
 		return
-	var a_ojo: bool = WorldStage3DScript.first_person_active
-	var pendiente: float = WorldStage3DScript.fp_pitch if a_ojo else 0.0
+	var pendiente: float = WorldStage3DScript.fp_pitch
 	var llano: Vector3 = Vector3(hacia_mapa.x, 0.0, hacia_mapa.y).normalized()
 	var hacia: Vector3 = llano * cos(pendiente) + Vector3.UP * sin(pendiente)
 	var origen: Vector3 = cuerpo.global_position + Vector3.UP * TIRO_ALTURA_M + llano * TIRO_DELANTE_M
-	Flecha3D.disparar(player, origen, hacia, rapidez_m_s, alcance_m, dano, a_ojo)
+	Flecha3D.disparar(player, origen, hacia, rapidez_m_s, alcance_m, dano)
 
 func _fire_flintlock_realtime(equipped: WeaponData) -> void:
 	var is_rifle: bool = is_rifle_weapon(equipped)

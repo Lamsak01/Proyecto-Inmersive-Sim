@@ -17,7 +17,6 @@ const RADIO_MIN_M: float = 0.3    ## un conejo no mide más de 15 cm de radio: c
 const META: String = "diana3d"    ## cada personaje guarda aquí su diana
 const META_ACTIVA: String = "diana_activa" ## y aquí si la quiere encendida (por si aún no tiene cuerpo)
 const MAX_POR_GOLPE: int = 16     ## dianas que puede tocar un mismo tajo
-const GROSOR_CORTINA_M: float = 0.1 ## ancho de la «cortina» de una flecha (ver en_cortina)
 
 var duenio: Node = null           ## a quién se hiere al acertar
 var activa: bool = true           ## apagada no cuenta para ningún golpe (vale al instante; su forma se apaga al acabar el fotograma)
@@ -91,31 +90,6 @@ static func en_tramo(mundo: World3D, a: Vector3, b: Vector3, tirador: Node) -> D
 			return d
 		fuera.append(d.get_rid())
 	return null
-
-
-## Como `en_tramo`, pero el tramo alcanza también lo que tiene debajo hasta `caida_m` metros: una «cortina». Es para
-## quien no puede apuntar hacia abajo (la vista desde arriba): su flecha da a un conejo aunque salga a la altura del pecho.
-static func en_cortina(mundo: World3D, a: Vector3, b: Vector3, caida_m: float, tirador: Node) -> Diana3D:
-	var largo: float = a.distance_to(b)
-	if largo < 0.001:
-		return null
-	var caja := BoxShape3D.new()
-	caja.size = Vector3(GROSOR_CORTINA_M, caida_m, largo)
-	var consulta := PhysicsShapeQueryParameters3D.new()
-	consulta.shape = caja
-	var centro: Vector3 = (a + b) * 0.5 - Vector3.UP * caida_m * 0.5
-	consulta.transform = Transform3D(Basis.looking_at((b - a) * Vector3(1.0, 0.0, 1.0) + Vector3(0.0, 0.0, 0.0001), Vector3.UP), centro)
-	consulta.collision_mask = CAPA
-	consulta.collide_with_areas = true
-	consulta.collide_with_bodies = false
-	var mejor: Diana3D = null
-	for r: Dictionary in mundo.direct_space_state.intersect_shape(consulta, MAX_POR_GOLPE):
-		var d: Diana3D = r["collider"] as Diana3D
-		if d == null or not d.activa or d.duenio == tirador:
-			continue
-		if mejor == null or d.global_position.distance_squared_to(a) < mejor.global_position.distance_squared_to(a):
-			mejor = d
-	return mejor
 
 
 ## Le llega un golpe: avisa a su dueño.

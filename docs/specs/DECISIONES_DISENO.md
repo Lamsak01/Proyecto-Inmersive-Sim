@@ -2,7 +2,7 @@
 
 ## Mundo y época
 - **Mundo 3D de verdad** (2026-11-10): física real, pisos, sótanos, nadar y bucear. Hecho el 2026-11-12; el modo 2D se borró.
-  No proponer volver al 2D. Vista desde arriba: se queda por ahora (2026-11-11). Detalle en `MUNDO_3D.md`.
+  No proponer volver al 2D. Vista desde arriba: **abandonada (2026-11-14)**: el juego es solo en 1.ª persona; no se desarrolla ni se tiene en cuenta (ver `CLAUDE.md` §5). Detalle en `MUNDO_3D.md`.
 - **Escala uniforme en metros** (2026-11-10). **Daño por caída realista:** duele desde 3 m, mata a 8 m, hiere piernas.
   **Aire bajo el agua:** 30 s; al acabarse pierdes vida hasta morir (2026-11-11).
 - **Época DEFINITIVA** (2026-11-08, «100 % seguro»): tecnofeudal / medieval-balística. Sociedad y arquitectura feudales con
