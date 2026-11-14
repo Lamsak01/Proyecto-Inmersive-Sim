@@ -18,6 +18,7 @@ const MAX_POR_GOLPE: int = 16     ## dianas que puede tocar un mismo tajo
 const GROSOR_CORTINA_M: float = 0.1 ## ancho de la «cortina» de una flecha (ver en_cortina)
 
 var duenio: Node = null           ## a quién se hiere al acertar
+var activa: bool = true           ## apagada no cuenta para ningún golpe (vale al instante; su forma se apaga al acabar el fotograma)
 var _forma: CollisionShape3D = null
 
 
@@ -65,8 +66,9 @@ static func en_esfera(mundo: World3D, centro: Vector3, radio: float) -> Array[Di
 	consulta.collide_with_bodies = false
 	var out: Array[Diana3D] = []
 	for r: Dictionary in mundo.direct_space_state.intersect_shape(consulta, MAX_POR_GOLPE):
-		if r["collider"] is Diana3D:
-			out.append(r["collider"] as Diana3D)
+		var d: Diana3D = r["collider"] as Diana3D
+		if d != null and d.activa:
+			out.append(d)
 	return out
 
 
@@ -76,11 +78,17 @@ static func en_tramo(mundo: World3D, a: Vector3, b: Vector3, tirador: Node) -> D
 	rayo.collide_with_areas = true
 	rayo.collide_with_bodies = false
 	rayo.hit_from_inside = true
+	var fuera: Array[RID] = []
 	var suya: Diana3D = de(tirador) if is_instance_valid(tirador) else null
 	if suya != null:
-		rayo.exclude = [suya.get_rid()]
-	var r: Dictionary = mundo.direct_space_state.intersect_ray(rayo)
-	return r.get("collider") as Diana3D
+		fuera.append(suya.get_rid())
+	for _i in range(MAX_POR_GOLPE): # las apagadas que encuentre por delante se saltan
+		rayo.exclude = fuera
+		var d: Diana3D = mundo.direct_space_state.intersect_ray(rayo).get("collider") as Diana3D
+		if d == null or d.activa:
+			return d
+		fuera.append(d.get_rid())
+	return null
 
 
 ## Como `en_tramo`, pero el tramo alcanza también lo que tiene debajo hasta `caida_m` metros: una «cortina». Es para
@@ -101,7 +109,7 @@ static func en_cortina(mundo: World3D, a: Vector3, b: Vector3, caida_m: float, t
 	var mejor: Diana3D = null
 	for r: Dictionary in mundo.direct_space_state.intersect_shape(consulta, MAX_POR_GOLPE):
 		var d: Diana3D = r["collider"] as Diana3D
-		if d == null or d.duenio == tirador:
+		if d == null or not d.activa or d.duenio == tirador:
 			continue
 		if mejor == null or d.global_position.distance_squared_to(a) < mejor.global_position.distance_squared_to(a):
 			mejor = d
@@ -125,5 +133,6 @@ func medir(radio: float, alto: float) -> void:
 	_forma.position.y = h * 0.5
 
 
-func _aplicar_activa(activa: bool) -> void:
-	_forma.set_deferred("disabled", not activa)
+func _aplicar_activa(p_activa: bool) -> void:
+	activa = p_activa
+	_forma.set_deferred("disabled", not p_activa)

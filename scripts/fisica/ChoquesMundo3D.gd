@@ -16,6 +16,7 @@ const Prismas3D = preload("res://scripts/fisica/Prismas3D.gd")
 const AlturasChoque3D = preload("res://scripts/fisica/AlturasChoque3D.gd")
 
 const NOMBRE: String = "ChoquesMundo3D"
+const META_ORIGEN: String = "origen" ## cada pared guarda aquí el choque del mapa plano del que es gemela
 const CAPA_MUROS: int = 4          ## capa 3D de las paredes: frenan al protagonista y a los vecinos
 const CAPA_AGUA: int = 16          ## capa 3D del agua: solo frena a los vecinos (el protagonista entra y nada)
 const CELDA_PX: float = 128.0      ## lado de cada celda del mundo (~7 m)
@@ -138,6 +139,7 @@ func _levantar(rid: RID, idx: int, nodo: StaticBody2D) -> StaticBody3D:
 	cuerpo.collision_layer = CAPA_AGUA if nodo.is_in_group("agua_2d") else CAPA_MUROS
 	cuerpo.collision_mask = 0
 	cuerpo.set_meta("desde_m", franja.x)
+	cuerpo.set_meta(META_ORIGEN, nodo)
 	cuerpo.set_meta("bajo_tierra", bajo_tierra)
 	var cs := CollisionShape3D.new()
 	cs.shape = forma

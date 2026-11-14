@@ -45,6 +45,15 @@ const WeaponWear = preload("res://scripts/systems/combat/WeaponWear.gd") # C7 fa
 const TAJO_RADIO_M: float = 1.84
 const TAJO_DELANTE_M: float = 1.23
 const TAJO_ALTURA_M: float = 1.1
+## Disparos (tanda 7a-2): salen del pecho, un paso por delante. Mismas medidas que tenían en el mapa plano, en metros.
+const TIRO_ALTURA_M: float = 1.4
+const TIRO_DELANTE_M: float = 0.7
+const FLECHA_RAPIDEZ_M_S: Vector2 = Vector2(10.6, 21.3) ## (arco flojo, arco tenso)
+const FLECHA_ALCANCE_M: Vector2 = Vector2(3.1, 18.5)    ## (arco flojo, arco tenso): lo que llega un tiro recto
+const BALA_FUSIL_M_S: float = 48.2
+const BALA_PISTOLA_M_S: float = 38.1
+const ALCANCE_FUSIL_M: float = 26.9
+const ALCANCE_PISTOLA_M: float = 20.2
 var swing_duration: float = 0.36
 var swing_move_mult: float = 1.0
 var _swing_feel: Dictionary = {}
@@ -810,7 +819,6 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 
 func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 	var shoot_dir := current_aim_dir
-	var pivot_global := player.global_position + Vector2(0, -10)
 
 	if weapon_sprite:
 		weapon_sprite.visible = true
@@ -821,22 +829,28 @@ func _fire_bow(equipped: WeaponData, tension: float = 1.0) -> void:
 				weapon_sprite.visible = false
 		)
 
-	var arrow := ArrowProjectile.new()
-	arrow.global_position = pivot_global + shoot_dir * 12.0
-	arrow.direction = shoot_dir
-	# El alcance y la velocidad dependen directamente de cuánto tensaste el arco (hasta el doble de largo: 330 px)
-	arrow.max_range = lerpf(55.0, 330.0, tension)
-	arrow.speed = lerpf(190.0, 380.0, tension)
-	arrow.shooter = player
-	arrow.damage_data = equipped.damage_data.copy()
-	arrow.damage_data.weapon_tag = "Impacto de Flecha (Arco)"
-	arrow.damage_data.amount = equipped.damage_data.amount * lerpf(0.55, 1.4, tension)
+	# El alcance y la velocidad dependen directamente de cuánto tensaste el arco
+	var dano_flecha: DamageData = equipped.damage_data.copy()
+	dano_flecha.weapon_tag = "Impacto de Flecha (Arco)"
+	dano_flecha.amount = equipped.damage_data.amount * lerpf(0.55, 1.4, tension)
 	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
-		arrow.damage_data.stun_buildup += 50.0
-	arrow.damage_data.source = player
-	var scene_root_bow: Node = player.get_tree().current_scene if player.get_tree().current_scene != null else player.get_parent()
-	if scene_root_bow != null:
-		scene_root_bow.add_child(arrow)
+		dano_flecha.stun_buildup += 50.0
+	dano_flecha.source = player
+	_disparar(shoot_dir, lerpf(FLECHA_RAPIDEZ_M_S.x, FLECHA_RAPIDEZ_M_S.y, tension), lerpf(FLECHA_ALCANCE_M.x, FLECHA_ALCANCE_M.y, tension), dano_flecha)
+
+
+## Suelta un proyectil 3D (flecha o bala) desde el pecho del protagonista hacia `hacia_mapa`; en 1.ª persona, con la
+## pendiente de la mirada, y da justo donde se apunta.
+func _disparar(hacia_mapa: Vector2, rapidez_m_s: float, alcance_m: float, dano: DamageData) -> void:
+	var cuerpo: Node3D = _AndarMapa.cuerpo(player) as Node3D
+	if cuerpo == null:
+		return
+	var a_ojo: bool = WorldStage3DScript.first_person_active
+	var pendiente: float = WorldStage3DScript.fp_pitch if a_ojo else 0.0
+	var llano: Vector3 = Vector3(hacia_mapa.x, 0.0, hacia_mapa.y).normalized()
+	var hacia: Vector3 = llano * cos(pendiente) + Vector3.UP * sin(pendiente)
+	var origen: Vector3 = cuerpo.global_position + Vector3.UP * TIRO_ALTURA_M + llano * TIRO_DELANTE_M
+	Flecha3D.disparar(player, origen, hacia, rapidez_m_s, alcance_m, dano, a_ojo)
 
 func _fire_flintlock_realtime(equipped: WeaponData) -> void:
 	var is_rifle: bool = is_rifle_weapon(equipped)
@@ -879,26 +893,16 @@ func _fire_flintlock_realtime(equipped: WeaponData) -> void:
 	else:
 		spread_rad = randf_range(-0.22, 0.22) if is_rifle else randf_range(-0.18, 0.18)
 	var shoot_dir: Vector2 = current_aim_dir.rotated(spread_rad).normalized()
-	var pivot_global := player.global_position + Vector2(0, -10)
-	var bullet := ArrowProjectile.new()
-	bullet.is_bullet = true
-	bullet.global_position = pivot_global + shoot_dir * 14.0
-	bullet.direction = shoot_dir
-	bullet.max_range = 480.0 if is_rifle else 360.0
-	bullet.speed = 860.0 if is_rifle else 680.0
-	bullet.shooter = player
-	bullet.damage_data = equipped.damage_data.copy()
-	bullet.damage_data.is_firearm_bullet = true
-	bullet.damage_data.firearm_kind = "rifle" if is_rifle else "pistol"
-	bullet.damage_data.is_aimed_shot = is_aimed
-	bullet.damage_data.weapon_tag = "Fusil de Asalto" if is_rifle else "Arcabuz de Chispa"
-	bullet.damage_data.amount = (96.0 if is_aimed else 84.0) if is_rifle else (72.0 if is_aimed else 62.0)
-	bullet.damage_data.bleed_buildup = 75.0 if is_rifle else 58.0
-	bullet.damage_data.stun_buildup = 48.0 if is_rifle else 34.0
-	bullet.damage_data.source = player
-	var scene_root_gun: Node = player.get_tree().current_scene if player.get_tree().current_scene != null else player.get_parent()
-	if scene_root_gun != null:
-		scene_root_gun.add_child(bullet)
+	var dano_bala: DamageData = equipped.damage_data.copy()
+	dano_bala.is_firearm_bullet = true
+	dano_bala.firearm_kind = "rifle" if is_rifle else "pistol"
+	dano_bala.is_aimed_shot = is_aimed
+	dano_bala.weapon_tag = "Fusil de Asalto" if is_rifle else "Arcabuz de Chispa"
+	dano_bala.amount = (96.0 if is_aimed else 84.0) if is_rifle else (72.0 if is_aimed else 62.0)
+	dano_bala.bleed_buildup = 75.0 if is_rifle else 58.0
+	dano_bala.stun_buildup = 48.0 if is_rifle else 34.0
+	dano_bala.source = player
+	_disparar(shoot_dir, BALA_FUSIL_M_S if is_rifle else BALA_PISTOLA_M_S, ALCANCE_FUSIL_M if is_rifle else ALCANCE_PISTOLA_M, dano_bala)
 
 	var rem_mag: int = rifle_mag_loaded if is_rifle else pistol_mag_loaded
 	var cap_mag: int = RIFLE_MAG_MAX if is_rifle else PISTOL_MAG_MAX

@@ -244,11 +244,17 @@ func _seguir() -> void:
 	var p: Vector2 = actor.global_position
 	if p.is_equal_approx(_ultima_pos_mapa) and _nivel() == _nivel_visto:
 		return
-	var lejos: bool = prota_en != Vector3.INF and global_position.distance_squared_to(prota_en) > LEJOS_M * LEJOS_M
-	if lejos and paso - _seguido_paso < SEGUIR_LEJOS_CADA:
-		return
+	if _lejos_del_prota(global_position) and _lejos_del_prota(Mapa3D.a_3d(p)) and paso - _seguido_paso < SEGUIR_LEJOS_CADA:
+		return # ni de donde sale ni adonde llega hay nadie mirando: se pone al día de vez en cuando
 	_seguido_paso = paso
 	_saltar_a(p)
+
+
+## ¿Está ese punto del mundo lejos del protagonista (sin contar la altura)?
+func _lejos_del_prota(punto: Vector3) -> bool:
+	if prota_en == Vector3.INF:
+		return false
+	return Vector2(punto.x - prota_en.x, punto.z - prota_en.z).length_squared() > LEJOS_M * LEJOS_M
 
 
 ## Antes de moverse: ¿lo han cambiado de sitio a mano? Suelo y paredes de alrededor al día.

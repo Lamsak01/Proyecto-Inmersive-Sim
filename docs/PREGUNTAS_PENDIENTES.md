@@ -37,3 +37,6 @@
 3. **(2026-11-14) Carpeta `archived_systems/`:** guarda escenas viejas en 2D (interiores con teletransporte, red eléctrica)
    que el juego no usa; una apunta a un archivo de golpes que ya no existe. ¿Se borra la carpeta (queda en el historial de
    GitHub) o la quieres conservar? No se ha tocado.
+4. **(2026-11-14) La flecha cae por su peso:** ahora vuela en arco de verdad. Un tiro recto llega igual de lejos que
+   antes, pero apuntando algo hacia arriba (1.ª persona) llega más lejos, y apuntando abajo, menos. ¿Te gusta así
+   («balística» de verdad) o prefieres que el alcance sea fijo como antes? Decidido de momento: arco de verdad.

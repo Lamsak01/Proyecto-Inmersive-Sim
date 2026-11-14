@@ -85,8 +85,17 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    Caso I 25/25. **Sigue siendo 2D:** la flecha aún vuela como nodo del mapa plano (posición en píxeles + altura) y choca
    con paredes y objetos rompibles del mapa; el tajo aún lleva un área plana solo para los objetos rompibles (cajas,
    barriles: tanda 6); el empujón recorre grupos y pregunta por pisos (`vm.alcanza`); el «dueño» de cada diana sigue
-   siendo el nodo plano del personaje. **Siguiente: 7a-2** (la flecha como proyectil 3D de verdad, con paredes 3D) y
-   después 4b-2 (animales salvajes).
+   siendo el nodo plano del personaje.
+   ✅ **7a-2 (2026-11-14): la flecha y la bala son proyectiles 3D** (`systems/combat/Flecha3D.gd` y su figura
+   `FlechaFigura3D.gd`; borrado `ArrowProjectile.gd`). Viven en el escenario 3D y en metros: la flecha sale del pecho
+   con la pendiente de la mirada, cae por su peso (medida para que un tiro recto llegue a su alcance de siempre) y se
+   clava donde aterriza: suelo, pared u objeto rompible (este recibe el daño a través de la pared gemela,
+   `ChoquesMundo3D.META_ORIGEN`). Ahora se ve en 1.ª persona (antes era un dibujo del mapa plano). Contador
+   2.286 → **2.274**. Pruebas: `fisica_3d` («7a-2» y «5c», 3 pasadas seguidas) y foto en 1.ª persona. De paso: un
+   cuerpo traído de lejos junto al protagonista llegaba hasta 10 pasos tarde (`Cuerpo3D._seguir`): arreglado.
+   **Sigue siendo 2D:** la flecha pide las paredes a `ChoquesMundo3D` con su sitio en el mapa plano y pregunta las losas
+   a `Vista.gd` (traductores); `DamageData.shot_distance_px` y `CombatFeel` siguen midiendo en el mapa plano.
+   **Siguiente: 4b-2** (animales salvajes).
 8. **Escena raíz 3D:** el mundo deja de pintarse como imagen dentro de una escena 2D; cámara, luz de día y noche,
    lluvia y sonido en 3D.
 9. **Datos fuera del código y objetos gigantes partidos**, según se toque cada sistema (auditoría B y C).

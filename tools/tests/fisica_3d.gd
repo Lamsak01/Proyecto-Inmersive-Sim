@@ -760,10 +760,26 @@ func _paso5c_golpes() -> void:
 	await _flechazo(pl, sitio, 0.0)
 	_ok(ciervo.current_hp < vida, "5c: una flecha plana a 60 px da al ciervo")
 	vida = ciervo.current_hp
-	await _flechazo(pl, sitio, 0.6)
+	await _flechazo(pl, sitio, 1.13)
 	_ok(ciervo.current_hp == vida, "5c: apuntando muy arriba pasa por encima")
-	var f = await _flechazo(pl, sitio, -0.6)
-	_ok(ciervo.current_hp == vida and f._is_grounded, "5c: apuntando al suelo se clava antes de llegar")
+	var clavada: bool = await _flechazo(pl, sitio, -1.13)
+	_ok(ciervo.current_hp == vida and clavada, "5c: apuntando al suelo se clava antes de llegar")
+	# 7a-2: la flecha vuela de verdad. Contra la pared sur de la posada se clava en ella; no la atraviesa.
+	var pared: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-60.0, 60.0)
+	pl.global_position = pared
+	await physics_frame
+	await physics_frame
+	var cuerpo = load("res://scripts/fisica/AndarMapa.gd").cuerpo(pl)
+	var dano = load("res://scripts/systems/combat/DamageData.gd").new()
+	var f = load("res://scripts/systems/combat/Flecha3D.gd").disparar(pl, cuerpo.global_position + Vector3(0.0, 1.4, -0.5), Vector3(0.0, 0.0, -1.0), 16.8, 12.0, dano, false)
+	for _i in range(90):
+		await physics_frame
+		if f.clavada:
+			break
+	var muro_z: float = Mapa3D.a_3d(VillageTavern.al_mundo(Vector2(0.0, VillageTavern.RECT.end.y))).z
+	_ok(f.clavada and f.global_position.z > muro_z - 0.6, "7a-2: una flecha contra la pared de la posada se clava en ella (z %.2f; pared en %.2f)" % [f.global_position.z, muro_z])
+	_ok(f.global_position.y > cuerpo.global_position.y + 0.5, "7a-2: y se clava a media altura, no en el suelo (a %.2f m del suelo)" % (f.global_position.y - cuerpo.global_position.y))
+	_ok(not ResourceLoader.exists("res://scripts/systems/combat/ArrowProjectile.gd"), "7a-2: ya no existe la flecha del mapa plano")
 	ciervo.set_physics_process(true)
 
 
@@ -884,6 +900,7 @@ func _tanda7a_dianas() -> void:
 
 ## Da un tajo de prueba (la búsqueda de dianas del arma, sin animación) y dice si ha alcanzado a `quien`.
 func _tajo(cc, quien, hacia: Vector2 = Vector2.RIGHT) -> bool:
+	await process_frame # lo aplazado al final del fotograma (encender o apagar la forma de una diana)
 	for _i in range(3): # que su cuerpo 3D y su diana lleguen a su sitio
 		await physics_frame
 	cc.current_aim_dir = hacia # después de esperar: el mando la cambia en cada fotograma según el ratón
@@ -919,21 +936,23 @@ func _arreglo_bandido_pared() -> void:
 		r.queue_free()
 
 
-## Dispara una flecha desde `desde` hacia el este con la `pendiente` dada y espera a que acabe su vuelo.
+## Dispara una flecha desde `desde` (mapa) hacia el este, con la `pendiente` dada (lo que sube por cada metro que
+## avanza), sin apuntar a ojo (como en la vista desde arriba), y espera a que acabe su vuelo. Devuelve la flecha.
 func _flechazo(pl, desde: Vector2, pendiente: float):
-	var f = load("res://scripts/systems/combat/ArrowProjectile.gd").new()
-	f.global_position = desde + Vector2(12.0, 0.0)
-	f.direction = Vector2.RIGHT
-	f.max_range = 120.0
-	f.speed = 300.0
-	f.shooter = pl
-	f.pendiente = pendiente
-	f.damage_data = load("res://scripts/systems/combat/DamageData.gd").new()
-	f.damage_data.amount = 5.0
-	root.add_child(f)
-	for _i in range(40):
+	var cuerpo = load("res://scripts/fisica/AndarMapa.gd").cuerpo(pl)
+	var origen: Vector3 = Mapa3D.a_3d(desde + Vector2(12.0, 0.0))
+	origen.y = cuerpo.global_position.y + 1.4
+	var dano = load("res://scripts/systems/combat/DamageData.gd").new()
+	dano.amount = 5.0
+	var f = load("res://scripts/systems/combat/Flecha3D.gd").disparar(pl, origen, Vector3(1.0, pendiente, 0.0), 16.8, 6.7, dano, false)
+	var acabo: Array = [false, false] # [terminó su vuelo, y fue clavada en el suelo o en una pared]
+	f.tree_exiting.connect(func(): acabo[0] = true)
+	for _i in range(90):
 		await physics_frame
-	return f
+		if acabo[0] or f.clavada:
+			acabo[1] = not acabo[0] and f.clavada
+			break
+	return acabo[1]
 
 
 ## Todos los personajes con cuerpo 3D menos el protagonista (desde la tanda 4, todos lo llevan siempre).
