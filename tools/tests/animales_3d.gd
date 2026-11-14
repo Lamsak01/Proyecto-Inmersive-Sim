@@ -110,6 +110,21 @@ func _vida_tranquila() -> void:
 			lejos_de_casa += 1
 	_ok(movidos >= vivos.size() / 3, "en 15 s pastan y se mueven (%d de %d)" % [movidos, vivos.size()])
 	_ok(lejos_de_casa == 0, "y no se alejan de su zona (lejos: %d)" % lejos_de_casa)
+	# Lejos del protagonista andan sin paredes, pero no se meten en el agua: uno puesto en la orilla y andando hacia el río se queda fuera
+	var Agua = load("res://scripts/fisica/Agua.gd")
+	var RioLago = load("res://scripts/fisica/RioLago.gd")
+	var ciervo = vivos[0]
+	ciervo.set_physics_process(false)
+	var y_rio: float = (float(RioLago.river_y_start()) + float(RioLago.river_y_end())) * 0.5
+	var orillas: Vector2 = RioLago.river_banks_at(y_rio)
+	ciervo.sitio = Lugar.a_suelo(Vector2(orillas.x - 30.0, y_rio)) # 30 px al oeste de la orilla oeste
+	ciervo._posar()
+	ciervo.andar = Vector2(3.0, 0.0) # hacia el este, hacia el agua
+	for _i in range(6 * PASOS_POR_S):
+		ciervo._moverse(1.0 / PASOS_POR_S, true)
+	_ok(not bool(Agua.en_agua(Lugar.en_mapa(ciervo))) and Lugar.en_mapa(ciervo).x > orillas.x - 20.0, "lejos del protagonista, un ciervo que va hacia el río se para en la orilla (a %.0f px del agua)" % (orillas.x - Lugar.en_mapa(ciervo).x))
+	ciervo.sitio = ciervo.casa
+	ciervo.set_physics_process(true)
 
 
 func _huyen_del_protagonista() -> void:

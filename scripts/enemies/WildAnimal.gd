@@ -20,6 +20,7 @@ enum AnimalState {
 }
 
 const RUTA_MODELO: String = "res://scripts/visuals/AnimalModel3D.gd" ## se carga al usarlo (sin ciclo de preloads)
+const RUTA_AGUA: String = "res://scripts/fisica/Agua.gd"
 const MAX_MEALS: int = 2
 const ESTADOS_FUERA: Array[AnimalState] = [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW] ## ni piensa ni se le hiere
 ## Modelo 3D y su alto (m) de cada especie. El jabalí usa de momento el lobo y el conejo una ardilla (no hay otros).
@@ -274,9 +275,22 @@ func _posar() -> void:
 	_suelo_mirado_en = global_position
 
 
+## (Lejos del protagonista) Cada SUELO_CADA_M de camino vuelve a mirar el suelo. Si ese paso lo metería en el agua desde
+## tierra firme, no lo da: se queda donde estaba y cambia de rumbo (cerca del protagonista eso lo hacen las paredes).
 func _posar_si_ha_andado() -> void:
-	if _suelo_mirado_en == Vector3.INF or global_position.distance_squared_to(_suelo_mirado_en) > SUELO_CADA_M * SUELO_CADA_M:
-		_posar()
+	if _suelo_mirado_en != Vector3.INF and global_position.distance_squared_to(_suelo_mirado_en) <= SUELO_CADA_M * SUELO_CADA_M:
+		return
+	if _suelo_mirado_en != Vector3.INF and _es_agua(global_position) and not _es_agua(_suelo_mirado_en):
+		global_position = _suelo_mirado_en
+		toca_pared = true
+		wander_timer = 0.0
+		return
+	_posar()
+
+
+## ¿Es agua (río o lago) ese punto del mundo? TRADUCTOR: se pregunta al mapa plano (Agua.gd).
+func _es_agua(punto: Vector3) -> bool:
+	return bool((load(RUTA_AGUA) as GDScript).call("en_agua", Lugar.a_mapa(Vector2(punto.x, punto.z))))
 
 
 func _protagonista() -> Node:

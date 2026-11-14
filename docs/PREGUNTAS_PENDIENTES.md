@@ -43,7 +43,3 @@
 5. **(2026-11-14) Rótulo de los animales:** antes, al pasar el ratón por encima de un animal salía qué estaba haciendo.
    Eso era del mapa plano. Ahora el rótulo sale solo cuando estás a menos de 8 m de él (acercándote con sigilo), tanto
    en 1.ª persona como desde arriba. ¿Te vale así? Decidido de momento: sí. De paso se han quitado los emojis de esos textos.
-6. **(2026-11-14) Animales que cruzan el agua lejos de ti:** lejos del protagonista los animales andan sin mirar paredes
-   ni agua (siempre fue así, para ahorrar), así que a veces te encuentras un ciervo dentro del río. ¿Lo arreglo (coste
-   poco: que lejos tampoco pisen el agua) o no molesta?
-
