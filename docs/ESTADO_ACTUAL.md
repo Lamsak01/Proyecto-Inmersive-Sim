@@ -36,8 +36,8 @@ lleva su `Cuerpo3D` siempre) 4b-1 y 4b-2 (ganado y animales salvajes SON su cuer
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
 1. **Tandas de `PLAN_TODO_3D.md`** en orden; las piezas (sillas, camas…) son su tanda 6.
-2. **Medir fps con ventana** tras la 4a (sin ventana la física no cambia: 3,8 → 4,1 ms). 3. **Vecinos atascados**: 0 en
-8 h; falta que lo confirme él. 4. **Interior de la taberna** (pregunta 0b). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
+2. Fps con ventana medidos el 14 (`perf_zonas`, sobremesa, 1.ª persona): 171–180 en todas las zonas. 3. **Vecinos
+atascados**: 0–2 leves en 4 h según el azar (dos sitios apuntados en el plan, «Atajos»); falta que lo confirme él. 4. **Interior de la taberna** (pregunta 0b). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
 
 ## d) Bloqueos activos
 - `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre.

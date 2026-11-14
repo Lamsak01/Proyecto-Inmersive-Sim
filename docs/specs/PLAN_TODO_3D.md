@@ -141,7 +141,12 @@ rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 
 - Guardia mensajero y de custodia «colocados» cerca del jugador o en su puesto (`Case1Aviso.gd`, 2026-11-14) → tanda 5.
 - ✅ (quitado en la 4a) Cuerpos 3D solo para 24 vecinos a ~8 m.
 - Red contra atascos: 5 s queriendo andar sin avanzar → 0,5 s sin chocar con nada (`Cuerpo3D._vigilar_atasco`,
-  2026-11-14; 12 veces en 8 h de pueblo) → tanda 5 (rutas 3D).
+  2026-11-14; 12 veces en 8 h de pueblo) → tanda 5 (rutas 3D). **Medido el 2026-11-14 tras las tandas 4b y 7a
+  (`atascos_vecinos`, 4 h, 13 pasadas entre la versión de la mañana, las intermedias y la final, con semillas 11–13):**
+  entre 0 y 12 «colados» y entre 0 y 2 atascos por pasada, según el azar; el total de tropiezos no ha subido. Se repiten
+  dos sitios donde un mueble queda a medio paso del destino de un vecino: el ala oeste de la mansión (una cama de
+  28 × 16 junto a (6447, −2131); se estorban los de la casa, `family_lord`) y junto a (155, −2745). La prueba cuenta
+  como atasco 6 s sin avanzar y la red salta a los 5–6 s: quedan justo en el límite. Se arregla con las rutas 3D.
 - Los vecinos cambian de piso al acabar la escalera y no a media rampa, porque sus rutas piensan por pisos
   (`Cuerpo3D._nivel_al_acabar_escalera`) → tanda 5.
 - Cuerpos que «siguen» sin chocar a quien aún se mueve escribiendo su posición plana: animales a más de
