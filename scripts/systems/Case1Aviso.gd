@@ -35,6 +35,7 @@ static func empezar(vm, st: Dictionary, cuerpo_pos: Vector2) -> void:
 	st["aviso"] = "en_camino"
 	st["aviso_desde"] = VillageNeeds.total_hours()
 	st["aviso_minuto"] = _minuto_de_juego()
+	_cortar_adelanto() # con Ctrl+T (o durmiendo) el recado se perdía a toda velocidad: el crimen corta el adelanto
 	var guardia = _guardia(vm, st)
 	if guardia == null:
 		_dar_recado(vm, st, null, cuerpo_pos)
@@ -60,6 +61,8 @@ static func tick(vm, st: Dictionary, cuerpo_pos: Vector2) -> void:
 		_acercar(vm, guardia) # te has ido lejos (o se entretuvo): vuelve a salir a ~50 m de ti
 	if _minuto_de_juego() - int(st.get("aviso_minuto", _minuto_de_juego())) >= MINUTOS_PARA_PLANTARSE:
 		_a_tu_espalda(vm, guardia) # el aviso no puede perderse: llega sí o sí
+	if guardia.global_position.distance_to(destino) <= LLEGA_PX:
+		_cortar_adelanto() # ya está a tu lado: que no espere a que acabe un adelanto de horas
 	if guardia.global_position.distance_to(destino) <= LLEGA_PX and not _jugador_ocupado(vm):
 		_dar_recado(vm, st, guardia, cuerpo_pos)
 
@@ -140,6 +143,11 @@ static func _a_tu_espalda(vm, guardia) -> void:
 	var vista = load(RUTA_VISTA)
 	var delante: Vector2 = vista.get_fp_forward_2d() if bool(vista.first_person_active) else Vector2.UP
 	guardia.global_position = _jugador_pos(vm) - delante.normalized() * ESPALDA_PX
+
+## Para el tiempo acelerado (Ctrl+T o dormir), si lo hay, como hace la detención.
+static func _cortar_adelanto() -> void:
+	if bool(WorldClock.is_fast_forwarding):
+		WorldClock.stop_organic_fast_forward(false)
 
 static func _minuto_de_juego() -> int:
 	return int(WorldClock.current_day) * 1440 + int(WorldClock.current_hour) * 60 + int(WorldClock.current_minute)

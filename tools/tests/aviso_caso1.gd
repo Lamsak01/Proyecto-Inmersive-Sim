@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Caso I, día 2 al alba: el guardia mensajero alcanza al jugador aunque este no pare de andar (en círculo, a paso
-## normal) en menos de una hora de juego y le da el recado de Vane con la caja de diálogo, no con una línea suelta. Uso (~1–2 min):
+## normal) y con el tiempo adelantado (Ctrl+T) en menos de una hora de juego y le da el recado de Vane con la caja de diálogo, no con una línea suelta. Uso (~1–2 min):
 ##   timeout 240 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/aviso_caso1.gd 2>&1 | grep "AVISO CASO1"
 
 const ESCENA_JUEGO: String = "uid://dsoiuct8kdsk3"
@@ -9,6 +9,7 @@ const FRAMES_ARRANQUE: int = 35
 const MINUTOS_MAX: int = 60 ## de juego, desde las 06:00
 const PASO_PX_S: float = 100.0  ## el jugador anda sin parar (andar normal: 120)
 const CIRCULO_PX: float = 600.0 ## radio de la vuelta que da (~34 m)
+const MINUTOS_ADELANTO: int = 120 ## lo que adelanta Ctrl+T
 const RUTA_CASO1: String = "res://scripts/systems/VillageCase1.gd" ## con load() tras arrancar: usa autoloads
 
 func _initialize() -> void:
@@ -24,6 +25,7 @@ func _initialize() -> void:
 	var dm: Node = jugador.get("dialogue_manager")
 	var vm: Node = get_first_node_in_group("village_manager")
 	var limite: int = 6 * 60 + MINUTOS_MAX
+	reloj.call("start_organic_fast_forward_duration", MINUTOS_ADELANTO) # como pulsar Ctrl+T a las 05:50
 	var centro: Vector2 = (jugador as Node2D).global_position + Vector2(CIRCULO_PX, 0.0)
 	var angulo: float = PI
 	while _minutos(reloj) < limite and not bool(dm.call("is_active")):
