@@ -3,6 +3,9 @@
 > Estado: **aprobado como idea, sin empezar**. Lo hace Claude Code (cambio de cimientos, no Antigravity). Antes de la
 > fase 1, enseñar al usuario un plan de 6 líneas de esa fase y esperar su «sí».
 
+> **Ver también `docs/specs/AUDITORIA_2D_A_3D.md` (2026-11-14):** el problema es mayor que estas seis familias; el juego
+> sigue siendo 2D por debajo. Este plan es el paso 2 del orden que propone la auditoría.
+
 ## Problema
 El juego tiene dos fuentes de verdad: **lo que se ve** (muebles y piezas del editor, `mapa/edificios/*.tscn`,
 `mapa/Mundo3D.tscn`) y **lo que se usa** (listas escritas en el código). Cada sistema (posada, restaurante, casas,

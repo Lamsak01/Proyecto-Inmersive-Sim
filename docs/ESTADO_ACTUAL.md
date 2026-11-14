@@ -30,7 +30,8 @@ Pendiente: molino con aspecto de molino (para después); preguntar a cualquier v
 
 ## c0) Plan grande aprobado como idea (2026-11-14): `docs/specs/PLAN_LO_QUE_SE_VE.md`
 «Lo que se ve es lo que se usa»: muebles y piezas del editor dicen para qué sirven; el código no guarda listas a mano.
-7 fases; empezar por sillas y camas (enseñar al usuario el plan de esa fase y esperar su «sí»).
+7 fases; empezar por sillas y camas (con su «sí»). Auditoría `docs/specs/AUDITORIA_2D_A_3D.md`: el juego sigue siendo
+2D por debajo (3D pintado encima); orden propuesto ahí, **pendiente de que el usuario decida**.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
 1. **Fase 1 del plan c0** (sillas y camas), con el «sí» del usuario; absorbe los clientes sentados en el aire.
@@ -40,6 +41,4 @@ Pendiente: molino con aspecto de molino (para después); preguntar a cualquier v
 ## d) Bloqueos activos
 - `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre.
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). «No two conscious villagers may overlap» (puerta del restaurante): mejorado el 2026-11-13 (cola en las puertas); con 6 vecinos a la vez aún se juntan algo.
-- Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración. Inventario 2026-11-12
-  (`docs/INVENTARIO_MUNDO.md`): sigue 5.297, quieto 75 (río, luces, sitios del código que quedan), doble 0, otro
-  sitio 123 (ruido entre partidas y sitios al aire libre).
+- Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración (`docs/INVENTARIO_MUNDO.md`).
