@@ -236,7 +236,7 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm.zona_en_edificio(id, "PoliceArchivedReportArea", pol_rep_pos, 22.0, "police_archived_report")
 	vm.add_zona_uso_mundo("PoliceJailCellArea", vm._jail_cell_pos, 22.0, "police_jail")
 
-	# Comisario Vane y Guardia Rodric (con mesa de comedor propia en la Comisaría)
+	# Comisario Vane y Guardia Rodric (mesa de comedor compartida; cada uno su cama: antes dormían uno encima del otro)
 	vm._register_authority_npc(
 		"NPC_Sheriff_Vane", "Comisario Vane", "Alguacil mayor", VillageNPC.TradeRole.SHERIFF,
 		"res://assests/world/village/villager_sheriff.png",
@@ -247,7 +247,7 @@ static func _spawn_police_station_and_jail(vm: VillageManager) -> void:
 	vm._register_authority_npc(
 		"NPC_Guard_Rodric", "Guardia Rodric", "Oficial de Patrulla", VillageNPC.TradeRole.GUARD,
 		"res://assests/world/village/villager_guard.png",
-		Sitio.mundo(SITIO_PUESTO_GUARDIA), Marca.mundo(vm.ID_COMISARIA, Marca.CAMA_1), Marca.mundo(vm.ID_COMISARIA, Marca.MESA), {},
+		Sitio.mundo(SITIO_PUESTO_GUARDIA), Marca.mundo(vm.ID_COMISARIA, Marca.CAMA_2), Marca.mundo(vm.ID_COMISARIA, Marca.MESA), {},
 		"family_police", "Guardia del Valle",
 		["Guardia Kaelen", "Guardia Darian", "Guardia Brenna", "Guardia Tormund", "Guardia Soren"]
 	)

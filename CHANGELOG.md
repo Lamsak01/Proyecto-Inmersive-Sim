@@ -3,6 +3,7 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
+- 2026-11-14 · Comisaría: segunda cama en el dormitorio de la guardia; Vane y Rodric ya no duermen uno encima del otro (foto `docs/capturas_arreglos/comisaria_dos_camas.png`).
 - 2026-11-14 · Primera persona: la cruz alcanza los objetos grandes (tablón, trampillas) por su borde y en todo su ancho; las trampillas apagadas en la demo dicen que están cerradas. Prueba `tools/tests/apuntar_fp.gd`.
 - 2026-11-14 · Dormir (o esperar) te deja quieto hasta que acaba; si algo te hiere, te despiertas. Prueba `tools/tests/dormir_quieto.gd`.
 - 2026-11-14 · Caso I: el día 2 el guardia mensajero aparece a ~50 m de ti (no en agua ni en casas), llega en ~30 min de juego y te da el recado de Vane con la caja de diálogo; antes cruzaba el valle andando (~5 h) y el recado era una línea suelta. Prueba nueva `tools/tests/aviso_caso1.gd`.
