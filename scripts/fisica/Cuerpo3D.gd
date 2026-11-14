@@ -18,11 +18,13 @@ extends "res://scripts/fisica/CuerpoBase3D.gd"
 ## - ATAJO (se quita con las rutas 3D, tanda 5): si alguien lleva ATASCO_S queriendo andar sin avanzar, se cuela
 ##   COLARSE_S sin chocar. Antes se le quitaba el cuerpo. `colados` cuenta cuántas veces pasa.
 
+const Suelo = preload("res://scripts/fisica/Suelo.gd")
+const ChoquesMundo3D = preload("res://scripts/fisica/ChoquesMundo3D.gd")
+const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
 const Agua = preload("res://scripts/fisica/Agua.gd")
 
 const RUTA_POBLACION: String = "res://scripts/fisica/Poblacion3D.gd" ## se carga al crear el del protagonista (sin ciclo de preloads)
 const META: String = "cuerpo3d"    ## cada personaje guarda aquí su cuerpo
-const GRAVEDAD: float = 14.8       ## m/s²; con el impulso del salto da ~1,2 m al aire libre, como antes
 const PELDANO_M: float = 0.45      ## lo más alto que sube andando de un suelo a otro (escalones, rampa)
 ## Daño por caída (paso 2c, decisión del usuario: «realista»): desde 3 m duele (~9 % de la vida) y a 8 m mata.
 const CAIDA_DUELE_M: float = 3.0
@@ -57,17 +59,14 @@ static var colados: int = 0        ## veces que alguien se ha colado por atasco 
 var actor: Node2D = null
 var es_prota: bool = false         ## el protagonista: avisa al pueblo de su piso, nada y aparta a los demás
 var destino_actor: Vector2 = Vector2.INF ## (vecinos) adónde va: lo que hay justo ahí (su cama, su silla) no le estorba
-var toca_pared: bool = false       ## chocó con algo en su último paso
 var _actor_cb: CharacterBody2D = null ## el personaje, si es un cuerpo del mapa (el ganado aún no lo es)
 var _poblacion: Node = null        ## (solo el protagonista) da su cuerpo a todo el que entra en el juego
-var _mundo: ChoquesMundo3D = null  ## las paredes 3D del mundo, compartidas por todos los cuerpos
 var _exentos: Array[StaticBody3D] = [] ## (vecinos) paredes de su destino con las que ahora no choca
 var _destino_visto: Vector2 = Vector2.INF
 var _destino_paso: int = 0
 var _aviso_paso: int = -AVISO_CADA
 var _talla_paso: int = 0
 var _seguido_paso: int = 0
-var _suelo_y: float = 0.0
 var _ultima_pos_mapa: Vector2 = Vector2.INF
 var _movido_en_este_paso: bool = false
 var _cima_y: float = NAN           ## lo más alto que ha estado desde que dejó el suelo (NAN: está en el suelo)
@@ -116,7 +115,6 @@ func _ready() -> void:
 	_talla_paso = Engine.get_physics_frames() + int(get_instance_id() % TALLA_CADA) # no todos repasan en el mismo paso
 	_poner_talla()
 	process_physics_priority = 100 # después de quien lo mueve: así sabe si ese paso ya se movió
-	_mundo = ChoquesMundo3D.de(get_parent()) as ChoquesMundo3D
 	if es_prota:
 		# El protagonista deja de chocar en el mapa: ahora choca su cuerpo 3D
 		if _actor_cb != null:
@@ -144,17 +142,10 @@ func _exit_tree() -> void:
 ## Un paso andando a `vel_mapa` (píxeles del mapa por segundo).
 func mover(vel_mapa: Vector2, delta: float) -> void:
 	_preparar()
-	velocity.x = vel_mapa.x * Mapa3D.ESCALA
-	velocity.z = vel_mapa.y * Mapa3D.ESCALA
-	if not _en_suelo() or velocity.y > 0.0:
-		velocity.y -= GRAVEDAD * delta
-	move_and_slide()
-	toca_pared = get_slide_collision_count() > 0
+	_paso_fisico(vel_mapa * Mapa3D.ESCALA, delta)
 	if es_prota and vel_mapa != Vector2.ZERO:
 		_apartar(vel_mapa, delta)
-	if global_position.y < _suelo_y: # nunca por debajo del suelo que pisa (sube escalones de hasta PELDANO_M)
-		global_position.y = _suelo_y
-		velocity.y = maxf(velocity.y, 0.0)
+	_pisar() # sube escalones de hasta PELDANO_M
 	_vigilar_caida()
 	_volcar_al_mapa()
 	if es_prota:
@@ -185,10 +176,6 @@ func esta_en_el_aire() -> bool:
 	return velocity.y > 0.01 or not _en_suelo()
 
 
-func _en_suelo() -> bool:
-	return global_position.y <= _suelo_y + 0.03
-
-
 ## Cuánto se ha levantado del suelo, en píxeles de altura (lo usan la cámara y el muñeco).
 func altura_sobre_suelo_px() -> float:
 	return maxf(0.0, Mapa3D.alto_a_px(global_position.y - _suelo_y))
@@ -214,9 +201,13 @@ static func dano_por_caida(caida_m: float, vida_max: float) -> float:
 	return vida_max * clampf((caida_m - CAIDA_CERO_M) / (CAIDA_MORTAL_M - CAIDA_CERO_M), 0.0, 1.0)
 
 
+func _paredes() -> ChoquesMundo3D:
+	return _mundo as ChoquesMundo3D
+
+
 ## Cuántas paredes 3D tiene levantadas ahora el mundo (lo miran las pruebas).
 func paredes_del_mundo() -> int:
-	return _mundo.cuantos() if is_instance_valid(_mundo) else 0
+	return _paredes().cuantos() if is_instance_valid(_mundo) else 0
 
 
 func _physics_process(delta: float) -> void:
@@ -278,7 +269,7 @@ func _preparar() -> void:
 		return
 	_aviso_paso = paso
 	var espacio: PhysicsDirectSpaceState2D = actor.get_world_2d().direct_space_state
-	_mundo.interes(espacio, p, RADIO_PAREDES_PROTA_PX if es_prota else RADIO_PAREDES_VECINO_PX, _repaso())
+	_paredes().interes(espacio, p, RADIO_PAREDES_PROTA_PX if es_prota else RADIO_PAREDES_VECINO_PX, _repaso())
 	if not es_prota:
 		_eximir_destino(espacio)
 
@@ -330,7 +321,7 @@ func _eximir_destino(espacio: PhysicsDirectSpaceState2D) -> void:
 		punto.position = destino_actor
 		punto.collision_mask = ChoquesMundo3D.MASCARA_MAPA
 		for r: Dictionary in espacio.intersect_point(punto, MAX_EN_DESTINO):
-			var pared: StaticBody3D = _mundo.gemelo("%d:%d" % [(r["rid"] as RID).get_id(), int(r["shape"])])
+			var pared: StaticBody3D = _paredes().gemelo("%d:%d" % [(r["rid"] as RID).get_id(), int(r["shape"])])
 			if is_instance_valid(pared):
 				nuevos.append(pared)
 	for pared in _exentos:

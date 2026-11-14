@@ -14,11 +14,12 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const Suelo = preload("res://scripts/fisica/Suelo.gd")
 const Prismas3D = preload("res://scripts/fisica/Prismas3D.gd")
 const AlturasChoque3D = preload("res://scripts/fisica/AlturasChoque3D.gd")
+const Capas3D = preload("res://scripts/fisica/Capas3D.gd")
 
 const NOMBRE: String = "ChoquesMundo3D"
 const META_ORIGEN: String = "origen" ## cada pared guarda aquí el choque del mapa plano del que es gemela
-const CAPA_MUROS: int = 4          ## capa 3D de las paredes: frenan al protagonista y a los vecinos
-const CAPA_AGUA: int = 16          ## capa 3D del agua: solo frena a los vecinos (el protagonista entra y nada)
+const CAPA_MUROS: int = Capas3D.MUROS
+const CAPA_AGUA: int = Capas3D.AGUA
 const CELDA_PX: float = 128.0      ## lado de cada celda del mundo (~7 m)
 const MARGEN_PX: float = 6.0       ## lo que la consulta de una celda se asoma a las vecinas
 const MAX_POR_CELDA: int = 256

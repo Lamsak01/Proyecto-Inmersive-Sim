@@ -9,7 +9,9 @@ extends Area3D
 
 signal golpe_recibido(dano: DamageData)
 
-const CAPA: int = 32              ## capa 3D de las dianas (solo las miran las búsquedas de golpes)
+const Capas3D = preload("res://scripts/fisica/Capas3D.gd")
+
+const CAPA: int = Capas3D.DIANAS
 const MARGEN_M: float = 0.12      ## lo que la diana sobresale del cuerpo
 const RADIO_MIN_M: float = 0.3    ## un conejo no mide más de 15 cm de radio: con esto aún se le puede acertar
 const META: String = "diana3d"    ## cada personaje guarda aquí su diana
