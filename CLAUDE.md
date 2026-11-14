@@ -13,6 +13,8 @@ Este archivo lo leen por igual Claude Code, Gemini y Antigravity (`GEMINI.md` y 
   (Transform3D, cuaterniones, conos de visión), shaders (`.gdshader`) o auditar el repositorio si Claude falla dos veces
   en el mismo fallo. **Nadie lanza, relanza ni para a otro agente**; el vigilante nocturno sigue desactivado.
 - **Cero intermediarios:** nada de informes largos ni «prompts puente» para el otro agente en tareas rutinarias.
+- **TEMPORAL (fin de semana 2026-11-14/15, pedido por el usuario):** Antigravity trabaja en paralelo con la lista de
+  `docs/TAREAS_ANTIGRAVITY.md` (sus reglas mandan para no pisarse). Al acabar se borran esta línea y ese archivo.
 
 ## 2. Protocolo de sesión y cambio de ordenador
 
