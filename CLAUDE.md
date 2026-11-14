@@ -68,8 +68,11 @@ Este archivo lo leen por igual Claude Code, Gemini y Antigravity (`GEMINI.md` y 
 
 ## 5. Reglas del juego que no se discuten (detalle en `docs/specs/DECISIONES_DISENO.md`)
 
-- **Mundo 3D de verdad**, ya terminado (2026-11-12): física, pisos, agua, buceo; el modo 2D antiguo está borrado. Reglas
-  de la física y sus pruebas en `docs/specs/MUNDO_3D.md`. Léelo antes de tocar movimiento, choques, pisos, agua o mapa.
+- **Todo en 3D, nada de 2D (mandato del usuario, 2026-11-14).** Hoy el juego es un **híbrido sin terminar**: lo que se
+  ve y la física del jugador son 3D, pero la lógica (vecinos, rutas, sentidos, la tecla E, combate) sigue en un mapa 2D
+  en píxeles. Plan y reglas de honestidad en `docs/specs/PLAN_TODO_3D.md`; el avance se mide con
+  `bash tools/contar_2d.sh` (2.495 el 2026-11-14; terminado = 0). **Prohibido** decir «migrado» o «terminado» sin ese
+  número, y prohibido añadir nada nuevo en 2D o en píxeles. Cómo funciona el híbrido actual: `docs/specs/MUNDO_3D.md`.
 - **Época definitiva:** tecnofeudal / medieval-balística (`docs/specs/REVISION_EPOCA.md`). Historia principal antigua
   descartada; la nueva se diseña con el usuario. **Nunca inventar lore de la secta.**
 - **Foco:** primero fallos visibles y estabilidad; el Caso I jugable después; todo lo demás congelado.

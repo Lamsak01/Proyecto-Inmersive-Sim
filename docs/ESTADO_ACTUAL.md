@@ -28,13 +28,12 @@ Pendiente: molino con aspecto de molino (para después); preguntar a cualquier v
   Borrados `mapa/anclas.gd`, la copia `Mundo3D.antes-x5.tscn` y las herramientas de estirar. Las pruebas que escriben
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
-## c0) Plan grande aprobado como idea (2026-11-14): `docs/specs/PLAN_LO_QUE_SE_VE.md`
-«Lo que se ve es lo que se usa»: muebles y piezas del editor dicen para qué sirven; el código no guarda listas a mano.
-7 fases; empezar por sillas y camas (con su «sí»). Auditoría `docs/specs/AUDITORIA_2D_A_3D.md`: el juego sigue siendo
-2D por debajo (3D pintado encima); orden propuesto ahí, **pendiente de que el usuario decida**.
+## c0) Mandato del usuario (2026-11-14): TODO en 3D, nada de 2D → `docs/specs/PLAN_TODO_3D.md`
+El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.495**
+(terminado = 0). Auditoría: `docs/specs/AUDITORIA_2D_A_3D.md`. Siguiente: tanda 0 (limpieza) y decisión de la tanda 1.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
-1. **Fase 1 del plan c0** (sillas y camas), con el «sí» del usuario; absorbe los clientes sentados en el aire.
+1. **Tandas de `PLAN_TODO_3D.md`** en orden; las piezas (sillas, camas…) son su tanda 6.
 2. **Rendimiento**: sombras del sol (duplican el dibujo). Medio. 3. **Vecinos atascados**: a 0; falta que lo confirme él.
 4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
 
