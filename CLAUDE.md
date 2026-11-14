@@ -82,6 +82,8 @@ Este archivo lo leen por igual Claude Code, Gemini y Antigravity (`GEMINI.md` y 
 - **Época definitiva:** tecnofeudal / medieval-balística (`docs/specs/REVISION_EPOCA.md`). Historia principal antigua
   descartada; la nueva se diseña con el usuario. **Nunca inventar lore de la secta.**
 - **Foco:** primero fallos visibles y estabilidad; el Caso I jugable después; todo lo demás congelado.
+- **Sin emojis en los textos del juego** (usuario, 2026-11-14): se quitan poco a poco, al reescribir cada sistema; no se
+  añade ninguno nuevo.
 - Texto y lore son provisionales (se pueden reescribir). Controles en `docs/CONTROLES.md` (mírala antes de asignar teclas).
 - Mapa editable en `mapa/Mundo3D.tscn` (`docs/specs/REGISTRO_EDITOR_3D.md` antes de tocarlo; guía para el usuario en
   `docs/EDITOR_MAPA_GUIA.md` y `docs/PINCEL_MAPA_GUIA.md`).

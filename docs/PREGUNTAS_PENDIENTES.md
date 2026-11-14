@@ -32,10 +32,12 @@
 
 2. ✅ **(2026-11-14) Flechas en la vista desde arriba:** respondido: **el juego es solo en 1.ª persona**; la vista desde
    arriba no se desarrolla más ni se tiene en cuenta. Quitada la regla especial: la flecha da siempre donde se apunta.
-3. **(2026-11-14) Carpeta `archived_systems/`:** guarda escenas viejas en 2D (interiores con teletransporte, red eléctrica)
-   que el juego no usa; una apunta a un archivo de golpes que ya no existe. ¿Se borra la carpeta (queda en el historial de
-   GitHub) o la quieres conservar? No se ha tocado.
+3. ✅ **(2026-11-14) Carpeta `archived_systems/`:** respondido: **se borra**. Borrados los cuatro sistemas viejos de código
+   (armaduras, inventario de rejilla, interiores con teletransporte, red eléctrica). **Queda una duda nueva:** dentro había
+   también dibujos del usuario de las primeras pruebas (`unused_assets_and_tools/`: kanjis, escopeta, barras, hoja de
+   personaje, en .png, .rar y .zip) que no están en ningún otro sitio del proyecto. No se han borrado: ¿se quedan ahí, se
+   mueven a otra carpeta o se borran también?
 4. ✅ **(2026-11-14) La flecha cae por su peso:** respondido: **se queda así** (arco de verdad).
-5. **(2026-11-14) Rótulo de los animales:** antes, al pasar el ratón por encima de un animal salía qué estaba haciendo.
-   Eso era del mapa plano. Ahora el rótulo sale solo cuando estás a menos de 8 m de él (acercándote con sigilo), tanto
-   en 1.ª persona como desde arriba. ¿Te vale así? Decidido de momento: sí. De paso se han quitado los emojis de esos textos.
+5. ✅ **(2026-11-14) Rótulo de los animales:** respondido: **se queda** saliendo al acercarse a menos de 8 m.
+6. ✅ **(2026-11-14) Emojis en los textos:** respondido: **se van quitando poco a poco**, al reescribir cada sistema (sin
+   una pasada aparte). Hechos: animales salvajes y mascotas.

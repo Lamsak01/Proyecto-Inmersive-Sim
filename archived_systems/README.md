@@ -1,20 +1,11 @@
-# Sistemas Archivados Temporalmente
+# Recursos archivados
 
-Esta carpeta contiene sistemas y recursos retirados temporalmente del juego para simplificar el proyecto y centrarse en **Movimiento, Combate (con Stun y Sangrado), Sigilo, Diálogo, Misiones y Objetos Destructibles**.
+El 2026-11-14 se borraron de aquí, por decisión del usuario, los sistemas viejos en 2D que el juego ya no usaba
+(armaduras por ranuras, inventario de rejilla, interiores con teletransporte y la primera red eléctrica). Siguen en el
+historial de GitHub (último commit que los tiene: `c4cf1d1b`).
 
-> **Nota importante:** Esta carpeta contiene un archivo `.gdignore` para que Godot no escanee ni compile estos scripts/escenas mientras están archivados (mejorando el tiempo de carga y evitando errores de dependencias cruzadas).
+Queda solo `unused_assets_and_tools/`: dibujos y archivos comprimidos del usuario de las primeras pruebas (kanjis,
+escopeta, barras, hoja de personaje…) que **no existen en ningún otro sitio del proyecto**, y dos herramientas viejas
+de edición. No se tocan sin que el usuario lo diga.
 
-## Estructura de lo archivado
-
-1. **`combat_armor/`**:
-   - `ArmorComponent.gd` y `EquipmentComponent.gd` (mitigación de daño por ranuras de armadura y materiales).
-2. **`power_system/`**:
-   - `addons/powergrid/` (gestor de red eléctrica, puertos, generadores, transformadores, cargas).
-   - `scripts/power/` y `scenes/power/` (`InteractiveGenerator`, `PoweredDoor`, `VisualCable`).
-   - `ConductiveArea.gd` (áreas mojadas que electrifican).
-3. **`grid_inventory/`**:
-   - `GridInventory.gd`, `InventoryUI.gd`, `InventoryItemUI.gd`, `InventoryItem.gd`, `ItemDatabase.gd`, `InventoryTestHelper.gd`, `InventoryUI.tscn` y `resources/items/`.
-4. **`interiors_and_teleporters/`**:
-   - `SceneTeleporter.gd`, `scenes/Buildings/` (`house_1.tscn`, `House1Interior.tscn`), `House_Test.tscn`, `scenes/world/`, `OverheadFader.gd`, `key.gd`, `door_interact_collision.gd`.
-5. **`unused_assets_and_tools/`**:
-   - Archivos `.rar`/`.zip` y carpetas duplicadas de `assests/`, junto con herramientas de edición (`TileSetMaker`, `ResizeTexture`).
+El archivo `.gdignore` hace que Godot no mire esta carpeta.
