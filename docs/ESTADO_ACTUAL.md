@@ -41,6 +41,5 @@ lleva su `Cuerpo3D` siempre) 4b-1/2/3 (ganado, animales, mascotas y asaltantes S
 decidido que sí, al acabar Antigravity su tarea 6. 6. **Beta**. **Solo 1.ª persona** (la vista desde arriba no cuenta).
 
 ## d) Bloqueos activos
-- `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre.
+- `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre. Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración (`docs/INVENTARIO_MUNDO.md`).
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). «No two conscious villagers may overlap» (puerta del restaurante): mejorado el 2026-11-13 (cola en las puertas); con 6 vecinos a la vez aún se juntan algo.
-- Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración (`docs/INVENTARIO_MUNDO.md`).
