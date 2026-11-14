@@ -37,7 +37,8 @@ lleva su `Cuerpo3D` siempre) 4b-1/2/3 (ganado, animales, mascotas y asaltantes S
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
 1. **Tandas de `PLAN_TODO_3D.md`** en orden; las piezas (sillas, camas…) son su tanda 6.
 2. Fps con ventana medidos el 14 (`perf_zonas`, sobremesa, 1.ª persona): 171–180 en todas las zonas. 3. **Vecinos
-atascados**: 0–2 leves en 4 h según el azar (dos sitios apuntados en el plan, «Atajos»); falta que lo confirme él. 4. **Interior de la taberna** (pregunta 0b). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
+atascados**: 0–2 leves en 4 h según el azar (dos sitios apuntados en el plan, «Atajos»); falta que lo confirme él. 4. Taberna: sus pisos se quedan hasta la tanda 3b (decidido). 5. **Herrero arriba de la herrería**: decidido que sí;
+se hace al acabar Antigravity su tarea 6. 6. **Beta**.
 
 ## d) Bloqueos activos
 - `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre.

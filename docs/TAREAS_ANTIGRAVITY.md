@@ -52,7 +52,8 @@
       alcanza o queda a más de 0,5 m. Añádela a `docs/specs/PRUEBAS.md`.
    e) Entrega: el n/N, la lista de inalcanzables con su porqué, fotos de la malla (plaza, un puente, una casa de dos
       plantas por dentro, alcantarillas), tiempo de horneado y **tiempo de arranque del juego antes y después**.
-   El contador no debe subir. Coste: medio.
+   El contador no debe subir. Coste: medio. **Al acabarla, avísalo en tu línea del CHANGELOG:** Claude espera a que termines
+   para dar planta alta a la herrería (el herrero dormirá arriba) y habrá que rehornear la malla de ese edificio.
 
 7. **Dejar de crear los dibujos planos que luego se esconden** (auditoría C1). Hoy `_sync_2d_flat_visuals`
    (`WorldStageProps3D.gd`) pone transparentes los dibujos 2D de muebles, árboles, rocas, objetos y fachadas, que se
