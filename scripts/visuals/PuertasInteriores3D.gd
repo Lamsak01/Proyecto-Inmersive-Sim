@@ -35,7 +35,15 @@ func sincronizar(arbol: SceneTree, vm: Node, delta: float) -> void:
 		var pivote: Node3D = p["pivote"]
 		if not is_instance_valid(pivote):
 			continue
-		var objetivo: float = GIRO_GRADOS if _alguien_cerca(p["pos"], int(p["nivel"]), gente) else 0.0
+		var abierta: bool = _alguien_cerca(p["pos"], int(p["nivel"]), gente)
+		if not p.has("estado_sonido"):
+			p["estado_sonido"] = abierta
+		elif bool(p["estado_sonido"]) != abierta:
+			p["estado_sonido"] = abierta
+			var gestor_audio: Node = arbol.root.get_node_or_null("AudioManager")
+			if gestor_audio != null and gestor_audio.has_method("sonar_puerta_3d"):
+				gestor_audio.call("sonar_puerta_3d", pivote.global_position + Vector3(0.0, 1.0, 0.0), abierta)
+		var objetivo: float = GIRO_GRADOS if abierta else 0.0
 		pivote.rotation_degrees.y = move_toward(pivote.rotation_degrees.y, objetivo, VELOCIDAD_GRADOS_S * delta)
 
 

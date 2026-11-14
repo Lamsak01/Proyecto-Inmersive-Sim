@@ -2,7 +2,10 @@
 extends "res://scripts/visuals/WorldStageTerrain3D.gd"
 const AguaScript = preload("res://scripts/fisica/Agua.gd") # paso 3b: ¿los ojos bajo el agua?
 const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd") # casas de dos plantas: ¿se ve su planta alta?
+const Clima3DScript = preload("res://scripts/visuals/Clima3D.gd")
 var _fp_ojos_bajo_agua: bool = false
+var clima_3d: Node3D = null
+var oyente_3d: AudioListener3D = null
 
 ## Escenario 3D principal: ciclo de vida, cámara en 1.ª persona y vista superior, brazos/armas 3D, HUD y cutaway.
 
@@ -79,6 +82,7 @@ func setup_stage(village_manager: Node2D) -> void:
 		sub_viewport.size = Vector2i(VIEWPORT_W, VIEWPORT_H)
 		sub_viewport.transparent_bg = true
 		sub_viewport.own_world_3d = true
+		sub_viewport.audio_listener_enable_3d = true
 		sub_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 		sub_viewport.msaa_3d = Viewport.MSAA_DISABLED
 		add_child(sub_viewport)
@@ -136,13 +140,21 @@ func setup_stage(village_manager: Node2D) -> void:
 		cam_3d.current = true
 		stage_root_3d.add_child(cam_3d)
 
+		oyente_3d = AudioListener3D.new()
+		oyente_3d.name = "Oyente3D"
+		stage_root_3d.add_child(oyente_3d)
+		oyente_3d.make_current()
+
+		clima_3d = Clima3DScript.new()
+		stage_root_3d.add_child(clima_3d)
+
 		fp_lantern_light = OmniLight3D.new()
 		fp_lantern_light.name = "FPLanternLight3D"
 		fp_lantern_light.light_color = Color(1.0, 0.84, 0.56)
 		fp_lantern_light.light_energy = 0.0
 		fp_lantern_light.omni_range = 4.2 * Mapa3D.K
 		fp_lantern_light.visible = false
-		cam_3d.add_child(fp_lantern_light)
+		stage_root_3d.add_child(fp_lantern_light)
 		_setup_fp_viewmodel()
 
 		stage_sprite = Sprite2D.new()
@@ -180,6 +192,8 @@ func setup_stage(village_manager: Node2D) -> void:
 	_build_streetlights_3d()
 	rebuild_all_3d()
 	_sync_2d_flat_visuals()
+	if not _is_headless and AudioManager != null and AudioManager.has_method("conectar_escenario_3d"):
+		AudioManager.conectar_escenario_3d(self, stage_root_3d, oyente_3d, clima_3d)
 
 
 func rebuild_all_3d() -> void:
@@ -189,6 +203,9 @@ func rebuild_all_3d() -> void:
 	rebuild_lots_3d()
 	rebuild_outpost_3d()
 	rebuild_graves_3d()
+	if is_instance_valid(clima_3d):
+		var raices_techos: Array[Node3D] = [buildings_root_3d, lots_root_3d, outpost_root_3d]
+		clima_3d.call("registrar_techos", raices_techos)
 	_sync_2d_flat_visuals()
 
 
@@ -1034,6 +1051,7 @@ func _process(delta: float) -> void:
 	if perf_on: _pt = _perf_add("camera", _pt)
 	_sync_dynamic_props_3d()
 	if perf_on: _pt = _perf_add("dynamic_props", _pt)
+	_sincronizar_clima_y_oyente_3d(delta)
 
 	_nature_scan_accum += delta
 	if _nature_scan_accum >= 4.0:
@@ -1054,6 +1072,36 @@ func _process(delta: float) -> void:
 		_cutaway_accum = 0.0
 		_update_roof_cutaways_and_lighting()
 	if perf_on: _perf_add("roofs_lighting_008s", _pt)
+
+
+func _sincronizar_clima_y_oyente_3d(delta: float) -> void:
+	if cam_3d == null or stage_root_3d == null:
+		return
+	var foco_suelo := Vector3.ZERO
+	var personajes := stage_root_3d.get_node_or_null("Characters3D") as Node3D
+	var av_jugador := personajes.get_node_or_null("Avatar_PlayerGood") as Node3D if personajes != null else null
+	if first_person_active:
+		foco_suelo = cam_3d.global_position - Vector3(0.0, 1.62, 0.0)
+	elif av_jugador != null:
+		foco_suelo = av_jugador.global_position
+	else:
+		foco_suelo = cam_3d.global_position - cam_3d.global_transform.basis.z.normalized() * 182.0
+		foco_suelo.y = 0.0
+	if is_instance_valid(fp_lantern_light):
+		fp_lantern_light.global_position = cam_3d.global_position if first_person_active else (foco_suelo + Vector3(0.0, 1.60, 0.0))
+	if is_instance_valid(oyente_3d):
+		if first_person_active:
+			oyente_3d.global_transform = cam_3d.global_transform
+		else:
+			oyente_3d.global_transform = Transform3D(Basis.IDENTITY, foco_suelo + Vector3(0.0, 1.62, 0.0))
+	if is_instance_valid(clima_3d):
+		if int(clima_3d.call("total_techos_registrados")) == 0:
+			var raices_techos: Array[Node3D] = [buildings_root_3d, lots_root_3d, outpost_root_3d]
+			clima_3d.call("registrar_techos", raices_techos)
+		var wc_c: Node = get_node_or_null("/root/WorldClock") if is_inside_tree() else null
+		var llueve_ahora: bool = wc_c != null and int(wc_c.get("current_weather")) == 1
+		var bajo_tierra: bool = vm != null and int(vm.player_elevation_level) < 0
+		clima_3d.call("actualizar", delta, llueve_ahora, cam_3d, first_person_active, bajo_tierra, _fp_ojos_bajo_agua, foco_suelo)
 
 ## B3 (medición): cronómetro por partes; solo lo enciende `tools/tests/perf_3d.gd`. No cambia el comportamiento.
 
@@ -1213,6 +1261,22 @@ func _update_roof_cutaways_and_lighting() -> void:
 		_sky_mat.set_shader_parameter("cloud_coverage", cloud_cov)
 		_sky_mat.set_shader_parameter("star_visibility", star_vis)
 
+	var t_noche: float = 0.0
+	if hour_f >= 20.4 or hour_f < 5.2:
+		t_noche = 1.0
+	elif hour_f >= 17.0:
+		t_noche = smoothstep(17.0, 20.4, hour_f)
+	elif hour_f < 8.0:
+		t_noche = 1.0 - smoothstep(5.2, 8.0, hour_f)
+	var t_crepusculo: float = maxf(clampf(1.0 - absf(hour_f - 18.4) / 1.9, 0.0, 1.0), clampf(1.0 - absf(hour_f - 6.5) / 1.4, 0.0, 1.0) * 0.85)
+	var es_lluvia: bool = (weather_id == 1 or weather_str in ["rain", "storm", "lluvia", "tormenta"])
+	var es_niebla_densa: bool = (weather_id == 2 or weather_str in ["fog", "niebla"])
+	var amb_dia: Color = Color(0.56, 0.62, 0.69) if is_foggy_weather else Color(0.72, 0.74, 0.77)
+	var amb_ocaso := Color(0.74, 0.58, 0.46)
+	var amb_noche := Color(0.30, 0.38, 0.58)
+	var col_amb_3d: Color = amb_dia.lerp(amb_ocaso, t_crepusculo * 0.75).lerp(amb_noche, t_noche)
+	var ene_amb_dia: float = 0.43 if is_foggy_weather else 0.50
+
 	var pl_in_lib_secret: bool = first_person_active and is_finite(pl_pos.x) and Rect2(Vector2(932.0, -468.0), Vector2(44.0, 48.0)).has_point(pl_pos)
 	if is_instance_valid(world_env) and world_env.environment != null:
 		var env: Environment = world_env.environment
@@ -1223,57 +1287,65 @@ func _update_roof_cutaways_and_lighting() -> void:
 				env.ambient_light_color = Color(0.10, 0.08, 0.06)
 				env.ambient_light_energy = 0.03
 			else:
-				env.ambient_light_color = Color(0.22, 0.26, 0.38) if is_night else (Color(0.76, 0.64, 0.54) if is_dusk else Color(0.72, 0.74, 0.76))
-				env.ambient_light_energy = 0.20 if is_night else (0.45 if is_dusk else 0.52)
+				env.ambient_light_color = col_amb_3d
+				env.ambient_light_energy = lerpf(lerpf(ene_amb_dia, 0.38, t_crepusculo), 0.38, t_noche)
 			env.fog_enabled = not pl_indoors
-			env.fog_light_color = Color(0.05, 0.07, 0.11) if is_night else horizon_col.lerp(Color(0.46, 0.48, 0.50), 0.35)
-			env.fog_light_energy = 0.72 if not is_night else 0.26
+			var niebla_base_col: Color = horizon_col.lerp(Color(0.52, 0.57, 0.62), 0.55 if es_niebla_densa else 0.35)
+			env.fog_light_color = niebla_base_col.lerp(Color(0.05, 0.07, 0.12), t_noche)
+			env.fog_light_energy = lerpf(0.74, 0.24, t_noche)
 			env.fog_sun_scatter = 0.18 if (is_dusk or is_dawn_mist) else 0.06
-			env.fog_sky_affect = 0.62
-			var base_fog: float = (0.022 if is_night else (0.0135 if (is_dusk or is_dawn_mist) else 0.0095)) / Mapa3D.K
-			if is_foggy_weather:
-				base_fog *= 2.1
+			env.fog_sky_affect = 0.78 if es_niebla_densa else (0.68 if es_lluvia else 0.58)
+			var base_fog: float = lerpf(0.0034, 0.0076, t_noche)
+			if is_dusk or is_dawn_mist:
+				base_fog = maxf(base_fog, 0.0048)
+			if es_niebla_densa:
+				base_fog = maxf(base_fog * 2.4, 0.022)
+			elif es_lluvia:
+				base_fog = maxf(base_fog * 1.8, 0.0105)
 			env.fog_density = base_fog
 		else:
 			env.background_mode = Environment.BG_CLEAR_COLOR
-			env.ambient_light_color = Color(0.74, 0.76, 0.78)
-			env.ambient_light_energy = 0.52
+			env.ambient_light_color = col_amb_3d
+			env.ambient_light_energy = lerpf(lerpf(ene_amb_dia, 0.44, t_crepusculo), 0.58, t_noche)
 			env.fog_enabled = (is_foggy_weather or is_dawn_mist) and not pl_indoors
-			env.fog_light_color = horizon_col
-			env.fog_density = (0.0055 if is_foggy_weather else 0.0028) / Mapa3D.K
+			env.fog_light_color = horizon_col.lerp(Color(0.11, 0.15, 0.24), t_noche)
+			env.fog_light_energy = lerpf(0.76, 0.38, t_noche)
+			env.fog_density = 0.0026 if es_niebla_densa else (0.0014 if es_lluvia else 0.0009)
 		if first_person_active and _fp_ojos_bajo_agua: # paso 3b: bajo el agua todo es verde-azul y turbio
 			env.fog_enabled = true
 			env.fog_light_color = Color(0.07, 0.28, 0.36)
 			env.fog_light_energy = 0.5
 			env.fog_sky_affect = 1.0
-			env.fog_density = 0.12 / Mapa3D.K
+			env.fog_density = 0.043
 			env.ambient_light_color = Color(0.20, 0.45, 0.50)
 
 	if is_instance_valid(fp_lantern_light):
-		if first_person_active:
-			var carrying_lantern: bool = is_instance_valid(pl) and pl.get("is_carrying_lantern") == true
-			fp_lantern_light.visible = carrying_lantern if pl_in_lib_secret else (is_night or is_dusk or carrying_lantern)
-			fp_lantern_light.light_energy = 1.25 if carrying_lantern else (0.60 if is_night else 0.30)
-			fp_lantern_light.omni_range = (5.6 if carrying_lantern else 3.4) * Mapa3D.K
-		else:
-			fp_lantern_light.visible = false
+		var carrying_lantern: bool = is_instance_valid(pl) and pl.get("is_carrying_lantern") == true
+		fp_lantern_light.visible = carrying_lantern if pl_in_lib_secret else (t_noche > 0.15 or is_dusk or carrying_lantern)
+		var ene_farol: float = (1.35 if first_person_active else 1.85) if carrying_lantern else lerpf(0.28, 0.72 if first_person_active else 1.15, t_noche)
+		fp_lantern_light.light_energy = ene_farol
+		fp_lantern_light.omni_range = 16.5 if carrying_lantern else 11.0
+
+	if is_instance_valid(fill_light):
+		fill_light.light_color = Color(0.72, 0.80, 0.94).lerp(Color(0.28, 0.36, 0.56), t_noche)
+		fill_light.light_energy = lerpf(0.22 if is_foggy_weather else 0.28, 0.08 if first_person_active else 0.14, t_noche)
 
 	if is_instance_valid(sun_light):
 		var yaw_deg: float = lerpf(-115.0, -155.0, clampf((hour_f - 6.0) / 13.0, 0.0, 1.0))
-		var pitch_deg: float = -SOL_ALTO_ORTO_DEG - (SOL_ALTO_MEDIODIA_DEG - SOL_ALTO_ORTO_DEG) * sin(sun_ang) if not is_night else -SOL_ALTO_NOCHE_DEG
+		var pitch_deg: float = -SOL_ALTO_ORTO_DEG - (SOL_ALTO_MEDIODIA_DEG - SOL_ALTO_ORTO_DEG) * sin(sun_ang) if t_noche < 0.85 else -SOL_ALTO_NOCHE_DEG
 		sun_light.rotation_degrees = Vector3(pitch_deg, yaw_deg, 0.0)
+		sun_light.shadow_opacity = 0.26 if es_niebla_densa else (0.42 if es_lluvia else lerpf(0.78, 0.55, t_noche))
 		if pl_in_lib_secret:
 			sun_light.light_energy = 0.015
 			sun_light.light_color = Color(0.30, 0.25, 0.20)
-		elif is_night:
-			sun_light.light_energy = 0.22 # noches más oscuras para que destaquen los charcos de luz de farolas y focos
-			sun_light.light_color = Color(0.46, 0.54, 0.76)
-		elif is_dusk or is_dawn_mist:
-			sun_light.light_energy = 0.74
-			sun_light.light_color = sun_col
 		else:
-			sun_light.light_energy = 0.96
-			sun_light.light_color = Color(0.94, 0.89, 0.79)
+			var ene_sol_dia: float = 0.40 if es_niebla_densa else (0.50 if es_lluvia else 0.98)
+			var col_sol_dia: Color = Color(0.74, 0.79, 0.86) if is_foggy_weather else Color(0.95, 0.90, 0.80)
+			var ene_sol_noche: float = (0.16 if is_foggy_weather else 0.28) if first_person_active else (0.24 if is_foggy_weather else 0.42)
+			var ene_sol: float = lerpf(lerpf(ene_sol_dia, 0.72, t_crepusculo), ene_sol_noche, t_noche)
+			var col_sol: Color = col_sol_dia.lerp(sun_col, t_crepusculo * 0.85).lerp(Color(0.56, 0.68, 0.92), t_noche)
+			sun_light.light_energy = ene_sol
+			sun_light.light_color = col_sol
 
 	# R1: la terraza de la casa de comidas enciende su guirnalda de bombillas al caer la tarde (17:00–2:00)
 	var terrace_on: bool = hour >= 17 or hour < 2
@@ -1451,7 +1523,7 @@ func _alcance_objetos_pequenos(activar: bool) -> void:
 	var pila: Array[Node] = [stage_root_3d]
 	while not pila.is_empty():
 		var n: Node = pila.pop_back()
-		if n.name == &"Characters3D" or n == cam_3d:
+		if n.name == &"Characters3D" or n == cam_3d or n == clima_3d:
 			continue
 		if n is GeometryInstance3D:
 			var g := n as GeometryInstance3D

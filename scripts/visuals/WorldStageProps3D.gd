@@ -375,6 +375,12 @@ func _sync_dynamic_props_3d() -> void:
 		if not is_instance_valid(pivot):
 			continue
 		var eff_open: bool = bool(d_entry.get("is_open", false)) or float(d_entry.get("npc_pass_timer", 0.0)) > 0.0
+		if not d_node.has("estado_sonido"):
+			d_node["estado_sonido"] = eff_open
+		elif bool(d_node["estado_sonido"]) != eff_open:
+			d_node["estado_sonido"] = eff_open
+			if AudioManager != null and AudioManager.has_method("sonar_puerta_3d"):
+				AudioManager.sonar_puerta_3d(pivot.global_position + Vector3(0.0, 1.0, 0.0), eff_open)
 		var door_south: bool = bool(d_node["door_south"])
 		pivot.rotation_degrees.y = (-82.0 if door_south else 82.0) if eff_open else 0.0
 		if is_instance_valid(badge):

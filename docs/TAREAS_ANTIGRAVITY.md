@@ -24,11 +24,12 @@
 ## Hecho
 - ✅ Clientes sentados encima de su silla (restaurante y posada), 2026-11-14.
 - ✅ 1. Rendimiento: sombras del sol y geometría junto al río (`perf_zonas` 24–30 → 35–40 fps; `contar_2d.sh` 2.441 → 2.438), 2026-11-14.
+- ✅ 2. Lluvia, luz y sonido en 3D (`Clima3D` sin llover bajo techo, día/noche solo con luz 3D sin `CanvasModulate` ni tintes/nieblas 2D en `RetroPostFX`, sonido 3D de pasos, puertas, voces y río; `contar_2d.sh` 2.454 → 2.428), 2026-11-14.
 
 ## Tareas
 1. ✅ **Rendimiento: sombras del sol** (prioridad 1 de `FALLOS_VISIBLES.md`) y **geometría junto al río**. Abaratar sin que
    el pueblo se vea plano. Sondas `tools/tests/perf_zonas.gd`, `perf_ventana.gd`; fps de antes y después. Coste: medio.
-2. **Lluvia, luz y sonido en 3D** (tanda 8 del plan, la parte que no depende de los cimientos):
+2. ✅ **Lluvia, luz y sonido en 3D** (tanda 8 del plan, la parte que no depende de los cimientos):
    a) lluvia y niebla como efecto 3D del mundo (no un dibujo sobre la pantalla; que no llueva bajo techo);
    b) día y noche solo con la luz 3D (sol, cielo, ambiente): que el juego no dependa del tinte 2D `CanvasModulate`;
    c) sonido con posición 3D (pasos, puertas, voces, río) en `AudioManager.gd`. Fotos de día, noche y lluvia. Coste: medio.

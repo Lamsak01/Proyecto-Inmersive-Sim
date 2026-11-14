@@ -289,7 +289,18 @@ func _marcar_mata_sin_sombra(nodo: Node) -> void:
 func _build_lake_3d() -> void:
 	var m_lake := _mat_agua("lake_water", Color(0.24, 0.54, 0.82, 0.92))
 	var m_deep := _mat_agua("lake_deep", Color(0.14, 0.34, 0.60, 0.95))
-	_add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled(1.12, 8.0), -1.0, m_lake, true)
+	var mi_lago: MeshInstance3D = _add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled(1.12, 8.0), -1.0, m_lake, true)
+	if mi_lago != null and mi_lago.mesh != null and terrain_root_3d != null:
+		var c_lago: AABB = mi_lago.mesh.get_aabb()
+		var cx_l: float = c_lago.position.x + c_lago.size.x * 0.5
+		var cz_l: float = c_lago.position.z + c_lago.size.z * 0.5
+		var rx_l: float = c_lago.size.x * 0.44
+		var rz_l: float = c_lago.size.z * 0.44
+		var pts_lago := PackedVector3Array()
+		for k_l: int in range(13):
+			var ang_l: float = TAU * float(k_l) / 12.0
+			pts_lago.append(Vector3(cx_l + cos(ang_l) * rx_l, c_lago.position.y, cz_l + sin(ang_l) * rz_l))
+		terrain_root_3d.set_meta("puntos_lago_3d", pts_lago)
 	_add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled(0.66, 0.0), -0.8, m_deep, true)
 	# El muelle y las piedras y plantas de la orilla son piezas de «Decorado» (editor del mapa)
 
@@ -661,6 +672,10 @@ func _build_static_terrain_3d() -> void:
 
 	# Plaza Central Empedrada en plataforma ligeramente elevada (+2.4 px en terreno); sus bordillos son piezas de «Decorado»
 	_add_road_strip_3d(terrain_root_3d, PLAZA_RECT, 0.35, m_plaza)
+	if terrain_root_3d != null and terrain_root_3d.get_child_count() > 0:
+		var mi_plaza := terrain_root_3d.get_child(terrain_root_3d.get_child_count() - 1) as MeshInstance3D
+		if mi_plaza != null and mi_plaza.mesh != null:
+			terrain_root_3d.set_meta("caja_plaza_3d", mi_plaza.mesh.get_aabb())
 
 	# Lago del Oeste y Ciénaga de las Ranas del Suroeste (lámina de agua a -1.4 px; sus orillas son piezas de «Decorado»)
 	_build_lake_3d()
@@ -697,16 +712,19 @@ func _build_river_and_arroyo_3d() -> void:
 	var y_ini_rio: float = RioLagoScript.river_y_start()
 	var y_end_riv: float = RioLagoScript.river_y_end()
 
+	var pts_rio_3d := PackedVector3Array()
 	var seg_y0: float = y_ini_rio
 	var idx_seg: int = 0
 	while seg_y0 < y_end_riv - 0.01:
 		var seg_y1: float = minf(y_end_riv, seg_y0 + TRAMO_RIO_CORTE_UNIDADES)
 		_construir_tramo_rio_3d(
 			terrain_root_3d, idx_seg, seg_y0, seg_y1, y_barro_rojo, y_claro, cruces_rio,
-			m_riv_water, m_riv_deep, m_bank_earth, m_wet_mud, m_brown_mud, m_red_clay
+			m_riv_water, m_riv_deep, m_bank_earth, m_wet_mud, m_brown_mud, m_red_clay, pts_rio_3d
 		)
 		seg_y0 = seg_y1
 		idx_seg += 1
+	if terrain_root_3d != null and not pts_rio_3d.is_empty():
+		terrain_root_3d.set_meta("puntos_rio_3d", pts_rio_3d)
 
 
 func _paso_rio_en(y_val: float, y_barro_rojo: float, y_claro: float, cruces_rio: Array[Dictionary]) -> float:
@@ -725,7 +743,8 @@ func _construir_tramo_rio_3d(
 	parent: Node3D, idx_seg: int, seg_y0: float, seg_y1: float,
 	y_barro_rojo: float, y_claro: float, cruces_rio: Array[Dictionary],
 	m_riv_water: Material, m_riv_deep: Material, m_bank_earth: Material,
-	m_wet_mud: Material, m_brown_mud: Material, m_red_clay: Material
+	m_wet_mud: Material, m_brown_mud: Material, m_red_clay: Material,
+	pts_rio_3d: PackedVector3Array
 ) -> void:
 	var st_water := SurfaceTool.new(); st_water.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var st_deep := SurfaceTool.new(); st_deep.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -754,6 +773,8 @@ func _construir_tramo_rio_3d(
 		st_water.set_normal(Vector3.UP)
 		st_water.add_vertex(wl0); st_water.add_vertex(wr0); st_water.add_vertex(wr1)
 		st_water.add_vertex(wl0); st_water.add_vertex(wr1); st_water.add_vertex(wl1)
+		if (n_water % 18) == 0:
+			pts_rio_3d.append((wl0 + wr0) * 0.5)
 		n_water += 1
 
 		var cx0: float = (b0.x + b0.y) * 0.5
