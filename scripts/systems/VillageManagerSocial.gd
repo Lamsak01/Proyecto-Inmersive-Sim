@@ -394,7 +394,7 @@ func _spawn_case1_clearing_corpse() -> void:
 	npc.corpse_buried = false
 	npc.corpse_rot_hours = 1.8
 	npc.last_hit_weapon_name = "Estrangulamiento"
-	npc._set_area_col_disabled(npc.hurtbox, true)
+	Diana3D.poner_activa(npc, false)
 	npc._set_area_col_disabled(npc.interact_area, false)
 	if npc.sprite:
 		npc._set_sprite_pose(90.0, Color(0.68, 0.54, 0.54, 0.96))

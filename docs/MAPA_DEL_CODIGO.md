@@ -36,7 +36,8 @@
 - `Mapa3D.gd` [~55] — **el único sitio** que pasa una posición del mapa a 3D y al revés, en metros (1 unidad = 1 m,
   igual en todas direcciones desde el paso 0b). Lo usan el juego, el editor del mapa y las herramientas.
 - `Cuerpo3D.gd` [~500] — el cuerpo 3D de TODO personaje, siempre (tanda 4): anda, choca, cae, salta, cambia de piso; el protagonista además se hace daño al caer, vadea y nada; escribe su sitio en el mapa. Lejos del protagonista, modo barato. Red contra atascos (atajo).
-- `CuerpoBase3D.gd` [~75] — lo común a todo cuerpo 3D (cápsula, talla, capa, altura del suelo). Lo heredan `Cuerpo3D` y quien ya ES su cuerpo (tanda 4b: el ganado, `obstacles/LivestockAnimal.gd`).
+- `systems/combat/Diana3D.gd` [~115] — dónde se puede herir a un personaje (un `Area3D` en su cuerpo) y cómo la buscan el tajo (`en_esfera`) y la flecha (`en_tramo`, `en_cortina`). Sustituye a `Hurtbox`/`Hitbox`.
+- `CuerpoBase3D.gd` [~85] — lo común a todo cuerpo 3D (cápsula, talla, capa, altura del suelo, diana). Lo heredan `Cuerpo3D` y quien ya ES su cuerpo (tanda 4b: el ganado, `obstacles/LivestockAnimal.gd`).
 - `Poblacion3D.gd` [~40] — da su cuerpo 3D a todo personaje del mapa plano (`CharacterBody2D`) al entrar en el juego.
 - `TallaCuerpo3D.gd` [~50] — tamaño del cuerpo de cada personaje, quién estorba el paso y cuándo se apaga (dormido, sentado, caído).
 - `ChoquesMundo3D.gd` [~160] — las paredes 3D del mundo, un solo juego compartido por todos los cuerpos, por celdas (`Prismas3D.gd`: forma; `AlturasChoque3D.gd`: franjas de altura). Aún nacen de los choques del mapa plano (atajo).

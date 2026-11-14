@@ -69,12 +69,24 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    `AnimalModel3D` sirve a dueños 3D (`poner`, en metros) y aún a los planos (`attach`, en píxeles). Contador
    2.312 → **2.302**. Prueba `fisica_3d` (9 comprobaciones nuevas «4b»). **Sigue siendo 2D:** el sitio del corral y la
    altura del suelo se preguntan al mapa plano (traductores apuntados abajo); el modelo aún mide por dentro en píxeles.
-   **Siguiente 4b-2: animales salvajes** (`WildAnimal.gd`, 1.235 líneas en píxeles): su zona de golpe y la de despiezar
-   son áreas del mapa plano que leen los golpes y la E (tanda 7); mientras, irán en una «sombra plana» que sigue al cuerpo.
+   **4b-2, animales salvajes** (`WildAnimal.gd`, 1.235 líneas en píxeles): estudiado el 2026-11-14. No puede ser un
+   cuerpo 3D mientras los golpes lo busquen en el mapa plano (el combate usa al «dueño» de la zona de golpe como nodo
+   plano: posición, empujón, altura por pisos). **Orden corregido: primero los golpes en 3D (7a), después 4b-2.**
 5. **Rutas con navegación 3D** (malla de navegación del mundo y de cada edificio). Se borran las rutas y listas de
    puertas a mano y los atajos de «colocar» vecinos (guardia mensajero, custodia).
 6. **Piezas que dicen para qué sirven** (`PLAN_LO_QUE_SE_VE.md`, fases 1–4), ya en 3D: sillas, camas, puestos, la E.
 7. **Ver, oír, golpear y la E con rayos y áreas 3D.** Se borran `Vista.gd` como reglas planas y el selector por ángulos.
+   ✅ **7a-1 (2026-11-14): golpes a personajes en 3D.** Cada personaje que sabe recibir daño lleva una `Diana3D`
+   (`systems/combat/Diana3D.gd`, un `Area3D` en su cuerpo, del tamaño del cuerpo más un margen; la pone `CuerpoBase3D`
+   sin listas). El tajo del protagonista es una esfera 3D delante de él (`PlayerCombatController._buscar_dianas_del_tajo`)
+   y la flecha busca la diana que cruza en cada paso de vuelo (`ArrowProjectile._herir_en_el_tramo`): quien está en otro
+   piso queda fuera por su altura de verdad. Borradas `Hurtbox.gd` y `Hitbox.gd` y sus nodos en `World.tscn`,
+   `DummyEnemy.tscn` y `FastEnemy.tscn`. Contador 2.302 → **2.286**. Pruebas: `fisica_3d` («7a», 9 nuevas) y partida del
+   Caso I 25/25. **Sigue siendo 2D:** la flecha aún vuela como nodo del mapa plano (posición en píxeles + altura) y choca
+   con paredes y objetos rompibles del mapa; el tajo aún lleva un área plana solo para los objetos rompibles (cajas,
+   barriles: tanda 6); el empujón recorre grupos y pregunta por pisos (`vm.alcanza`); el «dueño» de cada diana sigue
+   siendo el nodo plano del personaje. **Siguiente: 7a-2** (la flecha como proyectil 3D de verdad, con paredes 3D) y
+   después 4b-2 (animales salvajes).
 8. **Escena raíz 3D:** el mundo deja de pintarse como imagen dentro de una escena 2D; cámara, luz de día y noche,
    lluvia y sonido en 3D.
 9. **Datos fuera del código y objetos gigantes partidos**, según se toque cada sistema (auditoría B y C).
@@ -114,6 +126,9 @@ rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 
 - Traductores de quien ya ES su cuerpo (4b-1): `CuerpoBase3D.suelo_y` (altura del suelo desde el mapa plano → 3b),
   `VillageHousing.ranch_pen_m` (corral desde el sitio plano → cuando el rancho dé su valla desde su pieza) y
   `AnimalModel3D._pos_mapa`/`attach` (el modelo aún mide en píxeles → al pasar a 3D el último animal).
+- «Cortina» de la flecha (`Diana3D.en_cortina`, `ArrowProjectile.CORTINA_M`, 2026-11-14): fuera de la 1.ª persona
+  no se puede apuntar hacia abajo, así que la flecha alcanza lo que tiene debajo hasta 1,7 m → se decide con el
+  usuario si la vista desde arriba se queda (pregunta apuntada).
 - Tabla de tamaños por grupo y especie en `TallaCuerpo3D.gd` (cada personaje debería decir el suyo) → tanda 6.
 - Dibujos 2D escondidos con capas en 1.ª persona (`WorldStage3D._ocultar_2d_tapado`) → tandas 4 y 8.
 - Cama `cama_2` de la comisaría puesta a mano; zapato del caso como «Caja_383» con etiqueta → tanda 6.

@@ -18,7 +18,6 @@ const _AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # los empujones 
 @onready var health_comp: HealthComponent = $HealthComponent
 var _salud_anterior: float = 0.0 ## para notar un golpe mientras duermes
 @onready var stun_comp: StunComponent = $StunComponent
-@onready var hurtbox: Hurtbox = $Hurtbox
 @onready var combat_ctrl: PlayerCombatController = get_node_or_null("PlayerCombatController")
 @onready var move_ctrl: PlayerMovementController = get_node_or_null("PlayerMovementController")
 
@@ -348,8 +347,6 @@ func _ready() -> void:
 	if stun_comp:
 		stun_comp.stunned.connect(_on_stunned)
 	
-	if hurtbox:
-		hurtbox.hit_received.connect(take_damage)
 	
 	call_deferred("equip_weapon", sword_weapon)
 
@@ -1077,8 +1074,7 @@ func from_save_dict(data: Dictionary) -> void:
 	if combat_ctrl:
 		combat_ctrl._cancel_bow_draw()
 		combat_ctrl.attack_timer = 0.0
-		if combat_ctrl.hitbox_shape:
-			combat_ctrl.hitbox_shape.set_deferred("disabled", true)
+		combat_ctrl.parar_golpe()
 		if is_instance_valid(combat_ctrl.current_prompt_target) and combat_ctrl.current_prompt_target.has_method("hide_prompt"):
 			combat_ctrl.current_prompt_target.hide_prompt()
 		combat_ctrl.current_prompt_target = null

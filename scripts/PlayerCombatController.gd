@@ -11,7 +11,9 @@ const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 var weapon_pivot: Node2D
 var weapon_sprite: Sprite2D
 var crosshair: Crosshair2D
-var hitbox_area: Hitbox
+var hitbox_area: Area2D ## solo para los objetos rompibles del mapa plano (cajas, barriles…): se va con ellos (tanda 6)
+var _dano_golpe: DamageData = null ## el daño del tajo en curso
+var _tajo_activo: bool = false ## durante el tajo se buscan dianas 3D en cada paso
 var hitbox_shape: CollisionShape2D
 
 var current_prompt_target: Node2D = null
@@ -38,6 +40,11 @@ var _swing_hit_targets: Array[Node] = []
 const CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd")
 const _AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # la zancada del golpe la da el cuerpo 3D
 const WeaponWear = preload("res://scripts/systems/combat/WeaponWear.gd") # C7 fase 4b: armas melladas
+## El tajo en el mundo 3D (tanda 7a): una esfera delante del protagonista, a la altura del pecho. Mismo alcance que
+## tenía en el mapa plano (círculo de 30 px a 22 px, contra zonas de golpe de 10 px).
+const TAJO_RADIO_M: float = 1.84
+const TAJO_DELANTE_M: float = 1.23
+const TAJO_ALTURA_M: float = 1.1
 var swing_duration: float = 0.36
 var swing_move_mult: float = 1.0
 var _swing_feel: Dictionary = {}
@@ -281,6 +288,8 @@ func _process(delta: float) -> void:
 		aim_down_sights_blend = move_toward(aim_down_sights_blend, 0.0, delta * 9.0)
 
 func _physics_process(delta: float) -> void:
+	if _tajo_activo:
+		_buscar_dianas_del_tajo()
 	if shove_cooldown > 0.0:
 		shove_cooldown = maxf(0.0, shove_cooldown - delta)
 	if is_blocking:
@@ -548,10 +557,10 @@ func _setup_visuals() -> void:
 	weapon_pivot.add_child(weapon_sprite)
 
 func _setup_hitbox() -> void:
-	hitbox_area = Hitbox.new()
+	hitbox_area = Area2D.new()
 	hitbox_area.name = "WeaponHitbox"
 	hitbox_area.collision_layer = 0
-	hitbox_area.collision_mask = 5 # Layers 1 (destructibles/environment) + 3 (enemies/hurtboxes)
+	hitbox_area.collision_mask = 1 # capa 1: objetos rompibles del mapa; a los personajes se les busca la diana en 3D
 	
 	hitbox_shape = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -563,7 +572,6 @@ func _setup_hitbox() -> void:
 	hitbox_area.add_child(hitbox_shape)
 	weapon_pivot.add_child(hitbox_area)
 	
-	hitbox_area.area_entered.connect(_on_hitbox_entered)
 	hitbox_area.body_entered.connect(_on_hitbox_body_entered)
 
 func _update_weapon_visuals() -> void:
@@ -750,19 +758,19 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 		)
 
 	_swing_hit_targets.clear()
-	hitbox_area.damage_data = equipped.damage_data.copy()
+	_dano_golpe = equipped.damage_data.copy()
 	if "paralytic_venom_timer" in player and float(player.get("paralytic_venom_timer")) > 0.0:
-		hitbox_area.damage_data.stun_buildup += 50.0
-	hitbox_area.damage_data.source = player
+		_dano_golpe.stun_buildup += 50.0
+	_dano_golpe.source = player
 	if _swing_power > 1.0:
-		hitbox_area.damage_data.amount *= _swing_power
-		hitbox_area.damage_data.stun_buildup *= _swing_power
+		_dano_golpe.amount *= _swing_power
+		_dano_golpe.stun_buildup *= _swing_power
 	var wear_k: float = WeaponWear.damage_mult(player, equipped) # un arma mellada pega, corta y tala menos
 	if wear_k < 1.0:
-		hitbox_area.damage_data.amount *= wear_k
-		hitbox_area.damage_data.bleed_buildup *= wear_k
-		hitbox_area.damage_data.logging_efficiency *= wear_k
-		hitbox_area.damage_data.mining_efficiency *= wear_k
+		_dano_golpe.amount *= wear_k
+		_dano_golpe.bleed_buildup *= wear_k
+		_dano_golpe.logging_efficiency *= wear_k
+		_dano_golpe.mining_efficiency *= wear_k
 
 	swing_phase = "windup"
 	swing_phase_elapsed = 0.0
@@ -778,9 +786,9 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 	swing_phase_elapsed = 0.0
 	swing_phase_duration = maxf(0.01, t_act)
 	hitbox_shape.disabled = false
+	_tajo_activo = true
 	await get_tree().create_timer(t_act).timeout
-	if is_instance_valid(hitbox_shape):
-		hitbox_shape.disabled = true
+	parar_golpe()
 	if my_id != _swing_id:
 		return
 	_in_recovery = true # C7 fase 3a: ventana para encadenar (espada)
@@ -929,26 +937,35 @@ func _fire_flintlock_realtime(equipped: WeaponData) -> void:
 		if not raid_active and int(vm.wanted_level) < 1:
 			vm.wanted_level = 1
 
-func _on_hitbox_entered(area: Area2D) -> void:
-	if area is Hurtbox:
-		var target_entity: Node = area.get_parent() if area.get_parent() else area
-		var vm_hb = get_tree().get_first_node_in_group("village_manager")
-		if vm_hb != null and target_entity is Node2D:
-			var t_elev_hb = target_entity.get("elevation_level")
-			if not vm_hb.alcanza(player.global_position, int(vm_hb.get("player_elevation_level")), (target_entity as Node2D).global_position, int(t_elev_hb) if t_elev_hb != null else 0):
-				return # paso a 3D, paso 5c: por altura de los pies, no por piso
-		if target_entity in _swing_hit_targets:
-			return
-		_swing_hit_targets.append(target_entity)
-		hitbox_area.apply_damage(area)
-		_on_melee_impact(target_entity)
+## Corta el tajo en curso (se acabó su tiempo, o al protagonista lo han tumbado).
+func parar_golpe() -> void:
+	_tajo_activo = false
+	if is_instance_valid(hitbox_shape):
+		hitbox_shape.set_deferred("disabled", true)
+
+
+## Mientras dura el tajo: hiere a cada personaje cuya diana 3D toque la esfera del arma, una vez por tajo. Al buscar en
+## 3D, quien está en otro piso queda fuera por su altura de verdad.
+func _buscar_dianas_del_tajo() -> void:
+	var cuerpo: Node3D = _AndarMapa.cuerpo(player) as Node3D
+	if cuerpo == null or _dano_golpe == null:
+		return
+	var hacia: Vector3 = Vector3(current_aim_dir.x, 0.0, current_aim_dir.y).normalized()
+	var centro: Vector3 = cuerpo.global_position + Vector3.UP * TAJO_ALTURA_M + hacia * TAJO_DELANTE_M
+	for diana: Diana3D in Diana3D.en_esfera(cuerpo.get_world_3d(), centro, TAJO_RADIO_M):
+		var objetivo: Node = diana.duenio
+		if objetivo == player or objetivo in _swing_hit_targets:
+			continue
+		_swing_hit_targets.append(objetivo)
+		diana.recibir(_dano_golpe)
+		_on_melee_impact(objetivo)
 
 func _on_hitbox_body_entered(body: Node2D) -> void:
-	if body != player and (body.is_in_group("destructible") or body.is_in_group("wild_animals")) and body.has_method("take_damage"):
+	if body != player and body.is_in_group("destructible") and body.has_method("take_damage"):
 		if body in _swing_hit_targets:
 			return
 		_swing_hit_targets.append(body)
-		body.take_damage(hitbox_area.damage_data)
+		body.take_damage(_dano_golpe)
 		_on_melee_impact(body)
 
 ## C7: respuesta del impacto según el arma: empujón, tambaleo, chispa, sonido, congelado y temblor.

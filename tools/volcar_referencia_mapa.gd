@@ -31,7 +31,7 @@ func _initialize() -> void:
 			var key := "arboles" if t == 1 else "rocas"
 			out[key].append([roundf(n.global_position.x), roundf(n.global_position.y)])
 	var FS = load("res://scripts/fisica/RioLago.gd")
-	for p in FS.LAKE_WATER_WORLD:
+	for p in FS.lake_water_world():
 		out["lago"].append([p.x, p.y])
 	var f := FileAccess.open("res://mapa/referencia_mapa.json", FileAccess.WRITE)
 	f.store_string(JSON.stringify(out))

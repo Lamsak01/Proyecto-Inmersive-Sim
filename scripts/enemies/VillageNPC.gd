@@ -78,13 +78,6 @@ func setup_npc(tex: Texture2D, p_work_pos: Vector2, p_bed_pos: Vector2, initial_
 	stun_comp.stunned.connect(_on_stunned)
 	add_child(stun_comp)
 
-	hurtbox = Hurtbox.new()
-	hurtbox.name = "Hurtbox"
-	hurtbox.collision_layer = 4
-	hurtbox.collision_mask = 0
-	_add_circle_col(hurtbox, 10.0)
-	hurtbox.hit_received.connect(take_damage)
-	add_child(hurtbox)
 
 	interact_area = Area2D.new()
 	interact_area.name = "InteractArea"
@@ -714,7 +707,7 @@ func revive_from_downed(rescuer: Node, used_surgical_kit: bool = false) -> void:
 	_clear_combat_hostility(false)
 	if stun_comp:
 		stun_comp.clear_stun()
-	_set_area_col_disabled(hurtbox, false)
+	Diana3D.poner_activa(self, true)
 	if health_comp:
 		if health_comp.last_sickness_cause != "" and (health_comp.fever >= 70.0 or health_comp.food_poisoning >= 70.0 or health_comp.swamp_sickness >= 70.0):
 			last_hit_weapon_name = "Envenenamiento / Sepsis (%s)" % health_comp.last_sickness_cause
@@ -809,7 +802,7 @@ func _confirm_true_death() -> void:
 	if is_instance_valid(direct_witness_node) and not (direct_witness_node.trade_role in [TradeRole.ROYAL_INVESTIGATOR, TradeRole.TRAVELING_MERCHANT]):
 		begin_physical_corpse_discovery(direct_witness_node)
 	_clear_combat_hostility()
-	_set_area_col_disabled(hurtbox, true)
+	Diana3D.poner_activa(self, false)
 	_set_area_col_disabled(interact_area, false)
 	if sprite:
 		_set_sprite_pose(90.0, Color(0.68, 0.54, 0.54, 0.96))
@@ -1244,7 +1237,7 @@ func from_save_dict(data: Dictionary) -> void:
 		death_day = int(data.get("death_day", 1))
 		death_hour = int(data.get("death_hour", 12))
 		death_minute = int(data.get("death_minute", 0))
-		_set_area_col_disabled(hurtbox, true)
+		Diana3D.poner_activa(self, false)
 		_set_area_col_disabled(interact_area, corpse_buried)
 		if sprite:
 			_set_sprite_pose(90.0, Color(0.68, 0.54, 0.54, 0.96))
@@ -1269,7 +1262,7 @@ func from_save_dict(data: Dictionary) -> void:
 		else:
 			remove_from_group("enemies")
 		if body_col: body_col.set_deferred("disabled", not is_hostile)
-		_set_area_col_disabled(hurtbox, false)
+		Diana3D.poner_activa(self, true)
 		_set_area_col_disabled(interact_area, false)
 		if sprite:
 			sprite.visible = true

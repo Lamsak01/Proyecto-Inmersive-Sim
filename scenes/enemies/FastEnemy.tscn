@@ -7,7 +7,6 @@
 [ext_resource type="Script" uid="uid://cv6yrhvau1lih" path="res://scripts/ui/AlertIndicator.gd" id="6_alert"]
 [ext_resource type="Script" uid="uid://b37cpqxetfqiq" path="res://scripts/ui/VisionCone2D.gd" id="7_cone"]
 [ext_resource type="Script" uid="uid://bu7c1vqxvhgld" path="res://scripts/enemies/DetectionArea.gd" id="8_detect"]
-[ext_resource type="Script" uid="uid://clphih8x2p40r" path="res://scripts/systems/combat/Hurtbox.gd" id="9_hurtbox"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle1"]
 atlas = ExtResource("2_sprite")
@@ -168,10 +167,3 @@ script = ExtResource("8_detect")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1383624066]
 shape = SubResource("CircleShape2D_detection")
 
-[node name="Hurtbox" type="Area2D" parent="." unique_id=2125872347]
-collision_layer = 4
-collision_mask = 0
-script = ExtResource("9_hurtbox")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=650216144]
-shape = SubResource("CircleShape2D_collision")

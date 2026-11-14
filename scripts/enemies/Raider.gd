@@ -4,7 +4,7 @@ const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 f
 
 ## Asaltante de una incursión (2026-11-05, Regla «todo es físico»). Bandidos o jabalíes que entran de verdad por el
 ## camino del este al atardecer y avanzan hacia la plaza. Pelean con guardias, vecinos con arrojo y el jugador; se
-## les puede herir con cualquier arma (Hurtbox). Huyen malheridos. Si uno llega a la plaza, saquea.
+## les puede herir con cualquier arma (su diana 3D). Huyen malheridos. Si uno llega a la plaza, saquea.
 ## Lo coordina RaidController: él decide cuándo se ha ganado o perdido el asalto.
 ## 2026-11-10: se mueven con física (chocan con paredes y muebles, capa 1); si huyendo se quedan parados contra un
 ## muro HUIDA_ATASCO_S segundos, se dan por huidos (antes atravesaban las paredes).
@@ -77,18 +77,7 @@ func setup(p_kind: String, pos: Vector2, hp_mult: float = 1.0) -> void:
 		sprite.texture = load("res://assests/world/village/villager_guard.png")
 		sprite.modulate = Color(0.55, 0.32, 0.30) # ropa oscura de bandido
 	add_child(sprite)
-	var hb := Hurtbox.new()
-	hb.name = "Hurtbox"
-	hb.collision_layer = 4
-	hb.collision_mask = 0
-	var col := CollisionShape2D.new()
-	var c := CircleShape2D.new()
-	c.radius = 11.0
-	col.shape = c
-	hb.add_child(col)
-	hb.hit_received.connect(take_damage)
-	add_child(hb)
-	var cuerpo := CollisionShape2D.new() # el cuerpo con el que choca contra paredes y muebles (la Hurtbox solo recibe golpes)
+	var cuerpo := CollisionShape2D.new() # el cuerpo con el que choca contra paredes y muebles (los golpes van a su diana 3D)
 	var forma := CircleShape2D.new()
 	forma.radius = 6.0
 	cuerpo.shape = forma
@@ -127,9 +116,7 @@ func _die() -> void:
 	if sprite:
 		sprite.rotation_degrees = 90.0
 		sprite.modulate = Color(0.6, 0.45, 0.45, 0.95)
-	var hb = get_node_or_null("Hurtbox")
-	if hb:
-		hb.set_deferred("monitorable", false)
+	Diana3D.poner_activa(self, false)
 	_finish("killed")
 	get_tree().create_timer(30.0).timeout.connect(func():
 		if is_instance_valid(self):

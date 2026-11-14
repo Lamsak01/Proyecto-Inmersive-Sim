@@ -141,7 +141,7 @@ func borrar(c: Vector2) -> void:
 func _prohibido(p: Vector2) -> bool:
 	if FS.is_point_in_river_water(p, 8.0):
 		return true
-	var lago := PackedVector2Array(FS.LAKE_WATER_WORLD)
+	var lago: PackedVector2Array = FS.lake_water_world()
 	if Geometry2D.is_point_in_polygon(p, lago):
 		return true
 	var p3: Vector3 = _a_3d(p, WB.terrain_height_px(p))

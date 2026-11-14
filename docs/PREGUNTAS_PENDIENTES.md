@@ -29,3 +29,11 @@
    sistema de pisos ya, o seguimos con casas de una planta y lo dejamos para las casas ricas más adelante?
    *(2026-11-13: el sistema ya existe y lo estrena la casona de los rentistas; poner arriba al herrero es ahora poco
    trabajo si el usuario lo quiere.)*
+
+2. **(2026-11-14, golpes en 3D) Flechas en la vista desde arriba:** en 1.ª persona la flecha ya da justo donde apuntas
+   (a un conejo hay que apuntarle abajo). En la vista desde arriba no se puede apuntar en vertical, así que ahí la flecha
+   alcanza también lo que tiene debajo (como antes). ¿Se queda así, o la caza con arco pasa a ser solo de 1.ª persona?
+   Decidido de momento: se queda así. De paso: las dianas miden ahora lo que el cuerpo (un conejo es más difícil que antes).
+3. **(2026-11-14) Carpeta `archived_systems/`:** guarda escenas viejas en 2D (interiores con teletransporte, red eléctrica)
+   que el juego no usa; una apunta a un archivo de golpes que ya no existe. ¿Se borra la carpeta (queda en el historial de
+   GitHub) o la quieres conservar? No se ha tocado.

@@ -19,6 +19,7 @@ const TALLA_CADA: int = 10         ## (no protagonista) pasos entre repasos de s
 
 var _forma: CollisionShape3D = null
 var _mascara: int = 0              ## con qué choca normalmente
+var _diana: Diana3D = null         ## dónde se le puede herir (solo quien sabe recibir daño)
 
 
 ## Dónde viven los cuerpos: la raíz del escenario 3D (todos en el mismo mundo, con las mismas paredes). Devuelve null
@@ -50,6 +51,12 @@ func _crear_forma() -> void:
 	safe_margin = 0.01
 
 
+## Si `quien` sabe recibir daño, le pone su diana: ahí le buscan la espada y las flechas (tanda 7a).
+func _poner_diana(quien: Node) -> void:
+	if _diana == null and quien.has_method("take_damage"):
+		_diana = Diana3D.poner(self, quien)
+
+
 ## Tamaño, capa y con qué choca, según quién es (`quien`) y cómo está ahora (TallaCuerpo3D). Se repasa cada TALLA_CADA
 ## pasos: una cría crece, alguien se duerme o se sienta. `fijar_mascara` a false mientras se cuela por un atasco.
 func _vestir(quien: Node, es_prota: bool, fijar_mascara: bool = true) -> void:
@@ -59,6 +66,8 @@ func _vestir(quien: Node, es_prota: bool, fijar_mascara: bool = true) -> void:
 		capsula.radius = talla.x
 		capsula.height = talla.y
 		_forma.position.y = talla.y * 0.5
+	if _diana != null:
+		_diana.medir(talla.x, talla.y)
 	# Paredes: las del mundo, compartidas. El agua tiene su capa: frena a los demás; el protagonista entra y nada.
 	var muros: int = ChoquesMundo3D.CAPA_MUROS
 	var capa: int = CAPA_PROTA

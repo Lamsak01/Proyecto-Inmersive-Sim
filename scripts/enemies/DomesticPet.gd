@@ -52,7 +52,6 @@ var _player_near: bool = false
 var sprite: Sprite2D = null
 var status_label: Label = null
 var interact_area: Area2D = null
-var hurtbox: Hurtbox = null
 var health_comp: HealthComponent = null
 var stun_comp: StunComponent = null
 
@@ -106,14 +105,6 @@ func _setup_components_and_visuals() -> void:
 	stun_comp.stun_duration = 6.0
 	stun_comp.stunned.connect(_on_stunned)
 	add_child(stun_comp)
-
-	hurtbox = Hurtbox.new()
-	hurtbox.name = "Hurtbox"
-	hurtbox.collision_layer = 4
-	hurtbox.collision_mask = 0
-	_add_circle_col(hurtbox, 9.0)
-	hurtbox.hit_received.connect(take_damage)
-	add_child(hurtbox)
 
 	sprite = Sprite2D.new()
 	sprite.name = "Sprite2D"
@@ -420,7 +411,7 @@ func _on_died(silent: bool = false) -> void:
 	is_sleeping = false
 	remove_from_group("enemies")
 	velocity = Vector2.ZERO
-	_set_area_disabled(hurtbox, true)
+	Diana3D.poner_activa(self, false)
 	if sprite:
 		sprite.rotation_degrees = 90.0
 		sprite.offset.y = 0.0
@@ -614,7 +605,7 @@ func from_save_dict(data: Dictionary) -> void:
 		remove_from_group("enemies")
 		visible = true
 		_set_area_disabled(interact_area, false)
-		_set_area_disabled(hurtbox, false)
+		Diana3D.poner_activa(self, true)
 		if sprite:
 			sprite.rotation_degrees = 0.0
 			sprite.scale = Vector2(1.15, 1.15)

@@ -6,7 +6,6 @@ const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, tand
 @onready var ai: EnemyAI = $EnemyAI
 @onready var alert_indicator: AlertIndicator = $AlertIndicator
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
-@onready var hurtbox: Hurtbox = get_node_or_null("Hurtbox")
 @onready var vision_cone: VisionCone2D = $VisionCone2D
 @onready var prompt_label: Label = $PromptLabel
 
@@ -63,8 +62,6 @@ func _ready() -> void:
 		ai.state_changed.connect(_on_ai_state_changed)
 		ai.awareness_changed.connect(_on_ai_awareness_changed)
 	
-	if hurtbox:
-		hurtbox.hit_received.connect(take_damage)
 	if vision_cone:
 		vision_cone.visible = false
 
@@ -233,9 +230,7 @@ func _on_died() -> void:
 	if alert_indicator: alert_indicator.visible = false
 	collision_layer = 0
 	collision_mask = 0
-	if hurtbox:
-		hurtbox.set_deferred("monitoring", false)
-		hurtbox.set_deferred("monitorable", false)
+	Diana3D.poner_activa(self, false)
 	remove_from_group("enemies")
 	remove_from_group("has_los_to_player")
 	if _death_tween and _death_tween.is_valid(): _death_tween.kill()
@@ -272,9 +267,7 @@ func _respawn_enemy() -> void:
 	visible = true
 	collision_layer = 4
 	collision_mask = 3
-	if hurtbox:
-		hurtbox.set_deferred("monitoring", true)
-		hurtbox.set_deferred("monitorable", true)
+	Diana3D.poner_activa(self, true)
 	if not is_in_group("enemies"):
 		add_to_group("enemies")
 	if health_comp:
@@ -318,9 +311,7 @@ func from_save_dict(data: Dictionary) -> void:
 			if ai.has_method("_clear_ghost"):
 				ai._clear_ghost()
 			ai.set_physics_process(false)
-		if hurtbox:
-			hurtbox.set_deferred("monitoring", false)
-			hurtbox.set_deferred("monitorable", false)
+		Diana3D.poner_activa(self, false)
 		visible = false
 		collision_layer = 0
 		collision_mask = 0

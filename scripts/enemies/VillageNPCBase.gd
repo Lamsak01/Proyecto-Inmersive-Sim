@@ -305,7 +305,6 @@ var _showing_stealth_prompt: bool = false
 
 var sprite: Sprite2D = null
 var body_col: CollisionShape2D = null
-var hurtbox: Hurtbox = null
 var interact_area: Area2D = null
 var status_label: Label = null
 var health_comp: HealthComponent = null

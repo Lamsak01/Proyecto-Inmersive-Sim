@@ -35,6 +35,7 @@ func _initialize() -> void:
 	_paso5b_oido()
 	await _paso5c_golpes()
 	await _paso5d_alcance()
+	await _tanda7a_dianas()
 	await _arreglo_bandido_pared()
 	print("FISICA 3D: %s (%d fallos)" % ["PASSED" if _fallos == 0 else "FAILED", _fallos])
 	quit(1 if _fallos > 0 else 0)
@@ -803,6 +804,95 @@ func _paso5d_alcance() -> void:
 	n.global_position = salon + Vector2(0, 300)
 	vm.set_npc_elevation_level(n, 0)
 	n.set_physics_process(true)
+
+
+## Tanda 7a del paso a 3D: los golpes buscan la diana 3D de cada personaje. Ya no hay zonas de golpe en el mapa plano.
+## El tajo de espada hiere a quien tiene delante, no a quien tiene detrás ni a quien está en el piso de arriba; a un
+## conejo metido en su madriguera no se le puede herir.
+func _tanda7a_dianas() -> void:
+	var vm = get_first_node_in_group("village_manager")
+	var pl = get_first_node_in_group("player")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	var planas: int = 0
+	var sin_diana: Array[String] = []
+	for g in ["player", "village_npcs", "wild_animals", "domestic_pets", "raiders", "enemies"]:
+		for n in get_nodes_in_group(g):
+			if n.get_node_or_null("Hurtbox") != null:
+				planas += 1
+			if n.has_method("take_damage") and n is CharacterBody2D and Diana3D.de(n) == null:
+				sin_diana.append(str(n.name))
+	_ok(planas == 0 and not ResourceLoader.exists("res://scripts/systems/combat/Hurtbox.gd"), "7a: no queda ninguna zona de golpe en el mapa plano (quedan %d)" % planas)
+	_ok(sin_diana.is_empty(), "7a: todo personaje que puede recibir daño tiene su diana 3D (sin ella: %s)" % str(sin_diana.slice(0, 5)))
+	var ciervo = null
+	var conejo = null
+	for a in get_nodes_in_group("wild_animals"):
+		if not a.is_alive_in_ecosystem():
+			continue
+		if int(a.species) == 1 and ciervo == null:
+			ciervo = a
+		elif int(a.species) == 0 and conejo == null:
+			conejo = a
+	if ciervo == null or conejo == null:
+		_ok(false, "7a: hay un ciervo y un conejo para la prueba")
+		return
+	ciervo.set_physics_process(false)
+	conejo.set_physics_process(false)
+	var cc = pl.combat_ctrl
+	var sitio: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-20.0, 140.0)
+	_despejar(sitio, 120.0)
+	vm.set_player_elevation_level(0)
+	pl.global_position = sitio
+	# Delante, a 40 px: le da
+	ciervo.global_position = sitio + Vector2(40.0, 0.0)
+	_ok(await _tajo(cc, ciervo), "7a: el tajo hiere al ciervo que tienes delante, a 40 px")
+	# Detrás, a 60 px: no
+	ciervo.global_position = sitio + Vector2(-60.0, 0.0)
+	_ok(not await _tajo(cc, ciervo), "7a: y no al que tienes detrás")
+	# Muy lejos delante (120 px): no
+	ciervo.global_position = sitio + Vector2(120.0, 0.0)
+	_ok(not await _tajo(cc, ciervo), "7a: ni al que está fuera de alcance (120 px)")
+	# Un conejo en su madriguera no recibe golpes; al salir, sí
+	conejo.global_position = sitio + Vector2(30.0, 0.0)
+	conejo._enter_burrow(60.0)
+	_ok(not await _tajo(cc, conejo), "7a: a un conejo metido en su madriguera no se le hiere")
+	conejo.home_position = sitio + Vector2(30.0, 0.0)
+	conejo._exit_burrow()
+	conejo.global_position = sitio + Vector2(30.0, 0.0)
+	_ok(await _tajo(cc, conejo), "7a: y al salir de la madriguera, sí")
+	# Otro piso: desde el salón de la posada no se hiere a quien está en la galería, justo encima
+	var n = null
+	for v in vm.VillageNeeds.living(vm):
+		if v.is_conscious() and not v.is_hostile and not v.is_sleeping:
+			n = v
+			break
+	if n != null:
+		n.set_physics_process(false)
+		var salon: Vector2 = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y + 16.0))
+		_despejar(salon, 60.0)
+		pl.global_position = salon
+		n.global_position = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
+		vm.set_npc_elevation_level(n, 1)
+		_ok(not await _tajo(cc, n, (n.global_position - salon).normalized()), "7a: desde el salón el tajo no llega a quien está en la galería, por su altura de verdad")
+		ciervo.global_position = salon + Vector2(0.0, -22.0) # en el salón, a la misma distancia en el mapa
+		_ok(await _tajo(cc, ciervo, Vector2.UP), "7a: pero sí a quien está en tu mismo piso a esa distancia")
+		n.global_position = salon + Vector2(0, 300)
+		vm.set_npc_elevation_level(n, 0)
+		n.set_physics_process(true)
+	ciervo.set_physics_process(true)
+	conejo.set_physics_process(true)
+
+
+## Da un tajo de prueba (la búsqueda de dianas del arma, sin animación) y dice si ha alcanzado a `quien`.
+func _tajo(cc, quien, hacia: Vector2 = Vector2.RIGHT) -> bool:
+	for _i in range(3): # que su cuerpo 3D y su diana lleguen a su sitio
+		await physics_frame
+	cc.current_aim_dir = hacia # después de esperar: el mando la cambia en cada fotograma según el ratón
+	cc._swing_hit_targets.clear()
+	cc._dano_golpe = load("res://scripts/systems/combat/DamageData.gd").new()
+	cc._dano_golpe.amount = 0.01
+	cc._dano_golpe.source = cc.player
+	cc._buscar_dianas_del_tajo()
+	return quien in cc._swing_hit_targets
 
 
 ## Arreglo 2026-11-10 (fallo visto por el usuario): un bandido que huye ya no atraviesa las paredes; si se queda

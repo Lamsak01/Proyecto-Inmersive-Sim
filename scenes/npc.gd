@@ -9,7 +9,6 @@ extends CharacterBody2D
 @export var hostility_threshold: int = -30 ## Si la afinidad baja de este valor, se vuelve hostil
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
-@onready var hurtbox: Hurtbox = get_node_or_null("Hurtbox")
 @onready var health_comp: HealthComponent = get_node_or_null("HealthComponent")
 @onready var stun_comp: StunComponent = get_node_or_null("StunComponent")
 
@@ -102,8 +101,6 @@ func _ready() -> void:
 		add_child(stun_comp)
 	stun_comp.stunned.connect(_on_stunned)
 
-	if hurtbox:
-		hurtbox.hit_received.connect(take_damage)
 
 func apply_push(force: Vector2) -> void:
 	push_velocity = force
@@ -284,9 +281,7 @@ func _on_died() -> void:
 	if enemy_ai:
 		enemy_ai.set_process(false)
 		enemy_ai.set_physics_process(false)
-	if hurtbox:
-		hurtbox.set_deferred("monitoring", false)
-		hurtbox.set_deferred("monitorable", false)
+	Diana3D.poner_activa(self, false)
 
 	$InteractArea/NpcInteractCollision.set_deferred("disabled", true)
 	$"cuerpo solido".set_deferred("disabled", true)
@@ -433,9 +428,7 @@ func from_save_dict(data: Dictionary) -> void:
 			health_comp.stop_bleeding()
 			if stun_comp:
 				stun_comp.clear_stun()
-			if hurtbox:
-				hurtbox.set_deferred("monitoring", true)
-				hurtbox.set_deferred("monitorable", true)
+			Diana3D.poner_activa(self, true)
 			set_physics_process(true)
 			set_process(true)
 			rotation_degrees = 0

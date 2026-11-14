@@ -112,6 +112,7 @@ static func _escenario(p_actor: Node2D) -> Node:
 func _ready() -> void:
 	_actor_cb = actor as CharacterBody2D
 	_crear_forma()
+	_poner_diana(actor)
 	_talla_paso = Engine.get_physics_frames() + int(get_instance_id() % TALLA_CADA) # no todos repasan en el mismo paso
 	_poner_talla()
 	process_physics_priority = 100 # después de quien lo mueve: así sabe si ese paso ya se movió

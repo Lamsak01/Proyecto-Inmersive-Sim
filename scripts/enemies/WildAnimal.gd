@@ -102,14 +102,13 @@ var mate_target: WildAnimal = null
 
 var sprite: Sprite2D = null
 var body_col: CollisionShape2D = null
-var hurtbox: Hurtbox = null
 var butcher_area: Area2D = null
 var status_label: Label = null
 
 func _ready() -> void:
 	set_physics_process(not Engine.is_editor_hint())
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
-	# Sin Body Block contra el jugador (layer 0), manteniendo Hurtbox en layer 4 para combate/caza
+	# En el mapa plano no bloquea a nadie (capa 0); estorbar y recibir golpes es cosa de su cuerpo 3D y su diana
 	collision_layer = 0
 	collision_mask = 1
 	if home_position == Vector2.ZERO:
@@ -179,14 +178,6 @@ func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: 
 			AnimalModel3DScript.attach(self, "animals/animated/Wolf.glb", 14.0, 8.0)
 
 	body_col = _add_circle_col(self, col_radius)
-
-	hurtbox = Hurtbox.new()
-	hurtbox.name = "Hurtbox"
-	hurtbox.collision_layer = 4
-	hurtbox.collision_mask = 0
-	_add_circle_col(hurtbox, col_radius + 4.0)
-	hurtbox.hit_received.connect(take_damage)
-	add_child(hurtbox)
 
 	# Área de interacción para Desollar el cadáver con [E] (solo activa cuando `state == AnimalState.CARCASS`)
 	butcher_area = Area2D.new()
@@ -789,7 +780,7 @@ func _enter_burrow(duration: float = 0.0) -> void:
 	visible = false
 	if body_col:
 		body_col.set_deferred("disabled", true)
-	_set_area_disabled(hurtbox, true)
+	Diana3D.poner_activa(self, false)
 
 func _exit_burrow() -> void:
 	if state != AnimalState.IN_BURROW:
@@ -801,7 +792,7 @@ func _exit_burrow() -> void:
 		add_to_group("wild_animals")
 	if body_col:
 		body_col.set_deferred("disabled", false)
-	_set_area_disabled(hurtbox, false)
+	Diana3D.poner_activa(self, true)
 
 func _process_in_burrow(delta: float) -> void:
 	if burrow_hide_timer > 0.0:
@@ -1046,7 +1037,7 @@ func _become_carcass() -> void:
 
 	if body_col:
 		body_col.set_deferred("disabled", true)
-	_set_area_disabled(hurtbox, true)
+	Diana3D.poner_activa(self, false)
 	_set_area_disabled(butcher_area, false)
 
 	if sprite:
@@ -1128,7 +1119,7 @@ func _apply_hidden_state(hidden_state: bool) -> void:
 		status_label.visible = false
 	if body_col:
 		body_col.set_deferred("disabled", hidden_state)
-	_set_area_disabled(hurtbox, hidden_state)
+	Diana3D.poner_activa(self, not hidden_state)
 	_set_area_disabled(butcher_area, hidden_state or state != AnimalState.CARCASS)
 
 func _reset_alive_state() -> void:
