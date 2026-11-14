@@ -17,6 +17,8 @@ timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests
 timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/animales_3d.gd 2>&1 | grep "ANIMALES 3D"
 # Mascotas del pueblo como cuerpos 3D: pasear, dormir, [E] (caricia, comida, desuello), gato que huye, perro que muerde (~1,5 min) → «MASCOTAS 3D: PASSED»
 timeout 240 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/mascotas_3d.gd 2>&1 | grep "MASCOTAS 3D"
+# Bandidos de las incursiones y secuestradores del Caso I como cuerpos 3D (~40 s) → «BANDIDOS 3D: PASSED»
+timeout 200 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/bandidos_3d.gd 2>&1 | grep "BANDIDOS 3D"
 # Entrar y salir por las 29 puertas (~2 min) → «PUERTAS 3D: PASSED»
 timeout 600 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/puertas_3d.gd 2>&1 | grep "PUERTAS 3D"
 # Todo el juego (~8–15 min) → «...TESTS PASSED!». La sección «S2: un testigo convierte la infidelidad en chisme» falla al azar: repite.

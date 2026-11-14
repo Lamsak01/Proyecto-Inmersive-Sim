@@ -40,6 +40,7 @@
 - `systems/combat/Diana3D.gd` [~140] — dónde se puede herir a un personaje (un `Area3D` en su cuerpo) y cómo la buscan el tajo (`en_esfera`) y la flecha (`en_tramo`, `en_cortina`). Sustituye a `Hurtbox`/`Hitbox`.
 - `CuerpoBase3D.gd` [~125] — lo común a todo cuerpo 3D (cápsula, talla, capa, altura del suelo, diana, paso físico y paredes). Sin preloads de sistemas. `Capas3D.gd` [~12]: las capas de choque 3D.
 - `enemies/DomesticPet.gd` [~275] + `enemies/mascotas/` — la mascota ES su cuerpo 3D (tanda 4b-3a). Piezas: `MascotaNecesidades` (hambre, sueño), `MascotaPelea` (el gato huye, el perro muerde), `MascotaCasa` (pasear, dormir, guardián), `MascotaTrato` (la E: caricia, comida, desuello; guardado).
+- `enemies/Raider.gd` [~300] y `MillKidnapper.gd` [~45] — asaltantes de las incursiones y secuestradores del Caso I: SON su cuerpo 3D (tanda 4b-3b), en metros.
 - `ui/TextoFlotante3D.gd` [~35] — texto corto que sube y se desvanece sobre algo del mundo 3D.
 - `ui/Tocable3D.gd` [~60] — la zona 3D de lo que se usa con [E]; la busca `InteractionSelector` (alcance del cuerpo o rayo de la mirada). Sustituye, cosa a cosa, a las áreas «interactable» del mapa plano.
 - `Lugar.gd` [~35] — traductor de sitios mientras dura el paso a 3D: `Lugar.de(n)` en metros y `Lugar.en_mapa(n)` en píxeles, sea `n` un nodo plano o un cuerpo 3D.

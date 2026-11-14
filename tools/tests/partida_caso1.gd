@@ -568,7 +568,7 @@ func _initialize() -> void:
 	var kds: Array = get_nodes_in_group("case1_kidnappers")
 	var near_mill: int = 0
 	for kd in kds:
-		if is_instance_valid(kd) and (kd as Node2D).global_position.distance_to(MapaViejo.a_mundo(Vector2(188.0, -1060.0))) < 80.0:
+		if is_instance_valid(kd) and Lugar.en_mapa(kd).distance_to(MapaViejo.a_mundo(Vector2(188.0, -1060.0))) < 80.0:
 			near_mill += 1
 	_record("D4d_secuestradores_en_el_molino", near_mill == 2, "forasteros_en_el_molino=%d (el tercero es el vecino de la lana azul)" % near_mill)
 	await _salir(pl, stage, vm, MANSION_ID)

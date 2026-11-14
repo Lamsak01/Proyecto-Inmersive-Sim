@@ -299,7 +299,10 @@ static func sync(vm) -> void:
 static func _sync_kidnappers(vm, st: Dictionary) -> void:
 	for k in MILL_KIDNAPPERS.keys():
 		var node_name: String = "Case1Kidnapper_" + str(k)
-		var existing = vm.entities_root.get_node_or_null(node_name)
+		var existing: Node = null # son cuerpos 3D: viven en el escenario 3D, no en el mapa plano
+		for kd_viejo: Node in (vm as Node).get_tree().get_nodes_in_group("case1_kidnappers"):
+			if str(kd_viejo.get("kidnapper_id")) == str(k) and not kd_viejo.is_queued_for_deletion():
+				existing = kd_viejo
 		var alive: bool = str(st["kidnappers"][k]) == "alive"
 		if not alive:
 			if existing != null and existing.get("is_dead") != true:
@@ -307,9 +310,10 @@ static func _sync_kidnappers(vm, st: Dictionary) -> void:
 			continue
 		if existing != null:
 			continue
-		var kd = MillKidnapperScript.new()
-		vm.entities_root.add_child(kd)
-		kd.setup_kidnapper(str(k), str(MILL_KIDNAPPERS[k]["label"]), Marca.mundo(MILL_ID, Marca.SECUESTRADOR % str(k))) # su cruz del molino
+		var kd: Node = MillKidnapperScript.crear((vm as Node).get_tree(), MillKidnapperScript)
+		if kd == null:
+			continue # el escenario 3D aún no existe: se vuelve a intentar en el siguiente repaso
+		kd.setup_kidnapper(str(k), str(MILL_KIDNAPPERS[k]["label"]), Lugar.a_suelo(Marca.mundo(MILL_ID, Marca.SECUESTRADOR % str(k)))) # su cruz del molino
 		kd.name = node_name
 		kd.gone.connect(func(_r, outcome: String): _on_kidnapper_gone(vm, str(k), outcome))
 

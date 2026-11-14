@@ -917,11 +917,10 @@ func _tajo(cc, quien, hacia: Vector2 = Vector2.RIGHT) -> bool:
 func _arreglo_bandido_pared() -> void:
 	var pl = get_first_node_in_group("player")
 	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
-	var r = load("res://scripts/enemies/Raider.gd").new()
+	var r = load("res://scripts/enemies/Raider.gd").crear(self) # ya ES un cuerpo 3D (tanda 4b-3b): nace en el escenario 3D
 	var dentro: Vector2 = VillageTavern.al_mundo(Vector2(500.0, VillageTavern.GALLERY_EDGE_Y + 16.0)) # salón; la pared este está en x 608
 	var pared_x: float = VillageTavern.al_mundo(Vector2(VillageTavern.RECT.end.x, dentro.y)).x
-	r.setup("bandit", dentro, 1.0)
-	pl.get_parent().add_child(r)
+	r.setup("bandit", Lugar.a_suelo(dentro), 1.0)
 	r.fleeing = true
 	r.target = null
 	var max_x: float = dentro.x
@@ -929,7 +928,7 @@ func _arreglo_bandido_pared() -> void:
 		await physics_frame
 		if not is_instance_valid(r):
 			break
-		max_x = maxf(max_x, r.global_position.x)
+		max_x = maxf(max_x, Lugar.en_mapa(r).x)
 	_ok(max_x < pared_x + 2.0, "arreglo: un bandido huyendo no atraviesa la pared de la posada (llega a x %.0f; pared en %.0f)" % [max_x, pared_x])
 	_ok(not is_instance_valid(r), "arreglo: atascado contra el muro, se da por huido y desaparece")
 	if is_instance_valid(r):

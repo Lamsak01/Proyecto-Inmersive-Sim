@@ -35,11 +35,12 @@ func start(p_vm: Node, kind: String, strength: int, militia_bonus: int) -> int:
 	total = clampi(strength, 3, 6) if r_kind == "bandit" else clampi(strength, 3, 5)
 	# Las barricadas pagadas los frenan: llegan más cansados (menos vida)
 	var hp_mult: float = clampf(1.0 - 0.08 * float(militia_bonus), 0.6, 1.0)
-	var parent: Node = vm.entities_root if ("entities_root" in vm and is_instance_valid(vm.entities_root)) else vm
 	for i in range(total):
-		var r = RaiderScript.new()
-		parent.add_child(r)
-		r.setup(r_kind, Sitio.mundo(SITIO_ENTRADA) + Vector2(float(i) * 16.0, float(i % 3) * 14.0 - 14.0), hp_mult)
+		var r: Node = RaiderScript.crear(get_tree()) # ya es un cuerpo 3D: vive en el escenario 3D (tanda 4b-3b)
+		if r == null:
+			push_error("RaidController: no hay escenario 3D donde poner a los asaltantes")
+			break
+		r.setup(r_kind, Lugar.a_suelo(Sitio.mundo(SITIO_ENTRADA) + Vector2(float(i) * 16.0, float(i % 3) * 14.0 - 14.0)), hp_mult)
 		r.gone.connect(_on_raider_gone)
 		raiders.append(r)
 	return total
@@ -107,7 +108,7 @@ func _process(delta: float) -> void:
 		var best = null
 		var best_d: float = INF
 		for r in alive:
-			var d: float = n.global_position.distance_to(r.global_position)
+			var d: float = n.global_position.distance_to(Lugar.en_mapa(r))
 			if d < best_d:
 				best_d = d
 				best = r
@@ -115,9 +116,9 @@ func _process(delta: float) -> void:
 			continue
 		if retarget:
 			if n.errand_kind != "raid_defend":
-				n.start_errand("raid_defend", best.global_position)
+				n.start_errand("raid_defend", Lugar.en_mapa(best))
 			else:
-				n.errand_pos = best.global_position
+				n.errand_pos = Lugar.en_mapa(best)
 		var key: int = n.get_instance_id()
 		var t: float = float(_def_hit_t.get(key, 0.8)) - delta
 		if best_d <= DEFENDER_HIT_RANGE and t <= 0.0:

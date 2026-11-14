@@ -93,7 +93,16 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    25/25, fotos. **Sigue siendo 2D:** su cama y su cuenco (objetos del mapa plano); para no pasear por dentro de las
    casas pregunta al pueblo en píxeles (`MascotaCasa._sitio_de_paseo`); `EnemyAI` y el aviso de maltrato leen su sitio
    con `Lugar.en_mapa`. No llevan la red contra atascos ni rutas: andan en línea recta cerca de su casa.
-   **Siguiente 4b-3b: bandidos (`Raider`, `MillKidnapper` del Caso I, `DummyEnemy`) y el vigía (`scenes/npc.gd`).**
+   ✅ **4b-3b (2026-11-14): asaltantes y secuestradores.** `Raider` (bandido o jabalí de las incursiones) y
+   `MillKidnapper` (los dos forasteros del molino del Caso I) heredan de `CuerpoBase3D` y viven en el escenario 3D, en
+   metros; nacen con `Raider.crear(arbol, guion)`. `BanditModel3D` sirve a dueños 3D y aún a los planos (los bandidos
+   de la ciénaga). `RaidController` y los defensores los leen con `Lugar.en_mapa`. Contador 2.219 → **2.204**. Pruebas:
+   `bandidos_3d` (nueva, 12 comprobaciones), `fisica_3d` (el bandido que huye no atraviesa la pared), partida del
+   Caso I 25/25 (los dos secuestradores siguen en el molino), fotos. **Sigue siendo 2D:** la plaza que saquean se lee
+   del mapa plano (`Sitio.mundo`); sus objetivos (protagonista y vecinos) son nodos planos; no llevan rutas.
+   **Siguiente 4b-3c:** los bandidos de la ciénaga y el vigía (`DummyEnemy`, `scenes/npc.gd`): dependen de `EnemyAI`
+   (navegación y vista planas, `NavigationAgent2D`, cono de visión) → van con las tandas 5 y 7. Después, vecinos y
+   protagonista (dependen de rutas, pisos y de que la cámara y la escena raíz sean 3D).
 5. **Rutas con navegación 3D** (malla de navegación del mundo y de cada edificio). Se borran las rutas y listas de
    puertas a mano y los atajos de «colocar» vecinos (guardia mensajero, custodia).
 6. **Piezas que dicen para qué sirven** (`PLAN_LO_QUE_SE_VE.md`, fases 1–4), ya en 3D: sillas, camas, puestos, la E.
