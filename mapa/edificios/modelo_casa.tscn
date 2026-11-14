@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/wall_timber.png" id="9_4blfr"]
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="11_jc4ak"]
 [ext_resource type="Script" path="res://mapa/cuarto.gd" id="12_p0bsd"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/modelo_casa.res" id="14_8tyeo"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vsaup"]
 albedo_color = Color(0.8, 0.9, 1, 1)
@@ -1047,3 +1048,6 @@ paso_m = Vector3(-1.7, 0, -0.39999998)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 2.4, 4.42)
 script = ExtResource("9_1oh2i")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=97621013]
+navigation_mesh = ExtResource("14_8tyeo")

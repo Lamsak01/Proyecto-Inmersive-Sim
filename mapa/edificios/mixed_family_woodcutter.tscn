@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="10_rfrws"]
 [ext_resource type="Script" path="res://mapa/cuarto.gd" id="11_82hdj"]
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="11_415vq"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/mixed_family_woodcutter.res" id="14_ny8xa"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wyxot"]
 albedo_color = Color(0.8, 0.9, 1, 1)
@@ -1110,3 +1111,6 @@ paso_m = Vector3(-1.9999999, 0, -0.39999998)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.85, 2.4, 4.42)
 script = ExtResource("11_415vq")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=1104219987]
+navigation_mesh = ExtResource("14_ny8xa")

@@ -35,26 +35,9 @@
 - ✅ 4. Interiores de tamaño real de la casa de la cantera (`mixed_family_quarry`, 8,4 × 9,8 m con taller de cantero al este) y del restaurante (`building_restaurant`, 15,4 × 10,64 m con terraza iluminada, comedor, cocina, cámara fría, reservado, bodega y alcoba de dos camas; `contar_2d.sh` 2.406 → 2.407 por una `Texture2D` de material 3D), 2026-11-14.
 - ✅ 5. Quitado el estirón ×5 y el «mapa original» del relieve, lago, ciénaga, plaza y mapa cartográfico del valle (`WorldStageBase3D`, `WorldStageTerrain3D`, `mapa/zona.gd`, `mapa/mundo3d.gd`, `RioLago.gd`, `Agua.gd`, `ValleyMapUI.gd` y `ValleMapaPiezas.gd` en coordenadas reales; movido además `Banco_Plaza_Oeste` delante de la pescadería → `puertas_3d` 29/29; `contar_2d.sh` 2.407 → 2.312), 2026-11-14.
 - ✅ 5b. Franja de rocas de la cantera y puesto exterior (`VillageTrades.gd`: `yard_pos` y `_build_extras_en_mundo` leen el ancho real de la pieza del edificio en `mapa/planta.gd` sin `+ 70.0` a mano; fotos `2026-11-14_t5b_cantera_{antes,despues}.png`; `contar_2d.sh` 2.240 → 2.240), 2026-11-14.
+- ✅ 6. Malla de navegación 3D del valle, edificios y alcantarillas (`tools/hornear_navegacion.gd` + 6 módulos auxiliares, 110 sectores en `Mundo3D.tscn` y 1 `NavigationRegion3D` por edificio en `mapa/navegacion/`, 720 KB; `navegacion_3d`: `588/600` desde la plaza —29/29 puertas, 299/300 marcas, 260/271 sitios— y `9/9` en alcantarillas; horneado completo 267,7 s y 3,7 s un edificio; arranque 27,95 → 35,97 s; fotos en 1.ª persona `2026-11-14_t6_nav_{plaza,puente,casa_2p,alcantarillas}.png`; `contar_2d.sh` 2.201 → 2.201), 2026-11-14.
 
 ## Tareas (revisadas las 4 y 5 por Claude el 2026-11-14 con fotos propias, `puertas_3d`, `fisica_3d` y la partida del Caso I)
-6. **Malla de navegación 3D del mundo y de cada edificio** (prepara la tanda 5 del plan; Claude la conectará a los
-   vecinos, tú NO toques vecinos ni rutas). Hoy no hay ninguna `NavigationRegion3D` en el proyecto.
-   a) Herramienta `tools/hornear_navegacion.gd` que hornea la malla UNA vez y la guarda como recurso en `mapa/navegacion/`
-      (nada de hornear al arrancar el juego). Por trozos: el campo abierto en sectores y **una región por edificio**
-      dentro de su escena, para poder rehacer un edificio sin rehacer el valle. Las regiones se unen en las puertas.
-   b) Medidas del caminante: radio 0,28 m y alto 1,74 m (las de `TallaCuerpo3D.PERSONA`; solo lectura).
-   c) Tiene que cubrir: calles y campo, los puentes y cruces del río (el agua honda no es pisable), el hueco de cada
-      puerta (una puerta cerrada NO corta la malla: abrirla es cosa del vecino), los cuartos separados por tabiques,
-      las escaleras y la planta alta de las casas de dos plantas, la posada tal como está y las alcantarillas.
-      Los muebles sí cortan la malla; las marcas de uso (cama, silla, puesto) deben quedar alcanzables.
-   d) Prueba nueva `tools/tests/navegacion_3d.gd` (sin ventana): desde la plaza pide camino a las 29 puertas, a todas
-      las marcas de edificio (282) y a todos los sitios (86); imprime «NAVEGACION 3D: n/N» y la lista de lo que no se
-      alcanza o queda a más de 0,5 m. Añádela a `docs/specs/PRUEBAS.md`.
-   e) Entrega: el n/N, la lista de inalcanzables con su porqué, fotos de la malla (plaza, un puente, una casa de dos
-      plantas por dentro, alcantarillas), tiempo de horneado y **tiempo de arranque del juego antes y después**.
-   El contador no debe subir. Coste: medio. **Al acabarla, avísalo en tu línea del CHANGELOG:** Claude espera a que termines
-   para dar planta alta a la herrería (el herrero dormirá arriba) y habrá que rehornear la malla de ese edificio.
-
 7. **Dejar de crear los dibujos planos que luego se esconden** (auditoría C1). Hoy `_sync_2d_flat_visuals`
    (`WorldStageProps3D.gd`) pone transparentes los dibujos 2D de muebles, árboles, rocas, objetos y fachadas, que se
    siguen creando. Sigue cada dibujo hasta quien lo crea y haz que no se cree.

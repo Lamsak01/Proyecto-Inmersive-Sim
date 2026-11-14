@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="9_bpgh2"]
 [ext_resource type="Script" path="res://mapa/cuarto.gd" id="10_5crrh"]
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="10_57rxb"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/building_police.res" id="12_1afjj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hethy"]
 albedo_color = Color(0.8, 0.9, 1, 1)
@@ -1228,3 +1229,6 @@ paso_m = Vector3(2.2999997, 0, 0.4000001)
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.6, 2.4, -5.12)
 script = ExtResource("10_57rxb")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=34887075]
+navigation_mesh = ExtResource("12_1afjj")

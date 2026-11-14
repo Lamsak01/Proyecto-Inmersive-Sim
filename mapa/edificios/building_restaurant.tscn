@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/wall_brick_small_stone.png" id="9_bhika"]
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="10_0501i"]
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="11_uevti"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/building_restaurant.res" id="13_w00es"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nhs73"]
 albedo_color = Color(0.8, 0.9, 1, 1)
@@ -2873,3 +2874,6 @@ tam_m = Vector2(0.15, 4.48)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, 1.82, 5.48)
 script = ExtResource("11_uevti")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=279594425]
+navigation_mesh = ExtResource("13_w00es")

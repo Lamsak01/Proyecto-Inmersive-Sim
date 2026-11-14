@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="9_f5w3n"]
 [ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/wall_timber.png" id="11_bbgoa"]
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="13_h4p2b"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/house_family_smith.res" id="13_w8y7c"]
 [ext_resource type="Script" path="res://mapa/cuarto.gd" id="14_y1x7b"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xl5qb"]
@@ -857,3 +858,6 @@ paso_m = Vector3(-2.15, 0, -0.95)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45, 2.4, 4.72)
 script = ExtResource("9_f5w3n")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=83757265]
+navigation_mesh = ExtResource("13_w8y7c")

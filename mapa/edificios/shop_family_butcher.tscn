@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="9_6pw0p"]
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="9_xqp8s"]
 [ext_resource type="Script" path="res://mapa/cuarto.gd" id="10_ovcmo"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/shop_family_butcher.res" id="12_jnckn"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vdrg6"]
 albedo_color = Color(0.8, 0.9, 1, 1)
@@ -503,3 +504,6 @@ paso_m = Vector3(0, 0, 1.3)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 2.4, 3.42)
 script = ExtResource("9_xqp8s")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=1123465999]
+navigation_mesh = ExtResource("12_jnckn")

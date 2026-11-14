@@ -909,6 +909,15 @@ func _cargar_decoracion_editor() -> void:
 			_talables_pendientes.append(c)
 		else:
 			_choque_de_pieza(c as Node3D)
+	var nav: Node = _mundo_editor.get_node_or_null("Navegacion")
+	if nav != null and stage_root_3d != null:
+		var nav_vieja: Node = stage_root_3d.get_node_or_null("Navegacion")
+		if nav_vieja != null:
+			stage_root_3d.remove_child(nav_vieja)
+			nav_vieja.free()
+		_mundo_editor.remove_child(nav)
+		nav.owner = null
+		stage_root_3d.add_child(nav)
 	_mundo_editor.free()
 	# El bosque (EcosystemManager) se crea después que el escenario 3D: los talables se crean cuando ya existe
 	if not _talables_pendientes.is_empty():

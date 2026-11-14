@@ -21,6 +21,8 @@ timeout 240 flatpak run org.godotengine.Godot --headless --path . -s tools/tests
 timeout 200 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/bandidos_3d.gd 2>&1 | grep "BANDIDOS 3D"
 # Entrar y salir por las 29 puertas (~2 min) → «PUERTAS 3D: PASSED»
 timeout 600 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/puertas_3d.gd 2>&1 | grep "PUERTAS 3D"
+# Malla de navegación 3D del valle, edificios y alcantarillas (~40 s) → «NAVEGACION 3D: n/N»
+timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/navegacion_3d.gd 2>&1 | grep -E "NAVEGACION 3D|ALCANTARILLAS 3D|INALCANZABLE"
 # Todo el juego (~8–15 min) → «...TESTS PASSED!». La sección «S2: un testigo convierte la infidelidad en chisme» falla al azar: repite.
 timeout 900 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/verify_all.gd 2>&1 | grep -c "TESTS PASSED"
 # Fotos fijas con ventana (~2 min) y comparación con una carpeta de referencia → «CAPTURAS_FIN peor=…%» (ruido normal < 1 %)

@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://mapa/marca.gd" id="10_2sijn"]
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="11_ehpq8"]
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="12_vsek6"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/building_tavern.res" id="13_jkex5"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgrgb"]
 albedo_color = Color(0.3, 0.2, 0.12, 1)
@@ -944,3 +945,6 @@ tam_m = Vector2(0.336, 1.568)
 [node name="Cartel" type="Node3D" parent="." unique_id=1638042834]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7020001, 2.4, 5.3519998)
 script = ExtResource("12_vsek6")
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=361151684]
+navigation_mesh = ExtResource("13_jkex5")

@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/rf_cobblestone.png" id="2_ovt81"]
 [ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/wall_brick_stone_center.png" id="3_no88r"]
 [ext_resource type="Script" path="res://mapa/pieza.gd" id="4_fah2r"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/bajo_alcantarillas.res" id="5_ovt81"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t0fgl"]
 albedo_color = Color(0.08, 0.1, 0.09, 1)
@@ -1261,3 +1262,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9021765, -0.448)
 light_color = Color(1, 0.72, 0.4, 1)
 light_energy = 1.2
 omni_range = 8.4
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=262285743]
+navigation_mesh = ExtResource("5_ovt81")

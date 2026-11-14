@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://mapa/cuarto.gd" id="10_l3l0e"]
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="10_l4ged"]
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="11_4b1le"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/building_hospital.res" id="12_46fqm"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gqjp3"]
 albedo_color = Color(0.8, 0.9, 1, 1)
@@ -1150,3 +1151,6 @@ paso_m = Vector3(2.2999997, 0, 0.25)
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -1.6, 2.4, -5.12)
 script = ExtResource("11_4b1le")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=1215501899]
+navigation_mesh = ExtResource("12_46fqm")

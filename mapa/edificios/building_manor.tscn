@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="9_2obso"]
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="10_7mqmo"]
 [ext_resource type="Script" path="res://mapa/cuarto.gd" id="11_fcc0o"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/building_manor.res" id="13_pe0al"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qgfsw"]
 albedo_color = Color(0.8, 0.9, 1, 1)
@@ -2254,3 +2255,6 @@ paso_m = Vector3(-1.9000001, 0, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 2.4, 4.42)
 script = ExtResource("9_2obso")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=194439945]
+navigation_mesh = ExtResource("13_pe0al")

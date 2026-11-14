@@ -63,6 +63,116 @@
 [ext_resource type="Script" path="res://mapa/zona.gd" id="34_fba6n"]
 [ext_resource type="Script" path="res://mapa/sitio.gd" id="35_7jlh3"]
 [ext_resource type="PackedScene" path="res://mapa/edificios/bajo_alcantarillas.tscn" id="62_sgkmi"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_0.res" id="67_0ksxi"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_0.res" id="68_5u33o"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_0.res" id="69_5cmqe"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_0.res" id="70_p0o84"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_0.res" id="71_pgmqf"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_0.res" id="72_3qxea"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_0.res" id="73_nmotn"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_0.res" id="74_cc3px"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_0.res" id="75_wm2y4"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_0.res" id="76_je2wk"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_1.res" id="77_r2egv"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_1.res" id="78_qs1jn"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_1.res" id="79_ln1qb"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_1.res" id="80_2lbwf"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_1.res" id="81_cr7m8"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_1.res" id="82_ns2cu"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_1.res" id="83_b5t2f"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_1.res" id="84_1bn5e"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_1.res" id="85_ugbye"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_1.res" id="86_6r873"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_2.res" id="87_2jhqb"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_2.res" id="88_l2fxt"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_2.res" id="89_sralj"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_2.res" id="90_cesig"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_2.res" id="91_jmbqj"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_2.res" id="92_yewi2"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_2.res" id="93_fic5l"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_2.res" id="94_u7lyt"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_2.res" id="95_3rbvk"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_2.res" id="96_5i06u"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_3.res" id="97_ebi1r"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_3.res" id="98_pcs4s"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_3.res" id="99_jb70e"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_3.res" id="100_tt312"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_3.res" id="101_ri6nn"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_3.res" id="102_panah"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_3.res" id="103_0neyb"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_3.res" id="104_urhpc"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_3.res" id="105_r64ao"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_3.res" id="106_a0188"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_4.res" id="107_l6bgg"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_4.res" id="108_k8olp"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_4.res" id="109_qaqan"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_4.res" id="110_c35n4"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_4.res" id="111_lkixq"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_4.res" id="112_wc854"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_4.res" id="113_86nh0"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_4.res" id="114_c8h2p"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_4.res" id="115_lhlpv"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_4.res" id="116_6gadm"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_5.res" id="117_cogdb"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_5.res" id="118_o6hbq"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_5.res" id="119_cju1f"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_5.res" id="120_q3vqq"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_5.res" id="121_6gref"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_5.res" id="122_esly5"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_5.res" id="123_hbj5k"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_5.res" id="124_vshnw"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_5.res" id="125_smsxf"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_5.res" id="126_bjh2p"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_6.res" id="127_imjjf"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_6.res" id="128_pfrgm"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_6.res" id="129_1yjiv"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_6.res" id="130_utxgn"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_6.res" id="131_xba5c"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_6.res" id="132_iah87"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_6.res" id="133_gpch5"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_6.res" id="134_7d752"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_6.res" id="135_h1jj4"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_6.res" id="136_trtl7"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_7.res" id="137_s8j25"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_7.res" id="138_5x5ni"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_7.res" id="139_x7s6p"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_7.res" id="140_7270a"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_7.res" id="141_0v6wv"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_7.res" id="142_7l5ts"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_7.res" id="143_j1ak5"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_7.res" id="144_eu5lc"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_7.res" id="145_tqu41"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_7.res" id="146_38y38"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_8.res" id="147_0p35r"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_8.res" id="148_2ksvn"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_8.res" id="149_ulr5o"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_8.res" id="150_a8k0c"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_8.res" id="151_1plh7"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_8.res" id="152_hc1aw"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_8.res" id="153_cu1ao"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_8.res" id="154_cgp5w"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_8.res" id="155_glhbh"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_8.res" id="156_am6or"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_9.res" id="157_i7doc"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_9.res" id="158_2ujpf"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_9.res" id="159_qpjwj"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_9.res" id="160_y2pd2"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_9.res" id="161_j5pfp"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_9.res" id="162_p0lnn"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_9.res" id="163_0mrgs"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_9.res" id="164_0b046"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_9.res" id="165_as0i2"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_9.res" id="166_62dxn"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_0_10.res" id="167_avxx7"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_1_10.res" id="168_nf71b"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_2_10.res" id="169_4iqfg"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_3_10.res" id="170_fv34p"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_4_10.res" id="171_36awj"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_5_10.res" id="172_xnjq3"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_6_10.res" id="173_58im8"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_7_10.res" id="174_b5l3r"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_8_10.res" id="175_nwe4k"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/sector_9_10.res" id="176_vlnqx"]
 [ext_resource type="Script" path="res://mapa/cruce_rio.gd" id="cruce_rio_3d"]
 [ext_resource type="Script" path="res://mapa/punto_rio.gd" id="punto_rio_3d"]
 [ext_resource type="Script" path="res://mapa/rio.gd" id="rio_3d"]
@@ -27375,3 +27485,335 @@ ancho_m = 4.48
 largo_m = 4.032
 altura_arco = 0.0
 id_interno = "fallen_log_bridge"
+
+[node name="Navegacion" type="Node3D" parent="." unique_id=1088709857]
+
+[node name="Sector_0_0" type="NavigationRegion3D" parent="Navegacion" unique_id=1952775635]
+navigation_mesh = ExtResource("67_0ksxi")
+
+[node name="Sector_1_0" type="NavigationRegion3D" parent="Navegacion" unique_id=2043088718]
+navigation_mesh = ExtResource("68_5u33o")
+
+[node name="Sector_2_0" type="NavigationRegion3D" parent="Navegacion" unique_id=1498324155]
+navigation_mesh = ExtResource("69_5cmqe")
+
+[node name="Sector_3_0" type="NavigationRegion3D" parent="Navegacion" unique_id=1841246381]
+navigation_mesh = ExtResource("70_p0o84")
+
+[node name="Sector_4_0" type="NavigationRegion3D" parent="Navegacion" unique_id=485605649]
+navigation_mesh = ExtResource("71_pgmqf")
+
+[node name="Sector_5_0" type="NavigationRegion3D" parent="Navegacion" unique_id=1420761158]
+navigation_mesh = ExtResource("72_3qxea")
+
+[node name="Sector_6_0" type="NavigationRegion3D" parent="Navegacion" unique_id=1979278832]
+navigation_mesh = ExtResource("73_nmotn")
+
+[node name="Sector_7_0" type="NavigationRegion3D" parent="Navegacion" unique_id=663486267]
+navigation_mesh = ExtResource("74_cc3px")
+
+[node name="Sector_8_0" type="NavigationRegion3D" parent="Navegacion" unique_id=2110265210]
+navigation_mesh = ExtResource("75_wm2y4")
+
+[node name="Sector_9_0" type="NavigationRegion3D" parent="Navegacion" unique_id=1017971736]
+navigation_mesh = ExtResource("76_je2wk")
+
+[node name="Sector_0_1" type="NavigationRegion3D" parent="Navegacion" unique_id=1924980484]
+navigation_mesh = ExtResource("77_r2egv")
+
+[node name="Sector_1_1" type="NavigationRegion3D" parent="Navegacion" unique_id=1158441529]
+navigation_mesh = ExtResource("78_qs1jn")
+
+[node name="Sector_2_1" type="NavigationRegion3D" parent="Navegacion" unique_id=65649815]
+navigation_mesh = ExtResource("79_ln1qb")
+
+[node name="Sector_3_1" type="NavigationRegion3D" parent="Navegacion" unique_id=844868046]
+navigation_mesh = ExtResource("80_2lbwf")
+
+[node name="Sector_4_1" type="NavigationRegion3D" parent="Navegacion" unique_id=1914976169]
+navigation_mesh = ExtResource("81_cr7m8")
+
+[node name="Sector_5_1" type="NavigationRegion3D" parent="Navegacion" unique_id=1257035806]
+navigation_mesh = ExtResource("82_ns2cu")
+
+[node name="Sector_6_1" type="NavigationRegion3D" parent="Navegacion" unique_id=346329902]
+navigation_mesh = ExtResource("83_b5t2f")
+
+[node name="Sector_7_1" type="NavigationRegion3D" parent="Navegacion" unique_id=392994268]
+navigation_mesh = ExtResource("84_1bn5e")
+
+[node name="Sector_8_1" type="NavigationRegion3D" parent="Navegacion" unique_id=1234283407]
+navigation_mesh = ExtResource("85_ugbye")
+
+[node name="Sector_9_1" type="NavigationRegion3D" parent="Navegacion" unique_id=1279799147]
+navigation_mesh = ExtResource("86_6r873")
+
+[node name="Sector_0_2" type="NavigationRegion3D" parent="Navegacion" unique_id=1329142434]
+navigation_mesh = ExtResource("87_2jhqb")
+
+[node name="Sector_1_2" type="NavigationRegion3D" parent="Navegacion" unique_id=1148811592]
+navigation_mesh = ExtResource("88_l2fxt")
+
+[node name="Sector_2_2" type="NavigationRegion3D" parent="Navegacion" unique_id=1490879742]
+navigation_mesh = ExtResource("89_sralj")
+
+[node name="Sector_3_2" type="NavigationRegion3D" parent="Navegacion" unique_id=706854722]
+navigation_mesh = ExtResource("90_cesig")
+
+[node name="Sector_4_2" type="NavigationRegion3D" parent="Navegacion" unique_id=1719618067]
+navigation_mesh = ExtResource("91_jmbqj")
+
+[node name="Sector_5_2" type="NavigationRegion3D" parent="Navegacion" unique_id=977892450]
+navigation_mesh = ExtResource("92_yewi2")
+
+[node name="Sector_6_2" type="NavigationRegion3D" parent="Navegacion" unique_id=1524052850]
+navigation_mesh = ExtResource("93_fic5l")
+
+[node name="Sector_7_2" type="NavigationRegion3D" parent="Navegacion" unique_id=2048110919]
+navigation_mesh = ExtResource("94_u7lyt")
+
+[node name="Sector_8_2" type="NavigationRegion3D" parent="Navegacion" unique_id=635228861]
+navigation_mesh = ExtResource("95_3rbvk")
+
+[node name="Sector_9_2" type="NavigationRegion3D" parent="Navegacion" unique_id=1484106973]
+navigation_mesh = ExtResource("96_5i06u")
+
+[node name="Sector_0_3" type="NavigationRegion3D" parent="Navegacion" unique_id=724546294]
+navigation_mesh = ExtResource("97_ebi1r")
+
+[node name="Sector_1_3" type="NavigationRegion3D" parent="Navegacion" unique_id=89036479]
+navigation_mesh = ExtResource("98_pcs4s")
+
+[node name="Sector_2_3" type="NavigationRegion3D" parent="Navegacion" unique_id=1787698113]
+navigation_mesh = ExtResource("99_jb70e")
+
+[node name="Sector_3_3" type="NavigationRegion3D" parent="Navegacion" unique_id=1830224589]
+navigation_mesh = ExtResource("100_tt312")
+
+[node name="Sector_4_3" type="NavigationRegion3D" parent="Navegacion" unique_id=183826744]
+navigation_mesh = ExtResource("101_ri6nn")
+
+[node name="Sector_5_3" type="NavigationRegion3D" parent="Navegacion" unique_id=1666947713]
+navigation_mesh = ExtResource("102_panah")
+
+[node name="Sector_6_3" type="NavigationRegion3D" parent="Navegacion" unique_id=258535020]
+navigation_mesh = ExtResource("103_0neyb")
+
+[node name="Sector_7_3" type="NavigationRegion3D" parent="Navegacion" unique_id=1349669010]
+navigation_mesh = ExtResource("104_urhpc")
+
+[node name="Sector_8_3" type="NavigationRegion3D" parent="Navegacion" unique_id=109707374]
+navigation_mesh = ExtResource("105_r64ao")
+
+[node name="Sector_9_3" type="NavigationRegion3D" parent="Navegacion" unique_id=1452953307]
+navigation_mesh = ExtResource("106_a0188")
+
+[node name="Sector_0_4" type="NavigationRegion3D" parent="Navegacion" unique_id=2132590228]
+navigation_mesh = ExtResource("107_l6bgg")
+
+[node name="Sector_1_4" type="NavigationRegion3D" parent="Navegacion" unique_id=782796156]
+navigation_mesh = ExtResource("108_k8olp")
+
+[node name="Sector_2_4" type="NavigationRegion3D" parent="Navegacion" unique_id=2049729366]
+navigation_mesh = ExtResource("109_qaqan")
+
+[node name="Sector_3_4" type="NavigationRegion3D" parent="Navegacion" unique_id=1538500358]
+navigation_mesh = ExtResource("110_c35n4")
+
+[node name="Sector_4_4" type="NavigationRegion3D" parent="Navegacion" unique_id=617955042]
+navigation_mesh = ExtResource("111_lkixq")
+
+[node name="Sector_5_4" type="NavigationRegion3D" parent="Navegacion" unique_id=568340178]
+navigation_mesh = ExtResource("112_wc854")
+
+[node name="Sector_6_4" type="NavigationRegion3D" parent="Navegacion" unique_id=1924277784]
+navigation_mesh = ExtResource("113_86nh0")
+
+[node name="Sector_7_4" type="NavigationRegion3D" parent="Navegacion" unique_id=52469095]
+navigation_mesh = ExtResource("114_c8h2p")
+
+[node name="Sector_8_4" type="NavigationRegion3D" parent="Navegacion" unique_id=1203925437]
+navigation_mesh = ExtResource("115_lhlpv")
+
+[node name="Sector_9_4" type="NavigationRegion3D" parent="Navegacion" unique_id=1349910521]
+navigation_mesh = ExtResource("116_6gadm")
+
+[node name="Sector_0_5" type="NavigationRegion3D" parent="Navegacion" unique_id=1353163853]
+navigation_mesh = ExtResource("117_cogdb")
+
+[node name="Sector_1_5" type="NavigationRegion3D" parent="Navegacion" unique_id=709028933]
+navigation_mesh = ExtResource("118_o6hbq")
+
+[node name="Sector_2_5" type="NavigationRegion3D" parent="Navegacion" unique_id=888021980]
+navigation_mesh = ExtResource("119_cju1f")
+
+[node name="Sector_3_5" type="NavigationRegion3D" parent="Navegacion" unique_id=1394647947]
+navigation_mesh = ExtResource("120_q3vqq")
+
+[node name="Sector_4_5" type="NavigationRegion3D" parent="Navegacion" unique_id=178261269]
+navigation_mesh = ExtResource("121_6gref")
+
+[node name="Sector_5_5" type="NavigationRegion3D" parent="Navegacion" unique_id=300305142]
+navigation_mesh = ExtResource("122_esly5")
+
+[node name="Sector_6_5" type="NavigationRegion3D" parent="Navegacion" unique_id=191775422]
+navigation_mesh = ExtResource("123_hbj5k")
+
+[node name="Sector_7_5" type="NavigationRegion3D" parent="Navegacion" unique_id=1856866475]
+navigation_mesh = ExtResource("124_vshnw")
+
+[node name="Sector_8_5" type="NavigationRegion3D" parent="Navegacion" unique_id=1985868603]
+navigation_mesh = ExtResource("125_smsxf")
+
+[node name="Sector_9_5" type="NavigationRegion3D" parent="Navegacion" unique_id=644439459]
+navigation_mesh = ExtResource("126_bjh2p")
+
+[node name="Sector_0_6" type="NavigationRegion3D" parent="Navegacion" unique_id=1372092814]
+navigation_mesh = ExtResource("127_imjjf")
+
+[node name="Sector_1_6" type="NavigationRegion3D" parent="Navegacion" unique_id=1833316504]
+navigation_mesh = ExtResource("128_pfrgm")
+
+[node name="Sector_2_6" type="NavigationRegion3D" parent="Navegacion" unique_id=277567135]
+navigation_mesh = ExtResource("129_1yjiv")
+
+[node name="Sector_3_6" type="NavigationRegion3D" parent="Navegacion" unique_id=1851854290]
+navigation_mesh = ExtResource("130_utxgn")
+
+[node name="Sector_4_6" type="NavigationRegion3D" parent="Navegacion" unique_id=1165948625]
+navigation_mesh = ExtResource("131_xba5c")
+
+[node name="Sector_5_6" type="NavigationRegion3D" parent="Navegacion" unique_id=1214226346]
+navigation_mesh = ExtResource("132_iah87")
+
+[node name="Sector_6_6" type="NavigationRegion3D" parent="Navegacion" unique_id=907161421]
+navigation_mesh = ExtResource("133_gpch5")
+
+[node name="Sector_7_6" type="NavigationRegion3D" parent="Navegacion" unique_id=1700579716]
+navigation_mesh = ExtResource("134_7d752")
+
+[node name="Sector_8_6" type="NavigationRegion3D" parent="Navegacion" unique_id=1626937365]
+navigation_mesh = ExtResource("135_h1jj4")
+
+[node name="Sector_9_6" type="NavigationRegion3D" parent="Navegacion" unique_id=1688892095]
+navigation_mesh = ExtResource("136_trtl7")
+
+[node name="Sector_0_7" type="NavigationRegion3D" parent="Navegacion" unique_id=261145233]
+navigation_mesh = ExtResource("137_s8j25")
+
+[node name="Sector_1_7" type="NavigationRegion3D" parent="Navegacion" unique_id=756492494]
+navigation_mesh = ExtResource("138_5x5ni")
+
+[node name="Sector_2_7" type="NavigationRegion3D" parent="Navegacion" unique_id=1686807170]
+navigation_mesh = ExtResource("139_x7s6p")
+
+[node name="Sector_3_7" type="NavigationRegion3D" parent="Navegacion" unique_id=1210247767]
+navigation_mesh = ExtResource("140_7270a")
+
+[node name="Sector_4_7" type="NavigationRegion3D" parent="Navegacion" unique_id=8335201]
+navigation_mesh = ExtResource("141_0v6wv")
+
+[node name="Sector_5_7" type="NavigationRegion3D" parent="Navegacion" unique_id=947669986]
+navigation_mesh = ExtResource("142_7l5ts")
+
+[node name="Sector_6_7" type="NavigationRegion3D" parent="Navegacion" unique_id=38709492]
+navigation_mesh = ExtResource("143_j1ak5")
+
+[node name="Sector_7_7" type="NavigationRegion3D" parent="Navegacion" unique_id=1956846454]
+navigation_mesh = ExtResource("144_eu5lc")
+
+[node name="Sector_8_7" type="NavigationRegion3D" parent="Navegacion" unique_id=541248961]
+navigation_mesh = ExtResource("145_tqu41")
+
+[node name="Sector_9_7" type="NavigationRegion3D" parent="Navegacion" unique_id=617547872]
+navigation_mesh = ExtResource("146_38y38")
+
+[node name="Sector_0_8" type="NavigationRegion3D" parent="Navegacion" unique_id=1367586489]
+navigation_mesh = ExtResource("147_0p35r")
+
+[node name="Sector_1_8" type="NavigationRegion3D" parent="Navegacion" unique_id=2060904234]
+navigation_mesh = ExtResource("148_2ksvn")
+
+[node name="Sector_2_8" type="NavigationRegion3D" parent="Navegacion" unique_id=1357077142]
+navigation_mesh = ExtResource("149_ulr5o")
+
+[node name="Sector_3_8" type="NavigationRegion3D" parent="Navegacion" unique_id=987295053]
+navigation_mesh = ExtResource("150_a8k0c")
+
+[node name="Sector_4_8" type="NavigationRegion3D" parent="Navegacion" unique_id=1599034140]
+navigation_mesh = ExtResource("151_1plh7")
+
+[node name="Sector_5_8" type="NavigationRegion3D" parent="Navegacion" unique_id=1645973438]
+navigation_mesh = ExtResource("152_hc1aw")
+
+[node name="Sector_6_8" type="NavigationRegion3D" parent="Navegacion" unique_id=1638167482]
+navigation_mesh = ExtResource("153_cu1ao")
+
+[node name="Sector_7_8" type="NavigationRegion3D" parent="Navegacion" unique_id=1899278624]
+navigation_mesh = ExtResource("154_cgp5w")
+
+[node name="Sector_8_8" type="NavigationRegion3D" parent="Navegacion" unique_id=1139627963]
+navigation_mesh = ExtResource("155_glhbh")
+
+[node name="Sector_9_8" type="NavigationRegion3D" parent="Navegacion" unique_id=418858620]
+navigation_mesh = ExtResource("156_am6or")
+
+[node name="Sector_0_9" type="NavigationRegion3D" parent="Navegacion" unique_id=1055691217]
+navigation_mesh = ExtResource("157_i7doc")
+
+[node name="Sector_1_9" type="NavigationRegion3D" parent="Navegacion" unique_id=383832910]
+navigation_mesh = ExtResource("158_2ujpf")
+
+[node name="Sector_2_9" type="NavigationRegion3D" parent="Navegacion" unique_id=2103400997]
+navigation_mesh = ExtResource("159_qpjwj")
+
+[node name="Sector_3_9" type="NavigationRegion3D" parent="Navegacion" unique_id=2024538625]
+navigation_mesh = ExtResource("160_y2pd2")
+
+[node name="Sector_4_9" type="NavigationRegion3D" parent="Navegacion" unique_id=916572876]
+navigation_mesh = ExtResource("161_j5pfp")
+
+[node name="Sector_5_9" type="NavigationRegion3D" parent="Navegacion" unique_id=1683644581]
+navigation_mesh = ExtResource("162_p0lnn")
+
+[node name="Sector_6_9" type="NavigationRegion3D" parent="Navegacion" unique_id=1105056925]
+navigation_mesh = ExtResource("163_0mrgs")
+
+[node name="Sector_7_9" type="NavigationRegion3D" parent="Navegacion" unique_id=2047042213]
+navigation_mesh = ExtResource("164_0b046")
+
+[node name="Sector_8_9" type="NavigationRegion3D" parent="Navegacion" unique_id=917336508]
+navigation_mesh = ExtResource("165_as0i2")
+
+[node name="Sector_9_9" type="NavigationRegion3D" parent="Navegacion" unique_id=1563612363]
+navigation_mesh = ExtResource("166_62dxn")
+
+[node name="Sector_0_10" type="NavigationRegion3D" parent="Navegacion" unique_id=2101741941]
+navigation_mesh = ExtResource("167_avxx7")
+
+[node name="Sector_1_10" type="NavigationRegion3D" parent="Navegacion" unique_id=266489622]
+navigation_mesh = ExtResource("168_nf71b")
+
+[node name="Sector_2_10" type="NavigationRegion3D" parent="Navegacion" unique_id=2112365149]
+navigation_mesh = ExtResource("169_4iqfg")
+
+[node name="Sector_3_10" type="NavigationRegion3D" parent="Navegacion" unique_id=281861493]
+navigation_mesh = ExtResource("170_fv34p")
+
+[node name="Sector_4_10" type="NavigationRegion3D" parent="Navegacion" unique_id=203455794]
+navigation_mesh = ExtResource("171_36awj")
+
+[node name="Sector_5_10" type="NavigationRegion3D" parent="Navegacion" unique_id=1603950656]
+navigation_mesh = ExtResource("172_xnjq3")
+
+[node name="Sector_6_10" type="NavigationRegion3D" parent="Navegacion" unique_id=432421000]
+navigation_mesh = ExtResource("173_58im8")
+
+[node name="Sector_7_10" type="NavigationRegion3D" parent="Navegacion" unique_id=2033200845]
+navigation_mesh = ExtResource("174_b5l3r")
+
+[node name="Sector_8_10" type="NavigationRegion3D" parent="Navegacion" unique_id=928186912]
+navigation_mesh = ExtResource("175_nwe4k")
+
+[node name="Sector_9_10" type="NavigationRegion3D" parent="Navegacion" unique_id=1892000252]
+navigation_mesh = ExtResource("176_vlnqx")

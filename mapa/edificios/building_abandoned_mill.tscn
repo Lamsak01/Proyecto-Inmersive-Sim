@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://mapa/cartel.gd" id="9_2alax"]
 [ext_resource type="Script" path="res://mapa/tabique.gd" id="10_vya2k"]
 [ext_resource type="Script" path="res://mapa/cuarto.gd" id="11_ostq2"]
+[ext_resource type="NavigationMesh" path="res://mapa/navegacion/building_abandoned_mill.res" id="13_vf4rm"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gd0i2"]
 albedo_color = Color(0.8, 0.9, 1, 1)
@@ -795,3 +796,6 @@ paso_m = Vector3(-3.528, 0, 1.65)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 2.4, 5.12)
 script = ExtResource("9_2alax")
 ancho_m = 1.2
+
+[node name="Navegacion" type="NavigationRegion3D" parent="." unique_id=1462135738]
+navigation_mesh = ExtResource("13_vf4rm")
