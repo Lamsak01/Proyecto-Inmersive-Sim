@@ -51,6 +51,9 @@ static func load_gltf_template(rel_path: String) -> Node3D:
 		if is_instance_valid(cached):
 			return cached
 	var full_res := rel_path if rel_path.begins_with("res://") else CURATED_ROOT + rel_path
+	# Piezas hechas en Godot (.tscn, p. ej. el pozo clásico de tools/hornear_pozo.gd): se cargan como escena
+	if rel_path.ends_with(".tscn"):
+		return _cargar_escena(rel_path, full_res)
 	var abs_p := ProjectSettings.globalize_path(full_res)
 	if not FileAccess.file_exists(abs_p):
 		return null
@@ -67,6 +70,17 @@ static func load_gltf_template(rel_path: String) -> Node3D:
 	_gltf_cache[rel_path] = node3d
 	_aabb_cache[rel_path] = compute_node_aabb(node3d)
 	return node3d
+
+
+static func _cargar_escena(rel_path: String, full_res: String) -> Node3D:
+	if not ResourceLoader.exists(full_res):
+		return null
+	var nodo: Node3D = (load(full_res) as PackedScene).instantiate() as Node3D
+	if nodo == null:
+		return null
+	_gltf_cache[rel_path] = nodo
+	_aabb_cache[rel_path] = compute_node_aabb(nodo)
+	return nodo
 
 
 static func _bind_known_pack_textures(rel_path: String, root: Node) -> void:

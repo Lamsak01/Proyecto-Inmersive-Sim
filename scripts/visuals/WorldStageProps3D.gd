@@ -3,6 +3,7 @@ extends "res://scripts/visuals/WorldStageBase3D.gd"
 const Suelo = preload("res://scripts/fisica/Suelo.gd") # paso a 3D, paso 2b: profundidad del club y las alcantarillas
 const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las puertas (Buildings3D) y los postes de los caminos
 const ID_COMISARIA := "building_police"
+const MODELO_POZO := "exterior/pozo_clasico.tscn" ## hecho con tools/hornear_pozo.gd
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
 const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
 const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
@@ -927,7 +928,8 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
 	var m_iron := _mat("prop_iron", Color(0.30, 0.31, 0.33), 0.6, 0.5)
 	match kind:
 		"well":
-			if _add_model_2d(root, "exterior/Well.obj", pos, 0.0, Vector2.ZERO, 24.0) == null:
+			# Pozo clásico de brocal redondo (tools/hornear_pozo.gd): el cuadrado con tejadillo no se reconocía
+			if _add_model_2d(root, MODELO_POZO, pos, 0.0, Vector2.ZERO, 24.0) == null:
 				_add_cyl_2d(root, pos, 8.5, 0.0, 7.5, _mat("well_stone", Color(0.58, 0.57, 0.54), 0.9, 0.02), 8.5, 14)
 		"tent":
 			var m_canvas := _mat("tent_canvas", Color(0.84, 0.74, 0.54), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "town_textures/T_Trim_Cloth_Normal.png", 0.55)

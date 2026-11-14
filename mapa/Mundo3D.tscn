@@ -23662,7 +23662,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.52, 0, 22.96)
 script = ExtResource("29_bojho")
 clave = "pozo_granja"
 pos_original = Vector2(184, 82)
-modelo = "exterior/Well.obj"
+modelo = "exterior/pozo_clasico.tscn"
 nombre_visible = "Pozo de la granja"
 
 [node name="Pozo_de_la_taberna" type="Node3D" parent="Objetos" unique_id=1360253058]
@@ -23670,7 +23670,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 109.984, 0, -63.056)
 script = ExtResource("29_bojho")
 clave = "pozo_taberna"
 pos_original = Vector2(228, -230)
-modelo = "exterior/Well.obj"
+modelo = "exterior/pozo_clasico.tscn"
 nombre_visible = "Pozo de la taberna"
 
 [node name="Pozo_de_la_plaza" type="Node3D" parent="Objetos" unique_id=1085376257]
@@ -23678,7 +23678,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.48, 0.25362355, 17.36)
 script = ExtResource("29_bojho")
 clave = "pozo_plaza"
 pos_original = Vector2(416, 62)
-modelo = "exterior/Well.obj"
+modelo = "exterior/pozo_clasico.tscn"
 nombre_visible = "Pozo de la plaza"
 
 [node name="Tablón_de_encargos" type="Node3D" parent="Objetos" unique_id=1219725082]

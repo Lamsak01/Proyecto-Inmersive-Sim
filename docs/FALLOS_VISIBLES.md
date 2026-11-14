@@ -13,7 +13,8 @@
 - ✅ (2026-11-13, usuario, captura; falta que lo veas jugando) **Las trampillas no se pueden usar en primera persona** ·
   rejilla en el suelo, 06:17. *(Las alcantarillas están apagadas en la demo; ahora la trampilla dice «Mirar la trampilla» y
   avisa de que está cerrada. Además la cruz las alcanza por el borde, no solo por el centro.)*
-- [ ] (2026-11-13, usuario, captura) **El pozo con tejadillo no le gusta** (no sabe qué es) · camino del pueblo, 06:44.
+- ✅ (2026-11-13, usuario, captura; falta que lo veas jugando) **El pozo con tejadillo no le gusta** (no sabe qué es) ·
+  camino del pueblo, 06:44. *(Los tres pozos son ahora uno clásico: brocal redondo, postes, rodillo, cuerda y cubo. Foto vista.)*
 - ✅ (2026-11-13, usuario, 2 capturas; falta que lo veas jugando) **El tablón de encargos solo responde si apuntas a su
   esquina de arriba a la izquierda** · plaza, 1.ª persona. *(El punto de uso estaba en un extremo del dibujo y la cruz solo
   daba ~40 cm de margen; ahora los objetos grandes se apuntan en todo su ancho, hasta ~1 m.)*
