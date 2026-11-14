@@ -41,11 +41,15 @@ static func apagado(n: Node) -> bool:
 		return true
 	if n is CanvasItem and not (n as CanvasItem).visible: # escondido (un conejo en su madriguera, un animal retirado)
 		return true
+	if n is Node3D and not (n as Node3D).visible: # lo mismo para quien ya es un cuerpo 3D
+		return true
 	if n.is_in_group("wild_animals") and n.has_method("is_alive_in_ecosystem") and not bool(n.call("is_alive_in_ecosystem")):
 		return true
+	if not n.has_method("_is_seated_on_furniture"): # solo los vecinos se sientan
+		return false
 	# Sentado solo si está quieto: las sillas del salón quedan bajo la galería de la posada y el mapa no distingue pisos
 	var quieto: bool = not ("velocity" in n) or (n.get("velocity") as Vector2).length_squared() < QUIETO_PX_S_2
-	return quieto and n.has_method("_is_seated_on_furniture") and bool(n.call("_is_seated_on_furniture", (n as Node2D).global_position))
+	return quieto and bool(n.call("_is_seated_on_furniture", (n as Node2D).global_position))
 
 
 ## ¿Tiene `n` la propiedad `prop` y está a true? (no todos tienen las mismas: el ganado no duerme ni cae)

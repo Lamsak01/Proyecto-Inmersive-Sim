@@ -63,6 +63,14 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    escondidos, su capa de choque plana (la usan vista, la E y los golpes) y los pisos como número.
    **4b:** el personaje pasa a SER su cuerpo 3D (posición en metros; el nodo plano y sus dibujos se borran). Depende
    de que rutas (5) y sentidos (7) dejen de leer la posición plana: se hace por clases (animales → bandidos → vecinos).
+   ✅ **4b-1 (2026-11-14): el ganado del rancho.** `LivestockAnimal.gd` hereda de `fisica/CuerpoBase3D.gd` (nuevo: lo
+   común a todo cuerpo 3D: cápsula, talla, capa y altura del suelo; `Cuerpo3D` también lo hereda), vive en el escenario
+   3D y en metros (corral, velocidades, separación), sin nodo en el mapa plano; fuera el grupo `con_cuerpo_3d`.
+   `AnimalModel3D` sirve a dueños 3D (`poner`, en metros) y aún a los planos (`attach`, en píxeles). Contador
+   2.312 → **2.302**. Prueba `fisica_3d` (9 comprobaciones nuevas «4b»). **Sigue siendo 2D:** el sitio del corral y la
+   altura del suelo se preguntan al mapa plano (traductores apuntados abajo); el modelo aún mide por dentro en píxeles.
+   **Siguiente 4b-2: animales salvajes** (`WildAnimal.gd`, 1.235 líneas en píxeles): su zona de golpe y la de despiezar
+   son áreas del mapa plano que leen los golpes y la E (tanda 7); mientras, irán en una «sombra plana» que sigue al cuerpo.
 5. **Rutas con navegación 3D** (malla de navegación del mundo y de cada edificio). Se borran las rutas y listas de
    puertas a mano y los atajos de «colocar» vecinos (guardia mensajero, custodia).
 6. **Piezas que dicen para qué sirven** (`PLAN_LO_QUE_SE_VE.md`, fases 1–4), ya en 3D: sillas, camas, puestos, la E.
@@ -101,8 +109,11 @@ rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 
   2026-11-14; 12 veces en 8 h de pueblo) → tanda 5 (rutas 3D).
 - Los vecinos cambian de piso al acabar la escalera y no a media rampa, porque sus rutas piensan por pisos
   (`Cuerpo3D._nivel_al_acabar_escalera`) → tanda 5.
-- Cuerpos que «siguen» sin chocar a quien aún se mueve escribiendo su posición plana: ganado, animales a más de
-  500 px, camas, escaleras con [E] (`Cuerpo3D._seguir`) → tandas 4b y 5.
+- Cuerpos que «siguen» sin chocar a quien aún se mueve escribiendo su posición plana: animales a más de
+  500 px, camas, escaleras con [E] (`Cuerpo3D._seguir`) → tandas 4b y 5. (El ganado ya no: 4b-1.)
+- Traductores de quien ya ES su cuerpo (4b-1): `CuerpoBase3D.suelo_y` (altura del suelo desde el mapa plano → 3b),
+  `VillageHousing.ranch_pen_m` (corral desde el sitio plano → cuando el rancho dé su valla desde su pieza) y
+  `AnimalModel3D._pos_mapa`/`attach` (el modelo aún mide en píxeles → al pasar a 3D el último animal).
 - Tabla de tamaños por grupo y especie en `TallaCuerpo3D.gd` (cada personaje debería decir el suyo) → tanda 6.
 - Dibujos 2D escondidos con capas en 1.ª persona (`WorldStage3D._ocultar_2d_tapado`) → tandas 4 y 8.
 - Cama `cama_2` de la comisaría puesta a mano; zapato del caso como «Caja_383» con etiqueta → tanda 6.

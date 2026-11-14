@@ -1,4 +1,4 @@
-extends CharacterBody3D
+extends "res://scripts/fisica/CuerpoBase3D.gd"
 
 ## Cuerpo3D: el cuerpo físico de verdad de un personaje en el mundo 3D. Desde la tanda 4 del paso a 3D (2026-11-14) lo
 ## llevan TODOS, siempre: el protagonista, los vecinos, los animales, los bandidos y los enemigos (Poblacion3D se lo da a
@@ -18,16 +18,10 @@ extends CharacterBody3D
 ## - ATAJO (se quita con las rutas 3D, tanda 5): si alguien lleva ATASCO_S queriendo andar sin avanzar, se cuela
 ##   COLARSE_S sin chocar. Antes se le quitaba el cuerpo. `colados` cuenta cuántas veces pasa.
 
-const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
-const Suelo = preload("res://scripts/fisica/Suelo.gd")
-const ChoquesMundo3D = preload("res://scripts/fisica/ChoquesMundo3D.gd")
 const Agua = preload("res://scripts/fisica/Agua.gd")
-const TallaCuerpo3D = preload("res://scripts/fisica/TallaCuerpo3D.gd")
-const WorldStageBase3D = preload("res://scripts/visuals/WorldStageBase3D.gd")
 
 const RUTA_POBLACION: String = "res://scripts/fisica/Poblacion3D.gd" ## se carga al crear el del protagonista (sin ciclo de preloads)
 const META: String = "cuerpo3d"    ## cada personaje guarda aquí su cuerpo
-const GRUPO_CUERPOS: String = "cuerpos_3d"
 const GRAVEDAD: float = 14.8       ## m/s²; con el impulso del salto da ~1,2 m al aire libre, como antes
 const PELDANO_M: float = 0.45      ## lo más alto que sube andando de un suelo a otro (escalones, rampa)
 ## Daño por caída (paso 2c, decisión del usuario: «realista»): desde 3 m duele (~9 % de la vida) y a 8 m mata.
@@ -39,14 +33,10 @@ const FLOTA_M: float = 1.35        ## nadando, los pies van esto bajo la superfi
 const VADEA_M: float = 0.3         ## desde esta hondura ya se anda por el agua (más despacio)
 const CAIDA_AGUA_SIN_DANO_M: float = 1.5 ## caer en agua así de honda no hace daño
 const APARTA_PX_S: float = 40.0    ## a lo que aparta a quien tiene delante al andar contra él (píxeles del mapa por segundo)
-const CAPA_PROTA: int = 1          ## capa 3D del cuerpo del protagonista
-const CAPA_VECINO: int = 2         ## capa 3D de los cuerpos de los vecinos (no chocan entre sí; sí con el protagonista)
-const CAPA_PEQUENO: int = 8        ## capa 3D de los animales pequeños: nadie choca con ellos; ellos sí con las paredes
 const RADIO_PAREDES_PROTA_PX: float = 110.0 ## a esta distancia el protagonista necesita las paredes levantadas
 const RADIO_PAREDES_VECINO_PX: float = 48.0 ## un vecino solo necesita las que tiene al lado
 const REPASO_DESTINO: int = 30     ## pasos entre repasos de lo que hay en el destino de un vecino aunque no cambie
 const AVISO_CADA: int = 3          ## (no protagonista) pasos entre avisos al mundo de dónde está
-const TALLA_CADA: int = 10         ## (no protagonista) pasos entre repasos de su tamaño y de si está apagado
 const LEJOS_M: float = 22.0        ## más lejos que esto del protagonista, el cuerpo que solo sigue a su personaje…
 const SEGUIR_LEJOS_CADA: int = 10  ## …se pone al día 1 de cada tantos pasos
 ## Red contra atascos (atajo, ver cabecera)
@@ -69,10 +59,8 @@ var es_prota: bool = false         ## el protagonista: avisa al pueblo de su pis
 var destino_actor: Vector2 = Vector2.INF ## (vecinos) adónde va: lo que hay justo ahí (su cama, su silla) no le estorba
 var toca_pared: bool = false       ## chocó con algo en su último paso
 var _actor_cb: CharacterBody2D = null ## el personaje, si es un cuerpo del mapa (el ganado aún no lo es)
-var _forma: CollisionShape3D = null
 var _poblacion: Node = null        ## (solo el protagonista) da su cuerpo a todo el que entra en el juego
 var _mundo: ChoquesMundo3D = null  ## las paredes 3D del mundo, compartidas por todos los cuerpos
-var _mascara: int = 0              ## con qué choca normalmente (se le quita mientras se cuela)
 var _exentos: Array[StaticBody3D] = [] ## (vecinos) paredes de su destino con las que ahora no choca
 var _destino_visto: Vector2 = Vector2.INF
 var _destino_paso: int = 0
@@ -111,31 +99,21 @@ static func de(p_actor: Node2D) -> CharacterBody3D:
 	return c
 
 
-## Dónde cuelgan los cuerpos: la raíz del escenario 3D (todos en el mismo mundo, con las mismas paredes). En una escena
-## suelta, sin pueblo, cuelga del propio personaje.
+## Dónde cuelga el cuerpo de `p_actor`: el escenario 3D (CuerpoBase3D.escenario). En una escena suelta, sin pueblo,
+## cuelga del propio personaje.
 static func _escenario(p_actor: Node2D) -> Node:
 	if not p_actor.is_inside_tree():
 		return null
-	var vm: Node = p_actor.get_tree().get_first_node_in_group("village_manager")
-	if vm == null:
+	if p_actor.get_tree().get_first_node_in_group("village_manager") == null:
 		return p_actor
-	var escenario: Variant = vm.get("world_stage_3d")
-	var raiz: Variant = (escenario as Object).get("stage_root_3d") if is_instance_valid(escenario) else null
-	if not is_instance_valid(raiz) or not (raiz as Node).is_inside_tree():
-		return null
-	return raiz as Node
+	return escenario(p_actor.get_tree())
 
 
 func _ready() -> void:
 	_actor_cb = actor as CharacterBody2D
-	add_to_group(GRUPO_CUERPOS)
-	_forma = CollisionShape3D.new()
-	_forma.shape = CapsuleShape3D.new()
-	add_child(_forma)
+	_crear_forma()
 	_talla_paso = Engine.get_physics_frames() + int(get_instance_id() % TALLA_CADA) # no todos repasan en el mismo paso
 	_poner_talla()
-	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING # el suelo lo pone él mismo; los choques solo son muros y cuerpos
-	safe_margin = 0.01
 	process_physics_priority = 100 # después de quien lo mueve: así sabe si ese paso ya se movió
 	_mundo = ChoquesMundo3D.de(get_parent()) as ChoquesMundo3D
 	if es_prota:
@@ -148,30 +126,9 @@ func _ready() -> void:
 	_ventana_pos = global_position
 
 
-## Tamaño, capa y con qué choca, según quién es y cómo está ahora (TallaCuerpo3D). Los vecinos y animales lo repasan
-## cada TALLA_CADA pasos: una cría crece, alguien se duerme o se sienta.
+## Tamaño, capa y con qué choca según quién es su personaje (lo hace la base); la máscara no se toca mientras se cuela.
 func _poner_talla() -> void:
-	var talla: Vector2 = TallaCuerpo3D.de(actor)
-	var capsula := _forma.shape as CapsuleShape3D
-	if capsula.radius != talla.x or capsula.height != talla.y:
-		capsula.radius = talla.x
-		capsula.height = talla.y
-		_forma.position.y = talla.y * 0.5
-	# Paredes: las del mundo, compartidas. El agua tiene su capa: frena a los demás; el protagonista entra y nada.
-	var muros: int = ChoquesMundo3D.CAPA_MUROS
-	var capa: int = CAPA_PROTA
-	_mascara = CAPA_PROTA | CAPA_VECINO | muros
-	if not es_prota:
-		var grande: bool = talla != TallaCuerpo3D.PEQUENO
-		capa = CAPA_VECINO if grande else CAPA_PEQUENO
-		_mascara = muros | ChoquesMundo3D.CAPA_AGUA | (CAPA_PROTA if grande else 0)
-		var apagado: bool = TallaCuerpo3D.apagado(actor)
-		if _forma.disabled != apagado:
-			_forma.disabled = apagado
-	if collision_layer != capa:
-		collision_layer = capa
-	if _colarse_s <= 0.0 and collision_mask != _mascara:
-		collision_mask = _mascara
+	_vestir(actor, es_prota, _colarse_s <= 0.0)
 
 
 ## Al irse el cuerpo se va con él su ayudante, que cuelga del escenario y no de él. Las paredes no: son del mundo y las
@@ -442,6 +399,15 @@ func _nivel_al_acabar_escalera(h_px: float, nivel: int) -> int:
 func _apartar(vel_mapa: Vector2, delta: float) -> void:
 	for i in range(get_slide_collision_count()):
 		var con := get_slide_collision(i).get_collider()
+		if con is CharacterBody3D and con.has_method("apartar"): # ya ES su cuerpo (vive en metros): se aparta él
+			var lado_m: Vector3 = (con as CharacterBody3D).global_position - global_position
+			var hacia: Vector3 = Mapa3D.dir_a_3d(vel_mapa).normalized()
+			lado_m -= hacia * lado_m.dot(hacia)
+			lado_m.y = 0.0
+			if lado_m.length_squared() < 0.0001:
+				lado_m = hacia.cross(Vector3.UP)
+			con.call("apartar", lado_m.normalized() * APARTA_PX_S * Mapa3D.ESCALA * delta)
+			continue
 		var quien: Node2D = (con.get("actor") as Node2D) if con is CharacterBody3D and "actor" in con else null
 		if not is_instance_valid(quien):
 			continue

@@ -6,7 +6,7 @@
 | Carpeta | Qué hay |
 |---|---|
 | `scripts/` (sueltos) | Protagonista: `Player.gd`, `PlayerMovementController.gd`, `PlayerCombatController.gd`; `World.gd` monta la partida |
-| `scripts/fisica/` | Mundo 3D: `Mapa3D` (mapa ↔ metros), `Cuerpo3D` (cuerpo de todo personaje, siempre), `Poblacion3D` (se lo da al nacer), `TallaCuerpo3D`, `ChoquesMundo3D` (paredes 3D compartidas; `Prismas3D`, `AlturasChoque3D`), `AndarMapa`, `Vista` (ver/oír/alcanzar), `Agua`, `Suelo` |
+| `scripts/fisica/` | Mundo 3D: `Mapa3D` (mapa ↔ metros), `CuerpoBase3D` (lo común a todo cuerpo), `Cuerpo3D` (cuerpo de todo personaje que aún vive en el mapa plano), `Poblacion3D` (se lo da al nacer), `TallaCuerpo3D`, `ChoquesMundo3D` (paredes 3D compartidas; `Prismas3D`, `AlturasChoque3D`), `AndarMapa`, `Vista` (ver/oír/alcanzar), `Agua`, `Suelo` |
 | `scripts/visuals/` | Escenario 3D: `WorldStage3D` (cámara, manos), `WorldStageTerrain3D`, `WorldStageBuildings3D`, `WorldStageProps3D`, `WorldStageBase3D`; muñecos `CharacterAvatar3D`/`CharacterRig3D`, `AnimalModel3D`, `BanditModel3D`; `AssetLibrary3D` |
 | `scripts/enemies/` | Vecinos (`VillageNPCBase/NPC/Social/Work/Duties`, `NPCDialogue`; menú principal `NPCMenuDialogo`, charla `NPCCharla` con frases en `resources/dialogos/`), `WildAnimal`, `DomesticPet`, `Raider`, `DummyEnemy`, `MillKidnapper` |
 | `scripts/systems/` | Reglas del pueblo: base `VillageManagerBase/Manager/Economy/Social/Police`, `VillageWorldBuilder`; economía, vida social, crimen y justicia, lugares (`VillageTavern`, `VillageClub`…), gobierno, naturaleza. `VillageSect.gd`: **no tocar** |

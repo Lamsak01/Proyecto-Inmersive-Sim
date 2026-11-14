@@ -30,9 +30,9 @@ pruebas; encargadas 6–8 (malla de navegación 3D, no crear dibujos planos esco
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c0) Mandato del usuario (2026-11-14): TODO en 3D, nada de 2D → `docs/specs/PLAN_TODO_3D.md`
-El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.312**
+El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.302**
 (partió de 2.495; terminado = 0). Hechas: tanda 0, 3a (paredes 3D compartidas, `ChoquesMundo3D`) y 4a (todo personaje
-lleva su `Cuerpo3D` siempre: `Poblacion3D`, `TallaCuerpo3D`, `AndarMapa`). Siguiente: 4b (el personaje ES su cuerpo) o 5.
+lleva su `Cuerpo3D` siempre) y 4b-1 (el ganado ES su cuerpo: `CuerpoBase3D`, `LivestockAnimal`). Siguiente: 4b-2, animales salvajes.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
 1. **Tandas de `PLAN_TODO_3D.md`** en orden; las piezas (sillas, camas…) son su tanda 6.

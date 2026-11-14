@@ -22,7 +22,8 @@ const Marca = preload("res://mapa/marca.gd")
 const VillageLoans = preload("res://scripts/systems/VillageLoans.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
-const LivestockAnimalScript = preload("res://scripts/obstacles/LivestockAnimal.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const RUTA_GANADO: String = "res://scripts/obstacles/LivestockAnimal.gd" ## se carga al usarlo (sin ciclo de preloads)
 
 const FORECLOSED_COST: int = 80
 const UPGRADE_COSTS: Dictionary = {"bookshelf": 35, "workbench": 40, "oak_bed": 30, "strong_lock": 25, "hidden_cellar": 45, "hearth": 25, "upper_floor": 50}
@@ -50,6 +51,11 @@ const SITIO_CORRAL := "corral_rancho"
 static func ranch_pen_rect_mundo() -> Rect2:
 	var centro: Vector2 = load("res://mapa/sitio.gd").call("mundo", SITIO_CORRAL)
 	return Rect2(centro - RANCH_PEN_RECT.size * 0.5, RANCH_PEN_RECT.size)
+## El corral del rancho en metros sobre el suelo del mundo 3D (x → este, y → sur). TRADUCTOR: el sitio del corral aún
+## se lee del mapa plano; se quita cuando el solar del rancho dé su valla desde su pieza.
+static func ranch_pen_m() -> Rect2:
+	var r: Rect2 = ranch_pen_rect_mundo()
+	return Rect2(r.position * Mapa3D.ESCALA, r.size * Mapa3D.ESCALA)
 const CATERING_COST_PER_GUEST: int = 4
 const TABLE_SEAT_DIST: float = 14.0
 const GATHERING_PLAYER_RADIUS: float = 90.0
@@ -544,31 +550,28 @@ static func move_toby_to_lot(vm, lot_id: String = "") -> bool:
 	VillageChronicle.add(vm, "toby_moved_home", "Trasladaste a Toby y su comedero al patio de tu casa en el solar %s" % lid, true)
 	return true
 
+## El ganado del rancho: un cuerpo 3D por cada ejemplar de `ranch_herd`, dentro del escenario 3D (tanda 4b del paso a
+## 3D: el animal ES su cuerpo y vive en metros). Si el escenario aún no existe no hace nada (se llama otra vez al crearlo).
 static func sync_livestock(vm) -> void:
-	if vm == null or not ("entities_root" in vm) or vm.entities_root == null or not is_instance_valid(vm.entities_root):
+	if vm == null or not (vm as Node).is_inside_tree():
 		return
-	var hs: Dictionary = state(vm)
-	var r_herd: Array = hs["ranch_herd"]
-	var ranch_nodes: Array[Node2D] = []
-	for c in vm.entities_root.get_children():
-		if c is Node2D and is_instance_valid(c) and c.is_in_group("ranch_livestock"):
-			ranch_nodes.append(c as Node2D)
+	var r_herd: Array = state(vm)["ranch_herd"]
+	var corral: Rect2 = ranch_pen_m()
+	var ranch_nodes: Array[Node] = (vm as Node).get_tree().get_nodes_in_group("ranch_livestock")
 	for i in range(r_herd.size()):
 		if not (r_herd[i] is Dictionary):
 			continue
 		if i >= ranch_nodes.size():
-			var node_r: Node2D = LivestockAnimalScript.new()
-			vm.entities_root.add_child(node_r)
+			var node_r: Node = (load(RUTA_GANADO) as GDScript).call("crear", vm)
+			if node_r == null: # el escenario 3D aún no existe
+				return
 			ranch_nodes.append(node_r)
-		ranch_nodes[i].call("configure_from_entry", vm, i, r_herd[i], ranch_pen_rect_mundo())
+		ranch_nodes[i].call("configure_from_entry", vm, i, r_herd[i], corral)
 	while ranch_nodes.size() > r_herd.size():
-		var ex_r: Node2D = ranch_nodes.pop_back()
-		if ex_r != null and is_instance_valid(ex_r):
-			ex_r.remove_from_group("ranch_livestock")
-			ex_r.remove_from_group("livestock_animals")
-			if ex_r.get_parent() != null:
-				ex_r.get_parent().remove_child(ex_r)
-			ex_r.queue_free()
+		var ex_r: Node = ranch_nodes.pop_back()
+		ex_r.remove_from_group("ranch_livestock")
+		ex_r.remove_from_group("livestock_animals")
+		ex_r.queue_free()
 
 static func shop_night_theft(vm, ps: Dictionary, chance: float) -> int:
 	var till: int = int(ps.get("till_gold", 0))

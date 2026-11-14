@@ -7,7 +7,8 @@ Conversión terminada el 2026-11-12 (etiqueta `fin-paso-a-3d`). Plan, manuscrito
 - El **mapa 2D** (píxeles) sigue siendo donde piensan los vecinos: rutas, sitios, puertas, choques. **La física** ocurre en
   3D y escribe su resultado en el mapa. `scripts/fisica/Mapa3D.gd` es el **único** sitio que convierte mapa ↔ metros
   (1 unidad = 1 m; `ESCALA` m/px, `ALTO` m/px de altura).
-- `Cuerpo3D.gd`: cuerpo de TODO personaje, siempre (tanda 4, 2026-11-14; `Poblacion3D.gd` se lo da a cada
+- `CuerpoBase3D.gd`: lo común a todo cuerpo 3D; quien ya ES su cuerpo (tanda 4b: el ganado) lo hereda directamente.
+- `Cuerpo3D.gd`: cuerpo de TODO personaje del mapa plano, siempre (tanda 4, 2026-11-14; `Poblacion3D.gd` se lo da a cada
   `CharacterBody2D` y al grupo `con_cuerpo_3d` al entrar en el juego). Flota sin losa de suelo: se le fija una altura
   mínima (`_suelo_y`) y se le mueve en 3D; cambia de piso solo (el protagonista a media rampa; los vecinos, al acabar la
   escalera, porque sus rutas piensan por pisos). Saltos de más de 8 px del mapa = teletransporte. Si nadie le pide

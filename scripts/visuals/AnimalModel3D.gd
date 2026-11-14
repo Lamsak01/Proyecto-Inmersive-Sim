@@ -1,6 +1,9 @@
-extends Node2D
+extends Node
 
-## Modelo 3D de un animal (2026-11-05): pone un modelo dentro del escenario 3D, encima del animal 2D.
+## Modelo 3D de un animal (2026-11-05): pone un modelo dentro del escenario 3D, en el sitio de su animal.
+## Sirve a dos clases de dueño mientras dura el paso a 3D (tanda 4b): el animal que ya ES un cuerpo 3D y vive en
+## metros (`poner`, `cambiar_modelo`, `pasos`) y el que aún es un nodo del mapa plano (`attach`, en píxeles; se borra
+## cuando el último pase a 3D).
 ## Solo es visual: no toca su comportamiento. El modelo sigue la posición del animal y mira hacia donde camina.
 ## Si el modelo trae animaciones (.glb de Quaternius) anda, galopa, está quieto o pace según su velocidad, y hace
 ## «Death» cuando el sprite 2D se tumba (cadáver o aturdido). Un modelo sin animaciones (.obj) se tumba de lado.
@@ -19,7 +22,7 @@ var height_px: float = 12.0
 ## Los pies del modelo quedan estos píxeles por debajo del centro del animal 2D.
 var foot_offset_px: float = 4.0
 
-var _entity: Node2D = null
+var _entity: Node = null ## su animal: un cuerpo 3D o, todavía, un nodo del mapa plano
 var _stage: Node = null
 var _holder: Node3D = null
 var _yaw: Node3D = null
@@ -39,7 +42,7 @@ var tint_color: Color = Color.WHITE
 var dim_omni_light: bool = false
 
 
-static func attach(entity: Node2D, rel_path: String, h_px: float, foot_px: float, p_tint: Color = Color.WHITE, p_dim_light: bool = false) -> Node:
+static func attach(entity: Node, rel_path: String, h_px: float, foot_px: float, p_tint: Color = Color.WHITE, p_dim_light: bool = false) -> Node:
 	if DisplayServer.get_name() == "headless" or Engine.is_editor_hint() or entity == null:
 		return null
 	if not AssetLib.has_curated_assets():
@@ -53,6 +56,29 @@ static func attach(entity: Node2D, rel_path: String, h_px: float, foot_px: float
 	n.dim_omni_light = p_dim_light
 	entity.add_child(n)
 	return n
+
+
+## Para un animal que ES su cuerpo 3D: modelo de `alto_m` metros con los pies en el origen del cuerpo.
+static func poner(cuerpo: Node3D, modelo: String, alto_m: float) -> Node:
+	return attach(cuerpo, modelo, alto_m / Mapa3D.ESCALA, 0.0)
+
+
+## Cambia el modelo o su altura (una cría que crece).
+func cambiar_modelo(modelo: String, alto_m: float) -> void:
+	set_model_config(modelo, alto_m / Mapa3D.ESCALA)
+
+
+## Velocidades (m/s) a las que encajan el paso y el galope de la animación.
+func pasos(andar_m_s: float, correr_m_s: float) -> void:
+	walk_px_s = andar_m_s / Mapa3D.ESCALA
+	run_px_s = correr_m_s / Mapa3D.ESCALA
+
+
+## Dónde está su animal, en el mapa plano (TRADUCTOR: lo de dentro de este archivo aún mide en píxeles).
+func _pos_mapa() -> Vector2:
+	if _entity is Node3D:
+		return Mapa3D.a_mapa((_entity as Node3D).global_position)
+	return (_entity as Node2D).global_position
 
 
 ## Hacia dónde mira el modelo, en coordenadas del mapa (el modelo mira hacia +Z = «abajo» con giro 0).
@@ -72,7 +98,7 @@ func set_model_config(rel_path: String, h_px: float) -> void:
 
 
 func _ready() -> void:
-	_entity = get_parent() as Node2D
+	_entity = get_parent()
 	_cur_yaw = randf_range(0.0, TAU)
 
 
@@ -164,7 +190,7 @@ func _process(delta: float) -> void:
 	# fotogramas; el tiempo saltado se acumula para que su animación y su giro no vayan más lentos.
 	_lod_delta_acum += delta
 	var pl := get_tree().get_first_node_in_group("player") as Node2D
-	if pl != null and _entity.global_position.distance_squared_to(pl.global_position) > LOD_LEJOS_PX * LOD_LEJOS_PX and (Engine.get_process_frames() + get_instance_id()) % 3 != 0:
+	if pl != null and _pos_mapa().distance_squared_to(pl.global_position) > LOD_LEJOS_PX * LOD_LEJOS_PX and (Engine.get_process_frames() + get_instance_id()) % 3 != 0:
 		return
 	delta = _lod_delta_acum
 	_lod_delta_acum = 0.0
@@ -173,7 +199,7 @@ func _process(delta: float) -> void:
 		if not _attach_to_stage():
 			return
 	_set_sprite_hidden(true)
-	var show: bool = _entity.is_visible_in_tree() and _near_camera()
+	var show: bool = bool(_entity.call("is_visible_in_tree")) and _near_camera()
 	_holder.visible = show
 	if _anim != null:
 		_anim.active = show
@@ -183,8 +209,11 @@ func _process(delta: float) -> void:
 	var fp_now: bool = _stage != null and _stage.get("first_person_active") == true
 	var cos_now: float = 1.0 if fp_now else float(_stage.get("_cos_p"))
 	_holder.scale = Vector3(1.0, 1.0 / maxf(0.1, cos_now), 1.0)
-	var pos: Vector2 = _entity.global_position
-	_holder.position = _stage.call("to_3d", pos + Vector2(0.0, foot_offset_px), 0.0)
+	var pos: Vector2 = _pos_mapa()
+	if _entity is Node3D: # ya es un cuerpo 3D: el modelo va justo donde está él
+		_holder.global_position = (_entity as Node3D).global_position
+	else:
+		_holder.position = _stage.call("to_3d", pos + Vector2(0.0, foot_offset_px), 0.0)
 	# Mira hacia donde camina (los modelos miran hacia +Z, que en el mapa es «hacia abajo»).
 	var just_shown: bool = _last_pos == Vector2.INF
 	if not just_shown and delta > 0.0:
@@ -203,7 +232,7 @@ func _process(delta: float) -> void:
 		_yaw.rotation.x = lerpf(_yaw.rotation.x, slope_pitch, clampf(delta * 8.0, 0.0, 1.0))
 	# Tumbado de lado si el sprite 2D está tumbado (muerto o aturdido).
 	var spr = _entity.get("sprite")
-	var lying: bool = spr is Node2D and absf((spr as Node2D).rotation_degrees) > 45.0
+	var lying: bool = _entity.get("tumbado") == true or (spr is Node2D and absf((spr as Node2D).rotation_degrees) > 45.0)
 	if _anim == null:
 		if not lying:
 			var hp := _model.get_node_or_null("HeadPivot") as Node3D
@@ -340,7 +369,7 @@ func _near_camera() -> bool:
 	if cam2d == null:
 		return true
 	var center: Vector2 = cam2d.get_screen_center_position()
-	var p: Vector2 = _entity.global_position
+	var p: Vector2 = _pos_mapa()
 	if _stage != null and _stage.get("first_person_active") == true:
 		return p.distance_squared_to(center) <= 980.0 * 980.0
 	var zoom_val: float = maxf(0.25, cam2d.zoom.x)

@@ -1,131 +1,179 @@
-extends Node2D
+extends "res://scripts/fisica/CuerpoBase3D.gd"
 
-## Animal vivo de corral (Bloque FIS4): representa en el mapa cada ejemplar de `ranch_herd` (en el corral del Rancho
-## del Sur). Pasea despacio dentro de su valla (`pen_rect`), cambia de tamaño según su etapa (`chick`, `juvenile`,
-## `adult`), usa `animals/animated/Alpaca.glb` para la oveja y una gallina 3D hecha con piezas para el gallo/gallina.
-## Los animales propios del jugador se borraron el 2026-11-12 (se rehacen en 3D con el gallinero, tras el Caso I).
+## Animal vivo de corral (Bloque FIS4): cada ejemplar de `ranch_herd`, en el corral del Rancho del Sur. Pasea despacio
+## dentro de su valla, crece según su etapa (`chick`, `juvenile`, `adult`) y de noche se queda quieto.
+## Desde la tanda 4b del paso a 3D (2026-11-14) ES su cuerpo 3D: vive en el escenario 3D y todo lo suyo va en metros.
+## Ya no tiene nodo ni dibujo en el mapa plano. Un adulto estorba el paso; a gallinas y crías se les pasa por encima.
 
 const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
 
-var vm: Node2D = null
+const RUTA: String = "res://scripts/obstacles/LivestockAnimal.gd"
+
+const ETAPAS: Array[String] = ["chick", "juvenile", "adult"]
+const MODELO_GALLINA: String = "procedural:chicken"
+const ALTOS_GALLINA: Array[float] = [0.31, 0.39, 0.5] ## alto (m) de cría, joven y adulto
+## Modelo y altos (m) de cría, joven y adulto de cada especie que no es gallina.
+const MODELOS: Dictionary = {
+	"sheep": ["animals/animated/Alpaca.glb", [0.53, 0.7, 0.87]],
+	"cow": ["animals/Cow.obj", [0.59, 0.76, 0.92]],
+	"bull": ["animals/Bull.obj", [0.62, 0.81, 0.98]],
+	"donkey": ["animals/Donkey.obj", [0.53, 0.7, 0.84]],
+	"horse": ["animals/animated/Horse.glb", [0.64, 0.84, 1.04]],
+}
+const PASO_OVEJA_M_S: float = 0.62  ## a lo que pasea una oveja
+const PASO_M_S: float = 0.78        ## a lo que pasean los demás
+const ANIM_ANDAR_M_S: float = 0.67  ## velocidad a la que encaja la animación de andar
+const ANIM_CORRER_M_S: float = 3.08 ## por encima, galopa
+const LLEGA_M: float = 0.1          ## a esto de su meta ya ha llegado
+const HUECO_M: float = 0.78         ## distancia que guardan entre ellos
+const APARTARSE_M_S: float = 1.46   ## a lo que se separan cuando están encima uno de otro
+const ESPERA_INICIAL_S: Vector2 = Vector2(0.6, 2.4) ## (mín., máx.) antes del primer paseo
+const ESPERA_S: Vector2 = Vector2(2.2, 4.8)         ## (mín., máx.) entre paseos
+const GANAS_DE_PASEAR: float = 0.68 ## probabilidad de elegir un sitio nuevo en vez de quedarse
+const HORA_DORMIR: int = 21
+const HORA_DESPERTAR: int = 6
+const SUELO_CADA_M: float = 0.2     ## cada cuánto camino vuelve a mirar la altura del suelo
+
+var vm: Node = null
 var animal_index: int = 0
 var species: String = "sheep"
 var stage: String = "chick"
-var pen_rect: Rect2 = Rect2()
-var _montado: bool = false ## ya tiene su modelo 3D (sin dibujo plano desde el 2026-11-13)
+var corral: Rect2 = Rect2() ## su valla, en metros sobre el suelo (x → este, y → sur)
 var model_3d: Node = null
 
-var _target_pos: Vector2 = Vector2.ZERO
-var _move_timer: float = 1.0
+var _meta: Vector3 = Vector3.ZERO
+var _espera_s: float = 1.0
+var _suelo_mirado_en: Vector3 = Vector3.INF
+var _talla_paso: int = 0
 
 
-func configure_from_entry(p_vm: Node2D, p_index: int, d: Dictionary, p_pen_rect: Rect2) -> void:
-	if not _montado:
-		setup_animal(p_vm, p_index, d, p_pen_rect)
-	else:
-		vm = p_vm
-		pen_rect = p_pen_rect
-		global_position.x = clampf(global_position.x, pen_rect.position.x, pen_rect.end.x)
-		global_position.y = clampf(global_position.y, pen_rect.position.y, pen_rect.end.y)
-		_target_pos.x = clampf(_target_pos.x, pen_rect.position.x, pen_rect.end.x)
-		_target_pos.y = clampf(_target_pos.y, pen_rect.position.y, pen_rect.end.y)
-		update_from_dict(p_index, d)
+## Un animal nuevo dentro del escenario 3D del pueblo `p_vm`. Devuelve null si el escenario aún no existe.
+static func crear(p_vm: Node) -> Node:
+	var raiz: Node = escenario(p_vm.get_tree())
+	if raiz == null:
+		return null
+	var animal: Node = (load(RUTA) as GDScript).new()
+	raiz.add_child(animal)
+	return animal
 
 
-func setup_animal(p_vm: Node2D, p_index: int, d: Dictionary, p_pen_rect: Rect2) -> void:
+func _ready() -> void:
+	_crear_forma()
+	_vestir(self, false)
+
+
+func configure_from_entry(p_vm: Node, p_index: int, d: Dictionary, p_corral: Rect2) -> void:
+	var nuevo: bool = vm == null
 	vm = p_vm
-	animal_index = p_index
-	pen_rect = p_pen_rect
+	corral = p_corral
+	if nuevo:
+		_entrar_al_corral(p_index)
+	else:
+		global_position = _dentro(global_position)
+		_meta = _dentro(_meta)
+	update_from_dict(p_index, d)
+
+
+## Primera vez: se apunta a sus grupos y elige un sitio del corral según su número (siempre el mismo).
+func _entrar_al_corral(p_index: int) -> void:
 	add_to_group("livestock_animal")
 	add_to_group("livestock_animals")
 	add_to_group("ranch_livestock")
-	add_to_group("con_cuerpo_3d") # Poblacion3D le da su cuerpo 3D: a un animal adulto no se le atraviesa
-
 	var fx: float = fposmod(0.22 + float(p_index) * 0.27, 0.84) + 0.08
 	var fy: float = fposmod(0.25 + float(p_index) * 0.37, 0.80) + 0.10
-	global_position = Vector2(
-		lerpf(pen_rect.position.x, pen_rect.end.x, fx),
-		lerpf(pen_rect.position.y, pen_rect.end.y, fy)
-	)
-	_target_pos = global_position
-	_move_timer = randf_range(0.6, 2.4)
-	_montado = true
-	update_from_dict(p_index, d)
+	global_position = Vector3(lerpf(corral.position.x, corral.end.x, fx), 0.0, lerpf(corral.position.y, corral.end.y, fy))
+	_posar()
+	_meta = global_position
+	_espera_s = randf_range(ESPERA_INICIAL_S.x, ESPERA_INICIAL_S.y)
 
 
 func update_from_dict(p_index: int, d: Dictionary) -> void:
 	animal_index = p_index
 	species = str(d.get("species", "sheep"))
 	stage = str(d.get("stage", "chick"))
-
-	var rel: String = "procedural:chicken"
-	var h_px: float = 5.5 if stage == "chick" else (7.0 if stage == "juvenile" else 9.0)
-	match species:
-		"sheep":
-			rel = "animals/animated/Alpaca.glb"
-			h_px = 9.5 if stage == "chick" else (12.5 if stage == "juvenile" else 15.5)
-		"cow":
-			rel = "animals/Cow.obj"
-			h_px = 10.5 if stage == "chick" else (13.5 if stage == "juvenile" else 16.5)
-		"bull":
-			rel = "animals/Bull.obj"
-			h_px = 11.0 if stage == "chick" else (14.5 if stage == "juvenile" else 17.5)
-		"donkey":
-			rel = "animals/Donkey.obj"
-			h_px = 9.5 if stage == "chick" else (12.5 if stage == "juvenile" else 15.0)
-		"horse":
-			rel = "animals/animated/Horse.glb"
-			h_px = 11.5 if stage == "chick" else (15.0 if stage == "juvenile" else 18.5)
-	if model_3d == null or not is_instance_valid(model_3d):
-		model_3d = AnimalModel3DScript.attach(self, rel, h_px, 2.0)
-		if model_3d != null:
-			model_3d.walk_px_s = 12.0
-			model_3d.run_px_s = 55.0
-	else:
-		model_3d.call("set_model_config", rel, h_px)
-
-
-func _process(delta: float) -> void:
-	if pen_rect.size.x <= 1.0 or pen_rect.size.y <= 1.0:
+	var etapa: int = maxi(0, ETAPAS.find(stage))
+	var modelo: String = MODELO_GALLINA
+	var alto_m: float = ALTOS_GALLINA[etapa]
+	if MODELOS.has(species):
+		modelo = str((MODELOS[species] as Array)[0])
+		alto_m = float(((MODELOS[species] as Array)[1] as Array)[etapa])
+	if is_instance_valid(model_3d):
+		model_3d.call("cambiar_modelo", modelo, alto_m)
 		return
-	var is_night: bool = false
-	if WorldClock != null:
-		var h: int = int(WorldClock.current_hour)
-		is_night = (h >= 21 or h < 6)
-	if is_night:
+	model_3d = AnimalModel3DScript.poner(self, modelo, alto_m)
+	if model_3d != null:
+		model_3d.call("pasos", ANIM_ANDAR_M_S, ANIM_CORRER_M_S)
+
+
+func _physics_process(delta: float) -> void:
+	if corral.size.x <= LLEGA_M or corral.size.y <= LLEGA_M:
 		return
+	var paso: int = Engine.get_physics_frames()
+	if paso - _talla_paso >= TALLA_CADA: # una cría crece y pasa a estorbar
+		_talla_paso = paso
+		_vestir(self, false)
+	if _es_de_noche():
+		return
+	_espera_s -= delta
+	if _espera_s <= 0.0:
+		_espera_s = randf_range(ESPERA_S.x, ESPERA_S.y)
+		_meta = _sitio_al_azar() if randf() < GANAS_DE_PASEAR else global_position
+	var falta: Vector3 = _meta - global_position
+	falta.y = 0.0
+	var paseo: Vector3 = Vector3.ZERO
+	if falta.length() > LLEGA_M:
+		paseo = falta.normalized() * (PASO_OVEJA_M_S if species == "sheep" else PASO_M_S) * delta
+	var mov: Vector3 = paseo + _separarse(delta)
+	if mov.length_squared() > 0.0:
+		_ir(global_position + mov)
 
-	_move_timer -= delta
-	if _move_timer <= 0.0:
-		_move_timer = randf_range(2.2, 4.8)
-		if randf() < 0.68:
-			_target_pos = Vector2(
-				randf_range(pen_rect.position.x, pen_rect.end.x),
-				randf_range(pen_rect.position.y, pen_rect.end.y)
-			)
-		else:
-			_target_pos = global_position
 
-	var diff: Vector2 = _target_pos - global_position
-	var spd: float = 11.0 if species == "sheep" else 14.0
-	var sep_step: Vector2 = _compute_separation_step(delta)
-	if diff.length() > 1.8 or sep_step.length_squared() > 0.001:
-		var move_v: Vector2 = (diff.normalized() * spd * delta if diff.length() > 1.8 else Vector2.ZERO) + sep_step
-		global_position.x = clampf(global_position.x + move_v.x, pen_rect.position.x, pen_rect.end.x)
-		global_position.y = clampf(global_position.y + move_v.y, pen_rect.position.y, pen_rect.end.y)
+## Alguien que anda contra él lo aparta un poco (lo llama el cuerpo del protagonista). No sale de su valla.
+func apartar(desplazamiento: Vector3) -> void:
+	_ir(global_position + desplazamiento)
 
 
-func _compute_separation_step(delta: float) -> Vector2:
-	if not is_inside_tree() or get_tree() == null:
-		return Vector2.ZERO
-	var push := Vector2.ZERO
-	for other in get_tree().get_nodes_in_group("livestock_animal"):
-		if other == self or not (other is Node2D) or not is_instance_valid(other):
+func _es_de_noche() -> bool:
+	if WorldClock == null:
+		return false
+	var h: int = int(WorldClock.current_hour)
+	return h >= HORA_DORMIR or h < HORA_DESPERTAR
+
+
+func _sitio_al_azar() -> Vector3:
+	return Vector3(randf_range(corral.position.x, corral.end.x), 0.0, randf_range(corral.position.y, corral.end.y))
+
+
+## El punto `p` metido dentro de la valla.
+func _dentro(p: Vector3) -> Vector3:
+	return Vector3(clampf(p.x, corral.position.x, corral.end.x), p.y, clampf(p.z, corral.position.y, corral.end.y))
+
+
+## Se pone en `p` (sin salir de la valla) y, si ha andado lo bastante, vuelve a mirar la altura del suelo.
+func _ir(p: Vector3) -> void:
+	var q: Vector3 = _dentro(p)
+	global_position = Vector3(q.x, global_position.y, q.z)
+	if _suelo_mirado_en == Vector3.INF or global_position.distance_squared_to(_suelo_mirado_en) > SUELO_CADA_M * SUELO_CADA_M:
+		_posar()
+
+
+## Los pies, a la altura del suelo del corral (al aire libre: piso 0).
+func _posar() -> void:
+	global_position.y = suelo_y(global_position.x, global_position.z, 0, vm)
+	_suelo_mirado_en = global_position
+
+
+## Paso para no quedarse encima de otro animal del corral.
+func _separarse(delta: float) -> Vector3:
+	var empuje: Vector3 = Vector3.ZERO
+	for otro: Node in get_tree().get_nodes_in_group("livestock_animal"):
+		if otro == self or not (otro is Node3D):
 			continue
-		var opos: Vector2 = (other as Node2D).global_position
-		var d: float = global_position.distance_to(opos)
-		if d < 14.0:
-			var dir: Vector2 = (global_position - opos).normalized() if d > 0.01 else Vector2(cos(float(animal_index)), sin(float(animal_index)))
-			push += dir * ((14.0 - d) / 14.0) * 26.0 * delta
-	return push
-
+		var de_el: Vector3 = global_position - (otro as Node3D).global_position
+		de_el.y = 0.0
+		var d: float = de_el.length()
+		if d >= HUECO_M:
+			continue
+		var dir: Vector3 = de_el / d if d > 0.001 else Vector3(cos(float(animal_index)), 0.0, sin(float(animal_index)))
+		empuje += dir * ((HUECO_M - d) / HUECO_M) * APARTARSE_M_S * delta
+	return empuje

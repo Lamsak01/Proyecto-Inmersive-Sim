@@ -30,6 +30,7 @@ func _initialize() -> void:
 	await _paso4b_contacto()
 	await _paso4c_animales()
 	await _tanda4_todos_con_cuerpo()
+	await _tanda4b_ganado()
 	await _paso5_vista()
 	_paso5b_oido()
 	await _paso5c_golpes()
@@ -524,7 +525,7 @@ func _paso4c_animales() -> void:
 	for g in get_nodes_in_group("livestock_animals"):
 		if str(g.species) == "chicken" or str(g.stage) == "chick":
 			_ok(not Talla.estorba(g), "4c: gallinas y crías se atraviesan (%s, %s)" % [g.species, g.stage])
-			_ok((g.has_meta("cuerpo3d") and is_instance_valid(g.get_meta("cuerpo3d"))), "4c: pero tienen su cuerpo 3D, como todos")
+			_ok(g is CharacterBody3D and g.is_in_group("cuerpos_3d"), "4c: pero son un cuerpo 3D, como todos")
 			break
 	if grande == null:
 		return
@@ -566,7 +567,8 @@ func _tanda4_todos_con_cuerpo() -> void:
 	for g in ["village_npcs", "wild_animals", "domestic_pets", "raiders", "enemies", "livestock_animals"]:
 		for n in get_nodes_in_group(g):
 			total += 1
-			if not (n.has_meta("cuerpo3d") and is_instance_valid(n.get_meta("cuerpo3d"))):
+			var es_su_cuerpo: bool = n is CharacterBody3D # tanda 4b: el ganado ya ES su cuerpo
+			if not es_su_cuerpo and not (n.has_meta("cuerpo3d") and is_instance_valid(n.get_meta("cuerpo3d"))):
 				sin_cuerpo.append(str(n.name))
 	_ok(total > 0 and sin_cuerpo.is_empty(), "T4: los %d personajes del juego tienen cuerpo 3D (sin él: %s)" % [total, str(sin_cuerpo.slice(0, 5))])
 	_ok(not ResourceLoader.exists("res://scripts/fisica/CuerposDelPueblo3D.gd") and not ResourceLoader.exists("res://scripts/fisica/CuerposCercanos3D.gd"), "T4: ya no existen el reparto por cercanía ni los cuerpos de contacto")
@@ -609,6 +611,75 @@ func _tanda4_todos_con_cuerpo() -> void:
 	n.set_process(true)
 	for _i in range(10):
 		await physics_frame
+
+
+## Tanda 4b del paso a 3D: el ganado del rancho ES su cuerpo 3D. Vive en el escenario 3D, en metros, dentro de su
+## corral y pisando el suelo; no queda de él ningún nodo en el mapa plano. Pasea, y un adulto estorba el paso.
+func _tanda4b_ganado() -> void:
+	var vm = get_first_node_in_group("village_manager")
+	var pl = get_first_node_in_group("player")
+	var mc = pl.get_node("PlayerMovementController")
+	var Base = load("res://scripts/fisica/CuerpoBase3D.gd")
+	var rebano: Array = vm.VillageHousing.state(vm)["ranch_herd"]
+	var ganado: Array[Node] = get_nodes_in_group("livestock_animals")
+	var corral: Rect2 = vm.VillageHousing.ranch_pen_m()
+	var planos: int = 0
+	var fuera: int = 0
+	var peor_suelo: float = 0.0
+	for g in ganado:
+		if not (g is CharacterBody3D) or g is Node2D or g.has_meta("cuerpo3d"):
+			planos += 1
+			continue
+		var p: Vector3 = g.global_position
+		if not corral.grow(0.01).has_point(Vector2(p.x, p.z)):
+			fuera += 1
+		peor_suelo = maxf(peor_suelo, absf(p.y - float(Base.suelo_y(p.x, p.z, 0, vm))))
+	_ok(ganado.size() == rebano.size() and ganado.size() > 0, "4b: hay un animal por cada ejemplar del rebaño (%d de %d)" % [ganado.size(), rebano.size()])
+	_ok(planos == 0, "4b: todos SON un cuerpo 3D y ninguno tiene nodo en el mapa plano (planos: %d)" % planos)
+	_ok(fuera == 0, "4b: todos dentro de su corral (fuera: %d)" % fuera)
+	_ok(peor_suelo < 0.25, "4b: pisan el suelo (el peor, a %.2f m)" % peor_suelo)
+	_ok(vm.entities_root.find_children("*", "Node2D", false, false).filter(func(n): return n.is_in_group("ranch_livestock")).is_empty(), "4b: no queda ganado colgando del mapa plano")
+	# De día pasean: en 12 s alguno se ha movido
+	var reloj: Node = root.get_node("/root/WorldClock")
+	var hora_antes: int = int(reloj.get("current_hour"))
+	reloj.set("current_hour", 12)
+	var antes: Array[Vector3] = []
+	for g in ganado:
+		antes.append(g.global_position)
+	for _i in range(12 * 60):
+		await physics_frame
+	var movidos: int = 0
+	for i in range(ganado.size()):
+		if ganado[i].global_position.distance_to(antes[i]) > 0.3:
+			movidos += 1
+	_ok(movidos > 0, "4b: de día pasean por el corral (%d de %d se han movido)" % [movidos, ganado.size()])
+	# Un adulto grande estorba: andando contra él, o te para o lo apartas, pero no lo atraviesas sin más
+	var grande: Node = null
+	for g in ganado:
+		if str(g.species) in ["cow", "bull"] and str(g.stage) == "adult":
+			grande = g
+			break
+	_ok(grande != null, "4b: hay una vaca o un toro adulto en el rebaño")
+	if grande != null:
+		for g in ganado:
+			g.set_physics_process(false)
+		var centro := Vector3(corral.get_center().x, 0.0, corral.get_center().y)
+		for g in ganado: # los demás, a una esquina: que no estorben
+			g.global_position = Vector3(corral.position.x, g.global_position.y, corral.position.y)
+		grande.global_position = Vector3(centro.x, float(Base.suelo_y(centro.x, centro.z, 0, vm)), centro.z)
+		var sitio_vaca: Vector3 = grande.global_position
+		var inicio: Vector2 = Mapa3D.a_mapa(centro) + Vector2(-30.0, 0.0)
+		pl.global_position = inicio
+		await _andar(pl, mc, Vector2.ZERO, 0.0, 0.3)
+		await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
+		var avance_px: float = pl.global_position.x - inicio.x
+		var apartada_m: float = grande.global_position.distance_to(sitio_vaca)
+		_ok(avance_px < 55.0 or apartada_m > 0.1, "4b: una vaca adulta estorba el paso (avanzas %.0f px de 80; ella se aparta %.2f m)" % [avance_px, apartada_m])
+		_ok(corral.grow(0.01).has_point(Vector2(grande.global_position.x, grande.global_position.z)), "4b: y al apartarla no sale de su corral")
+		for g in ganado:
+			g.set_physics_process(true)
+	reloj.set("current_hour", hora_antes)
+
 
 
 ## Paso 5a: la vista con alturas. Desde el salón se ve el borde de la galería; bajo la galería no se ve a quien está encima.
@@ -779,7 +850,7 @@ func _flechazo(pl, desde: Vector2, pendiente: float):
 func _personajes() -> Array[Node2D]:
 	var out: Array[Node2D] = []
 	for c in get_nodes_in_group("cuerpos_3d"):
-		var n: Node2D = c.actor as Node2D
+		var n: Node2D = c.get("actor") as Node2D # quien ya ES su cuerpo (el ganado) no tiene personaje en el mapa
 		if is_instance_valid(n) and not n.is_in_group("player"):
 			out.append(n)
 	return out
