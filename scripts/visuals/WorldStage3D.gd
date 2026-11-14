@@ -22,6 +22,7 @@ func set_detective_topdown(active: bool, world_pos_2d: Vector2 = Vector2.ZERO, o
 	if cam_3d != null and not active and not first_person_active:
 		cam_3d.projection = Camera3D.PROJECTION_ORTHOGONAL
 		cam_3d.rotation_degrees = Vector3(-PITCH_DEG, 0.0, 0.0)
+	_aplicar_ajustes_graficos()
 	_update_roof_cutaways_and_lighting()
 	_sync_camera_with_2d()
 	return sub_viewport.get_texture() if sub_viewport != null else null
@@ -310,6 +311,7 @@ func set_first_person(enable: bool) -> void:
 					"up": fp_yaw = -PI * 0.5
 					_: fp_yaw = PI * 0.5
 		_sync_player_aim_from_fp()
+		_aplicar_ajustes_graficos()
 		_update_fp_camera_transform()
 		_update_roof_cutaways_and_lighting()
 		if not _is_headless:
@@ -350,6 +352,7 @@ func set_first_person(enable: bool) -> void:
 			if is_instance_valid(fp_lantern_light):
 				fp_lantern_light.visible = false
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE if _is_ui_blocking_fp() else Input.MOUSE_MODE_HIDDEN)
+		_aplicar_ajustes_graficos()
 		_sync_player_aim_from_fp()
 		_sync_camera_with_2d()
 		_update_roof_cutaways_and_lighting()
@@ -924,8 +927,8 @@ func _update_fp_camera_transform() -> void:
 			ads_fov_blend = clampf(float(c_ctrl_f.get("aim_down_sights_blend")), 0.0, 1.0)
 	var fov_base: float = float(Ajustes.get_valor("campo_vision")) # Ajustes → Juego (70 por defecto)
 	cam_3d.fov = lerpf(fov_base, fov_base * 0.786, ads_fov_blend)
-	cam_3d.near = 0.03
-	cam_3d.far = 250.0 * Mapa3D.K
+	cam_3d.near = CAM_CERCA_1P_M
+	cam_3d.far = CAM_LEJOS_1P_M
 	cam_3d.global_position = eye_3d
 	if cam_3d.is_inside_tree():
 		cam_3d.look_at(eye_3d + look_dir_3d * 10.0, Vector3.UP)
@@ -1371,14 +1374,30 @@ func sync_case1_props_3d() -> void:
 		_add_box_2d(_case1_props_root_3d, rp + Vector2(0.2 * j2, -0.1 * j2), Vector2(4.4, 3.2), 11.8 + 0.2 * j2, 0.15, m_paper, float(j2 * 6 - 4))
 
 
-## Ajustes → Gráficos (2026-11-10): sombras del sol, nitidez de la imagen 3D y suavizado de bordes.
-## Las sombras del sol son lo que más pesa (duplican el dibujo).
+## Ajustes → Gráficos: sombras del sol (distancia en metros según cámara para no proyectar medio valle en 1.ª persona),
+## nitidez de la imagen 3D y suavizado de bordes.
+const CAM_CERCA_1P_M: float = 0.03
+const CAM_LEJOS_1P_M: float = 360.0
+const SOMBRA_DIST_1P_ALTA_M: float = 64.0
+const SOMBRA_DIST_1P_BAJA_M: float = 38.0
+const SOMBRA_DIST_CENITAL_ALTA_M: float = 392.0
+const SOMBRA_DIST_CENITAL_BAJA_M: float = 196.0
+const SOMBRA_DESVANECER_INICIO: float = 0.80
+const ATLAS_SOMBRA_ALTA: int = 4096
+const ATLAS_SOMBRA_BAJA: int = 2048
+
 func _aplicar_ajustes_graficos() -> void:
 	if is_instance_valid(sun_light):
 		var q: int = int(Ajustes.get_valor("sombras"))
 		sun_light.shadow_enabled = q > 0
-		sun_light.directional_shadow_max_distance = (140.0 if q >= 2 else 70.0) * Mapa3D.K
-		RenderingServer.directional_shadow_atlas_set_size(4096 if q >= 2 else 2048, true)
+		sun_light.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+		sun_light.directional_shadow_fade_start = SOMBRA_DESVANECER_INICIO
+		var usar_dist_1p: bool = first_person_active and not detective_topdown_active
+		if usar_dist_1p:
+			sun_light.directional_shadow_max_distance = SOMBRA_DIST_1P_ALTA_M if q >= 2 else SOMBRA_DIST_1P_BAJA_M
+		else:
+			sun_light.directional_shadow_max_distance = SOMBRA_DIST_CENITAL_ALTA_M if q >= 2 else SOMBRA_DIST_CENITAL_BAJA_M
+		RenderingServer.directional_shadow_atlas_set_size(ATLAS_SOMBRA_ALTA if q >= 2 else ATLAS_SOMBRA_BAJA, true)
 	if is_instance_valid(sub_viewport):
 		sub_viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
 		sub_viewport.scaling_3d_scale = clampf(float(Ajustes.get_valor("nitidez")), 0.5, 1.0)
@@ -1418,16 +1437,18 @@ const TAM_PEQUENO: float = 0.56
 const TAM_MEDIANO: float = 1.68
 const ALCANCE_PEQUENO: float = 14.0
 const ALCANCE_MEDIANO: float = 28.0
-var _con_alcance: Array = []
+const ALCANCE_DETALLE_CHICO_M: float = 42.0
+const ALCANCE_MATA_LOTE_M: float = 48.0
+var _con_alcance: Array[GeometryInstance3D] = []
 
 func _alcance_objetos_pequenos(activar: bool) -> void:
-	for g in _con_alcance:
+	for g: GeometryInstance3D in _con_alcance:
 		if is_instance_valid(g):
-			(g as GeometryInstance3D).visibility_range_end = 0.0
+			g.visibility_range_end = 0.0
 	_con_alcance.clear()
 	if not activar or not is_instance_valid(stage_root_3d):
 		return
-	var pila: Array = [stage_root_3d]
+	var pila: Array[Node] = [stage_root_3d]
 	while not pila.is_empty():
 		var n: Node = pila.pop_back()
 		if n.name == &"Characters3D" or n == cam_3d:
@@ -1435,14 +1456,26 @@ func _alcance_objetos_pequenos(activar: bool) -> void:
 		if n is GeometryInstance3D:
 			var g := n as GeometryInstance3D
 			if g.visibility_range_end <= 0.0:
-				var ab: AABB = g.get_aabb()
-				var t: Vector3 = ab.size * g.global_transform.basis.get_scale().abs()
-				var e: float = maxf(t.x, maxf(t.y, t.z))
-				if e < TAM_PEQUENO:
-					g.visibility_range_end = ALCANCE_PEQUENO
-					_con_alcance.append(g)
-				elif e < TAM_MEDIANO:
-					g.visibility_range_end = ALCANCE_MEDIANO
-					_con_alcance.append(g)
-		for c in n.get_children():
+				_aplicar_alcance_instancia(g)
+		for c: Node in n.get_children():
 			pila.append(c)
+
+
+func _aplicar_alcance_instancia(g: GeometryInstance3D) -> void:
+	if g.has_meta(&"lote_mata_baja"):
+		g.visibility_range_end = ALCANCE_MATA_LOTE_M
+		_con_alcance.append(g)
+		return
+	if g.has_meta(&"juntado_chico"):
+		g.visibility_range_end = ALCANCE_DETALLE_CHICO_M
+		_con_alcance.append(g)
+		return
+	var ab: AABB = g.get_aabb()
+	var t: Vector3 = ab.size * g.global_transform.basis.get_scale().abs()
+	var e: float = maxf(t.x, maxf(t.y, t.z))
+	if e < TAM_PEQUENO:
+		g.visibility_range_end = ALCANCE_PEQUENO
+		_con_alcance.append(g)
+	elif e < TAM_MEDIANO:
+		g.visibility_range_end = ALCANCE_MEDIANO
+		_con_alcance.append(g)

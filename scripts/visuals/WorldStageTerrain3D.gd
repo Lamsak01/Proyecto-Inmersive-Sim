@@ -8,6 +8,17 @@ const Sitio = preload("res://mapa/sitio.gd") ## cruces del mapa (barro rojo del 
 const BARRO_ROJO_MEDIO_LARGO_PX: float = 400.0 ## ~22 m de orilla roja a cada lado de su cruz
 const BARRO_ROJO_ANCHO_PX: float = 60.0        ## la lengua roja llega ~3,4 m tierra adentro junto a la cruz
 const CLARO_MEDIO_LARGO_PX: float = 245.0      ## ~14 m de barro pardo a cada lado del claro
+const SECTORES_SUELO_X: int = 8
+const SECTORES_SUELO_Y: int = 6
+const LOTE_NATURALEZA_M: float = 96.0
+const TROZO_TERRENO_M: float = 72.0
+const TAM_MAX_JUNTAR_FACTOR: float = 0.65
+const TAM_SOMBRA_MIN_M: float = 0.62
+const TRAMO_RIO_CORTE_UNIDADES: float = 1600.0
+const PASO_RIO_FINO: float = 6.0
+const PASO_RIO_RECTO: float = 10.0
+const MARGEN_CRUCE_FINO: float = 90.0
+const ALCANCE_MATA_LOTE_1P_M: float = 48.0
 
 # ==============================================================================
 # SUELO 3D Y NATURALEZA (2026-11-05): sustituyen a la hierba y a los pinos dibujados en 2D
@@ -53,57 +64,45 @@ func _make_ground_shader_mat(key: String, c_prim: Color, c_sec: Color, c_earth: 
 	_mat_cache[key] = sm
 	return sm
 
-## Suelo opaco 3D con malla de relieve continuo (Fase A: lomas en la llanura, desniveles en el bosque y cuencas hundidas
-## en el lago y la ciénaga; plano dentro del pueblo), normales suaves para el sombreado solar y mezcla de biomas por vértice.
+## Suelo opaco 3D con malla de relieve continuo repartida por sectores indexados (solo se dibujan los que caen en cámara
+## y el suelo recibe sombras sin proyectarlas sobre sí mismo).
 func _build_ground_3d() -> void:
-	var m_terrain := _make_ground_shader_mat("ground_terrain_heightfield_sh", Color(0.28, 0.40, 0.21), Color(0.20, 0.30, 0.15), Color(0.37, 0.29, 0.19), 0.26)
+	var m_terrain: Material = _make_ground_shader_mat("ground_terrain_heightfield_sh", Color(0.28, 0.40, 0.21), Color(0.20, 0.30, 0.15), Color(0.37, 0.29, 0.19), 0.26)
 	if m_terrain is ShaderMaterial:
 		(m_terrain as ShaderMaterial).set_shader_parameter("use_vertex_biomes", 1.0)
 	var min_x: float = -3450.0 * Mapa3D.E
 	var max_x: float = 3050.0 * Mapa3D.E
 	var min_y: float = -1850.0 * Mapa3D.E
 	var max_y: float = 3250.0 * Mapa3D.E
-	var step: float = 34.0 * maxf(1.0, Mapa3D.E * 0.4) # mapa ×E: celdas algo mayores para no multiplicar por E² los vértices
+	var step: float = 34.0 * maxf(1.0, Mapa3D.E * 0.4)
 	var nx: int = int(ceil((max_x - min_x) / step))
 	var ny: int = int(ceil((max_y - min_y) / step))
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for iy in range(ny):
-		var y0: float = min_y + float(iy) * step
-		var y1: float = minf(max_y, y0 + step)
-		for ix in range(nx):
-			var x0: float = min_x + float(ix) * step
-			var x1: float = minf(max_x, x0 + step)
-			var p00 := Vector2(x0, y0)
-			var p10 := Vector2(x1, y0)
-			var p01 := Vector2(x0, y1)
-			var p11 := Vector2(x1, y1)
-			var v00: Vector3 = to_3d(p00, 0.0)
-			var v10: Vector3 = to_3d(p10, 0.0)
-			var v01: Vector3 = to_3d(p01, 0.0)
-			var v11: Vector3 = to_3d(p11, 0.0)
-			var n00: Vector3 = terrain_normal_3d(p00, step * 0.5)
-			var n10: Vector3 = terrain_normal_3d(p10, step * 0.5)
-			var n01: Vector3 = terrain_normal_3d(p01, step * 0.5)
-			var n11: Vector3 = terrain_normal_3d(p11, step * 0.5)
-			var c00: Color = _terrain_biome_color(p00, n00)
-			var c10: Color = _terrain_biome_color(p10, n10)
-			var c01: Color = _terrain_biome_color(p01, n01)
-			var c11: Color = _terrain_biome_color(p11, n11)
-			# Triángulo 1 (p00, p10, p11)
-			st.set_color(c00); st.set_normal(n00); st.add_vertex(v00)
-			st.set_color(c10); st.set_normal(n10); st.add_vertex(v10)
-			st.set_color(c11); st.set_normal(n11); st.add_vertex(v11)
-			# Triángulo 2 (p00, p11, p01)
-			st.set_color(c00); st.set_normal(n00); st.add_vertex(v00)
-			st.set_color(c11); st.set_normal(n11); st.add_vertex(v11)
-			st.set_color(c01); st.set_normal(n01); st.add_vertex(v01)
-	var ground_mi := MeshInstance3D.new()
-	ground_mi.name = "TerrainHeightfield3D"
-	ground_mi.mesh = st.commit()
-	ground_mi.material_override = m_terrain
-	ground_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	terrain_root_3d.add_child(ground_mi)
+	var cols_total: int = nx + 1
+	var rows_total: int = ny + 1
+	var grid_v := PackedVector3Array()
+	var grid_n := PackedVector3Array()
+	var grid_c := PackedColorArray()
+	grid_v.resize(cols_total * rows_total)
+	grid_n.resize(cols_total * rows_total)
+	grid_c.resize(cols_total * rows_total)
+	for gy in range(rows_total):
+		var py: float = minf(max_y, min_y + float(gy) * step)
+		var base_row: int = gy * cols_total
+		for gx in range(cols_total):
+			var px: float = minf(max_x, min_x + float(gx) * step)
+			var p2 := Vector2(px, py)
+			var nrm: Vector3 = terrain_normal_3d(p2, step * 0.5)
+			var gi: int = base_row + gx
+			grid_v[gi] = to_3d(p2, 0.0)
+			grid_n[gi] = nrm
+			grid_c[gi] = _terrain_biome_color(p2, nrm)
+	for sy in range(SECTORES_SUELO_Y):
+		var y_ini: int = (ny * sy) / SECTORES_SUELO_Y
+		var y_fin: int = (ny * (sy + 1)) / SECTORES_SUELO_Y
+		for sx in range(SECTORES_SUELO_X):
+			var x_ini: int = (nx * sx) / SECTORES_SUELO_X
+			var x_fin: int = (nx * (sx + 1)) / SECTORES_SUELO_X
+			_crear_sector_suelo_3d(terrain_root_3d, m_terrain, grid_v, grid_n, grid_c, cols_total, x_ini, x_fin, y_ini, y_fin, sx, sy)
 	# Árboles perimetrales en el horizonte oeste y norte para cerrar el horizonte visual
 	var horizon_trees := [
 		Vector2(-2180, -680), Vector2(-2260, -480), Vector2(-2320, -260), Vector2(-2280, -80),
@@ -118,6 +117,62 @@ func _build_ground_3d() -> void:
 			_absorb_into_batches(ht_node, htp)
 	# Matas de hierba, tréboles, helechos y flores silvestres 3D repartidas por praderas, cunetas, campamento y linde del bosque
 	_build_ground_foliage_3d()
+
+
+func _crear_sector_suelo_3d(
+	parent: Node3D, mat: Material,
+	grid_v: PackedVector3Array, grid_n: PackedVector3Array, grid_c: PackedColorArray,
+	cols_total: int, x_ini: int, x_fin: int, y_ini: int, y_fin: int, sx: int, sy: int
+) -> void:
+	var w_q: int = x_fin - x_ini
+	var h_q: int = y_fin - y_ini
+	if w_q <= 0 or h_q <= 0:
+		return
+	var cols_s: int = w_q + 1
+	var rows_s: int = h_q + 1
+	var sv := PackedVector3Array()
+	var sn := PackedVector3Array()
+	var sc := PackedColorArray()
+	var si_arr := PackedInt32Array()
+	sv.resize(cols_s * rows_s)
+	sn.resize(cols_s * rows_s)
+	sc.resize(cols_s * rows_s)
+	si_arr.resize(w_q * h_q * 6)
+	for ly in range(rows_s):
+		var g_row: int = (y_ini + ly) * cols_total
+		var l_row: int = ly * cols_s
+		for lx in range(cols_s):
+			var gi: int = g_row + x_ini + lx
+			var li: int = l_row + lx
+			sv[li] = grid_v[gi]
+			sn[li] = grid_n[gi]
+			sc[li] = grid_c[gi]
+	var ii: int = 0
+	for ly in range(h_q):
+		var r0: int = ly * cols_s
+		var r1: int = (ly + 1) * cols_s
+		for lx in range(w_q):
+			var i00: int = r0 + lx
+			var i10: int = i00 + 1
+			var i01: int = r1 + lx
+			var i11: int = i01 + 1
+			si_arr[ii] = i00; si_arr[ii + 1] = i10; si_arr[ii + 2] = i11
+			si_arr[ii + 3] = i00; si_arr[ii + 4] = i11; si_arr[ii + 5] = i01
+			ii += 6
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = sv
+	arrays[Mesh.ARRAY_NORMAL] = sn
+	arrays[Mesh.ARRAY_COLOR] = sc
+	arrays[Mesh.ARRAY_INDEX] = si_arr
+	var am := ArrayMesh.new()
+	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var sector_mi := MeshInstance3D.new()
+	sector_mi.name = "TerrenoSuelo_%d_%d" % [sx, sy]
+	sector_mi.mesh = am
+	sector_mi.material_override = mat
+	sector_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(sector_mi)
 
 func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Material) -> MeshInstance3D:
 	if estirar_terreno:
@@ -157,9 +212,11 @@ func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Mate
 			st.set_normal(n00); st.add_vertex(v00)
 			st.set_normal(n11); st.add_vertex(v11)
 			st.set_normal(n01); st.add_vertex(v01)
+	st.index()
 	var mi := MeshInstance3D.new()
 	mi.mesh = st.commit()
 	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mi)
 	return mi
 
@@ -215,8 +272,17 @@ func _build_ground_foliage_3d() -> void:
 			var h_f: float = 4.2 + float(idx % 4) * 1.1
 			var node_f := _add_model_2d(terrain_root_3d, mdl, fp, -0.8, Vector2.ZERO, h_f, float((idx * 53) % 360))
 			if node_f != null and nature_root_3d != null:
+				_marcar_mata_sin_sombra(node_f)
 				_absorb_into_batches(node_f, fp)
 	_flush_batches()
+
+
+## Las matas de hierba y setas minúsculas reciben sombra pero no la proyectan (ahorra cientos de pasadas de sombra).
+func _marcar_mata_sin_sombra(nodo: Node) -> void:
+	for c: Node in nodo.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.set_meta(&"mata_baja", true)
 
 
 ## Lago 3D con abundante agua azul a cota -1.5 px, orillas suaves de hierba con juncos y piedras, y un único muelle a ras del agua.
@@ -323,27 +389,42 @@ func _sync_nature_3d(only_update: bool) -> void:
 	_flush_batches()
 
 
-## Pasa las mallas de un árbol o roca a su grupo por zona; el nodo queda vacío y guarda dónde están sus copias.
-func _absorb_into_batches(node: Node3D, pos_2d: Vector2) -> void:
+## Pasa las mallas de un árbol, roca o seta a su lote por sector en metros; el nodo queda vacío y guarda dónde están sus copias.
+func _absorb_into_batches(node: Node3D, _pos_2d: Vector2) -> void:
 	var refs: Array = []
 	var inv: Transform3D = nature_root_3d.global_transform.affine_inverse()
-	var cell := Vector2i(floori(pos_2d.x / BATCH_CHUNK_PX), floori(pos_2d.y / BATCH_CHUNK_PX))
-	for c in node.find_children("*", "MeshInstance3D", true, false):
+	var p3: Vector3 = node.global_position
+	var cell := Vector2i(floori(p3.x / LOTE_NATURALEZA_M), floori(p3.z / LOTE_NATURALEZA_M))
+	for c: Node in node.find_children("*", "MeshInstance3D", true, false):
 		var mi := c as MeshInstance3D
-		if mi.mesh == null or mi.material_override != null:
+		if mi.mesh == null:
 			continue
-		var plain := true
-		for si in range(mi.mesh.get_surface_count()):
-			if mi.get_surface_override_material(si) != null:
-				plain = false
-		if not plain:
-			continue
-		var key := "%d_%d_%d_%d" % [mi.mesh.get_instance_id(), int(mi.cast_shadow), cell.x, cell.y]
+		var mat_ov: Material = mi.material_override
+		var surfs: int = mi.mesh.get_surface_count()
+		if mat_ov == null and surfs == 1:
+			mat_ov = mi.get_surface_override_material(0)
+		elif mat_ov == null and surfs > 1:
+			var tiene_ov: bool = false
+			for si in range(surfs):
+				if mi.get_surface_override_material(si) != null:
+					tiene_ov = true
+					break
+			if tiene_ov:
+				continue
+		var es_mata_baja: bool = mi.has_meta(&"mata_baja")
+		var mat_id: int = mat_ov.get_instance_id() if mat_ov != null else 0
+		var key := "%d_%d_%d_%d_%d_%d" % [mi.mesh.get_instance_id(), mat_id, int(mi.cast_shadow), int(es_mata_baja), cell.x, cell.y]
 		var b: Dictionary = _batches.get(key, {})
 		if b.is_empty():
 			var mmi := MultiMeshInstance3D.new()
 			mmi.name = "Lote_" + key
 			mmi.cast_shadow = mi.cast_shadow
+			if mat_ov != null:
+				mmi.material_override = mat_ov
+			if es_mata_baja:
+				mmi.set_meta(&"lote_mata_baja", true)
+				if bool(get("first_person_active")):
+					mmi.visibility_range_end = ALCANCE_MATA_LOTE_1P_M
 			var mm := MultiMesh.new()
 			mm.transform_format = MultiMesh.TRANSFORM_3D
 			mm.mesh = mi.mesh
@@ -418,10 +499,14 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 			"nature/kenney/mushroom_tanGroup.glb", "nature/kenney/mushroom_redTall.glb", "nature/kenney/mushroom_tanTall.glb"]
 		var mf: String = mfiles[hv % mfiles.size()]
 		var m := _add_model_2d(nature_root_3d, mf, pos, -0.3, Vector2.ZERO, 7.5 if "Tall" in mf else 5.5, rot)
+		if m != null:
+			_marcar_mata_sin_sombra(m)
 		return {"tree": m, "stump": null}
 	if kind == "forage_herb":
 		var hfiles := ["nature/Plant_4.obj", "nature/Plant_5.obj"]
 		var hb := _add_model_2d(nature_root_3d, hfiles[hv % hfiles.size()], pos, -0.3, Vector2.ZERO, 8.5, rot)
+		if hb != null:
+			_marcar_mata_sin_sombra(hb)
 		return {"tree": hb, "stump": null}
 	if kind == "rock":
 		var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
@@ -446,26 +531,88 @@ func _merge_terrain_by_chunks() -> void:
 		return
 	var found: Array = []
 	_collect_merge_meshes(terrain_root_3d, terrain_root_3d, {}, found)
-	var chunk: float = TERRAIN_MERGE_CHUNK_PX * WORLD_SCALE
-	var groups: Dictionary = {}
-	for mi in found:
-		if not _plain_static_materials(mi):
+	var chunk: float = TROZO_TERRENO_M
+	var max_pieza: float = chunk * TAM_MAX_JUNTAR_FACTOR
+	var mats_canon: Dictionary = {}
+	var groups_grandes: Dictionary = {}
+	var groups_chicos: Dictionary = {}
+	for mi_v in found:
+		var mi := mi_v as MeshInstance3D
+		if mi.has_meta(&"malla_cauce") or not _plain_static_materials(mi):
 			continue
 		var aabb: AABB = mi.global_transform * mi.mesh.get_aabb()
-		if aabb.size.x > chunk * 0.5 or aabb.size.z > chunk * 0.5:
+		if aabb.size.x > max_pieza or aabb.size.z > max_pieza:
 			continue
+		_canonizar_materiales_malla(mi, mats_canon)
+		var tam_max: float = maxf(aabb.size.x, maxf(aabb.size.y, aabb.size.z))
 		var c3: Vector3 = aabb.get_center()
 		var key := Vector2i(floori(c3.x / chunk), floori(c3.z / chunk))
-		if not groups.has(key):
-			groups[key] = []
-		groups[key].append(mi)
-	for key in groups.keys():
-		if (groups[key] as Array).size() < 2:
+		if tam_max < TAM_SOMBRA_MIN_M:
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			if not groups_chicos.has(key):
+				groups_chicos[key] = []
+			(groups_chicos[key] as Array).append(mi)
+		else:
+			if not groups_grandes.has(key):
+				groups_grandes[key] = []
+			(groups_grandes[key] as Array).append(mi)
+	for key: Vector2i in groups_grandes.keys():
+		var lista: Array = groups_grandes[key]
+		if lista.size() < 2:
 			continue
 		var holder := Node3D.new()
 		holder.name = "TerrenoJuntado_%d_%d" % [key.x, key.y]
 		terrain_root_3d.add_child(holder)
-		_merge_mesh_list(holder, groups[key])
+		_merge_mesh_list(holder, lista)
+	for key_c: Vector2i in groups_chicos.keys():
+		var lista_c: Array = groups_chicos[key_c]
+		if lista_c.size() < 2:
+			continue
+		var holder_c := Node3D.new()
+		holder_c.name = "TerrenoChico_%d_%d" % [key_c.x, key_c.y]
+		terrain_root_3d.add_child(holder_c)
+		_merge_mesh_list(holder_c, lista_c)
+		for ch: Node in holder_c.get_children():
+			if ch is GeometryInstance3D:
+				(ch as GeometryInstance3D).set_meta(&"juntado_chico", true)
+	for mi_v in found:
+		var mi_limpio := mi_v as MeshInstance3D
+		if is_instance_valid(mi_limpio) and mi_limpio.mesh == null and mi_limpio.get_child_count() == 0 and mi_limpio.get_meta_list().is_empty():
+			var p: Node = mi_limpio.get_parent()
+			if p != null:
+				p.remove_child(mi_limpio)
+			mi_limpio.free()
+
+
+## Unifica materiales StandardMaterial3D idénticos del decorado horneado para que entren en una sola superficie por trozo.
+func _canonizar_materiales_malla(mi: MeshInstance3D, tabla: Dictionary) -> void:
+	if mi.material_override is StandardMaterial3D:
+		mi.material_override = _material_estatico_unico(mi.material_override as StandardMaterial3D, tabla)
+		return
+	if mi.material_override != null:
+		return
+	for si in range(mi.mesh.get_surface_count()):
+		var ov: Material = mi.get_surface_override_material(si)
+		if ov is StandardMaterial3D:
+			mi.set_surface_override_material(si, _material_estatico_unico(ov as StandardMaterial3D, tabla))
+		elif ov == null:
+			var sm: Material = mi.mesh.surface_get_material(si)
+			if sm is StandardMaterial3D:
+				mi.set_surface_override_material(si, _material_estatico_unico(sm as StandardMaterial3D, tabla))
+
+
+func _material_estatico_unico(m: StandardMaterial3D, tabla: Dictionary) -> StandardMaterial3D:
+	var tex_id: int = m.albedo_texture.get_instance_id() if m.albedo_texture != null else 0
+	var nrm_id: int = m.normal_texture.get_instance_id() if (m.normal_enabled and m.normal_texture != null) else 0
+	var firma: String = "%d|%s|%.3f|%.3f|%d|%d|%d|%d|%s|%d|%d" % [
+		tex_id, m.albedo_color.to_html(), m.roughness, m.metallic, int(m.cull_mode),
+		int(m.transparency), nrm_id, int(m.uv1_triplanar), str(m.uv1_scale),
+		int(m.shading_mode), int(m.vertex_color_use_as_albedo)
+	]
+	if tabla.has(firma):
+		return tabla[firma] as StandardMaterial3D
+	tabla[firma] = m
+	return m
 
 func _plain_static_materials(mi: MeshInstance3D) -> bool:
 	for si in range(mi.mesh.get_surface_count()):
@@ -535,38 +682,67 @@ const MARSH_WATER_PTS: PackedVector2Array = [
 	Vector2(-1910, 310),
 ]
 
-## Río de norte a sur y arroyo del bosque: la lámina de agua, la parte honda y las orillas de tierra y barro (mallas hechas
-## aquí). Puentes, sendero, piedras, juncos, bosque y molino son piezas de «Decorado» del editor del mapa (2026-11-12).
+## Río de norte a sur y arroyo del bosque: lámina de agua, cauce hondo y orillas de tierra y barro repartidos en tramos
+## indexados (los kilómetros fuera de cámara no se dibujan y los vértices compartidos se calculan una sola vez).
 func _build_river_and_arroyo_3d() -> void:
-	var m_riv_water := _mat_agua("river_water_3d", Color(0.18, 0.48, 0.76, 0.92))
-	var m_riv_deep := _mat_agua("river_deep_3d", Color(0.09, 0.28, 0.52, 0.96))
-	var m_bank_earth := _mat("river_bank_earth", Color(0.40, 0.31, 0.20), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.65)
-	var m_wet_mud := _mat("river_wet_mud", Color(0.25, 0.18, 0.12), 0.44, 0.08, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.72)
-	# Barro pardo del Claro del Arroyo donde aparece el cuerpo del Caso I
-	var m_brown_mud := _mat("arroyo_brown_mud", Color(0.36, 0.24, 0.14), 0.62, 0.06, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.72)
-	# Barro rojo / arcilla junto al Molino Viejo Abandonado (arcilla rojiza viva bien diferenciada del barro pardo del claro)
-	var m_red_clay := _mat("mill_red_clay_mud", Color(0.84, 0.16, 0.08), 0.56, 0.04, Color(0.26, 0.04, 0.02), 1.0, "town_textures/floor_ground_dirt.png", "town_textures/wall_stone_n.png", 0.78)
-
-	var st_water := SurfaceTool.new()
-	st_water.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var st_deep := SurfaceTool.new()
-	st_deep.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var st_banks := SurfaceTool.new()
-	st_banks.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var st_wet_mud := SurfaceTool.new()
-	st_wet_mud.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var st_brown_mud := SurfaceTool.new()
-	st_brown_mud.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var st_red_clay := SurfaceTool.new()
-	st_red_clay.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var m_riv_water: Material = _mat_agua("river_water_3d", Color(0.18, 0.48, 0.76, 0.92))
+	var m_riv_deep: Material = _mat_agua("river_deep_3d", Color(0.09, 0.28, 0.52, 0.96))
+	var m_bank_earth: Material = _mat("river_bank_earth", Color(0.40, 0.31, 0.20), 0.94, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.65)
+	var m_wet_mud: Material = _mat("river_wet_mud", Color(0.25, 0.18, 0.12), 0.44, 0.08, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.72)
+	var m_brown_mud: Material = _mat("arroyo_brown_mud", Color(0.36, 0.24, 0.14), 0.62, 0.06, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.72)
+	var m_red_clay: Material = _mat("mill_red_clay_mud", Color(0.84, 0.16, 0.08), 0.56, 0.04, Color(0.26, 0.04, 0.02), 1.0, "town_textures/floor_ground_dirt.png", "town_textures/wall_stone_n.png", 0.78)
 	var y_barro_rojo: float = Sitio.mundo("barro_rojo_molino").y
 	var y_claro: float = Sitio.mundo("claro_caso1").y
-
-	var step_y: float = 6.0
-	var y_cur: float = RioLagoScript.river_y_start()
+	var cruces_rio: Array[Dictionary] = RioLagoScript.river_crossings()
+	var y_ini_rio: float = RioLagoScript.river_y_start()
 	var y_end_riv: float = RioLagoScript.river_y_end()
-	while y_cur < y_end_riv - 0.01:
-		var y_nxt: float = minf(y_end_riv, y_cur + step_y)
+
+	var seg_y0: float = y_ini_rio
+	var idx_seg: int = 0
+	while seg_y0 < y_end_riv - 0.01:
+		var seg_y1: float = minf(y_end_riv, seg_y0 + TRAMO_RIO_CORTE_UNIDADES)
+		_construir_tramo_rio_3d(
+			terrain_root_3d, idx_seg, seg_y0, seg_y1, y_barro_rojo, y_claro, cruces_rio,
+			m_riv_water, m_riv_deep, m_bank_earth, m_wet_mud, m_brown_mud, m_red_clay
+		)
+		seg_y0 = seg_y1
+		idx_seg += 1
+
+
+func _paso_rio_en(y_val: float, y_barro_rojo: float, y_claro: float, cruces_rio: Array[Dictionary]) -> float:
+	if absf(y_val - y_barro_rojo) <= BARRO_ROJO_MEDIO_LARGO_PX + MARGEN_CRUCE_FINO:
+		return PASO_RIO_FINO
+	if absf(y_val - y_claro) <= CLARO_MEDIO_LARGO_PX + MARGEN_CRUCE_FINO:
+		return PASO_RIO_FINO
+	for cr: Dictionary in cruces_rio:
+		var cpos: Vector2 = cr["pos"]
+		if absf(y_val - cpos.y) <= float(cr["half_h"]) + MARGEN_CRUCE_FINO:
+			return PASO_RIO_FINO
+	return PASO_RIO_RECTO
+
+
+func _construir_tramo_rio_3d(
+	parent: Node3D, idx_seg: int, seg_y0: float, seg_y1: float,
+	y_barro_rojo: float, y_claro: float, cruces_rio: Array[Dictionary],
+	m_riv_water: Material, m_riv_deep: Material, m_bank_earth: Material,
+	m_wet_mud: Material, m_brown_mud: Material, m_red_clay: Material
+) -> void:
+	var st_water := SurfaceTool.new(); st_water.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_deep := SurfaceTool.new(); st_deep.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_banks := SurfaceTool.new(); st_banks.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_wet_mud := SurfaceTool.new(); st_wet_mud.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_brown_mud := SurfaceTool.new(); st_brown_mud.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var st_red_clay := SurfaceTool.new(); st_red_clay.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n_banks: int = 0
+	var n_wet: int = 0
+	var n_brown: int = 0
+	var n_red: int = 0
+	var n_water: int = 0
+
+	var y_cur: float = seg_y0
+	while y_cur < seg_y1 - 0.01:
+		var step_y: float = _paso_rio_en(y_cur, y_barro_rojo, y_claro, cruces_rio)
+		var y_nxt: float = minf(seg_y1, y_cur + step_y)
 		var b0: Vector2 = RioLagoScript.river_banks_at(y_cur)
 		var b1: Vector2 = RioLagoScript.river_banks_at(y_nxt)
 		var h0: float = superficie_rio_px(y_cur)
@@ -578,6 +754,7 @@ func _build_river_and_arroyo_3d() -> void:
 		st_water.set_normal(Vector3.UP)
 		st_water.add_vertex(wl0); st_water.add_vertex(wr0); st_water.add_vertex(wr1)
 		st_water.add_vertex(wl0); st_water.add_vertex(wr1); st_water.add_vertex(wl1)
+		n_water += 1
 
 		var cx0: float = (b0.x + b0.y) * 0.5
 		var hw0: float = (b0.y - b0.x) * 0.33
@@ -591,15 +768,12 @@ func _build_river_and_arroyo_3d() -> void:
 		st_deep.add_vertex(dl0); st_deep.add_vertex(dr0); st_deep.add_vertex(dr1)
 		st_deep.add_vertex(dl0); st_deep.add_vertex(dr1); st_deep.add_vertex(dl1)
 
-		# Orillas naturales 3D con barro húmedo en el borde del agua, lenguas de lodo irregulares, barro rojo en el molino y barro pardo en el claro
 		var town_mud_boost0: float = lerpf(1.0, 1.95, smoothstep(-520.0, -180.0, y_cur) * (1.0 - smoothstep(260.0, 390.0, y_cur)))
 		var town_mud_boost1: float = lerpf(1.0, 1.95, smoothstep(-520.0, -180.0, y_nxt) * (1.0 - smoothstep(260.0, 390.0, y_nxt)))
 		var w_pad_l0: float = (7.2 + sin(y_cur * 0.057 + 0.3) * 3.4 + cos(y_cur * 0.119 - 0.8) * 2.1) * town_mud_boost0
 		var w_pad_l1: float = (7.2 + sin(y_nxt * 0.057 + 0.3) * 3.4 + cos(y_nxt * 0.119 - 0.8) * 2.1) * town_mud_boost1
 		var w_pad_r0: float = (7.2 + cos(y_cur * 0.051 - 0.5) * 3.4 + sin(y_cur * 0.113 + 1.1) * 2.1) * town_mud_boost0
 		var w_pad_r1: float = (7.2 + cos(y_nxt * 0.051 - 0.5) * 3.4 + sin(y_nxt * 0.113 + 1.1) * 2.1) * town_mud_boost1
-		# Barro rojo junto al molino y barro pardo en el claro del Caso I: van con sus cruces de «Sitios» (antes eran
-		# números del mapa original sin estirar ×5 y el barro rojo salía cerca del pueblo, lejos del molino)
 		var in_mill_zone: bool = absf(y_cur - y_barro_rojo) <= BARRO_ROJO_MEDIO_LARGO_PX
 		var in_clearing_zone: bool = absf(y_cur - y_claro) <= CLARO_MEDIO_LARGO_PX
 		if in_mill_zone:
@@ -615,6 +789,13 @@ func _build_river_and_arroyo_3d() -> void:
 
 		var st_left_target: SurfaceTool = st_red_clay if in_mill_zone else st_banks
 		var st_right_target: SurfaceTool = st_red_clay if in_mill_zone else (st_brown_mud if in_clearing_zone else st_banks)
+		if in_mill_zone:
+			n_red += 1
+		elif in_clearing_zone:
+			n_banks += 1
+			n_brown += 1
+		else:
+			n_banks += 1
 
 		var bl_in0: Vector3 = to_3d_flat(Vector2(b0.x + 1.0, y_cur), h0 - 0.06)
 		var bl_lip0: Vector3 = to_3d_flat(Vector2(b0.x - 1.8, y_cur), h0 + 0.24)
@@ -640,7 +821,6 @@ func _build_river_and_arroyo_3d() -> void:
 		st_right_target.add_vertex(br_lip0); st_right_target.add_vertex(br_out0); st_right_target.add_vertex(br_out1)
 		st_right_target.add_vertex(br_lip0); st_right_target.add_vertex(br_out1); st_right_target.add_vertex(br_lip1)
 
-		# Franja de barro oscuro y húmedo (y bajíos de lodo en las curvas) junto a la lámina de agua fuera del molino y del claro
 		if not in_mill_zone and not in_clearing_zone:
 			var wm_l_in0: float = 1.6 + maxf(0.0, sin(y_cur * 0.071 + 0.9)) * 3.8 * (town_mud_boost0 * 0.55)
 			var wm_l_in1: float = 1.6 + maxf(0.0, sin(y_nxt * 0.071 + 0.9)) * 3.8 * (town_mud_boost1 * 0.55)
@@ -665,22 +845,33 @@ func _build_river_and_arroyo_3d() -> void:
 			st_wet_mud.set_normal(Vector3.UP)
 			st_wet_mud.add_vertex(wmr_a0); st_wet_mud.add_vertex(wmr_b0); st_wet_mud.add_vertex(wmr_b1)
 			st_wet_mud.add_vertex(wmr_a0); st_wet_mud.add_vertex(wmr_b1); st_wet_mud.add_vertex(wmr_a1)
+			n_wet += 1
 
 		y_cur = y_nxt
 
-	for pair_m in [
-		[st_banks, m_bank_earth],
-		[st_wet_mud, m_wet_mud],
-		[st_brown_mud, m_brown_mud],
-		[st_red_clay, m_red_clay],
-		[st_water, m_riv_water],
-		[st_deep, m_riv_deep],
+	if n_water == 0:
+		return
+	var sufijo: int = 0
+	for pair_m: Array in [
+		[st_banks, m_bank_earth, n_banks],
+		[st_wet_mud, m_wet_mud, n_wet],
+		[st_brown_mud, m_brown_mud, n_brown],
+		[st_red_clay, m_red_clay, n_red],
+		[st_water, m_riv_water, n_water],
+		[st_deep, m_riv_deep, n_water],
 	]:
+		sufijo += 1
+		if int(pair_m[2]) <= 0:
+			continue
+		var st_i := pair_m[0] as SurfaceTool
+		st_i.index()
 		var mi_s := MeshInstance3D.new()
-		mi_s.mesh = (pair_m[0] as SurfaceTool).commit()
-		mi_s.material_override = pair_m[1]
+		mi_s.name = "RioTramo_%d_%d" % [idx_seg, sufijo]
+		mi_s.mesh = st_i.commit()
+		mi_s.material_override = pair_m[1] as Material
 		mi_s.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		terrain_root_3d.add_child(mi_s)
+		mi_s.set_meta(&"malla_cauce", true)
+		parent.add_child(mi_s)
 
 
 ## Editor del mapa 3D (2026-11-10): mapa/Mundo3D.tscn. «Vegetacion» (árboles, rocas, plantas y troncos horneados del
@@ -786,6 +977,7 @@ func _crear_talables_pendientes() -> void:
 			_choque_de_pieza(c as Node3D)
 	_talables_pendientes.clear()
 	_mundo_editor = null
+	_flush_batches()
 
 
 ## Árbol de la escena → árbol talable del juego (choque, madera, tocón al talarlo y vuelve a crecer). El modelo de la pieza
@@ -948,8 +1140,10 @@ func _add_tramo_3d(parent: Node3D, a: Vector2, b: Vector2, ancho: float, height_
 			for p in [p00, p10, p11, p00, p11, p01]:
 				st.set_normal(terrain_normal_3d(p, 12.0))
 				st.add_vertex(to_3d(p, height_px))
+	st.index()
 	var mi := MeshInstance3D.new()
 	mi.mesh = st.commit()
 	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mi)
 	return mi
