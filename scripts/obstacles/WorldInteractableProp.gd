@@ -19,6 +19,10 @@ const VillageClub = preload("res://scripts/systems/VillageClub.gd")
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const VillageFame = preload("res://scripts/systems/VillageFame.gd")
 const CharacterAvatar3DScript = preload("res://scripts/visuals/CharacterAvatar3D.gd")
+## En la demo (solo el Caso I) las alcantarillas y el club están apagados: sus trampillas dicen que están cerradas
+const TRAMPILLAS_CERRADAS_EN_DEMO: Array[String] = ["sewer_grate", "club_trapdoor"]
+const ETIQUETA_TRAMPILLA_CERRADA: String = "Mirar la trampilla"
+const AVISO_TRAMPILLA_CERRADA: String = "Está cerrada a cal y canto. Por ahora no se puede bajar."
 
 var vm: Node2D = null
 var prop_kind: String = "terminal"
@@ -145,8 +149,12 @@ func _build_interact_area() -> void:
 		add_child(interact_area)
 
 
+
 func get_interact_label(_player: Node2D = null) -> String:
 	if vm != null and vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode")):
+		# En la demo las alcantarillas están apagadas, pero la rejilla se ve: que diga que está cerrada, no que no responda
+		if prop_kind in TRAMPILLAS_CERRADAS_EN_DEMO:
+			return ETIQUETA_TRAMPILLA_CERRADA
 		if prop_kind in ["heist_target", "sewer_grate", "sewer_ladder", "sewer_chest", "home_workbench", "home_table", "home_stash", "home_stairs", "player_shop_counter", "collect_point", "town_coffers", "town_ledger", "masterwork_counter", "club_trapdoor", "club_ladder", "club_ring", "club_bet"]:
 			return ""
 	match prop_kind:
@@ -217,6 +225,9 @@ func interact(player: Node2D) -> void:
 	if vm == null or player == null:
 		return
 	if vm.has_method("is_demo_mode") and bool(vm.call("is_demo_mode")):
+		if prop_kind in TRAMPILLAS_CERRADAS_EN_DEMO and player.has_method("show_hint"):
+			player.call("show_hint", AVISO_TRAMPILLA_CERRADA)
+			return
 		if prop_kind in ["heist_target", "sewer_grate", "sewer_ladder", "sewer_chest", "home_workbench", "home_table", "home_stash", "home_stairs", "player_shop_counter", "collect_point", "town_coffers", "town_ledger", "masterwork_counter", "club_trapdoor", "club_ladder", "club_ring", "club_bet"]:
 			return
 	match prop_kind:

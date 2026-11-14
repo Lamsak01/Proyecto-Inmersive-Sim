@@ -10,10 +10,13 @@
   pierde; el guardia mensajero quizá se atasca o se queda en la casa.)*
 - ✅ (2026-11-13, usuario, captura; falta que lo veas jugando) **Al dormir solo se acelera el tiempo y puedes seguir
   andando** · 1.ª persona, cama. *(Ahora te quedas quieto hasta el alba; un golpe te despierta. Falta, si lo quiere, fundido a negro.)*
-- [ ] (2026-11-13, usuario, captura) **Las trampillas no se pueden usar en primera persona** · rejilla en el suelo, 06:17.
+- ✅ (2026-11-13, usuario, captura; falta que lo veas jugando) **Las trampillas no se pueden usar en primera persona** ·
+  rejilla en el suelo, 06:17. *(Las alcantarillas están apagadas en la demo; ahora la trampilla dice «Mirar la trampilla» y
+  avisa de que está cerrada. Además la cruz las alcanza por el borde, no solo por el centro.)*
 - [ ] (2026-11-13, usuario, captura) **El pozo con tejadillo no le gusta** (no sabe qué es) · camino del pueblo, 06:44.
-- [ ] (2026-11-13, usuario, 2 capturas) **El tablón de encargos solo responde si apuntas a su esquina de arriba a la
-  izquierda** · plaza, 1.ª persona.
+- ✅ (2026-11-13, usuario, 2 capturas; falta que lo veas jugando) **El tablón de encargos solo responde si apuntas a su
+  esquina de arriba a la izquierda** · plaza, 1.ª persona. *(El punto de uso estaba en un extremo del dibujo y la cruz solo
+  daba ~40 cm de margen; ahora los objetos grandes se apuntan en todo su ancho, hasta ~1 m.)*
 - ✅ (2026-11-13, usuario) **Se podía abrir todo el caso (autopsia, escena, tablero con sospechosos) el día 1, antes del crimen.** *(Ahora el panel no se abre hasta el recado de Vane; con la tecla del caso solo el tablero; cada sospechoso aparece al encontrar su pista.)*
 - ✅ (2026-11-13, usuario; falta que lo veas jugando) **El Caso I no se entiende jugando**: el primer día no encuentra el
   cuerpo; misiones no marca objetivos; la carta no se relee; Vane no dice nada. *(La carta va en la mochila; el día 2 un

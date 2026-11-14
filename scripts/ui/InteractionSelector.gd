@@ -14,6 +14,7 @@ const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd")
 const REFRESH_S: float = 0.05
 const MOUSE_PICK_PX: float = 16.0
 const MOUSE_REACH_PX: float = 55.0
+const RADIO_OBJETO_MAX_PX: float = 20.0 ## ~1,1 m: tope del medio ancho de un objeto al apuntarle en 1.ª persona
 
 const STATION_LABELS: Dictionary = {
 	"well": "Sacar agua del pozo",
@@ -214,13 +215,17 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 				max_reach_px = 27.0
 				max_lat_px = 8.0
 
-	if dist_px > max_reach_px:
+	# Los objetos grandes (tablón, trampilla) se alcanzan por su borde y se apuntan en todo su ancho, no solo en su
+	# punto central: antes había que apuntar a una esquina del tablón (usuario, 2026-11-13)
+	var radio: float = _radio_objeto(a, tgt)
+	if dist_px - radio > max_reach_px:
 		return -1.0
 
 	var fwd_2d: Vector2 = WorldStage3DScript.get_fp_forward_2d()
 	var rgt_2d: Vector2 = WorldStage3DScript.get_fp_right_2d()
-	var forward_px: float = to_c.dot(fwd_2d)
-	var lateral_px: float = absf(to_c.dot(rgt_2d))
+	var forward_px: float = to_c.dot(fwd_2d) + radio # hasta el borde más lejano: encima de una trampilla también vale
+	var lateral_px: float = maxf(0.0, absf(to_c.dot(rgt_2d)) - radio)
+	var dist_eff: float = maxf(0.001, Vector2(forward_px, lateral_px).length())
 	var pitch: float = WorldStage3DScript.fp_pitch
 
 	if is_floor_obj:
@@ -229,7 +234,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 			return -1.0
 		if forward_px < 1.0 or lateral_px > max_lat_px:
 			return -1.0
-		var horiz_cos_f: float = forward_px / maxf(0.001, dist_px)
+		var horiz_cos_f: float = forward_px / dist_eff
 		if horiz_cos_f < 0.86:
 			return -1.0
 		return horiz_cos_f * 100.0 - lateral_px * 2.5 - dist_px * 0.6
@@ -237,7 +242,7 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 	# Puertas, vecinos, mesas, carteles: deben estar delante de la cruz central y no mirando al suelo ni al techo
 	if forward_px < 2.5 or lateral_px > max_lat_px:
 		return -1.0
-	var horiz_cos: float = forward_px / maxf(0.001, dist_px)
+	var horiz_cos: float = forward_px / dist_eff
 	if horiz_cos < 0.90:
 		return -1.0
 
@@ -249,6 +254,23 @@ func _fp_crosshair_score(a: Area2D, tgt: Node, c_pos: Vector2, pp: Vector2) -> f
 			return -1.0
 
 	return horiz_cos * 100.0 - lateral_px * 2.8 - dist_px * 0.5 - absf(pitch) * 12.0
+
+
+## Medio ancho de la zona de uso de un objeto quieto (círculo o rectángulo), con tope; vecinos y animales cuentan como
+## un punto para que la cruz no elija a quien está al lado.
+func _radio_objeto(a: Area2D, tgt: Node) -> float:
+	if a == null or tgt is VillageNPC or "animal_name" in tgt:
+		return 0.0
+	for c in a.get_children():
+		var forma: CollisionShape2D = c as CollisionShape2D
+		if forma == null or forma.shape == null:
+			continue
+		if forma.shape is CircleShape2D:
+			return minf((forma.shape as CircleShape2D).radius, RADIO_OBJETO_MAX_PX)
+		if forma.shape is RectangleShape2D:
+			var tam: Vector2 = (forma.shape as RectangleShape2D).size
+			return minf(minf(tam.x, tam.y) * 0.5, RADIO_OBJETO_MAX_PX)
+	return 0.0
 
 
 ## ¿El protagonista está buceando? (paso 3b)

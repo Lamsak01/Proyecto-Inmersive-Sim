@@ -31,11 +31,11 @@ Hablar para el reloj (`WorldClock.set_dialogue_pause`, prueba `pausa_dialogo.gd`
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
-1. **Que el usuario juegue el Caso I desde el día 2** y revise los diálogos nuevos.
-2. **Rendimiento** (prioridad 1 en FALLOS_VISIBLES): pendiente las sombras del sol (duplican el dibujo). Medio.
-3. **Vecinos atascados**: simulaciones a 0; abierto hasta que el usuario lo confirme jugando.
+1. **Que el usuario juegue el Caso I desde el día 2** (guardia que habla, dormir, tablón y trampillas arreglados el 14).
+   Pendientes de su partida: dos guardias de pie sobre una cama; el pozo con tejadillo no se reconoce.
+2. **Rendimiento**: sombras del sol (duplican el dibujo). Medio. 3. **Vecinos atascados**: a 0; falta que lo confirme él.
 4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
-**Contexto:** el ×5 que queda (`Mapa3D.E`) no se ve; pesca, huerto, corral y campamento se rehacen en 3D tras el Caso I.
+**Contexto:** ×5 (`Mapa3D.E`) invisible; pesca, huerto, corral y campamento se rehacen en 3D tras el Caso I.
 
 ## d) Bloqueos activos
 - `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre.
