@@ -216,8 +216,7 @@ func _process_corpse_state(delta: float) -> void:
 				corpse_carrier._carrying_corpse_target = null
 			corpse_being_carried = false
 			corpse_carrier = null
-	else:
-		corpse_rot_hours += delta / 65.0
+	# (La podredumbre suma una hora por hora de juego en VillageNPC._on_hour_passed; aquí también sumaba y contaba doble)
 
 	if sprite:
 		sprite.visible = true

@@ -3,6 +3,7 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
+- 2026-11-14 · Caso I: el cuerpo cuenta horas desde la muerte (01:00 del día 2) y una sola vez por hora, deterioro a las 36 h; el guardia vigila sin que su turno lo saque y ya está en su puesto al llegar tú; autopsia solo en la mesa de la morgue («Pedir que la lleven a la morgue» en la escena); sin «Avisar a la guardia» en el caso; tablero con fichas compactas y cuaderno desplazable. Prueba `tools/tests/custodia_cuerpo.gd`; partida automática 25/25.
 - 2026-11-14 · Diálogos: al elegir una pregunta que apunta algo (p. ej. el encargo de Vane), la respuesta sale en la caja y la charla sigue; mientras hablas, las pistas no se repiten en la esquina. Prueba `tools/tests/vane_dialogo.gd`.
 - 2026-11-14 · Vecinos: un recado urgente (el guardia del día 2) manda sobre su turno, su hambre y su sueño, y el cansancio solo le frena un 15 %; antes iba y venía y se arrastraba. La prueba `aviso_caso1` usa un guardia cansado y hambriento, con el jugador quieto.
 - 2026-11-14 · Caso I: al aparecer el cuerpo (día 2, 06:00) se corta el tiempo adelantado (Ctrl+T o dormir), y también cuando el guardia llega a tu lado; la prueba `aviso_caso1` pulsa Ctrl+T a las 05:50.

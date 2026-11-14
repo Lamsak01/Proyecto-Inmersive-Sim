@@ -164,6 +164,8 @@ const NIGHT_ERRANDS: Array[String] = ["fence_alley", "smuggler_bust", "gathering
 const URGENT_ERRANDS: Array[String] = ["case1_mensajero"]
 const ERRAND_RUN_SPEED: float = 110.0 ## px/s; pasear es 38 y tú andas a 120
 const URGENT_MIN_SPEED_FACTOR: float = 0.85 ## en un recado urgente, el cansancio o el hambre le quitan como mucho un 15 %
+## Puestos fijos (vigilar el cuerpo del Caso I): su turno de trabajo no los saca de ahí; el hambre o el sueño fuertes sí
+const POST_ERRANDS: Array[String] = ["case1_custodia"]
 var errand_pos: Vector2 = Vector2.ZERO
 var errand_since: int = 0
 ## B4.1: Los vecinos despiertos llevan farol encendido de 20:00 a 6:00, salvo si van en sigilo, sonámbulos o de faena turbia.

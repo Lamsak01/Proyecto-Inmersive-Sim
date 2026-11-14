@@ -5,6 +5,17 @@ const DetectiveCaseDataScript = preload("res://scripts/systems/DetectiveCaseData
 const CASO1_SCRIPT: String = "res://scripts/systems/VillageCase1.gd" ## con load() en tiempo de juego: su preload haría ciclo
 const AVISO_SIN_CASO: String = "🔎 Aún no tienes ningún caso abierto."
 const AVISO_SIN_CUERPO: String = "🔎 Para examinar el cuerpo o la escena tienes que estar junto a ella."
+## Caso I: la autopsia se hace en la mesa de la morgue del hospital, no desde la escena (usuario, 2026-11-14)
+const BANNER_CASO_EN_ESCENA: String = "El cuerpo sigue en la escena. Pide a la guardia que lo lleve a la morgue del hospital y haz allí la autopsia, en la mesa del forense."
+const BANNER_CASO_YA_EN_MORGUE: String = "El cuerpo ya está en la morgue del hospital. Ve allí y usa la mesa de autopsias."
+## Tablero y cuaderno compactos (usuario, 2026-11-14: fichas enormes que se tapaban y cuaderno sin desplazar)
+const FICHA_LINEAS: int = 3
+const FICHAS_POR_FILA: int = 6
+const FICHA_PASO: Vector2 = Vector2(185.0, 112.0)
+const CUADERNO_LINEAS: int = 2
+const CUADERNO_PASO_RUEDA: int = 120
+const BOTON_PEDIR_MORGUE: String = "Pedir que la lleven a la morgue"
+const AVISO_LLEVADA_A_MORGUE: String = "💂 La guardia se lleva el cuerpo a la morgue del hospital. La autopsia, allí."
 
 ## Herramientas del Detective (Bloques D1–D5)
 ## Copia fiel en Godot del boceto aprobado en `docs/bocetos/examen_cuerpo.html`.
@@ -138,6 +149,7 @@ var lbl_bench_doc: RichTextLabel = null
 var morgue_status_banner: PanelContainer = null
 var lbl_morgue_banner: Label = null
 var btn_morgue_transfer: Button = null
+var _abierto_en_morgue: bool = false ## el panel se abrió en la mesa de autopsias (solo así se puede hacer la autopsia)
 
 # Vista D3: Escena del crimen (farol + pistas físicas + testigos cercanos)
 var scene_sketch_tex_rect: TextureRect = null
@@ -159,6 +171,7 @@ var board_link_from: String = ""
 
 # Tira inferior: Cuaderno del caso
 var strip_notes_hbox: HBoxContainer = null
+var strip_panel: PanelContainer = null
 var lbl_strip_empty: Label = null
 
 
@@ -948,7 +961,7 @@ func _build_ui() -> void:
 	views_holder.add_child(view_board)
 
 	# 4. Tira inferior: Cuaderno del caso (fichas clavadas con chincheta roja)
-	var strip_panel := PanelContainer.new()
+	strip_panel = PanelContainer.new()
 	strip_panel.custom_minimum_size = Vector2(0, 88)
 	strip_panel.add_theme_stylebox_override("panel", _style_box(COL_PANEL, COL_EDGE, 1, 0, 12, 8))
 	root_vbox.add_child(strip_panel)
@@ -968,6 +981,19 @@ func _build_ui() -> void:
 	strip_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	strip_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	strip_vbox.add_child(strip_scroll)
+	# La rueda del ratón desplaza el cuaderno a los lados (antes no había forma de ver las últimas pistas)
+	strip_scroll.gui_input.connect(func(ev: InputEvent) -> void:
+		var rueda := ev as InputEventMouseButton
+		if rueda == null or not rueda.pressed:
+			return
+		if rueda.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			strip_scroll.scroll_horizontal += CUADERNO_PASO_RUEDA
+		elif rueda.button_index == MOUSE_BUTTON_WHEEL_UP:
+			strip_scroll.scroll_horizontal -= CUADERNO_PASO_RUEDA
+		else:
+			return
+		strip_scroll.accept_event()
+	)
 
 	strip_notes_hbox = HBoxContainer.new()
 	strip_notes_hbox.add_theme_constant_override("separation", 10)
@@ -1281,6 +1307,9 @@ func _build_morgue_view() -> Control:
 	btn_morgue_transfer.add_theme_color_override("font_color", Color("#18140d"))
 	btn_morgue_transfer.add_theme_stylebox_override("normal", _style_box(COL_LAMP, COL_LAMP, 1, 0, 10, 5))
 	btn_morgue_transfer.pressed.connect(func():
+		if _es_cuerpo_del_caso():
+			_pedir_traslado_a_morgue()
+			return
 		if is_instance_valid(current_corpse):
 			if current_corpse.has_method("report_corpse_by_player") and current_corpse.get("corpse_reported") != true:
 				current_corpse.call("report_corpse_by_player", player)
@@ -1520,6 +1549,7 @@ func open_for_corpse(corpse_node: Node2D, initial_mode: String = "body") -> void
 		_avisar(AVISO_SIN_CASO)
 		return
 	current_corpse = corpse_node
+	_abierto_en_morgue = initial_mode == "morgue"
 	visible = true
 	if WorldClock != null:
 		WorldClock.set_activity_pause(true)
@@ -1581,6 +1611,8 @@ func switch_mode(mode_id: String) -> void:
 	view_morgue.visible = (mode_id == "morgue")
 	view_scene.visible = (mode_id == "scene")
 	view_board.visible = (mode_id == "board")
+	if strip_panel != null:
+		strip_panel.visible = mode_id != "board" # en el tablero las pistas ya están como fichas: más sitio
 	if mode_id == "morgue":
 		_render_morgue_view()
 	elif mode_id == "scene":
@@ -1600,6 +1632,22 @@ func _caso_abierto() -> bool:
 		return true # escenas de prueba sin pueblo
 	var caso1: Script = load(CASO1_SCRIPT) as Script
 	return bool(caso1.call("caso_abierto", vm))
+
+
+func _es_cuerpo_del_caso() -> bool:
+	return current_corpse != null and is_instance_valid(current_corpse) and current_corpse.has_meta("scripted_case_id")
+
+
+## Caso I: la guardia se lleva el cuerpo (deja la escena y queda en la morgue); la autopsia se hace allí, en la mesa.
+func _pedir_traslado_a_morgue() -> void:
+	current_corpse.set("corpse_in_morgue", true)
+	current_corpse.set("corpse_on_ground", false)
+	current_corpse.visible = false
+	if current_corpse.has_method("_set_area_col_disabled"):
+		current_corpse.call("_set_area_col_disabled", current_corpse.get("interact_area"), true)
+	_avisar(AVISO_LLEVADA_A_MORGUE)
+	_render_morgue_view()
+	_update_header_meta()
 
 
 ## Cuerpo, morgue y escena se examinan solo habiendo abierto el panel desde el cuerpo; con la tecla del caso, solo el tablero.
@@ -1720,25 +1768,33 @@ func _update_header_meta() -> void:
 		var is_morgue: bool = (current_mode == "morgue") or (is_instance_valid(current_corpse) and current_corpse.get("corpse_in_morgue") == true)
 		lbl_meta_light.text = "Luz  Lámpara médica" if is_morgue else "Luz  Farol"
 	if btn_report_guard != null:
-		var can_rep: bool = is_instance_valid(current_corpse) and current_corpse.get("is_dead") == true and current_corpse.get("corpse_in_morgue") != true and current_corpse.get("corpse_reported") != true
+		# En el Caso I la guardia ya sabe del cuerpo (es ella quien te avisa): no hay nada que avisar
+		var can_rep: bool = is_instance_valid(current_corpse) and not _es_cuerpo_del_caso() and current_corpse.get("is_dead") == true and current_corpse.get("corpse_in_morgue") != true and current_corpse.get("corpse_reported") != true
 		btn_report_guard.visible = can_rep
 	_update_decay_bar()
 
+
+## Fases del cadáver (horas desde la muerte), con el frío del valle: el rigor es completo hacia las 6 h y se nota
+## deterioro pasado día y medio (antes a las 12 h, demasiado pronto).
+const HORAS_ENFRIANDOSE: float = 1.5
+const HORAS_RIGIDO: float = 6.0
+const HORAS_DETERIORADO: float = 36.0
 
 func _update_decay_bar() -> void:
 	if decay_phase_panels.size() != 4:
 		return
 	var base_rot: float = float(current_corpse.get("corpse_rot_hours")) if is_instance_valid(current_corpse) else 1.8
-	var total_h: float = base_rot + float(elapsed_minutes) / 60.0
+	# Examinar adelanta el reloj y cada hora ya suma al cuerpo: no se vuelve a sumar aquí (contaba doble)
+	var total_h: float = base_rot
 	var phase_idx: int = 0
 	var phase_desc: String = "RECIENTE (rastro fresco)"
-	if total_h >= 12.0:
+	if total_h >= HORAS_DETERIORADO:
 		phase_idx = 3
 		phase_desc = "DETERIORADO (%.1f h · se pierden rastros finos)" % total_h
-	elif total_h >= 5.0:
+	elif total_h >= HORAS_RIGIDO:
 		phase_idx = 2
 		phase_desc = "RÍGIDO (%.1f h · rigor mortis completo)" % total_h
-	elif total_h >= 1.5:
+	elif total_h >= HORAS_ENFRIANDOSE:
 		phase_idx = 1
 		phase_desc = "ENFRIÁNDOSE (%.1f h · livideces fijándose)" % total_h
 	else:
@@ -2170,6 +2226,7 @@ func _render_strip_notes() -> void:
 	for n in notebook_notes:
 		var card := PanelContainer.new()
 		card.custom_minimum_size = Vector2(220, 52)
+		card.mouse_filter = Control.MOUSE_FILTER_PASS # la rueda sobre una ficha también desplaza el cuaderno
 		var st := _style_box(COL_PAPER, COL_PAPER_EDGE, 1, 0, 10, 6)
 		card.add_theme_stylebox_override("panel", st)
 		strip_notes_hbox.add_child(card)
@@ -2190,6 +2247,9 @@ func _render_strip_notes() -> void:
 		lbl.text = ("%s — %s" % [t_tag, str(n.get("text", ""))]) if t_tag != "" else str(n.get("text", ""))
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lbl.custom_minimum_size = Vector2(195, 0)
+		lbl.max_lines_visible = CUADERNO_LINEAS
+		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		card.tooltip_text = lbl.text
 		lbl.add_theme_font_size_override("font_size", 11)
 		lbl.add_theme_color_override("font_color", COL_PAPER_INK)
 		hb.add_child(lbl)
@@ -2376,6 +2436,8 @@ func _check_morgue_status() -> Dictionary:
 						doc_name = "Dr. " + doc_name
 					if doc_npc.get("is_dead") == true or doc_npc.get("is_downed") == true:
 						doc_ok = false
+	if is_scripted and current_corpse != null and is_instance_valid(current_corpse):
+		in_morgue = current_corpse.get("corpse_in_morgue") == true and _abierto_en_morgue
 	return {
 		"can_autopsy": in_morgue and doc_ok,
 		"in_morgue": in_morgue,
@@ -2550,7 +2612,12 @@ func _render_morgue_view() -> void:
 	if morgue_status_banner != null:
 		morgue_status_banner.visible = not can_autopsy
 		if not can_autopsy:
-			if mst.get("in_morgue") != true:
+			if mst.get("in_morgue") != true and _es_cuerpo_del_caso():
+				var ya_en_morgue: bool = current_corpse.get("corpse_in_morgue") == true
+				lbl_morgue_banner.text = BANNER_CASO_YA_EN_MORGUE if ya_en_morgue else BANNER_CASO_EN_ESCENA
+				btn_morgue_transfer.text = BOTON_PEDIR_MORGUE
+				btn_morgue_transfer.visible = not ya_en_morgue
+			elif mst.get("in_morgue") != true:
 				lbl_morgue_banner.text = "El cuerpo aún yace en la escena del crimen. Trasládalo a la camilla de la morgue para realizar la autopsia."
 				btn_morgue_transfer.visible = true
 			else:
@@ -3257,10 +3324,10 @@ func _ensure_board_positions(items: Array[Dictionary]) -> void:
 		var it: Dictionary = items[idx]
 		var pid: String = str(it.get("id", ""))
 		if not board_positions.has(pid):
-			var col: int = idx % 4
-			var row: int = int(idx / 4)
-			var stagger_y: float = 16.0 if (col % 2 == 1) else 0.0
-			board_positions[pid] = Vector2(26.0 + float(col) * 195.0, 22.0 + float(row) * 150.0 + stagger_y)
+			var col: int = idx % FICHAS_POR_FILA
+			var row: int = int(idx / FICHAS_POR_FILA)
+			var stagger_y: float = 12.0 if (col % 2 == 1) else 0.0
+			board_positions[pid] = Vector2(26.0 + float(col) * FICHA_PASO.x, 22.0 + float(row) * FICHA_PASO.y + stagger_y)
 
 
 func _render_board_view() -> void:
@@ -3316,7 +3383,11 @@ func _render_board_view() -> void:
 		tl.text = str(it.get("t", ""))
 		tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		tl.custom_minimum_size = Vector2(146, 0)
-		tl.add_theme_font_size_override("font_size", 12)
+		# Fichas compactas: como mucho FICHA_LINEAS líneas; el texto entero, al pasar el ratón (antes se tapaban, usuario)
+		tl.max_lines_visible = FICHA_LINEAS
+		tl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		card.tooltip_text = tl.text
+		tl.add_theme_font_size_override("font_size", 11)
 		tl.add_theme_color_override("font_color", COL_PAPER_INK)
 		tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		vb.add_child(tl)

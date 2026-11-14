@@ -92,6 +92,8 @@ static func _today() -> int:
 
 ## Un día de margen (decisión del usuario, 2026-11-11): el día 1 llegas y conoces el pueblo; el caso estalla el día 2.
 const DIA_DE_MARGEN: int = 1
+const HORA_MUERTE: int = 1 ## la mataron hacia la 1:00 del día del crimen («en mitad de la noche», confesión)
+const META_PODREDUMBRE_FIJADA: String = "case1_podredumbre_fijada"
 const GRUPO_PISTAS_MAPA: String = "pista_caso1" ## grupo de las pistas puestas a mano en Mundo3D.tscn
 
 
@@ -125,9 +127,25 @@ static func mostrar_cuerpo(vm, visible: bool) -> void:
 	var cuerpo = vm.entities_root.get_node_or_null("NPC_Case1_Victim")
 	if cuerpo == null:
 		return
+	if bool(cuerpo.corpse_in_morgue):
+		visible = false # ya se la llevaron a la morgue: no vuelve a la escena
 	cuerpo.visible = visible
 	cuerpo.corpse_on_ground = visible
 	cuerpo._set_area_col_disabled(cuerpo.interact_area, not visible)
+	# El cuerpo «empieza a contar» desde la hora de la muerte, no desde que arranca la partida (antes, al verlo el día 2
+	# ya salía deteriorado: 17 h; usuario 2026-11-14). Solo se fija una vez, al aparecer; luego suma una hora por hora.
+	if visible and not cuerpo.has_meta(META_PODREDUMBRE_FIJADA):
+		cuerpo.set_meta(META_PODREDUMBRE_FIJADA, true)
+		cuerpo.corpse_rot_hours = maxf(0.0, _horas_desde_la_muerte())
+	elif not visible and not bool(cuerpo.corpse_in_morgue):
+		cuerpo.corpse_rot_hours = 0.0 # aún no ha muerto (día de llegada)
+
+
+## Horas de juego desde la muerte de Clara (madrugada del día del crimen, a la HORA_MUERTE).
+static func _horas_desde_la_muerte() -> float:
+	var dia_crimen: int = 1 + DIA_DE_MARGEN
+	var ahora_h: float = float(_today() - dia_crimen) * 24.0 + float(WorldClock.current_hour) + float(WorldClock.current_minute) / 60.0
+	return ahora_h - float(HORA_MUERTE)
 
 
 # ---------------------------------------------------------------- reparto de papeles

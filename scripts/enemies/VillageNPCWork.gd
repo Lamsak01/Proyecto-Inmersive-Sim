@@ -183,13 +183,14 @@ func _update_needs_and_decisions(delta: float) -> void:
 	# Un recado urgente (el guardia que te busca el día 2) manda sobre el turno, el hambre y el sueño: antes el turno de
 	# las 06:00 le mandaba a trabajar cada pocos segundos y el recado le volvía a mandar a ti (iba y venía, usuario 2026-11-14)
 	var urgente: bool = errand_kind in URGENT_ERRANDS
+	var en_su_puesto: bool = urgente or errand_kind in POST_ERRANDS # el turno no le saca de ahí (custodia del cuerpo)
 
-	if in_work_shift and not urgente and current_activity != ActivityState.WORKING and not busy_eating and (need_hunger > 22.0 or digestion_buffer > 5.0):
+	if in_work_shift and not en_su_puesto and current_activity != ActivityState.WORKING and not busy_eating and (need_hunger > 22.0 or digestion_buffer > 5.0):
 		is_sleeping = false
 		_is_amateur_foraging = false
 		_social_partner = null
 		current_activity = ActivityState.WORKING
-	elif in_work_shift and not urgente and need_hunger <= 22.0 and digestion_buffer <= 2.0 and current_activity == ActivityState.WORKING:
+	elif in_work_shift and not en_su_puesto and need_hunger <= 22.0 and digestion_buffer <= 2.0 and current_activity == ActivityState.WORKING:
 		current_activity = ActivityState.EATING
 		_eat_at_tavern = _choose_preferred_meal_location()
 

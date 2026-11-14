@@ -35,6 +35,8 @@ timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests
 timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/pistas_dia1.gd 2>&1 | grep "PISTAS DIA1"
 # Diálogos: la respuesta de Vane sale en la caja y la charla no se cierra (~40 s) → «VANE DIALOGO: PASSED»
 timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/vane_dialogo.gd 2>&1 | grep "VANE DIALOGO"
+# Caso I: el guardia vigila el cuerpo y este sale «rígido» (no deteriorado) a las 09:30 (~2 min) → «CUSTODIA CUERPO: PASSED»
+timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/custodia_cuerpo.gd 2>&1 | grep "CUSTODIA CUERPO"
 # Nombres (~2 s) → «NAMES CHECK PASSED» · Simulador social de 60 días → «SOCIAL SIM CHECK PASSED»
 timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3
 timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd 2>&1 | tail -3

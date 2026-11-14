@@ -5,6 +5,18 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **El cuerpo sale «deteriorado» (17,6 h) el día 2 por la
+  mañana y el guardia que lo custodia no está** · claro del arroyo. *(Cuenta desde la muerte, ~01:00 del día 2, una vez por
+  hora (sumaba doble y desde el día 1); deterioro a las 36 h; vigilar manda sobre el turno y, sin que lo veas, el guardia
+  ya está en su puesto (andando tardaba ~3 h). Prueba: a las 09:30, 8 h «rígido» y guardia junto al cuerpo 13/13.)*
+- ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **Se puede hacer la autopsia desde la escena**, sin llevar el cuerpo a la morgue
+  (pestaña «2 · Autopsia en la morgue» abierta en el claro). *(Solo en la mesa de la morgue; en la escena, «Pedir que la
+  lleven a la morgue» y el cuerpo deja el claro.)*
+- ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **El tablero del caso es incómodo**: fichas enormes que se tapan, el cuaderno de abajo
+  ocupa mucho y no se puede desplazar para ver todas las pistas. *(Fichas de 3 líneas como mucho, texto entero al pasar el
+  ratón, 6 por fila; en el tablero se esconde el cuaderno; fuera, se desplaza con la rueda. Sin foto todavía.)*
+- ✅ (2026-11-14, usuario; falta que lo veas jugando) **«Avisar a la guardia» sale aunque la guardia ya encontró el
+  cuerpo** (examen en el claro). *(Ya no sale con el cuerpo del Caso I.)*
 - ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **Vane contesta en la esquina y cierra la charla** · comisaría,
   martes 07:25. *(La acción de apuntar el encargo rehacía la charla sin su respuesta y la cerraba. Ahora la respuesta se
   queda en la caja, y mientras hablas las pistas se apuntan en el cuaderno sin repetirse en la esquina.)*
