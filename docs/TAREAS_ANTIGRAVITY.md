@@ -38,3 +38,8 @@
    Por tandas pequeñas (un tipo de objeto cada vez), con foto de antes y después. Coste: mucho.
 4. **Interiores de tamaño real que faltan:** la casa de la cantera y el restaurante (la taberna espera la pregunta 0b del
    usuario: no la toques). Lee antes `docs/specs/REGISTRO_EDITOR_3D.md` y `docs/specs/BOCETOS_EDIFICIOS.md`. Coste: mucho.
+5. **Quitar el estirón ×5 y el «mapa original»** de tus archivos y de las formas del mundo (auditoría A5): relieve hecho
+   por el juego, forma del lago y de la ciénaga, manchas del mapa del valle (`WorldStageTerrain3D.gd`, `mapa/zona.gd`,
+   `scripts/fisica/RioLago.gd` y `Agua.gd` solo en lo que toca a esas formas, `scripts/ui/ValleyMapUI.gd`). Las formas
+   pasan a estar escritas una vez en su sitio real del mundo (o en piezas del editor) y se borran `Mapa3D.E`,
+   `Zona.estirar/desestirar` y `estirar_terreno`. Avisa en tu línea del CHANGELOG si tocas `RioLago.gd` o `Agua.gd`. Coste: medio.

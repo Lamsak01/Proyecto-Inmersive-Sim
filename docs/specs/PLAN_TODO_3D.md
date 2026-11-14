@@ -15,6 +15,15 @@ estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Hoy: 2.441. Terminado
 3. Prohibido añadir nada nuevo en 2D o en píxeles (ni «de momento»). Si un arreglo urgente lo necesitara, se avisa antes.
 4. Los atajos (colocar a un vecino, copiar choques, niveles de piso) se nombran como atajos y se apuntan aquí para quitarlos.
 
+## Estrategia: dar la vuelta a quién manda (decidida al estudiar el código, 2026-11-14)
+Hoy manda el mapa plano y el 3D lo copia. Se invierte **por capas**, sin apagar el juego: primero el mundo fijo
+(paredes y suelos 3D de verdad), luego los cuerpos (todos en 3D siempre), luego las rutas, los sentidos y la raíz. El
+código que aún piensa en plano sigue funcionando a través de un «traductor» mientras se reescribe archivo a archivo; el
+traductor se borra cuando el contador de sus usos llega a 0. **Los metros no son una tanda aparte:** cambiar a ciegas
+miles de números de píxeles a metros rompería cosas sin ganar nada; cada archivo pasa a metros cuando se reescribe.
+**Orden real: 0 ✅ → 3a → 3b (=4) → 5 → 6 → 7 → 8 → 2 y 9 repartidas en las anteriores.** El estirón ×5 que queda
+(relieve, lago, ciénaga, mapa del valle) vive sobre todo en archivos de Antigravity: se le encarga a él.
+
 ## Tandas (cada una deja el juego jugable y la partida automática del Caso I en verde)
 0. ✅ **Limpieza (hecha el 2026-11-14, contador 2.495 → 2.441):** fuera las tres capas de baldosas y la caja de
    diálogo vieja de la escena principal (382 KB → 25 KB) y cuatro escenas sin uso. Los bandidos, el vigía «Guia», la caja,
@@ -25,8 +34,11 @@ estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Hoy: 2.441. Terminado
    préstamos, enfermedades, club, trabajos nocturnos, ecosistema…); el contador los cuenta desde el principio.
 2. **Un solo espacio, en metros:** las posiciones del juego pasan a ser las de las piezas 3D; fuera el estirón ×5, el
    «mapa original» y las alturas en píxeles.
-3. **Paredes, suelos y pisos reales:** choques 3D fijos sacados de las propias escenas (no copias por paso); pisos =
-   altura real. Se borran `ChoquesCercanos3D`, `Suelo`/`PisosCasas` como reglas y los niveles de piso.
+3. **Paredes, suelos y pisos reales**, en dos pasos:
+   **3a (siguiente):** choques 3D **fijos**, creados una sola vez desde las piezas (muros, tabiques, muebles, puertas,
+   rocas, vallas), en vez de copiar las paredes del mapa plano alrededor de cada cuerpo en cada paso. Se borra
+   `ChoquesCercanos3D.gd`. El jugador y los vecinos con cuerpo chocan con ellos. Mide fps antes y después.
+   **3b:** pisos = altura real (losas 3D de verdad); se borran `Suelo`/`PisosCasas` como reglas y los niveles de piso.
 4. **Personajes 3D siempre:** jugador, vecinos, animales y bandidos son cuerpos 3D todo el tiempo (los lejanos, con
    simulación barata pero en 3D). Se borran `CuerposDelPueblo3D`, `CuerposCercanos3D` y los dibujos planos.
 5. **Rutas con navegación 3D** (malla de navegación del mundo y de cada edificio). Se borran las rutas y listas de
