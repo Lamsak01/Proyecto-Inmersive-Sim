@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="1_hmdpc"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mn3j2"]
+albedo_color = Color(0.36, 0.25, 0.16, 1)
+roughness = 0.95
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_pj82h"]
+size = Vector3(0.42, 0.19021766, 0.476)
+
+[node name="TumbaEnterrada_3" type="Node3D" unique_id=689848696]
+
+[node name="MonticuloTierra" type="MeshInstance3D" parent="." unique_id=940135508]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.20078531, 0.168)
+material_override = SubResource("StandardMaterial3D_mn3j2")
+mesh = SubResource("BoxMesh_pj82h")
+
+[node name="LapidaPiedra" type="Node3D" parent="." unique_id=245500905]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.10567647, -0.224)
+script = ExtResource("1_hmdpc")
+modelo = "graveyard/gravestone-round.glb"
+alto = 8.8
+tam = Vector2(6.8, 3.2)
+choque = "ninguno"

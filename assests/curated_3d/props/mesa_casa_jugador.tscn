@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8eiie"]
+albedo_color = Color(0.46, 0.3, 0.16, 1)
+metallic = 0.05
+roughness = 0.85
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_37dml"]
+size = Vector3(1.008, 0.65519416, 0.59360003)
+
+[sub_resource type="BoxMesh" id="BoxMesh_v4taj"]
+size = Vector3(1.0864, 0.10567647, 0.6496)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ucsco"]
+albedo_color = Color(0.95, 0.78, 0.24, 1)
+metallic = 0.85
+roughness = 0.25
+emission_enabled = true
+emission = Color(0.92, 0.74, 0.2, 1)
+emission_energy_multiplier = 0.55
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_tch1o"]
+top_radius = 0.112
+bottom_radius = 0.1232
+height = 0.14794706
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sukkt"]
+albedo_color = Color(0.3, 0.82, 0.38, 1)
+metallic = 0.1
+roughness = 0.45
+emission_enabled = true
+emission = Color(0.2, 0.65, 0.28, 1)
+emission_energy_multiplier = 0.35
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_sgmtg"]
+top_radius = 0.0896
+bottom_radius = 0.112
+height = 0.21135294
+radial_segments = 8
+
+[node name="MesaCasaJugador" type="Node3D" unique_id=948992687]
+
+[node name="CuerpoMesa" type="MeshInstance3D" parent="." unique_id=2004943543]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.53895, 0)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_37dml")
+
+[node name="TableroMesa" type="MeshInstance3D" parent="." unique_id=280250070]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8771148, 0)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_v4taj")
+
+[node name="ViandasMesa" type="Node3D" parent="." unique_id=9636435]
+
+[node name="HogazaPan" type="MeshInstance3D" parent="ViandasMesa" unique_id=1367485426]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.17920001, 1.0039265, -0.028)
+material_override = SubResource("StandardMaterial3D_ucsco")
+mesh = SubResource("CylinderMesh_tch1o")
+
+[node name="CuencoGuiso" type="MeshInstance3D" parent="ViandasMesa" unique_id=952566510]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.17920001, 1.0356295, 0.028)
+material_override = SubResource("StandardMaterial3D_sukkt")
+mesh = SubResource("CylinderMesh_sgmtg")

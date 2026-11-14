@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5i4cm"]
+albedo_color = Color(0.4, 0.2, 0.1, 1)
+metallic = 0.05
+roughness = 0.82
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_tx5o7"]
+size = Vector3(0.672, 0.10567647, 0.448)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ise1"]
+albedo_color = Color(0.95, 0.9, 0.76, 1)
+roughness = 0.85
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_lgd7w"]
+size = Vector3(0.3024, 0.08454118, 0.3808)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w7ohv"]
+size = Vector3(0.3024, 0.08454118, 0.3808)
+
+[node name="LibroCuentasAyuntamiento" type="Node3D" unique_id=1068898906]
+
+[node name="TapasCuero" type="MeshInstance3D" parent="." unique_id=1735455841]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1307383, 0)
+material_override = SubResource("StandardMaterial3D_5i4cm")
+mesh = SubResource("BoxMesh_tx5o7")
+
+[node name="PaginaIzquierda" type="MeshInstance3D" parent="." unique_id=1984254575]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1624, 1.2258471, 0)
+material_override = SubResource("StandardMaterial3D_1ise1")
+mesh = SubResource("BoxMesh_lgd7w")
+
+[node name="PaginaDerecha" type="MeshInstance3D" parent="." unique_id=1161906198]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1624, 1.2258471, 0)
+material_override = SubResource("StandardMaterial3D_1ise1")
+mesh = SubResource("BoxMesh_w7ohv")

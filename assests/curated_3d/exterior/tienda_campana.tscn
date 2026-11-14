@@ -1,0 +1,216 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/rf_planks.png" id="1_sd6o3"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jjdjn"]
+albedo_color = Color(0.721, 0.658, 0.6085, 1)
+albedo_texture = ExtResource("1_sd6o3")
+metallic = 0.02
+roughness = 0.88
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_vspey"]
+size = Vector3(1.904, 0.16908236, 1.344)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wy4wf"]
+albedo_color = Color(0.84, 0.74, 0.54, 1)
+roughness = 0.88
+texture_filter = 2
+
+[sub_resource type="PrismMesh" id="PrismMesh_jxq7n"]
+size = Vector3(1.792, 1.8493383, 1.232)
+
+[sub_resource type="BoxMesh" id="BoxMesh_g5mqo"]
+size = Vector3(0.168, 0.23248824, 1.4)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ey0v2"]
+top_radius = 0.0784
+bottom_radius = 0.0784
+height = 1.859906
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ni4u3"]
+top_radius = 0.0728
+bottom_radius = 0.0728
+height = 1.859906
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6i2e3"]
+albedo_color = Color(0.16, 0.12, 0.09, 1)
+roughness = 0.96
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_8oy6g"]
+size = Vector3(0.476, 1.109603, 0.067200005)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t7x35"]
+albedo_color = Color(0.72, 0.6, 0.42, 1)
+roughness = 0.9
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_kd7oc"]
+top_radius = 0.0784
+bottom_radius = 0.0896
+height = 1.1835765
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_6iox1"]
+top_radius = 0.0784
+bottom_radius = 0.0896
+height = 1.1835765
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nr3pu"]
+albedo_color = Color(0.58, 0.24, 0.2, 1)
+roughness = 0.92
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_ooshd"]
+size = Vector3(0.448, 0.23248824, 0.728)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sxyuj"]
+albedo_color = Color(0.92, 0.88, 0.78, 1)
+roughness = 0.9
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_mkkah"]
+size = Vector3(0.3808, 0.14794706, 0.1904)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bewnt"]
+top_radius = 0.0448
+bottom_radius = 0.056
+height = 0.4438412
+radial_segments = 6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q6iol"]
+albedo_color = Color(0.793, 0.712, 0.64000005, 1)
+albedo_texture = ExtResource("1_sd6o3")
+metallic = 0.02
+roughness = 0.85
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_il2s5"]
+size = Vector3(0.2016, 0.12681177, 0.055999998)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_kdvrf"]
+top_radius = 0.0448
+bottom_radius = 0.056
+height = 0.4438412
+radial_segments = 6
+
+[sub_resource type="BoxMesh" id="BoxMesh_cwvxl"]
+size = Vector3(0.2016, 0.12681177, 0.055999998)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_h6gs3"]
+top_radius = 0.0448
+bottom_radius = 0.056
+height = 0.4438412
+radial_segments = 6
+
+[sub_resource type="BoxMesh" id="BoxMesh_xaanr"]
+size = Vector3(0.2016, 0.12681177, 0.055999998)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ckwkt"]
+top_radius = 0.0448
+bottom_radius = 0.056
+height = 0.4438412
+radial_segments = 6
+
+[sub_resource type="BoxMesh" id="BoxMesh_spupn"]
+size = Vector3(0.2016, 0.12681177, 0.055999998)
+
+[node name="TiendaCampana" type="Node3D" unique_id=571042083]
+
+[node name="TarimaMadera" type="MeshInstance3D" parent="." unique_id=62195379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08454118, 0.112)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("BoxMesh_vspey")
+
+[node name="LonaDosAguas" type="MeshInstance3D" parent="." unique_id=348568266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0726162, 0.112)
+material_override = SubResource("StandardMaterial3D_wy4wf")
+mesh = SubResource("PrismMesh_jxq7n")
+
+[node name="CumbreraMadera" type="MeshInstance3D" parent="." unique_id=2145314158]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9338795, 0.112)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("BoxMesh_g5mqo")
+
+[node name="MastilNorte" type="MeshInstance3D" parent="." unique_id=8942986]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0779, -0.5152)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("CylinderMesh_ey0v2")
+
+[node name="MastilSur" type="MeshInstance3D" parent="." unique_id=339948067]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0779, 0.7392)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("CylinderMesh_ni4u3")
+
+[node name="EntradaOscura" type="MeshInstance3D" parent="." unique_id=736930898]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72388387, 0.7056)
+material_override = SubResource("StandardMaterial3D_6i2e3")
+mesh = SubResource("BoxMesh_8oy6g")
+
+[node name="FaldonOeste" type="MeshInstance3D" parent="." unique_id=603269082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26880002, 0.76087064, 0.728)
+material_override = SubResource("StandardMaterial3D_t7x35")
+mesh = SubResource("CylinderMesh_kd7oc")
+
+[node name="FaldonEste" type="MeshInstance3D" parent="." unique_id=857800305]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.26880002, 0.76087064, 0.728)
+material_override = SubResource("StandardMaterial3D_t7x35")
+mesh = SubResource("CylinderMesh_6iox1")
+
+[node name="SacoDormir" type="MeshInstance3D" parent="." unique_id=1171577787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28532648, 0.252)
+material_override = SubResource("StandardMaterial3D_nr3pu")
+mesh = SubResource("BoxMesh_ooshd")
+
+[node name="Almohada" type="MeshInstance3D" parent="." unique_id=1060084776]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45440885, -0.028)
+material_override = SubResource("StandardMaterial3D_sxyuj")
+mesh = SubResource("BoxMesh_mkkah")
+
+[node name="EstacaEsquina_1" type="MeshInstance3D" parent="." unique_id=261509631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.036, 0.2219206, -0.476)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("CylinderMesh_bewnt")
+
+[node name="VientoTensor_1" type="MeshInstance3D" parent="." unique_id=1791297927]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.84952, 0.32759708, -0.39032)
+material_override = SubResource("StandardMaterial3D_q6iol")
+mesh = SubResource("BoxMesh_il2s5")
+
+[node name="EstacaEsquina_2" type="MeshInstance3D" parent="." unique_id=598852103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.036, 0.2219206, -0.476)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("CylinderMesh_kdvrf")
+
+[node name="VientoTensor_2" type="MeshInstance3D" parent="." unique_id=2048852883]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.84952, 0.32759708, -0.39032)
+material_override = SubResource("StandardMaterial3D_q6iol")
+mesh = SubResource("BoxMesh_cwvxl")
+
+[node name="EstacaEsquina_3" type="MeshInstance3D" parent="." unique_id=991307634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.036, 0.2219206, 0.7)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("CylinderMesh_h6gs3")
+
+[node name="VientoTensor_3" type="MeshInstance3D" parent="." unique_id=1535058895]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.84952, 0.32759708, 0.574)
+material_override = SubResource("StandardMaterial3D_q6iol")
+mesh = SubResource("BoxMesh_xaanr")
+
+[node name="EstacaEsquina_4" type="MeshInstance3D" parent="." unique_id=1412575436]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.036, 0.2219206, 0.7)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("CylinderMesh_ckwkt")
+
+[node name="VientoTensor_4" type="MeshInstance3D" parent="." unique_id=1094870446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.84952, 0.32759708, 0.574)
+material_override = SubResource("StandardMaterial3D_q6iol")
+mesh = SubResource("BoxMesh_spupn")

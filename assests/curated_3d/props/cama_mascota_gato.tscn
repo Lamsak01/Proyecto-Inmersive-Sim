@@ -1,0 +1,93 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/rf_planks.png" id="1_1ja4p"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7o57d"]
+albedo_color = Color(0.75699997, 0.685, 0.62200004, 1)
+albedo_texture = ExtResource("1_1ja4p")
+metallic = 0.02
+roughness = 0.88
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_0mjs4"]
+size = Vector3(1.064, 0.23248824, 0.616)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5oloc"]
+size = Vector3(1.064, 0.21135294, 0.1008)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ddm6b"]
+size = Vector3(0.1008, 0.19021766, 0.616)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xnqr5"]
+size = Vector3(0.1008, 0.19021766, 0.616)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j8t4c"]
+albedo_color = Color(0.72, 0.54, 0.38, 1)
+roughness = 0.92
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_mv7cu"]
+size = Vector3(0.84, 0.19021766, 0.4256)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mb2dg"]
+albedo_color = Color(0.82, 0.68, 0.3, 1)
+metallic = 0.65
+roughness = 0.38
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1cpun"]
+top_radius = 0.1344
+bottom_radius = 0.1568
+height = 0.23248824
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r23nd"]
+albedo_color = Color(0.22, 0.56, 0.82, 1)
+metallic = 0.1
+roughness = 0.2
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_qo6sh"]
+top_radius = 0.1176
+bottom_radius = 0.1176
+height = 0.08454118
+radial_segments = 10
+
+[node name="CamaMascotaGato" type="Node3D" unique_id=134297898]
+
+[node name="BastidorMadera" type="MeshInstance3D" parent="." unique_id=866924962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11624412, 0)
+material_override = SubResource("StandardMaterial3D_7o57d")
+mesh = SubResource("BoxMesh_0mjs4")
+
+[node name="RespaldoNorte" type="MeshInstance3D" parent="." unique_id=2057524527]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.33816472, -0.26880002)
+material_override = SubResource("StandardMaterial3D_7o57d")
+mesh = SubResource("BoxMesh_5oloc")
+
+[node name="BrazoOeste" type="MeshInstance3D" parent="." unique_id=1719470605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.48160002, 0.32759708, 0)
+material_override = SubResource("StandardMaterial3D_7o57d")
+mesh = SubResource("BoxMesh_ddm6b")
+
+[node name="BrazoEste" type="MeshInstance3D" parent="." unique_id=1748755872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48160002, 0.32759708, 0)
+material_override = SubResource("StandardMaterial3D_7o57d")
+mesh = SubResource("BoxMesh_xnqr5")
+
+[node name="CojinTela" type="MeshInstance3D" parent="." unique_id=589474434]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28532648, 0.028)
+material_override = SubResource("StandardMaterial3D_j8t4c")
+mesh = SubResource("BoxMesh_mv7cu")
+
+[node name="CuencoLaton" type="MeshInstance3D" parent="." unique_id=832552668]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.756, 0.11624412, 0.056)
+material_override = SubResource("StandardMaterial3D_mb2dg")
+mesh = SubResource("CylinderMesh_1cpun")
+
+[node name="AguaCuenco" type="MeshInstance3D" parent="." unique_id=1358425797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.756, 0.21135294, 0.056)
+material_override = SubResource("StandardMaterial3D_r23nd")
+mesh = SubResource("CylinderMesh_qo6sh")

@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5uxal"]
+albedo_color = Color(0.68, 0.52, 0.32, 1)
+metallic = 0.05
+roughness = 0.85
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ahwlo"]
+top_radius = 0.112
+bottom_radius = 0.1904
+height = 0.4438412
+radial_segments = 8
+
+[node name="BolsaObjetoCaido" type="Node3D" unique_id=531471777]
+
+[node name="ZurronCuero" type="MeshInstance3D" parent="." unique_id=2138091577]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2219206, 0)
+material_override = SubResource("StandardMaterial3D_5uxal")
+mesh = SubResource("CylinderMesh_ahwlo")

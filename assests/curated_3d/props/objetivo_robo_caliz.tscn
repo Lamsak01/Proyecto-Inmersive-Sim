@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="1_vhra1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u33ac"]
+albedo_color = Color(0.96, 0.8, 0.28, 1)
+metallic = 0.85
+roughness = 0.25
+emission_enabled = true
+emission = Color(0.95, 0.76, 0.22, 1)
+emission_energy_multiplier = 0.65
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_te05u"]
+top_radius = 0.2464
+bottom_radius = 0.2464
+height = 0.08454118
+radial_segments = 12
+
+[node name="ObjetivoRoboCaliz" type="Node3D" unique_id=593381783]
+
+[node name="PatenaDorada" type="MeshInstance3D" parent="." unique_id=784358339]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3526589, 0)
+material_override = SubResource("StandardMaterial3D_u33ac")
+mesh = SubResource("CylinderMesh_te05u")
+
+[node name="CalizSagrado" type="Node3D" parent="." unique_id=1930286186]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3737942, 0)
+script = ExtResource("1_vhra1")
+modelo = "props/Chalice.gltf"
+alto = 8.5
+tam = Vector2(8, 8)
+choque = "ninguno"

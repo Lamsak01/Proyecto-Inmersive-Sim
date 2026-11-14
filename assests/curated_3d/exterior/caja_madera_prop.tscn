@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="1_da3e3"]
+
+[node name="CajaMaderaExterior" type="Node3D" unique_id=946010332]
+
+[node name="CajaMadera" type="Node3D" parent="." unique_id=1288051272]
+script = ExtResource("1_da3e3")
+modelo = "exterior/Crate.obj"
+alto = 12.0
+tam = Vector2(14, 14)
+choque = "ninguno"

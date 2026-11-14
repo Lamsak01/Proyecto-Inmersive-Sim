@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="1_h52sc"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l0yui"]
+albedo_color = Color(0.55, 0.96, 1, 1)
+roughness = 0.2
+emission_enabled = true
+emission = Color(0.45, 0.92, 1, 1)
+emission_energy_multiplier = 3.4
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_lhumo"]
+size = Vector3(0.47039998, 0.2789859, 0.2016)
+
+[node name="FarolaCalle" type="Node3D" unique_id=1134855349]
+
+[node name="PosteFarola" type="Node3D" parent="." unique_id=1851319429]
+script = ExtResource("1_h52sc")
+modelo = "graveyard/lightpost-single.glb"
+alto = 34.8
+tam = Vector2(9, 9)
+choque = "ninguno"
+
+[node name="CristalFarol" type="MeshInstance3D" parent="." unique_id=184781066]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0434825, 0.14)
+material_override = SubResource("StandardMaterial3D_l0yui")
+mesh = SubResource("BoxMesh_lhumo")
+
+[node name="ResplandorFarol" type="OmniLight3D" parent="." unique_id=1114715356]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0434825, 0.14)
+light_color = Color(0.58, 0.96, 1, 1)
+light_energy = 3.0
+distance_fade_enabled = true
+distance_fade_begin = 70.0
+distance_fade_length = 15.0
+omni_range = 10.08
+
+[node name="CharcoLuzCalle" type="SpotLight3D" parent="." unique_id=226601662]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 2.9039896, 0.14)
+light_color = Color(0.58, 0.96, 1, 1)
+light_energy = 15.0
+distance_fade_enabled = true
+distance_fade_begin = 70.0
+distance_fade_length = 15.0
+spot_range = 16.8
+spot_angle = 60.0

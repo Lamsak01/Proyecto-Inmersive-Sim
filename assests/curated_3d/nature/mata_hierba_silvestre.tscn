@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="1_1ltey"]
+
+[node name="MataHierbaSilvestre" type="Node3D" unique_id=937136351]
+
+[node name="FloresSilvestres" type="Node3D" parent="." unique_id=708806268]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.052838236, 0)
+script = ExtResource("1_1ltey")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+tam = Vector2(12, 12)
+choque = "ninguno"

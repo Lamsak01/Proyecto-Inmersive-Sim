@@ -103,20 +103,6 @@ func _build_ground_3d() -> void:
 			var x_ini: int = (nx * sx) / SECTORES_SUELO_X
 			var x_fin: int = (nx * (sx + 1)) / SECTORES_SUELO_X
 			_crear_sector_suelo_3d(terrain_root_3d, m_terrain, grid_v, grid_n, grid_c, cols_total, x_ini, x_fin, y_ini, y_fin, sx, sy)
-	# Árboles perimetrales en el horizonte oeste y norte para cerrar el horizonte visual
-	var horizon_trees := [
-		Vector2(-2180, -680), Vector2(-2260, -480), Vector2(-2320, -260), Vector2(-2280, -80),
-		Vector2(-2340, 120), Vector2(-2290, 340), Vector2(-2220, 560), Vector2(-1980, -820),
-		Vector2(-1720, -890), Vector2(-1460, -920), Vector2(-1180, -940), Vector2(-880, -960),
-	]
-	for hti in range(horizon_trees.size()):
-		var htp: Vector2 = horizon_trees[hti]
-		var ht_file: String = "nature/PineTree_1.obj" if (hti % 2) == 0 else "nature/CommonTree_2.obj"
-		var ht_node := _add_model_2d(terrain_root_3d, ht_file, htp, -1.2, Vector2.ZERO, 54.0 + float(hti % 4) * 6.0, float(hti * 47))
-		if ht_node != null and nature_root_3d != null:
-			_absorb_into_batches(ht_node, htp)
-	# Matas de hierba, tréboles, helechos y flores silvestres 3D repartidas por praderas, cunetas, campamento y linde del bosque
-	_build_ground_foliage_3d()
 
 
 func _crear_sector_suelo_3d(
@@ -219,63 +205,6 @@ func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Mate
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mi)
 	return mi
-
-func _build_ground_foliage_3d() -> void:
-	if _is_headless or not AssetLib.has_curated_assets():
-		return
-	var foliage_models: Array[String] = [
-		"nature/Plant_1.obj", "nature/Plant_2.obj", "nature/Plant_3.obj",
-		"nature/Flowers.obj", "nature/Plant_1.obj", "nature/Wheat.obj",
-	]
-	var lake_poly_guard: PackedVector2Array = RioLagoScript.lake_scaled(1.18, 12.0)
-	var marsh_poly_guard := PackedVector2Array([
-		Vector2(-1890, 195), Vector2(-1620, 150), Vector2(-1325, 165), Vector2(-1180, 240),
-		Vector2(-1200, 405), Vector2(-1345, 485), Vector2(-1660, 500), Vector2(-1875, 435),
-		Vector2(-1930, 310)
-	])
-	# La plaza va con su pieza del editor: se mira en el mundo, donde caerá la mata
-	var plaza_guard: Rect2 = Zona.rect_mundo(ZONA_PLAZA_ID).grow(MATAS_MARGEN_PLAZA_PX)
-	var idx: int = 0
-	for gx in range(-2050, 1480, 95):
-		for gy in range(-520, 1280, 95):
-			idx += 1
-			var jx: float = float(((idx * 73) % 59) - 29)
-			var jy: float = float(((idx * 41) % 59) - 29)
-			var fp := Vector2(float(gx) + jx, float(gy) + jy)
-			var fp_mundo: Vector2 = Zona.estirar(fp) # donde la pone _add_model_2d (mapa ×E, zonas con su pieza)
-			# Saltar calzadas principales, plaza central, lago, ciénaga y huellas de edificios
-			if absf(fp.y - 50.0) < 30.0 or plaza_guard.has_point(fp_mundo):
-				continue
-			if Geometry2D.is_point_in_polygon(fp, lake_poly_guard) or Geometry2D.is_point_in_polygon(fp, marsh_poly_guard):
-				continue
-			if fp.distance_to(RioLagoScript.LAKE_NODE_POS) < 95.0 or terrain_height_px(fp) < -0.8:
-				continue
-			if fp.y >= RioLagoScript.river_y_start() and fp.y <= RioLagoScript.river_y_end() and absf(fp.x - RioLagoScript.river_center_x(fp.y)) < RioLagoScript.river_half_width(fp.y) + 18.0:
-				continue
-			if Rect2(Vector2(85.0, -915.0), Vector2(95.0, 100.0)).has_point(fp) or RioLagoScript.ABANDONED_MILL_RECT.grow(18.0).has_point(fp):
-				continue
-			if VillageRestaurant.RECT.grow(16.0).has_point(fp) or VillageTavern.RECT.grow(16.0).has_point(fp):
-				continue
-			if Rect2(Vector2(822.0, 260.0), Vector2(268.0, 168.0)).grow(10.0).has_point(fp):
-				continue
-			if vm != null and "building_footprints" in vm:
-				var inside_b: bool = false
-				for b_fp in vm.building_footprints: # huellas ya en el mundo: se comparan con el sitio real de la mata
-					if (b_fp["rect"] as Rect2).grow(MATAS_MARGEN_EDIFICIO_PX).has_point(fp_mundo):
-						inside_b = true
-						break
-				if inside_b:
-					continue
-			if fp.x > 160.0 and fp.x < 1380.0 and fp.y > -480.0 and fp.y < 360.0 and ((idx % 3) != 0):
-				continue
-			var mdl: String = foliage_models[idx % foliage_models.size()]
-			var h_f: float = 4.2 + float(idx % 4) * 1.1
-			var node_f := _add_model_2d(terrain_root_3d, mdl, fp, -0.8, Vector2.ZERO, h_f, float((idx * 53) % 360))
-			if node_f != null and nature_root_3d != null:
-				_marcar_mata_sin_sombra(node_f)
-				_absorb_into_batches(node_f, fp)
-	_flush_batches()
-
 
 ## Las matas de hierba y setas minúsculas reciben sombra pero no la proyectan (ahorra cientos de pasadas de sombra).
 func _marcar_mata_sin_sombra(nodo: Node) -> void:
@@ -481,9 +410,34 @@ func _flush_batches() -> void:
 	_batch_dirty.clear()
 
 
+const ESCENA_TOCON_TALADO := "res://assests/curated_3d/nature/tocon_arbol_talado.tscn"
+
+func _instanciar_modelo_natural(padre: Node3D, ruta_rel: String, pos_3d: Vector3, alto_m: float, giro_deg: float = 0.0) -> Node3D:
+	if _is_headless or not AssetLib.has_curated_assets():
+		return null
+	var inst: Node3D = AssetLib.instantiate_model(ruta_rel, Vector3.ZERO, alto_m, true, true)
+	if inst == null:
+		return null
+	inst.position = pos_3d
+	if absf(giro_deg) > 0.01:
+		inst.rotation_degrees.y = giro_deg
+	padre.add_child(inst)
+	return inst
+
+
+func _instanciar_tocon_talado(padre: Node3D, pos_3d: Vector3) -> Node3D:
+	if not ResourceLoader.exists(ESCENA_TOCON_TALADO):
+		return null
+	var tocon: Node3D = (load(ESCENA_TOCON_TALADO) as PackedScene).instantiate() as Node3D
+	tocon.position = pos_3d
+	padre.add_child(tocon)
+	return tocon
+
+
 func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 	var hv: int = absi(int(n.global_position.x * 13.0 + n.global_position.y * 7.0))
 	var pos := n.global_position
+	var pos_suelo: Vector3 = to_3d(pos, 0.0)
 	var rot: float = float(hv % 360)
 	if kind == "pine":
 		# Árboles variados por zona: robles/hayas frondosos, abedules de corteza blanca y pinos altos
@@ -499,30 +453,31 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 			"nature/CommonTree_4.obj", "nature/BirchTree_3.obj",
 		]
 		var files: Array = forest_trees if pos.y >= 680.0 else village_trees
-		var h: float = 52.0 + float(hv % 6) * 6.0
-		var t := _add_model_2d(nature_root_3d, files[hv % files.size()], pos, -1.4, Vector2.ZERO, h, rot)
-		var stump: Node3D = _add_cyl_2d(nature_root_3d, pos, 5.0, -1.2, 6.2, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
-		stump.visible = false
+		var alto_m: float = 5.50 + float(hv % 6) * 0.634
+		var t: Node3D = _instanciar_modelo_natural(nature_root_3d, files[hv % files.size()], pos_suelo - Vector3(0.0, 0.148, 0.0), alto_m, rot)
+		var stump: Node3D = _instanciar_tocon_talado(nature_root_3d, pos_suelo)
+		if stump != null:
+			stump.visible = false
 		return {"tree": t, "stump": stump}
 	if kind == "forage_mushroom":
 		# Kenney Nature Kit (CC0): seta roja o parda, sola, alta o en grupo
 		var mfiles := ["nature/kenney/mushroom_redGroup.glb", "nature/kenney/mushroom_tan.glb", "nature/kenney/mushroom_red.glb",
 			"nature/kenney/mushroom_tanGroup.glb", "nature/kenney/mushroom_redTall.glb", "nature/kenney/mushroom_tanTall.glb"]
 		var mf: String = mfiles[hv % mfiles.size()]
-		var m := _add_model_2d(nature_root_3d, mf, pos, -0.3, Vector2.ZERO, 7.5 if "Tall" in mf else 5.5, rot)
+		var m: Node3D = _instanciar_modelo_natural(nature_root_3d, mf, pos_suelo - Vector3(0.0, 0.032, 0.0), 0.79 if "Tall" in mf else 0.58, rot)
 		if m != null:
 			_marcar_mata_sin_sombra(m)
 		return {"tree": m, "stump": null}
 	if kind == "forage_herb":
 		var hfiles := ["nature/Plant_4.obj", "nature/Plant_5.obj"]
-		var hb := _add_model_2d(nature_root_3d, hfiles[hv % hfiles.size()], pos, -0.3, Vector2.ZERO, 8.5, rot)
+		var hb: Node3D = _instanciar_modelo_natural(nature_root_3d, hfiles[hv % hfiles.size()], pos_suelo - Vector3(0.0, 0.032, 0.0), 0.90, rot)
 		if hb != null:
 			_marcar_mata_sin_sombra(hb)
 		return {"tree": hb, "stump": null}
 	if kind == "rock":
 		var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
-		var r := _add_model_2d(nature_root_3d, rfiles[hv % rfiles.size()], pos, -1.4, Vector2.ZERO, 16.0, rot)
-		var low := _add_model_2d(nature_root_3d, rfiles[(hv + 2) % rfiles.size()], pos, -1.2, Vector2.ZERO, 6.0, rot + 40.0)
+		var r: Node3D = _instanciar_modelo_natural(nature_root_3d, rfiles[hv % rfiles.size()], pos_suelo - Vector3(0.0, 0.148, 0.0), 1.69, rot)
+		var low: Node3D = _instanciar_modelo_natural(nature_root_3d, rfiles[(hv + 2) % rfiles.size()], pos_suelo - Vector3(0.0, 0.127, 0.0), 0.634, rot + 40.0)
 		if low != null:
 			low.visible = false
 		return {"tree": r, "stump": low}
@@ -684,10 +639,6 @@ func _build_static_terrain_3d() -> void:
 	# Río de norte a sur, Puente Viejo en el centro del pueblo, arroyo del bosque norte, Claro (barro pardo) y Molino Viejo (barro rojo / arcilla)
 	_build_river_and_arroyo_3d()
 	estirar_terreno = false
-
-const ZONA_PLAZA_ID := "plaza"            ## pieza de «Zonas» que lleva la plaza
-const MATAS_MARGEN_PLAZA_PX: float = 65.0  ## 13 px del mapa original ×5: las matas no asoman en el empedrado
-const MATAS_MARGEN_EDIFICIO_PX: float = 12.0 ## pasillo sin hierba alrededor de cada casa
 
 ## Plaza Central (mapa original) y lámina de agua de la ciénaga: mallas de suelo que aún dibuja el código.
 const PLAZA_RECT: Rect2 = Rect2(Vector2(388, 12), Vector2(154, 72))
@@ -1014,11 +965,13 @@ func _hacer_talable(pieza: Node3D, eco: Node, nombre: String, matorral: bool = f
 		_absorb_into_batches(pieza, p2)
 		_nature_nodes[(h as Node2D).get_instance_id()] = rec_m
 		return
-	var stump := _add_cyl_2d(nature_root_3d, p2, 5.0, -1.2, 6.2, _mat("tree_stump", Color(0.45, 0.32, 0.20), 0.9, 0.0, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.78), 4.5, 8)
-	stump.visible = false
+	var stump: Node3D = _instanciar_tocon_talado(nature_root_3d, to_3d(p2, 0.0))
+	if stump != null:
+		stump.visible = false
 	var rec := {"tree": pieza, "stump": stump}
 	for k in ["tree", "stump"]:
-		_absorb_into_batches(rec[k], p2)
+		if rec[k] != null:
+			_absorb_into_batches(rec[k], p2)
 	_nature_nodes[(h as Node2D).get_instance_id()] = rec
 
 
@@ -1031,7 +984,7 @@ func _hacer_veta(pieza: Node3D, eco: Node, nombre: String) -> void:
 		return
 	var hv: int = absi(int(p2.x * 13.0 + p2.y * 7.0))
 	var rfiles := ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
-	var low := _add_model_2d(nature_root_3d, rfiles[(hv + 2) % rfiles.size()], p2, -1.2, Vector2.ZERO, 6.0, float(hv % 360) + 40.0)
+	var low: Node3D = _instanciar_modelo_natural(nature_root_3d, rfiles[(hv + 2) % rfiles.size()], to_3d(p2, 0.0) - Vector3(0.0, 0.127, 0.0), 0.634, float(hv % 360) + 40.0)
 	if low != null:
 		low.visible = false
 	var rec := {"tree": pieza, "stump": low}

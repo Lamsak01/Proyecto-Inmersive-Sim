@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/rf_planks.png" id="1_8m1d0"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6iafk"]
+albedo_color = Color(0.7525, 0.694, 0.64000005, 1)
+albedo_texture = ExtResource("1_8m1d0")
+roughness = 0.9
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wxm8p"]
+top_radius = 0.252
+bottom_radius = 0.28
+height = 0.65519416
+radial_segments = 8
+
+[node name="ToconArbolTalado" type="Node3D" unique_id=1439813341]
+
+[node name="ToconCorteza" type="MeshInstance3D" parent="." unique_id=743508269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.20078531, 0)
+material_override = SubResource("StandardMaterial3D_6iafk")
+mesh = SubResource("CylinderMesh_wxm8p")

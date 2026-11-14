@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="1_jcxpf"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u33ac"]
+albedo_color = Color(0.96, 0.8, 0.28, 1)
+metallic = 0.85
+roughness = 0.25
+emission_enabled = true
+emission = Color(0.95, 0.76, 0.22, 1)
+emission_energy_multiplier = 0.65
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_68703"]
+size = Vector3(0.0784, 0.38043532, 0.4928)
+
+[sub_resource type="BoxMesh" id="BoxMesh_q7b1n"]
+size = Vector3(0.0784, 0.38043532, 0.4928)
+
+[node name="ObjetivoRoboLibro" type="Node3D" unique_id=746236263]
+
+[node name="LibroMayorGremios" type="Node3D" parent="." unique_id=544065445]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0779, 0)
+script = ExtResource("1_jcxpf")
+modelo = "props/Book_5.gltf"
+alto = 4.5
+tam = Vector2(13, 10)
+choque = "ninguno"
+
+[node name="HerrajeOroIzquierdo" type="MeshInstance3D" parent="." unique_id=1129472840]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3248, 1.2681177, 0)
+material_override = SubResource("StandardMaterial3D_u33ac")
+mesh = SubResource("BoxMesh_68703")
+
+[node name="HerrajeOroDerecho" type="MeshInstance3D" parent="." unique_id=397041319]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3248, 1.2681177, 0)
+material_override = SubResource("StandardMaterial3D_u33ac")
+mesh = SubResource("BoxMesh_q7b1n")

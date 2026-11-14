@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xiud0"]
+albedo_color = Color(0.42, 0.3, 0.19, 1)
+roughness = 0.95
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_t02pd"]
+top_radius = 0.42
+bottom_radius = 0.644
+height = 0.5812206
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8qs06"]
+albedo_color = Color(0.46, 0.43, 0.39, 1)
+metallic = 0.02
+roughness = 0.92
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_wn6kp"]
+size = Vector3(0.784, 0.71860003, 0.504)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wfo06"]
+albedo_color = Color(0.08, 0.06, 0.05, 1)
+roughness = 0.98
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_8u2vp"]
+top_radius = 0.2576
+bottom_radius = 0.2912
+height = 0.25362355
+radial_segments = 8
+
+[node name="CubilZorro" type="Node3D" unique_id=1913578789]
+
+[node name="LomaTierra" type="MeshInstance3D" parent="." unique_id=2042494887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.18493383, 0)
+material_override = SubResource("StandardMaterial3D_xiud0")
+mesh = SubResource("CylinderMesh_t02pd")
+
+[node name="RocaAbrigo" type="MeshInstance3D" parent="." unique_id=1467211558]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35930002, -0.168)
+material_override = SubResource("StandardMaterial3D_8qs06")
+mesh = SubResource("BoxMesh_wn6kp")
+
+[node name="BocaCubil" type="MeshInstance3D" parent="." unique_id=1685066248]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25362355, 0.1232)
+material_override = SubResource("StandardMaterial3D_wfo06")
+mesh = SubResource("CylinderMesh_8u2vp")

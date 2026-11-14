@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="1_tdcwu"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sukkt"]
+albedo_color = Color(0.3, 0.82, 0.38, 1)
+metallic = 0.1
+roughness = 0.45
+emission_enabled = true
+emission = Color(0.2, 0.65, 0.28, 1)
+emission_energy_multiplier = 0.35
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_fkmrk"]
+top_radius = 0.1008
+bottom_radius = 0.1232
+height = 0.27475885
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2v8dy"]
+albedo_color = Color(0.74, 0.44, 0.96, 1)
+metallic = 0.15
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.66, 0.36, 0.9, 1)
+emission_energy_multiplier = 0.55
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_a0n35"]
+top_radius = 0.056
+bottom_radius = 0.112
+height = 0.40157062
+radial_segments = 10
+
+[node name="BancoTrabajoCasa" type="Node3D" unique_id=1656307216]
+
+[node name="BancoCarpintero" type="Node3D" parent="." unique_id=249612904]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.21135294, 0)
+script = ExtResource("1_tdcwu")
+modelo = "props/Workbench_Drawers.gltf"
+alto = 8.2
+tam = Vector2(18, 10)
+choque = "ninguno"
+
+[node name="MorteroCataplasma" type="MeshInstance3D" parent="." unique_id=34507529]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.224, 1.1413059, -0.028)
+material_override = SubResource("StandardMaterial3D_sukkt")
+mesh = SubResource("CylinderMesh_fkmrk")
+
+[node name="AlambiquePolvoOcaso" type="MeshInstance3D" parent="." unique_id=1895911632]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.196, 1.2047118, -0.028)
+material_override = SubResource("StandardMaterial3D_2v8dy")
+mesh = SubResource("CylinderMesh_a0n35")

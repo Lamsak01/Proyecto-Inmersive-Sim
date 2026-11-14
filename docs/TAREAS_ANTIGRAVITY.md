@@ -25,6 +25,7 @@
 - ✅ Clientes sentados encima de su silla (restaurante y posada), 2026-11-14.
 - ✅ 1. Rendimiento: sombras del sol y geometría junto al río (`perf_zonas` 24–30 → 35–40 fps; `contar_2d.sh` 2.441 → 2.438), 2026-11-14.
 - ✅ 2. Lluvia, luz y sonido en 3D (`Clima3D` sin llover bajo techo, día/noche solo con luz 3D sin `CanvasModulate` ni tintes/nieblas 2D en `RetroPostFX`, sonido 3D de pasos, puertas, voces y río; `contar_2d.sh` 2.454 → 2.428), 2026-11-14.
+- ✅ 3. El mundo dibujado por código pasa a ser piezas del editor: 0 llamadas `_add_box/cyl/model_2d` en `WorldStageProps3D` y `WorldStageTerrain3D`, 481 matas de pradera en `Vegetacion/MatasPradera`, 33 escenas de objetos/bajo tierra/puesto horneadas y las 416 piezas anónimas del `Decorado` nombradas y agrupadas en 32 objetos (`contar_2d.sh` 2.428 → 2.409), 2026-11-14.
 
 ## Tareas
 1. ✅ **Rendimiento: sombras del sol** (prioridad 1 de `FALLOS_VISIBLES.md`) y **geometría junto al río**. Abaratar sin que
@@ -33,7 +34,7 @@
    a) lluvia y niebla como efecto 3D del mundo (no un dibujo sobre la pantalla; que no llueva bajo techo);
    b) día y noche solo con la luz 3D (sol, cielo, ambiente): que el juego no dependa del tinte 2D `CanvasModulate`;
    c) sonido con posición 3D (pasos, puertas, voces, río) en `AudioManager.gd`. Fotos de día, noche y lluvia. Coste: medio.
-3. **El mundo dibujado por código pasa a ser piezas del editor** (auditoría B7 y B8): los objetos que `WorldStageProps3D.gd`
+3. ✅ **El mundo dibujado por código pasa a ser piezas del editor** (auditoría B7 y B8): los objetos que `WorldStageProps3D.gd`
    y `WorldStageTerrain3D.gd` levantan con cajas y cilindros (`_add_box_2d`, `_add_cyl_2d`, `_add_model_2d`: ~266 llamadas)
    se hornean una vez a `mapa/Mundo3D.tscn` con herramienta (`tools/hornear_*.gd`), **con nombre que diga qué son**, y se
    borra su código. De paso, poner nombre a las 305 «Caja_N» del decorado (qué es cada una) agrupándolas por objeto.

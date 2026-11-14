@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/rf_planks.png" id="1_4sbe4"]
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="2_i1xo8"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jjdjn"]
+albedo_color = Color(0.721, 0.658, 0.6085, 1)
+albedo_texture = ExtResource("1_4sbe4")
+metallic = 0.02
+roughness = 0.88
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_0oyjt"]
+top_radius = 0.2352
+bottom_radius = 0.2688
+height = 0.47554412
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q6iol"]
+albedo_color = Color(0.793, 0.712, 0.64000005, 1)
+albedo_texture = ExtResource("1_4sbe4")
+metallic = 0.02
+roughness = 0.85
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_e780j"]
+size = Vector3(0.448, 0.16908236, 0.17920001)
+
+[node name="CaballeteEspada" type="Node3D" unique_id=739000069]
+
+[node name="ToconArmero" type="MeshInstance3D" parent="." unique_id=1475344635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23777206, 0.112)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("CylinderMesh_0oyjt")
+
+[node name="SoporteMadera" type="MeshInstance3D" parent="." unique_id=224813312]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.52838236, 0.112)
+material_override = SubResource("StandardMaterial3D_q6iol")
+mesh = SubResource("BoxMesh_e780j")
+
+[node name="ArmaApoyada" type="Node3D" parent="." unique_id=1834360833]
+transform = Transform3D(0.8002223, 0.42548576, 0.42261824, -0.46947157, 0.88294756, 0, -0.37314975, -0.19840725, 0.9063078, 0, 0.47554412, 0.084)
+script = ExtResource("2_i1xo8")
+modelo = "props/Sword_Bronze.gltf"
+alto = 15.0
+choque = "ninguno"

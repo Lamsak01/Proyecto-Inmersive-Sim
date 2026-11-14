@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c8yew"]
+albedo_color = Color(0.92, 0.88, 0.78, 1)
+roughness = 0.88
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_3rl1i"]
+top_radius = 0.0504
+bottom_radius = 0.0616
+height = 0.35930002
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k7eai"]
+albedo_color = Color(0.82, 0.24, 0.18, 1)
+roughness = 0.78
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_6kxvl"]
+top_radius = 0.0336
+bottom_radius = 0.1568
+height = 0.23248824
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dx2nf"]
+top_radius = 0.0378
+bottom_radius = 0.0462
+height = 0.269475
+radial_segments = 7
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ourjb"]
+top_radius = 0.0252
+bottom_radius = 0.1176
+height = 0.17436619
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_khixd"]
+top_radius = 0.0378
+bottom_radius = 0.0462
+height = 0.269475
+radial_segments = 7
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7qhtq"]
+top_radius = 0.0252
+bottom_radius = 0.1176
+height = 0.17436619
+radial_segments = 8
+
+[node name="GrupoSetasSilvestres" type="Node3D" unique_id=1892337185]
+
+[node name="PieSeta_1" type="MeshInstance3D" parent="." unique_id=217654363]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1232, 0.13737942, 0.044800002)
+material_override = SubResource("StandardMaterial3D_c8yew")
+mesh = SubResource("CylinderMesh_3rl1i")
+
+[node name="SombreroSeta_1" type="MeshInstance3D" parent="." unique_id=1451216540]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1232, 0.39100295, 0.044800002)
+material_override = SubResource("StandardMaterial3D_k7eai")
+mesh = SubResource("CylinderMesh_6kxvl")
+
+[node name="PieSeta_2" type="MeshInstance3D" parent="." unique_id=881056507]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13440001, 0.09246691, -0.067200005)
+material_override = SubResource("StandardMaterial3D_c8yew")
+mesh = SubResource("CylinderMesh_dx2nf")
+
+[node name="SombreroSeta_2" type="MeshInstance3D" parent="." unique_id=156820085]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13440001, 0.29325223, -0.067200005)
+material_override = SubResource("StandardMaterial3D_k7eai")
+mesh = SubResource("CylinderMesh_ourjb")
+
+[node name="PieSeta_3" type="MeshInstance3D" parent="." unique_id=822216097]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0112000005, 0.09246691, -0.112)
+material_override = SubResource("StandardMaterial3D_c8yew")
+mesh = SubResource("CylinderMesh_khixd")
+
+[node name="SombreroSeta_3" type="MeshInstance3D" parent="." unique_id=2139539840]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0112000005, 0.29325223, -0.112)
+material_override = SubResource("StandardMaterial3D_k7eai")
+mesh = SubResource("CylinderMesh_7qhtq")

@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jbbvu"]
+albedo_color = Color(0.14, 0.1, 0.06, 1)
+roughness = 0.95
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_65p4j"]
+size = Vector3(0.728, 0.12681177, 0.784)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8eiie"]
+albedo_color = Color(0.46, 0.3, 0.16, 1)
+metallic = 0.05
+roughness = 0.85
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_17tfc"]
+size = Vector3(0.6496, 0.14794706, 0.7056)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wi6ct"]
+albedo_color = Color(0.28, 0.32, 0.36, 1)
+metallic = 0.75
+roughness = 0.45
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_cqoe4"]
+size = Vector3(0.1008, 0.12681177, 0.1008)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xdk8h"]
+size = Vector3(0.56, 0.16908236, 0.1232)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nmc3s"]
+size = Vector3(0.56, 0.16908236, 0.1232)
+
+[sub_resource type="BoxMesh" id="BoxMesh_y42rb"]
+size = Vector3(0.56, 0.16908236, 0.1232)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cj66o"]
+size = Vector3(0.56, 0.16908236, 0.1232)
+
+[node name="EscaleraTrampillaCasa" type="Node3D" unique_id=2065835215]
+
+[node name="MarcoTrampilla" type="MeshInstance3D" parent="." unique_id=1439938727]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25362355, 0)
+material_override = SubResource("StandardMaterial3D_jbbvu")
+mesh = SubResource("BoxMesh_65p4j")
+
+[node name="TapaRoble" type="MeshInstance3D" parent="." unique_id=1396021242]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.32759708, 0)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_17tfc")
+
+[node name="ArgollaHierro" type="MeshInstance3D" parent="." unique_id=159112227]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.224, 0.4438412, 0)
+material_override = SubResource("StandardMaterial3D_wi6ct")
+mesh = SubResource("BoxMesh_cqoe4")
+
+[node name="PeldanosAltillo" type="Node3D" parent="." unique_id=1690916116]
+
+[node name="Peldano_1" type="MeshInstance3D" parent="PeldanosAltillo" unique_id=79796377]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5072471, -0.252)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_xdk8h")
+
+[node name="Peldano_2" type="MeshInstance3D" parent="PeldanosAltillo" unique_id=620999350]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95108825, -0.084)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_nmc3s")
+
+[node name="Peldano_3" type="MeshInstance3D" parent="PeldanosAltillo" unique_id=160671165]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3949295, 0.084)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_y42rb")
+
+[node name="Peldano_4" type="MeshInstance3D" parent="PeldanosAltillo" unique_id=190005671]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8387706, 0.252)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_cj66o")

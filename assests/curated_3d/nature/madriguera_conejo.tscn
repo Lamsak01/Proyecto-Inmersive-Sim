@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xiud0"]
+albedo_color = Color(0.42, 0.3, 0.19, 1)
+roughness = 0.95
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_3gu40"]
+top_radius = 0.2912
+bottom_radius = 0.476
+height = 0.33816472
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wfo06"]
+albedo_color = Color(0.08, 0.06, 0.05, 1)
+roughness = 0.98
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ev65o"]
+top_radius = 0.2128
+bottom_radius = 0.2352
+height = 0.10567647
+radial_segments = 8
+
+[node name="MadrigueraConejo" type="Node3D" unique_id=1584844227]
+
+[node name="MonticuloTierra" type="MeshInstance3D" parent="." unique_id=200918972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08454118, 0)
+material_override = SubResource("StandardMaterial3D_xiud0")
+mesh = SubResource("CylinderMesh_3gu40")
+
+[node name="BocaMadriguera" type="MeshInstance3D" parent="." unique_id=1705179877]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2219206, 0.056)
+material_override = SubResource("StandardMaterial3D_wfo06")
+mesh = SubResource("CylinderMesh_ev65o")

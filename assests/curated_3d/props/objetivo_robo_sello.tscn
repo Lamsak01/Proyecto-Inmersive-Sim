@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="1_xcao5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2882r"]
+albedo_color = Color(0.76, 0.14, 0.2, 1)
+metallic = 0.05
+roughness = 0.75
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_kbgta"]
+size = Vector3(0.616, 0.23248824, 0.504)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wde7m"]
+top_radius = 0.1456
+bottom_radius = 0.1456
+height = 0.14794706
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u33ac"]
+albedo_color = Color(0.96, 0.8, 0.28, 1)
+metallic = 0.85
+roughness = 0.25
+emission_enabled = true
+emission = Color(0.95, 0.76, 0.22, 1)
+emission_energy_multiplier = 0.65
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_58rnw"]
+top_radius = 0.084
+bottom_radius = 0.1232
+height = 0.5495177
+radial_segments = 10
+
+[node name="ObjetivoRoboSello" type="Node3D" unique_id=630857204]
+
+[node name="CojinTerciopelo" type="MeshInstance3D" parent="." unique_id=1240343875]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1941441, 0)
+material_override = SubResource("StandardMaterial3D_2882r")
+mesh = SubResource("BoxMesh_kbgta")
+
+[node name="LacreReal" type="MeshInstance3D" parent="." unique_id=1266964314]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.112, 1.3843619, 0.028)
+material_override = SubResource("StandardMaterial3D_2882r")
+mesh = SubResource("CylinderMesh_wde7m")
+
+[node name="MatrizOroSello" type="MeshInstance3D" parent="." unique_id=667932961]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1008, 1.5851471, -0.028)
+material_override = SubResource("StandardMaterial3D_u33ac")
+mesh = SubResource("CylinderMesh_58rnw")
+
+[node name="PergaminoReal" type="Node3D" parent="." unique_id=1048865369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.28, 1.0779, -0.112)
+script = ExtResource("1_xcao5")
+modelo = "props/Scroll_1.gltf"
+alto = 3.5
+tam = Vector2(7, 5)
+choque = "ninguno"

@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qripg"]
+albedo_color = Color(0.28, 0.19, 0.11, 1)
+roughness = 0.9
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_a3h4i"]
+top_radius = 0.084
+bottom_radius = 0.1232
+height = 3.6986766
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_83w5b"]
+size = Vector3(0.42, 0.19021766, 0.1232)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_53j2f"]
+albedo_color = Color(0.16, 0.18, 0.21, 1)
+metallic = 0.82
+roughness = 0.45
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_or7cm"]
+size = Vector3(0.29119998, 0.4438412, 0.29119998)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l0yui"]
+albedo_color = Color(0.55, 0.96, 1, 1)
+roughness = 0.2
+emission_enabled = true
+emission = Color(0.45, 0.92, 1, 1)
+emission_energy_multiplier = 3.4
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_5ueis"]
+top_radius = 0.1176
+bottom_radius = 0.1176
+height = 0.27475885
+radial_segments = 8
+
+[node name="TorreFocoElectrico" type="Node3D" unique_id=1815723003]
+
+[node name="PosteMadera" type="MeshInstance3D" parent="." unique_id=306240779]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8493383, 0)
+material_override = SubResource("StandardMaterial3D_qripg")
+mesh = SubResource("CylinderMesh_a3h4i")
+
+[node name="CrucetaMadera" type="MeshInstance3D" parent="." unique_id=766924371]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4239178, 0)
+material_override = SubResource("StandardMaterial3D_qripg")
+mesh = SubResource("BoxMesh_83w5b")
+
+[node name="CabezaFoco" type="Node3D" parent="." unique_id=142107259]
+
+[node name="CarcasaProyector" type="MeshInstance3D" parent="CabezaFoco" unique_id=761973455]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.7092443, -0.1568)
+material_override = SubResource("StandardMaterial3D_53j2f")
+mesh = SubResource("BoxMesh_or7cm")
+
+[node name="BombillaFoco" type="MeshInstance3D" parent="CabezaFoco" unique_id=94688000]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6669736, -0.2464)
+material_override = SubResource("StandardMaterial3D_l0yui")
+mesh = SubResource("CylinderMesh_5ueis")
+
+[node name="HazFoco" type="SpotLight3D" parent="CabezaFoco" unique_id=1675591322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6458385, -0.1568)
+light_color = Color(0.58, 0.96, 1, 1)
+light_energy = 3.2
+spot_range = 26.6
+spot_angle = 42.0
+
+[node name="CharcoLuzSuelo" type="OmniLight3D" parent="." unique_id=1713790866]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0567647, -1.008)
+light_color = Color(0.58, 0.96, 1, 1)
+light_energy = 2.1
+omni_range = 15.12

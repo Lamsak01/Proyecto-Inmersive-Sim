@@ -13501,6 +13501,3375 @@ script = ExtResource("2_rotgg")
 modelo = "nature/Rock_1.obj"
 alto = 16.0
 
+[node name="MatasPradera" type="Node3D" parent="Vegetacion" unique_id=220444558]
+
+[node name="MataTrebol_1" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=299685234]
+transform = Transform3D(0.60181504, 0, 0.79863554, 0, 1, 0, -0.79863554, 0, 0.60181504, -578.2, 1.0796336, -142.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_2" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1046149539]
+transform = Transform3D(-0.27563736, 0, 0.9612617, 0, 1, 0, -0.9612617, 0, -0.27563736, -574.28, 1.3474599, -120.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_3" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1992196534]
+transform = Transform3D(-0.93358046, 0, 0.35836792, 0, 1, 0, -0.35836792, 0, -0.93358046, -570.36, 1.5912243, -99.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_4" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1811374018]
+transform = Transform3D(-0.8480481, 0, -0.52991927, 0, 1, 0, 0.52991927, 0, -0.8480481, -566.44, 1.9383191, -61.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_5" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=250393706]
+transform = Transform3D(-0.087155715, 0, -0.9961947, 0, 1, 0, 0.9961947, 0, -0.087155715, -579.04, 2.154339, -39.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_6" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=616138965]
+transform = Transform3D(0.74314487, 0, -0.66913056, 0, 1, 0, 0.66913056, 0, 0.74314487, -575.12, 1.5891649, -17.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHelecho_7" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=7950336]
+transform = Transform3D(0.43837115, 0, 0.89879405, 0, 1, 0, -0.89879405, 0, 0.43837115, -567.28, 1.072239, 41.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_8" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1686999551]
+transform = Transform3D(-0.4539904, 0, 0.8910066, 0, 1, 0, -0.8910066, 0, -0.4539904, -579.88, 1.8336763, 63.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_9" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1608499820]
+transform = Transform3D(-0.9848077, 0, 0.1736483, 0, 1, 0, -0.1736483, 0, -0.9848077, -575.96, 1.3675708, 101.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_10" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1240756630]
+transform = Transform3D(-0.73135376, 0, -0.68199825, 0, 1, 0, 0.68199825, 0, -0.73135376, -572.04, 1.0450859, 122.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_11" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1583203571]
+transform = Transform3D(0.10452836, 0, -0.9945219, 0, 1, 0, 0.9945219, 0, 0.10452836, -568.12, 0.7039955, 144.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_12" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1328161979]
+transform = Transform3D(0.85716724, 0, -0.51503813, 0, 1, 0, 0.51503813, 0, 0.85716724, -580.72, 0.51209295, 166.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_13" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1223796619]
+transform = Transform3D(0.92718387, 0, 0.3746066, 0, 1, 0, -0.3746066, 0, 0.92718387, -576.8, 0.443902, 204.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_14" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=188815697]
+transform = Transform3D(0.25881907, 0, 0.9659258, 0, 1, 0, -0.9659258, 0, 0.25881907, -572.88, 0.7534205, 225.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_15" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1854219617]
+transform = Transform3D(-0.61566144, 0, 0.7880108, 0, 1, 0, -0.7880108, 0, -0.61566144, -568.96, 0.87695855, 247.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_16" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=454916270]
+transform = Transform3D(-0.9998477, 0, -0.017452395, 0, 1, 0, 0.017452395, 0, -0.9998477, -581.56, 0.85561734, 285.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_17" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=19969596]
+transform = Transform3D(-0.5877854, 0, -0.8090168, 0, 1, 0, 0.8090168, 0, -0.5877854, -577.64, 0.80836016, 306.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_18" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1676164408]
+transform = Transform3D(0.29237148, 0, -0.95630485, 0, 1, 0, 0.95630485, 0, 0.29237148, -573.72, 0.78320813, 328.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_19" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1383071290]
+transform = Transform3D(0.93969256, 0, -0.34202036, 0, 1, 0, 0.34202036, 0, 0.93969256, -543.2, 0.7882004, -138.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_20" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1005550282]
+transform = Transform3D(0.83867055, 0, 0.54463905, 0, 1, 0, -0.54463905, 0, 0.83867055, -539.28, 1.0775433, -117.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_21" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1754588676]
+transform = Transform3D(0.06975651, 0, 0.9975641, 0, 1, 0, -0.9975641, 0, 0.06975651, -551.88, 1.4698604, -95.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_22" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=624483801]
+transform = Transform3D(-0.75470966, 0, 0.65605897, 0, 1, 0, -0.65605897, 0, -0.75470966, -547.96, 1.8244716, -57.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_23" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1879079232]
+transform = Transform3D(-0.97814757, 0, -0.20791179, 0, 1, 0, 0.20791179, 0, -0.97814757, -544.04, 1.929155, -36.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_24" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=456385507]
+transform = Transform3D(-0.42261818, 0, -0.9063078, 0, 1, 0, 0.9063078, 0, -0.42261818, -540.12, 1.145014, -14.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataFlores_25" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=492715403]
+transform = Transform3D(0.98768836, 0, -0.15643436, 0, 1, 0, 0.15643436, 0, 0.98768836, -548.8, 1.2695422, 45.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_26" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1580287575]
+transform = Transform3D(0.7193398, 0, 0.6946584, 0, 1, 0, -0.6946584, 0, 0.7193398, -544.88, 0.3236976, 66.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_27" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1150939010]
+transform = Transform3D(-0.12186929, 0, 0.99254614, 0, 1, 0, -0.99254614, 0, -0.12186929, -540.96, 1.172896, 88.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_28" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1059061440]
+transform = Transform3D(-0.8660254, 0, 0.50000006, 0, 1, 0, -0.50000006, 0, -0.8660254, -553.56, 0.88273996, 126.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_29" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=841630804]
+transform = Transform3D(-0.92050487, 0, -0.3907311, 0, 1, 0, 0.3907311, 0, -0.92050487, -549.64, 0.5422049, 147.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_30" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1278360040]
+transform = Transform3D(-0.24192193, 0, -0.9702957, 0, 1, 0, 0.9702957, 0, -0.24192193, -545.72, 0.20952357, 169.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_31" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1014796920]
+transform = Transform3D(0.6293204, 0, -0.777146, 0, 1, 0, 0.777146, 0, 0.6293204, -541.8, 0.24155347, 207.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_32" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1329791884]
+transform = Transform3D(0.99939084, 0, 0.034899496, 0, 1, 0, -0.034899496, 0, 0.99939084, -554.4, 0.6827135, 229.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_33" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1844417278]
+transform = Transform3D(0.57357645, 0, 0.81915206, 0, 1, 0, -0.81915206, 0, 0.57357645, -550.48, 0.81767726, 250.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_34" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=433281689]
+transform = Transform3D(-0.30901694, 0, 0.95105654, 0, 1, 0, -0.95105654, 0, -0.30901694, -546.56, 0.83171546, 272.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_35" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=3386385]
+transform = Transform3D(-0.9455186, 0, 0.3255681, 0, 1, 0, -0.3255681, 0, -0.9455186, -542.64, 0.8742315, 310.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_36" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=56495697]
+transform = Transform3D(-0.82903755, 0, -0.55919296, 0, 1, 0, 0.55919296, 0, -0.82903755, -555.24, 0.8241023, 331.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_37" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1876279203]
+transform = Transform3D(-0.052336123, 0, -0.9986295, 0, 1, 0, 0.9986295, 0, -0.052336123, -524.72, 0.453666, -152.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_38" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=152851225]
+transform = Transform3D(0.7660443, 0, -0.64278775, 0, 1, 0, 0.64278775, 0, 0.7660443, -520.8, 0.993961, -113.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_39" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1555944748]
+transform = Transform3D(0.97437006, 0, 0.22495106, 0, 1, 0, -0.22495106, 0, 0.97437006, -516.88, 1.2517588, -92.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_40" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=452656578]
+transform = Transform3D(0.4067366, 0, 0.9135455, 0, 1, 0, -0.9135455, 0, 0.4067366, -512.96, 1.4633315, -70.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_41" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1097616381]
+transform = Transform3D(-0.48480955, 0, 0.8746197, 0, 1, 0, -0.8746197, 0, -0.48480955, -525.56, 1.8245561, -32.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_42" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=777447605]
+transform = Transform3D(-0.99026805, 0, 0.13917318, 0, 1, 0, -0.13917318, 0, -0.99026805, -521.64, 0.7994803, -11.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataHierba_43" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=219466359]
+transform = Transform3D(0.13917327, 0, -0.99026805, 0, 1, 0, 0.99026805, 0, 0.13917327, -513.8, 0.29459763, 48.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHelecho_44" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1365587007]
+transform = Transform3D(-0.64278764, 0, 0.76604444, 0, 1, 0, -0.76604444, 0, -0.64278764, -514.64, 0.47299337, 151.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_45" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1521638688]
+transform = Transform3D(-0.9986295, 0, -0.052335985, 0, 1, 0, 0.052335985, 0, -0.9986295, -527.24, 0.13450624, 172.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_46" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2008796260]
+transform = Transform3D(-0.5591929, 0, -0.8290376, 0, 1, 0, 0.8290376, 0, -0.5591929, -523.32, -0.011962145, 194.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_47" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1624351294]
+transform = Transform3D(0.3255682, 0, -0.94551855, 0, 1, 0, 0.94551855, 0, 0.3255682, -519.4, 0.689026, 232.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_48" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1765564712]
+transform = Transform3D(0.95105654, 0, -0.30901694, 0, 1, 0, 0.30901694, 0, 0.95105654, -515.48, 0.9008719, 253.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_49" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=678084406]
+transform = Transform3D(0.81915206, 0, 0.57357645, 0, 1, 0, -0.57357645, 0, 0.81915206, -528.08, 0.89871156, 275.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_50" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2081966456]
+transform = Transform3D(0.034899496, 0, 0.99939084, 0, 1, 0, -0.99939084, 0, 0.034899496, -524.16, 1.0087895, 313.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_51" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1619550858]
+transform = Transform3D(-0.77714586, 0, 0.6293205, 0, 1, 0, -0.6293205, 0, -0.77714586, -520.24, 1.0751265, 335.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_52" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=157520578]
+transform = Transform3D(-0.9702957, 0, -0.2419218, 0, 1, 0, 0.2419218, 0, -0.9702957, -489.72, 0.3428855, -148.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_53" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1102442016]
+transform = Transform3D(-0.39073122, 0, -0.9205048, 0, 1, 0, 0.9205048, 0, -0.39073122, -502.32, 0.70376074, -127.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_54" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1184423321]
+transform = Transform3D(0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, 0.4999999, -498.4, 1.1605725, -89.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_55" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1860089577]
+transform = Transform3D(0.99254614, 0, -0.12186943, 0, 1, 0, 0.12186943, 0, 0.99254614, -494.48, 1.3520643, -67.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_56" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1695520739]
+transform = Transform3D(0.6946584, 0, 0.7193398, 0, 1, 0, -0.7193398, 0, 0.6946584, -490.56, 1.4921762, -45.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_57" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=326456882]
+transform = Transform3D(-0.15643445, 0, 0.98768836, 0, 1, 0, -0.98768836, 0, -0.15643445, -486.64, 0.44862336, -7.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataEspigas_58" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1879829226]
+transform = Transform3D(-0.9063078, 0, -0.42261827, 0, 1, 0, 0.42261827, 0, -0.9063078, -495.32, 0.3795426, 35.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataFlores_59" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=327474593]
+transform = Transform3D(0.54463905, 0, 0.83867055, 0, 1, 0, -0.83867055, 0, 0.54463905, -496.16, 0.48586544, 154.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_60" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=736518000]
+transform = Transform3D(-0.34202012, 0, 0.9396926, 0, 1, 0, -0.9396926, 0, -0.34202012, -492.24, 0.22036013, 176.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_61" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2052574984]
+transform = Transform3D(-0.9563047, 0, 0.29237184, 0, 1, 0, -0.29237184, 0, -0.9563047, -488.32, 0.086898215, 197.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_62" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1233736117]
+transform = Transform3D(-0.80901706, 0, -0.5877851, 0, 1, 0, 0.5877851, 0, -0.80901706, -500.92, 0.4469961, 219.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_63" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=817544261]
+transform = Transform3D(-0.017452296, 0, -0.9998477, 0, 1, 0, 0.9998477, 0, -0.017452296, -497, 1.0282462, 257.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_64" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1312859096]
+transform = Transform3D(0.78801084, 0, -0.6156614, 0, 1, 0, 0.6156614, 0, 0.78801084, -493.08, 1.1743329, 278.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_65" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=904381468]
+transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, -489.16, 1.3079705, 300.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_66" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1440494762]
+transform = Transform3D(0.37460664, 0, 0.92718387, 0, 1, 0, -0.92718387, 0, 0.37460664, -501.76, 1.279729, 338.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_67" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1197966718]
+transform = Transform3D(-0.515038, 0, 0.8571673, 0, 1, 0, -0.8571673, 0, -0.515038, -471.24, 0.29307833, -145.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_68" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=203685367]
+transform = Transform3D(-0.9945219, 0, 0.104528494, 0, 1, 0, -0.104528494, 0, -0.9945219, -467.32, 0.5091342, -123.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_69" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1524540317]
+transform = Transform3D(-0.6819984, 0, -0.7313537, 0, 1, 0, 0.7313537, 0, -0.6819984, -463.4, 0.7459698, -85.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_70" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1156170588]
+transform = Transform3D(0.17364815, 0, -0.9848077, 0, 1, 0, 0.9848077, 0, 0.17364815, -459.48, 0.3058485, -64.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_71" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=627443924]
+transform = Transform3D(0.8910065, 0, -0.45399052, 0, 1, 0, 0.45399052, 0, 0.8910065, -472.08, 1.2829213, -42.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_72" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=666586439]
+transform = Transform3D(0.89879405, 0, 0.43837115, 0, 1, 0, -0.43837115, 0, 0.89879405, -468.16, 0.1954376, -4.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_73" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=304401999]
+transform = Transform3D(-0.6691307, 0, 0.7431448, 0, 1, 0, -0.7431448, 0, -0.6691307, -460.32, 0.26935554, 38.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataHierba_74" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=679811370]
+transform = Transform3D(0.96126163, 0, -0.2756375, 0, 1, 0, 0.2756375, 0, 0.96126163, -461.16, 0.6221962, 141.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_75" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=294036914]
+transform = Transform3D(0.79863554, 0, 0.601815, 0, 1, 0, -0.601815, 0, 0.79863554, -473.76, 0.28037703, 179.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_76" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=354540211]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -469.84, 0.23419571, 201.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_77" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=339637372]
+transform = Transform3D(-0.7986355, 0, 0.6018151, 0, 1, 0, -0.6018151, 0, -0.7986355, -465.92, 0.5976128, 222.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_78" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=639568028]
+transform = Transform3D(-0.9612617, 0, -0.2756373, 0, 1, 0, 0.2756373, 0, -0.9612617, -462, 1.264962, 260.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_79" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=168164514]
+transform = Transform3D(-0.35836777, 0, -0.9335805, 0, 1, 0, 0.9335805, 0, -0.35836777, -474.6, 1.3362645, 282.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_80" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=51385534]
+transform = Transform3D(0.52991945, 0, -0.848048, 0, 1, 0, 0.848048, 0, 0.52991945, -470.68, 1.4791915, 303.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_81" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=310483759]
+transform = Transform3D(0.99619466, 0, -0.08715603, 0, 1, 0, 0.08715603, 0, 0.99619466, -466.76, 1.5846757, 325.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_82" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=904543112]
+transform = Transform3D(0.66913056, 0, 0.74314487, 0, 1, 0, -0.74314487, 0, 0.66913056, -436.24, 0.15376134, -141.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_83" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1200564858]
+transform = Transform3D(-0.19080903, 0, 0.98162717, 0, 1, 0, -0.98162717, 0, -0.19080903, -448.84, 0.40041167, -120.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_84" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=153016233]
+transform = Transform3D(-0.89879405, 0, 0.43837112, 0, 1, 0, -0.43837112, 0, -0.89879405, -444.92, 0.32184702, -98.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_85" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1816329104]
+transform = Transform3D(-0.8910065, 0, -0.45399055, 0, 1, 0, 0.45399055, 0, -0.8910065, -441, -0.08454118, -60.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_86" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=778375451]
+transform = Transform3D(-0.17364813, 0, -0.9848078, 0, 1, 0, 0.9848078, 0, -0.17364813, -437.08, -0.015975812, -39.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_87" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1741143350]
+transform = Transform3D(0.6819984, 0, -0.73135364, 0, 1, 0, 0.73135364, 0, 0.6819984, -433.16, -0.07809705, -17.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataTrebol_88" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=307819593]
+transform = Transform3D(0.5150381, 0, 0.8571673, 0, 1, 0, -0.8571673, 0, 0.5150381, -441.84, 0.15909547, 42)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataEspigas_89" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1012050685]
+transform = Transform3D(0.01745232, 0, -0.9998477, 0, 1, 0, 0.9998477, 0, 0.01745232, -442.68, 0.460639, 144.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_90" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2002140487]
+transform = Transform3D(0.80901694, 0, -0.5877853, 0, 1, 0, 0.5877853, 0, 0.80901694, -438.76, 0.59118557, 166.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_91" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=435322702]
+transform = Transform3D(0.9563048, 0, 0.2923717, 0, 1, 0, -0.2923717, 0, 0.9563048, -434.84, 0.58356893, 204.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_92" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1382132840]
+transform = Transform3D(0.34202015, 0, 0.9396926, 0, 1, 0, -0.9396926, 0, 0.34202015, -447.44, 0.87753856, 225.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_93" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2118887025]
+transform = Transform3D(-0.54463905, 0, 0.83867055, 0, 1, 0, -0.83867055, 0, -0.54463905, -443.52, 1.2722453, 247.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_94" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2101119034]
+transform = Transform3D(-0.9975641, 0, 0.06975647, 0, 1, 0, -0.06975647, 0, -0.9975641, -439.6, 1.5858667, 285.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_95" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1227921854]
+transform = Transform3D(-0.656059, 0, -0.7547096, 0, 1, 0, 0.7547096, 0, -0.656059, -435.68, 1.7259645, 307.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_96" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=246639878]
+transform = Transform3D(0.20791148, 0, -0.9781476, 0, 1, 0, 0.9781476, 0, 0.20791148, -448.28, 1.7206287, 328.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_97" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=984701791]
+transform = Transform3D(0.9063077, 0, -0.42261845, 0, 1, 0, 0.42261845, 0, 0.9063077, -417.76, 0.08973205, -138.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_98" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2024757884]
+transform = Transform3D(0.88294756, 0, 0.46947157, 0, 1, 0, -0.46947157, 0, 0.88294756, -413.84, 0.1359705, -117.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_99" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2063627185]
+transform = Transform3D(0.15643449, 0, 0.98768836, 0, 1, 0, -0.98768836, 0, 0.15643449, -409.92, -0.013704394, -95.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_100" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=768034605]
+transform = Transform3D(-0.6946583, 0, 0.7193399, 0, 1, 0, -0.7193399, 0, -0.6946583, -422.52, -0.08454118, -73.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_101" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=450230179]
+transform = Transform3D(-0.99254614, 0, -0.121869214, 0, 1, 0, 0.121869214, 0, -0.99254614, -418.6, -0.08454118, -35.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_102" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1356344627]
+transform = Transform3D(-0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, -0.4999999, -414.68, -0.08454118, -14.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataHierba_103" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1984109599]
+transform = Transform3D(-0.95105654, 0, -0.30901697, 0, 1, 0, 0.30901697, 0, -0.95105654, -407.68, 0.23197612, 148.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_104" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=775352745]
+transform = Transform3D(-0.32556817, 0, -0.94551855, 0, 1, 0, 0.94551855, 0, -0.32556817, -420.28, 0.64948726, 169.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_105" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1240204359]
+transform = Transform3D(0.5591929, 0, -0.8290376, 0, 1, 0, 0.8290376, 0, 0.5591929, -416.36, 0.83254147, 207.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_106" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=105945010]
+transform = Transform3D(0.9986295, 0, -0.052335963, 0, 1, 0, 0.052335963, 0, 0.9986295, -412.44, 1.4569404, 229.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_107" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=382130017]
+transform = Transform3D(0.64278764, 0, 0.76604444, 0, 1, 0, -0.76604444, 0, 0.64278764, -408.52, 1.8863015, 250.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_108" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=156054862]
+transform = Transform3D(-0.22495101, 0, 0.97437006, 0, 1, 0, -0.97437006, 0, -0.22495101, -421.12, 1.7712876, 272.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_109" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1490865390]
+transform = Transform3D(-0.9135455, 0, 0.40673658, 0, 1, 0, -0.40673658, 0, -0.9135455, -417.2, 1.9297459, 310.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_110" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1105837333]
+transform = Transform3D(-0.87461966, 0, -0.4848097, 0, 1, 0, 0.4848097, 0, -0.87461966, -413.28, 1.9846076, 332.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_111" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1858360950]
+transform = Transform3D(-0.13917325, 0, -0.99026805, 0, 1, 0, 0.99026805, 0, -0.13917325, -382.76, 0.01724404, -151.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_112" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2078320282]
+transform = Transform3D(0.70710665, 0, -0.7071069, 0, 1, 0, 0.7071069, 0, 0.70710665, -395.36, 0.022493947, -113.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_113" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1749371180]
+transform = Transform3D(0.99026805, 0, 0.1391731, 0, 1, 0, -0.1391731, 0, 0.99026805, -391.44, -0.0048199873, -92.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_114" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=603851924]
+transform = Transform3D(0.48480958, 0, 0.8746197, 0, 1, 0, -0.8746197, 0, 0.48480958, -387.52, -0.05223625, -70.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_115" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2144738954]
+transform = Transform3D(-0.40673658, 0, 0.9135455, 0, 1, 0, -0.9135455, 0, -0.40673658, -383.6, 0.03124997, -32.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_116" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2027111046]
+transform = Transform3D(-0.97437006, 0, 0.22495112, 0, 1, 0, -0.22495112, 0, -0.97437006, -379.68, -0.029256573, -10.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataTrebol_117" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=171809298]
+transform = Transform3D(-0.57357645, 0, 0.819152, 0, 1, 0, -0.819152, 0, -0.57357645, -389.2, 0.49390888, 151.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_118" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1898982499]
+transform = Transform3D(-0.99939084, 0, 0.03489945, 0, 1, 0, -0.03489945, 0, -0.99939084, -385.28, 0.77046335, 173.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_119" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1808901433]
+transform = Transform3D(-0.6293203, 0, -0.777146, 0, 1, 0, 0.777146, 0, -0.6293203, -381.36, 0.89244556, 194.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_120" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=512628368]
+transform = Transform3D(0.24192195, 0, -0.9702957, 0, 1, 0, 0.9702957, 0, 0.24192195, -393.96, 1.8174089, 232.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_121" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=928319972]
+transform = Transform3D(0.92050487, 0, -0.39073107, 0, 1, 0, 0.39073107, 0, 0.92050487, -390.04, 2.2051034, 254.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_122" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=324827334]
+transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, -386.12, 2.3879492, 275.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_123" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=548842946]
+transform = Transform3D(0.121869326, 0, 0.99254614, 0, 1, 0, -0.99254614, 0, 0.121869326, -382.2, 2.4898057, 313.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_124" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2069721417]
+transform = Transform3D(-0.7193397, 0, 0.69465846, 0, 1, 0, -0.69465846, 0, -0.7193397, -394.8, 2.2478333, 335.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_125" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1264519732]
+transform = Transform3D(-0.98768836, 0, -0.15643437, 0, 1, 0, 0.15643437, 0, -0.98768836, -364.28, 0.01936461, -148.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_126" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=978395201]
+transform = Transform3D(-0.46947163, 0, -0.88294756, 0, 1, 0, 0.88294756, 0, -0.46947163, -360.36, -0.08454118, -126.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_127" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=223505057]
+transform = Transform3D(0.42261818, 0, -0.9063078, 0, 1, 0, 0.9063078, 0, 0.42261818, -356.44, -0.08454118, -88.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_128" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1694083620]
+transform = Transform3D(0.97814757, 0, -0.20791176, 0, 1, 0, 0.20791176, 0, 0.97814757, -369.04, -0.08454118, -67.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_129" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1332390394]
+transform = Transform3D(0.7547096, 0, 0.656059, 0, 1, 0, -0.656059, 0, 0.7547096, -365.12, -0.08454118, -45.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_130" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=958364851]
+transform = Transform3D(-0.06975648, 0, 0.9975641, 0, 1, 0, -0.9975641, 0, -0.06975648, -361.2, -0.08454118, -7.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_131" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1694121469]
+transform = Transform3D(-0.9396926, 0, -0.34202015, 0, 1, 0, 0.34202015, 0, -0.9396926, -353.36, -0.084506765, 35.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataHelecho_132" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1578029418]
+transform = Transform3D(0.6156615, 0, 0.7880107, 0, 1, 0, -0.7880107, 0, 0.6156615, -354.2, 0.70448315, 154.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_133" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=682256764]
+transform = Transform3D(-0.25881904, 0, 0.9659258, 0, 1, 0, -0.9659258, 0, -0.25881904, -366.8, 0.8258834, 176.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_134" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1983080646]
+transform = Transform3D(-0.9271838, 0, 0.3746067, 0, 1, 0, -0.3746067, 0, -0.9271838, -362.88, 1.0698858, 197.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_135" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2137672117]
+transform = Transform3D(-0.85716736, 0, -0.51503795, 0, 1, 0, 0.51503795, 0, -0.85716736, -358.96, 1.781359, 219.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_136" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=462441563]
+transform = Transform3D(-0.10452834, 0, -0.9945219, 0, 1, 0, 0.9945219, 0, -0.10452834, -355.04, 2.6907043, 257.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_137" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2108395411]
+transform = Transform3D(0.7313538, 0, -0.68199825, 0, 1, 0, 0.68199825, 0, 0.7313538, -367.64, 2.6628103, 279.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_138" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1142415100]
+transform = Transform3D(0.9848077, 0, 0.17364818, 0, 1, 0, -0.17364818, 0, 0.9848077, -363.72, 2.7467656, 300.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_139" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=3177373]
+transform = Transform3D(0.45399052, 0, 0.8910065, 0, 1, 0, -0.8910065, 0, 0.45399052, -359.8, 2.6276233, 338.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_140" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1065246035]
+transform = Transform3D(-0.43837112, 0, 0.89879405, 0, 1, 0, -0.89879405, 0, -0.43837112, -329.28, 0.075238615, -145.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_141" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1488266904]
+transform = Transform3D(-0.98162717, 0, 0.19080901, 0, 1, 0, -0.19080901, 0, -0.98162717, -341.88, -0.08454118, -123.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_142" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=866456872]
+transform = Transform3D(-0.7431448, 0, -0.6691306, 0, 1, 0, 0.6691306, 0, -0.7431448, -337.96, -0.08454118, -85.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_143" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1193373962]
+transform = Transform3D(0.08715574, 0, -0.9961947, 0, 1, 0, 0.9961947, 0, 0.08715574, -334.04, -0.08454118, -63.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_144" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1616930695]
+transform = Transform3D(0.8480481, 0, -0.52991927, 0, 1, 0, 0.52991927, 0, 0.8480481, -330.12, -0.08454118, -42.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_145" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2141881433]
+transform = Transform3D(0.9335804, 0, 0.35836795, 0, 1, 0, -0.35836795, 0, 0.9335804, -342.72, -0.08454118, -20.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataEspigas_146" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1762111628]
+transform = Transform3D(-0.6018151, 0, 0.7986355, 0, 1, 0, -0.7986355, 0, -0.6018151, -334.88, -0.08454118, 38.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_147" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=241828179]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -330.96, 0.11596792, 60.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_148" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1713051347]
+transform = Transform3D(-0.60181516, 0, -0.7986354, 0, 1, 0, 0.7986354, 0, -0.60181516, -327.04, -0.13670342, 98.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_149" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1212754850]
+transform = Transform3D(0.2756372, 0, -0.96126175, 0, 1, 0, 0.96126175, 0, 0.2756372, -339.64, 0.30007687, 120.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_150" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2088264091]
+transform = Transform3D(0.9335804, 0, -0.35836807, 0, 1, 0, 0.35836807, 0, 0.9335804, -335.72, 0.5075243, 141.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_151" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=496162118]
+transform = Transform3D(0.8480481, 0, 0.52991927, 0, 1, 0, -0.52991927, 0, 0.8480481, -331.8, 0.8876301, 179.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_152" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1106511981]
+transform = Transform3D(0.087155804, 0, 0.9961947, 0, 1, 0, -0.9961947, 0, 0.087155804, -327.88, 1.318467, 201.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_153" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=554672526]
+transform = Transform3D(-0.7431448, 0, 0.6691306, 0, 1, 0, -0.6691306, 0, -0.7431448, -340.48, 2.0552237, 222.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_154" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=828086019]
+transform = Transform3D(-0.98162717, 0, -0.19080895, 0, 1, 0, 0.19080895, 0, -0.98162717, -336.56, 2.872808, 260.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_155" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2017745273]
+transform = Transform3D(-0.43837097, 0, -0.8987941, 0, 1, 0, 0.8987941, 0, -0.43837097, -332.64, 3.0061493, 282.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_156" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2113031916]
+transform = Transform3D(0.45399025, 0, -0.89100665, 0, 1, 0, 0.89100665, 0, 0.45399025, -328.72, 3.0311663, 304.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_157" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2042885867]
+transform = Transform3D(0.9848077, 0, -0.17364845, 0, 1, 0, 0.17364845, 0, 0.9848077, -341.32, 2.8665957, 325.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_158" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2131994253]
+transform = Transform3D(0.7313537, 0, 0.6819984, 0, 1, 0, -0.6819984, 0, 0.7313537, -310.8, 0.102975, -141.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_159" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1551625258]
+transform = Transform3D(-0.10452851, 0, 0.9945219, 0, 1, 0, -0.9945219, 0, -0.10452851, -306.88, -0.08454118, -120.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_160" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=539428778]
+transform = Transform3D(-0.8571673, 0, 0.515038, 0, 1, 0, -0.515038, 0, -0.8571673, -302.96, -0.08454118, -98.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_161" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1433620605]
+transform = Transform3D(-0.9271838, 0, -0.37460664, 0, 1, 0, 0.37460664, 0, -0.9271838, -315.56, -0.08454118, -60.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_162" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=850242607]
+transform = Transform3D(-0.25881898, 0, -0.9659259, 0, 1, 0, 0.9659259, 0, -0.25881898, -311.64, -0.08454118, -38.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_163" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1480691670]
+transform = Transform3D(0.6156615, 0, -0.7880107, 0, 1, 0, 0.7880107, 0, 0.6156615, -307.72, -0.08454118, -17.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_164" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2109685139]
+transform = Transform3D(-0.29237175, 0, 0.9563047, 0, 1, 0, -0.9563047, 0, -0.29237175, -312.48, 0.09515946, 63.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_165" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1753910156]
+transform = Transform3D(-0.9396926, 0, 0.3420202, 0, 1, 0, -0.3420202, 0, -0.9396926, -308.56, 0.14550444, 101.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_166" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1330928288]
+transform = Transform3D(-0.8386706, 0, -0.544639, 0, 1, 0, 0.544639, 0, -0.8386706, -304.64, 0.042845342, 123.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_167" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2082600072]
+transform = Transform3D(-0.069756545, 0, -0.997564, 0, 1, 0, 0.997564, 0, -0.069756545, -300.72, 0.32864037, 145.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_168" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2082718363]
+transform = Transform3D(0.75470954, 0, -0.6560591, 0, 1, 0, 0.6560591, 0, 0.75470954, -313.32, 0.7017282, 166.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_169" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=67645185]
+transform = Transform3D(0.9781476, 0, 0.2079117, 0, 1, 0, -0.2079117, 0, 0.9781476, -309.4, 1.4706817, 204.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_170" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=956744629]
+transform = Transform3D(0.42261824, 0, 0.9063078, 0, 1, 0, -0.9063078, 0, 0.42261824, -305.48, 2.3143103, 226.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_171" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=587102899]
+transform = Transform3D(-0.46947157, 0, 0.88294756, 0, 1, 0, -0.88294756, 0, -0.46947157, -301.56, 2.8485005, 247.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_172" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1698153421]
+transform = Transform3D(-0.98768836, 0, 0.15643445, 0, 1, 0, -0.15643445, 0, -0.98768836, -314.16, 3.0806537, 285.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_173" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=474024270]
+transform = Transform3D(-0.7193398, 0, -0.6946584, 0, 1, 0, 0.6946584, 0, -0.7193398, -310.24, 3.0689814, 307.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_174" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1365001207]
+transform = Transform3D(0.12186914, 0, -0.9925462, 0, 1, 0, 0.9925462, 0, 0.12186914, -306.32, 2.9481845, 329)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_175" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1388588287]
+transform = Transform3D(0.8660253, 0, -0.5000002, 0, 1, 0, 0.5000002, 0, 0.8660253, -275.8, 0.22914909, -138.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_176" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1273139209]
+transform = Transform3D(0.92050487, 0, 0.39073113, 0, 1, 0, -0.39073113, 0, 0.92050487, -288.4, -0.08454118, -116.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_177" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1679727589]
+transform = Transform3D(0.2419219, 0, 0.9702957, 0, 1, 0, -0.9702957, 0, 0.2419219, -284.48, -0.08454118, -95.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_178" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1832062928]
+transform = Transform3D(-0.6293203, 0, 0.77714604, 0, 1, 0, -0.77714604, 0, -0.6293203, -280.56, -0.08454118, -73.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_179" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1882667329]
+transform = Transform3D(-0.99939084, 0, -0.034899388, 0, 1, 0, 0.034899388, 0, -0.99939084, -276.64, -0.08454118, -35.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_180" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2128229421]
+transform = Transform3D(-0.57357633, 0, -0.8191521, 0, 1, 0, 0.8191521, 0, -0.57357633, -289.24, -0.08454118, -14)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataFlores_181" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1351480710]
+transform = Transform3D(0.052335974, 0, 0.9986295, 0, 1, 0, -0.9986295, 0, 0.052335974, -273.56, -0.08454118, 88.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_182" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2045182489]
+transform = Transform3D(-0.76604444, 0, 0.64278764, 0, 1, 0, -0.64278764, 0, -0.76604444, -286.16, -0.07271962, 126.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_183" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2136567748]
+transform = Transform3D(-0.97437006, 0, -0.22495104, 0, 1, 0, 0.22495104, 0, -0.97437006, -282.24, 0.25233406, 148.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_184" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1867379192]
+transform = Transform3D(-0.40673664, 0, -0.9135454, 0, 1, 0, 0.9135454, 0, -0.40673664, -278.32, 0.59817773, 169.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_185" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1394218875]
+transform = Transform3D(0.48480964, 0, -0.8746197, 0, 1, 0, 0.8746197, 0, 0.48480964, -274.4, 1.5580865, 208.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_186" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1355211639]
+transform = Transform3D(0.99026805, 0, -0.13917309, 0, 1, 0, 0.13917309, 0, 0.99026805, -287, 2.405518, 229.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_187" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1980868535]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, -283.08, 2.813739, 251.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_188" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1272944588]
+transform = Transform3D(-0.13917308, 0, 0.99026805, 0, 1, 0, -0.99026805, 0, -0.13917308, -279.16, 2.9423268, 272.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_189" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=854977988]
+transform = Transform3D(-0.8746198, 0, 0.48480955, 0, 1, 0, -0.48480955, 0, -0.8746198, -275.24, 2.9369333, 310.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_190" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1026665782]
+transform = Transform3D(-0.9135455, 0, -0.40673652, 0, 1, 0, 0.40673652, 0, -0.9135455, -287.84, 2.8792675, 332.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_191" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=587721289]
+transform = Transform3D(-0.22495118, 0, -0.97437006, 0, 1, 0, 0.97437006, 0, -0.22495118, -257.32, 0.6031617, -151.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_192" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1844679417]
+transform = Transform3D(0.6427875, 0, -0.7660445, 0, 1, 0, 0.7660445, 0, 0.6427875, -253.4, -0.08454118, -113.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_193" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2026717043]
+transform = Transform3D(0.9986295, 0, 0.05233596, 0, 1, 0, -0.05233596, 0, 0.9986295, -249.48, -0.08454118, -91.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_194" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=167079421]
+transform = Transform3D(0.5591929, 0, 0.82903755, 0, 1, 0, -0.82903755, 0, 0.5591929, -262.08, -0.08454118, -70.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_195" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=740092346]
+transform = Transform3D(-0.3255681, 0, 0.9455186, 0, 1, 0, -0.9455186, 0, -0.3255681, -258.16, -0.08454118, -32.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_196" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1928390539]
+transform = Transform3D(-0.9510565, 0, 0.30901703, 0, 1, 0, -0.30901703, 0, -0.9510565, -254.24, -0.08454118, -10.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_197" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=213346801]
+transform = Transform3D(0.9702957, 0, 0.2419219, 0, 1, 0, -0.2419219, 0, 0.9702957, -255.08, -0.08454118, 92.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_198" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1741996289]
+transform = Transform3D(0.3907312, 0, 0.9205048, 0, 1, 0, -0.9205048, 0, 0.3907312, -251.16, -0.08454118, 113.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_199" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=578629392]
+transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50000006, -247.24, 0.06372655, 151.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_200" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=451749689]
+transform = Transform3D(-0.99254614, 0, 0.12186928, 0, 1, 0, -0.12186928, 0, -0.99254614, -259.84, 0.55489707, 173.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_201" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=699225587]
+transform = Transform3D(-0.69465834, 0, -0.71933985, 0, 1, 0, 0.71933985, 0, -0.69465834, -255.92, 1.0280133, 194.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_202" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1593057293]
+transform = Transform3D(0.15643454, 0, -0.9876883, 0, 1, 0, 0.9876883, 0, 0.15643454, -252, 2.2472093, 232.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_203" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=123042506]
+transform = Transform3D(0.8829476, 0, -0.46947148, 0, 1, 0, 0.46947148, 0, 0.8829476, -248.08, 2.4516437, 254.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_204" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1538810199]
+transform = Transform3D(0.90630776, 0, 0.42261827, 0, 1, 0, -0.42261827, 0, 0.90630776, -260.68, 2.7882824, 276.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_205" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1422952247]
+transform = Transform3D(0.20791166, 0, 0.9781476, 0, 1, 0, -0.9781476, 0, 0.20791166, -256.76, 2.7599556, 314.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_206" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=133542775]
+transform = Transform3D(-0.65605897, 0, 0.7547096, 0, 1, 0, -0.7547096, 0, -0.65605897, -252.84, 2.6085017, 335.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_207" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1256211061]
+transform = Transform3D(-0.9975641, 0, -0.0697564, 0, 1, 0, 0.0697564, 0, -0.9975641, -222.32, 0.63238186, -148.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_208" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=113402705]
+transform = Transform3D(-0.5446391, 0, -0.83867055, 0, 1, 0, 0.83867055, 0, -0.5446391, -234.92, 0.26194456, -126.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_209" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2065734253]
+transform = Transform3D(0.3420201, 0, -0.9396926, 0, 1, 0, 0.9396926, 0, 0.3420201, -231, -0.08454118, -88.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_210" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=517565201]
+transform = Transform3D(0.9563047, 0, -0.29237175, 0, 1, 0, 0.29237175, 0, 0.9563047, -227.08, -0.08454118, -66.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_211" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=838858801]
+transform = Transform3D(0.809017, 0, 0.58778524, 0, 1, 0, -0.58778524, 0, 0.809017, -223.16, -0.08454118, -45.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_212" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=696612782]
+transform = Transform3D(0.017452383, 0, 0.9998477, 0, 1, 0, -0.9998477, 0, 0.017452383, -235.76, -0.08454118, -7.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_213" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=44054557]
+transform = Transform3D(-0.3746068, 0, -0.9271838, 0, 1, 0, 0.9271838, 0, -0.3746068, -224, -0.08454118, 73.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_214" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1562039928]
+transform = Transform3D(0.5150379, 0, -0.8571674, 0, 1, 0, 0.8571674, 0, 0.5150379, -220.08, -0.08454118, 95.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_215" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=273427076]
+transform = Transform3D(0.99452186, 0, -0.10452865, 0, 1, 0, 0.10452865, 0, 0.99452186, -232.68, -0.08454118, 117.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_216" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=477527794]
+transform = Transform3D(0.6819984, 0, 0.7313537, 0, 1, 0, -0.7313537, 0, 0.6819984, -228.76, -0.030051095, 155.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_217" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=595644625]
+transform = Transform3D(-0.1736482, 0, 0.9848077, 0, 1, 0, -0.9848077, 0, -0.1736482, -224.84, 0.08276765, 176.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_218" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1021230867]
+transform = Transform3D(-0.89100647, 0, 0.45399058, 0, 1, 0, -0.45399058, 0, -0.89100647, -220.92, 0.0965276, 198.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_219" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1172761675]
+transform = Transform3D(-0.8987941, 0, -0.43837106, 0, 1, 0, 0.43837106, 0, -0.8987941, -233.52, 0.9373436, 219.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_220" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1196539110]
+transform = Transform3D(-0.19080885, 0, -0.9816272, 0, 1, 0, 0.9816272, 0, -0.19080885, -229.6, 1.1613247, 257.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_221" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=522694858]
+transform = Transform3D(0.66913074, 0, -0.74314475, 0, 1, 0, 0.74314475, 0, 0.66913074, -225.68, 0.8707594, 279.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_222" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1408992393]
+transform = Transform3D(0.9961947, 0, 0.08715574, 0, 1, 0, -0.08715574, 0, 0.9961947, -221.76, 0.80372375, 301)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_223" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1055901348]
+transform = Transform3D(0.52991927, 0, 0.8480481, 0, 1, 0, -0.8480481, 0, 0.52991927, -234.36, 2.386555, 339.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_224" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1172940867]
+transform = Transform3D(-0.35836795, 0, 0.93358046, 0, 1, 0, -0.93358046, 0, -0.35836795, -203.84, 0.18353756, -144.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_225" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=574553240]
+transform = Transform3D(-0.9612617, 0, 0.27563736, 0, 1, 0, -0.27563736, 0, -0.9612617, -199.92, 0.016308995, -123.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_226" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1240916737]
+transform = Transform3D(-0.7986355, 0, -0.60181504, 0, 1, 0, 0.60181504, 0, -0.7986355, -196, -0.08454118, -85.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_227" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=414240630]
+transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, -208.6, -0.08454118, -63.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_228" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1599837701]
+transform = Transform3D(0.79863554, 0, -0.601815, 0, 1, 0, 0.601815, 0, 0.79863554, -204.68, -0.08454118, -42)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_229" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2108865259]
+transform = Transform3D(0.9612617, 0, 0.27563736, 0, 1, 0, -0.27563736, 0, 0.9612617, -200.76, -0.08454118, -20.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_230" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=42092229]
+transform = Transform3D(-0.99619466, 0, 0.08715588, 0, 1, 0, -0.08715588, 0, -0.99619466, -205.52, -0.08454118, 60.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_231" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1147169507]
+transform = Transform3D(-0.6691307, 0, -0.74314475, 0, 1, 0, 0.74314475, 0, -0.6691307, -201.6, -0.08454118, 98.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_232" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1187962778]
+transform = Transform3D(0.19080888, 0, -0.9816272, 0, 1, 0, 0.9816272, 0, 0.19080888, -197.68, -0.08454118, 120.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_233" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1173372818]
+transform = Transform3D(0.898794, 0, -0.43837124, 0, 1, 0, 0.43837124, 0, 0.898794, -193.76, -0.08454118, 141.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_234" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1746940779]
+transform = Transform3D(0.8910065, 0, 0.4539905, 0, 1, 0, -0.4539905, 0, 0.8910065, -206.36, -0.083898604, 180.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_235" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=416806909]
+transform = Transform3D(0.17364822, 0, 0.9848077, 0, 1, 0, -0.9848077, 0, 0.17364822, -202.44, -0.08454118, 201.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_236" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=139891483]
+transform = Transform3D(-0.6819983, 0, 0.7313537, 0, 1, 0, -0.7313537, 0, -0.6819983, -198.52, -0.08454118, 223.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_237" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=805604706]
+transform = Transform3D(-0.9945219, 0, -0.104528435, 0, 1, 0, 0.104528435, 0, -0.9945219, -194.6, -0.08454118, 261.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_238" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=449542584]
+transform = Transform3D(-0.5150383, 0, -0.8571672, 0, 1, 0, 0.8571672, 0, -0.5150383, -207.2, -0.071991034, 282.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_239" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=202203942]
+transform = Transform3D(0.37460637, 0, -0.9271839, 0, 1, 0, 0.9271839, 0, 0.37460637, -203.28, 0.18642975, 304.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_240" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1232099467]
+transform = Transform3D(0.96592575, 0, -0.25881928, 0, 1, 0, 0.25881928, 0, 0.96592575, -199.36, 1.4241742, 325.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_241" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=661461119]
+transform = Transform3D(0.7880108, 0, 0.6156615, 0, 1, 0, -0.6156615, 0, 0.7880108, -168.84, -0.08454118, -141.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_242" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1778499634]
+transform = Transform3D(-0.017452352, 0, 0.9998477, 0, 1, 0, -0.9998477, 0, -0.017452352, -181.44, -0.08454118, -119.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_243" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=94882457]
+transform = Transform3D(-0.80901706, 0, 0.5877852, 0, 1, 0, -0.5877852, 0, -0.80901706, -177.52, -0.08454118, -98.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_244" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1777140295]
+transform = Transform3D(-0.9563047, 0, -0.29237178, 0, 1, 0, 0.29237178, 0, -0.9563047, -173.6, -0.08454118, -60.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_245" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1142802401]
+transform = Transform3D(-0.34202006, 0, -0.9396927, 0, 1, 0, 0.9396927, 0, -0.34202006, -169.68, -0.08454118, -38.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_246" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1645640176]
+transform = Transform3D(0.5446391, 0, -0.8386705, 0, 1, 0, 0.8386705, 0, 0.5446391, -182.28, -0.08454118, -17.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataEspigas_247" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=898282102]
+transform = Transform3D(0.656059, 0, 0.75470954, 0, 1, 0, -0.75470954, 0, 0.656059, -174.44, -0.08454118, 42.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_248" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=822714730]
+transform = Transform3D(-0.20791163, 0, 0.9781476, 0, 1, 0, -0.9781476, 0, -0.20791163, -170.52, -0.08454118, 64.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_249" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=36116161]
+transform = Transform3D(-0.90630776, 0, 0.42261833, 0, 1, 0, -0.42261833, 0, -0.90630776, -183.12, -0.08454118, 85.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_250" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1482401455]
+transform = Transform3D(-0.8829476, 0, -0.4694715, 0, 1, 0, 0.4694715, 0, -0.8829476, -179.2, -0.08454118, 123.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_251" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=173521780]
+transform = Transform3D(-0.15643452, 0, -0.9876883, 0, 1, 0, 0.9876883, 0, -0.15643452, -175.28, -0.08454118, 145.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_252" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2028374780]
+transform = Transform3D(0.69465834, 0, -0.71933985, 0, 1, 0, 0.71933985, 0, 0.69465834, -171.36, -0.08454118, 166.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_253" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1459556735]
+transform = Transform3D(0.99254614, 0, 0.12186935, 0, 1, 0, -0.12186935, 0, 0.99254614, -167.44, -0.08454118, 204.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_254" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1219142389]
+transform = Transform3D(0.49999997, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.49999997, -180.04, -0.08454118, 226.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_255" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1088589850]
+transform = Transform3D(-0.39073116, 0, 0.92050487, 0, 1, 0, -0.92050487, 0, -0.39073116, -176.12, -0.08454118, 248.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_256" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=704478571]
+transform = Transform3D(-0.9702957, 0, 0.24192186, 0, 1, 0, -0.24192186, 0, -0.9702957, -172.2, -0.08454118, 286.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_257" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1940622079]
+transform = Transform3D(0.81915194, 0, -0.57357657, 0, 1, 0, 0.57357657, 0, 0.81915194, -150.36, -0.08454118, -138.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_258" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1891413816]
+transform = Transform3D(0.95105654, 0, 0.309017, 0, 1, 0, -0.309017, 0, 0.95105654, -146.44, -0.08454118, -116.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_259" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=170805385]
+transform = Transform3D(0.32556814, 0, 0.94551855, 0, 1, 0, -0.94551855, 0, 0.32556814, -142.52, -0.08454118, -94.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_260" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2010703547]
+transform = Transform3D(-0.55919284, 0, 0.8290376, 0, 1, 0, -0.8290376, 0, -0.55919284, -155.12, -0.08454118, -73.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_261" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1299790354]
+transform = Transform3D(-0.9986295, 0, 0.05233605, 0, 1, 0, -0.05233605, 0, -0.9986295, -151.2, -0.08454118, -35.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_262" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=830164533]
+transform = Transform3D(-0.6427875, 0, -0.76604456, 0, 1, 0, 0.76604456, 0, -0.6427875, -147.28, -0.08454118, -13.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_263" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1148964292]
+transform = Transform3D(0.91354555, 0, -0.4067365, 0, 1, 0, 0.4067365, 0, 0.91354555, -155.96, -0.08454118, 45.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_264" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1932234917]
+transform = Transform3D(0.8746197, 0, 0.4848096, 0, 1, 0, -0.4848096, 0, 0.8746197, -152.04, -0.08454118, 67.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_265" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1032466239]
+transform = Transform3D(0.1391731, 0, 0.99026805, 0, 1, 0, -0.99026805, 0, 0.1391731, -148.12, -0.08454118, 89.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_266" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1360085216]
+transform = Transform3D(-0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, -0.70710677, -144.2, -0.08454118, 127.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_267" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1952203052]
+transform = Transform3D(-0.99026805, 0, -0.13917312, 0, 1, 0, 0.13917312, 0, -0.99026805, -140.28, -0.09093971, 148.68)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_268" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=569624547]
+transform = Transform3D(-0.4848096, 0, -0.8746197, 0, 1, 0, 0.8746197, 0, -0.4848096, -152.88, -0.08454118, 170.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_269" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=757013440]
+transform = Transform3D(0.40673667, 0, -0.9135454, 0, 1, 0, 0.9135454, 0, 0.40673667, -148.96, -0.08454118, 208.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_270" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2019016755]
+transform = Transform3D(0.97437006, 0, -0.22495103, 0, 1, 0, 0.22495103, 0, 0.97437006, -145.04, -0.08454118, 229.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_271" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1129350221]
+transform = Transform3D(0.76604444, 0, 0.6427876, 0, 1, 0, -0.6427876, 0, 0.76604444, -141.12, -0.08463727, 251.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_272" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1509570298]
+transform = Transform3D(-0.05233594, 0, 0.9986295, 0, 1, 0, -0.9986295, 0, -0.05233594, -153.72, -0.08454118, 273)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_273" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=82406864]
+transform = Transform3D(-0.3090171, 0, -0.9510565, 0, 1, 0, 0.9510565, 0, -0.3090171, -115.36, -0.08454118, -151.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_274" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1278722773]
+transform = Transform3D(0.57357633, 0, -0.8191521, 0, 1, 0, 0.8191521, 0, 0.57357633, -127.96, -0.08454118, -113.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_275" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=438837127]
+transform = Transform3D(0.99939084, 0, -0.0348996, 0, 1, 0, 0.0348996, 0, 0.99939084, -124.04, -0.08454118, -91.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_276" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1860396854]
+transform = Transform3D(0.62932044, 0, 0.7771459, 0, 1, 0, -0.7771459, 0, 0.62932044, -120.12, -0.08454118, -70)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_277" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=784200276]
+transform = Transform3D(-0.24192187, 0, 0.9702957, 0, 1, 0, -0.9702957, 0, -0.24192187, -116.2, -0.08454118, -31.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_278" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=920214263]
+transform = Transform3D(-0.92050487, 0, 0.39073116, 0, 1, 0, -0.39073116, 0, -0.92050487, -128.8, -0.08454118, -10.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataTrebol_279" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1315597309]
+transform = Transform3D(-0.121869594, 0, -0.99254614, 0, 1, 0, 0.99254614, 0, -0.121869594, -120.96, -0.08454118, 32.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataTrebol_280" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2134987401]
+transform = Transform3D(-0.75470954, 0, -0.6560591, 0, 1, 0, 0.6560591, 0, -0.75470954, -113.96, -0.08493681, 195.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_281" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1369166819]
+transform = Transform3D(0.06975657, 0, -0.997564, 0, 1, 0, 0.997564, 0, 0.06975657, -126.56, -0.09867973, 233.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_282" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=475972341]
+transform = Transform3D(-0.9998477, 0, 0.017452458, 0, 1, 0, -0.017452458, 0, -0.9998477, -96.88, -0.023864798, -147.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_283" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2024306692]
+transform = Transform3D(-0.6156615, 0, -0.7880107, 0, 1, 0, 0.7880107, 0, -0.6156615, -92.96, -0.013706741, -126.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_284" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=836680053]
+transform = Transform3D(0.258819, 0, -0.9659258, 0, 1, 0, 0.9659258, 0, 0.258819, -89.04, 0.28532648, -88.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_285" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1616169385]
+transform = Transform3D(0.92718387, 0, -0.37460664, 0, 1, 0, 0.37460664, 0, 0.92718387, -101.64, -0.08454118, -66.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_286" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1800738699]
+transform = Transform3D(0.8571673, 0, 0.5150381, 0, 1, 0, -0.5150381, 0, 0.8571673, -97.72, -0.08454118, -45.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_287" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1376752591]
+transform = Transform3D(0.10452842, 0, 0.9945219, 0, 1, 0, -0.9945219, 0, 0.10452842, -93.8, -0.08454118, -7)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataHelecho_288" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=868733965]
+transform = Transform3D(-0.9848077, 0, -0.17364822, 0, 1, 0, 0.17364822, 0, -0.9848077, -102.48, -0.08454118, 36.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_289" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=657303721]
+transform = Transform3D(-0.08715577, 0, 0.9961947, 0, 1, 0, -0.9961947, 0, -0.08715577, -99.4, -0.11469171, 176.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_290" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1066118732]
+transform = Transform3D(-0.84804803, 0, 0.5299193, 0, 1, 0, -0.5299193, 0, -0.84804803, -95.48, -0.08602213, 198.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_291" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1242491624]
+transform = Transform3D(-0.93358046, 0, -0.35836786, 0, 1, 0, 0.35836786, 0, -0.93358046, -91.56, -0.08454118, 220.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_292" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2106258976]
+transform = Transform3D(-0.27563736, 0, 0.9612617, 0, 1, 0, -0.9612617, 0, -0.27563736, -61.88, 0.44669968, -144.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_293" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=308809317]
+transform = Transform3D(-0.93358046, 0, 0.35836792, 0, 1, 0, -0.35836792, 0, -0.93358046, -74.48, 0.18881784, -122.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_294" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=743940749]
+transform = Transform3D(-0.8480481, 0, -0.52991927, 0, 1, 0, 0.52991927, 0, -0.8480481, -70.56, 0.28532648, -84.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_295" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1443429905]
+transform = Transform3D(-0.087155715, 0, -0.9961947, 0, 1, 0, 0.9961947, 0, -0.087155715, -66.64, -0.08454118, -63.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataFlores_296" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1213429751]
+transform = Transform3D(-0.4539904, 0, 0.8910066, 0, 1, 0, -0.8910066, 0, -0.4539904, -67.48, -0.08454118, 39.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_297" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1132162904]
+transform = Transform3D(-0.9848077, 0, 0.1736483, 0, 1, 0, -0.1736483, 0, -0.9848077, -63.56, -0.08454118, 61.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHelecho_298" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1239934011]
+transform = Transform3D(0.92718387, 0, 0.3746066, 0, 1, 0, -0.3746066, 0, 0.92718387, -64.4, -0.08462269, 180.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_299" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1736230007]
+transform = Transform3D(0.25881907, 0, 0.9659258, 0, 1, 0, -0.9659258, 0, 0.25881907, -60.48, -0.086313196, 201.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_300" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=90533072]
+transform = Transform3D(-0.61566144, 0, 0.7880108, 0, 1, 0, -0.7880108, 0, -0.61566144, -73.08, -0.08454118, 223.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_301" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=153220098]
+transform = Transform3D(0.83867055, 0, 0.54463905, 0, 1, 0, -0.54463905, 0, 0.83867055, -43.4, 0.512002, -141.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_302" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=543832871]
+transform = Transform3D(0.06975651, 0, 0.9975641, 0, 1, 0, -0.9975641, 0, 0.06975651, -39.48, 0.30083454, -119.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_303" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=352157478]
+transform = Transform3D(-0.75470966, 0, 0.65605897, 0, 1, 0, -0.65605897, 0, -0.75470966, -35.56, 0.28532648, -98)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_304" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1557100071]
+transform = Transform3D(0.7193398, 0, 0.6946584, 0, 1, 0, -0.6946584, 0, 0.7193398, -49, -0.08454118, 42.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_305" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=905784137]
+transform = Transform3D(-0.12186929, 0, 0.99254614, 0, 1, 0, -0.99254614, 0, -0.12186929, -45.08, -0.08828389, 64.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_306" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1602576646]
+transform = Transform3D(0.99939084, 0, 0.034899496, 0, 1, 0, -0.034899496, 0, 0.99939084, -42, -0.08497225, 205.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_307" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=675151636]
+transform = Transform3D(0.57357645, 0, 0.81915206, 0, 1, 0, -0.81915206, 0, 0.57357645, -38.08, -0.087142825, 226.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_308" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=693403963]
+transform = Transform3D(0.7660443, 0, -0.64278775, 0, 1, 0, 0.64278775, 0, 0.7660443, -8.4, 0.40814915, -137.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_309" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=638287973]
+transform = Transform3D(0.97437006, 0, 0.22495106, 0, 1, 0, -0.22495106, 0, 0.97437006, -21, 0.35930002, -116.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_310" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1410786507]
+transform = Transform3D(0.4067366, 0, 0.9135455, 0, 1, 0, -0.9135455, 0, 0.4067366, -17.08, 0.34323373, -94.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_311" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1111327586]
+transform = Transform3D(-0.48480955, 0, 0.8746197, 0, 1, 0, -0.8746197, 0, -0.48480955, -13.16, -0.056105573, -73.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataEspigas_312" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1592737255]
+transform = Transform3D(0.8746198, 0, -0.48480946, 0, 1, 0, 0.48480946, 0, 0.8746198, -14, -0.08454118, 46.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_313" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1024874753]
+transform = Transform3D(0.9135454, 0, 0.40673664, 0, 1, 0, -0.40673664, 0, 0.9135454, -10.08, -0.12169879, 67.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_314" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=963532835]
+transform = Transform3D(0.3255682, 0, -0.94551855, 0, 1, 0, 0.94551855, 0, 0.3255682, -23.52, -0.08510651, 192.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_315" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=747179852]
+transform = Transform3D(0.95105654, 0, -0.30901694, 0, 1, 0, 0.30901694, 0, 0.95105654, -19.6, -0.10317681, 230.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_316" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=795441740]
+transform = Transform3D(-0.39073122, 0, -0.9205048, 0, 1, 0, 0.9205048, 0, -0.39073122, 10.08, 0.65519416, -150.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_317" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=822441809]
+transform = Transform3D(0.4999999, 0, -0.86602545, 0, 1, 0, 0.86602545, 0, 0.4999999, 14, 0.35930002, -112.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_318" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1547577708]
+transform = Transform3D(0.99254614, 0, -0.12186943, 0, 1, 0, 0.12186943, 0, 0.99254614, 17.92, 0.30033514, -91.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_319" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1168080667]
+transform = Transform3D(0.6946584, 0, 0.7193398, 0, 1, 0, -0.7193398, 0, 0.6946584, 5.32, -0.082467556, -69.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_320" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1856931194]
+transform = Transform3D(-0.88294756, 0, 0.46947157, 0, 1, 0, -0.46947157, 0, -0.88294756, 13.16, -0.08454118, -10.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataHierba_321" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1174315722]
+transform = Transform3D(-0.20791192, 0, -0.97814757, 0, 1, 0, 0.97814757, 0, -0.20791192, 4.48, -0.08454118, 33.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_322" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=101511546]
+transform = Transform3D(-0.80901706, 0, -0.5877851, 0, 1, 0, 0.5877851, 0, -0.80901706, 11.48, -0.08469936, 195.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_323" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=709483017]
+transform = Transform3D(-0.017452296, 0, -0.9998477, 0, 1, 0, 0.9998477, 0, -0.017452296, 15.4, -0.08661051, 233.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataFlores_324" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1075117572]
+transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, 6.72, -0.12667961, 276.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_325" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1565164997]
+transform = Transform3D(0.37460664, 0, 0.92718387, 0, 1, 0, -0.92718387, 0, 0.37460664, 10.64, 0.039239682, 314.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_326" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=313537818]
+transform = Transform3D(-0.515038, 0, 0.8571673, 0, 1, 0, -0.8571673, 0, -0.515038, 14.56, 0.21522984, 336.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_327" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1912321257]
+transform = Transform3D(-0.9945219, 0, 0.104528494, 0, 1, 0, -0.104528494, 0, -0.9945219, 45.08, 0.65519416, -147.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_328" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1397784985]
+transform = Transform3D(-0.6819984, 0, -0.7313537, 0, 1, 0, 0.7313537, 0, -0.6819984, 32.48, 0.35930002, -126)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataEspigas_329" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1359501133]
+transform = Transform3D(0.19080906, 0, 0.98162717, 0, 1, 0, -0.98162717, 0, 0.19080906, 31.64, -0.08454118, -6.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataTrebol_330" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1764917911]
+transform = Transform3D(-0.9961947, 0, -0.08715581, 0, 1, 0, 0.08715581, 0, -0.9961947, 39.48, -0.08454118, 36.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_331" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1998722555]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 42.56, -0.11132368, 177.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHelecho_332" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=768071642]
+transform = Transform3D(-0.9612617, 0, -0.2756373, 0, 1, 0, 0.2756373, 0, -0.9612617, 33.88, -0.08454118, 220.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_333" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=381581633]
+transform = Transform3D(-0.35836777, 0, -0.9335805, 0, 1, 0, 0.9335805, 0, -0.35836777, 37.8, -0.08454118, 258.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_334" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2061599225]
+transform = Transform3D(0.52991945, 0, -0.848048, 0, 1, 0, 0.848048, 0, 0.52991945, 41.72, -0.08454118, 280)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_335" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1451664997]
+transform = Transform3D(0.99619466, 0, -0.08715603, 0, 1, 0, 0.08715603, 0, 0.99619466, 45.64, -0.08454118, 301.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_336" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=517367784]
+transform = Transform3D(0.66913056, 0, 0.74314487, 0, 1, 0, -0.74314487, 0, 0.66913056, 33.04, 0.4728895, 339.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_337" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1022140301]
+transform = Transform3D(-0.19080903, 0, 0.98162717, 0, 1, 0, -0.98162717, 0, -0.19080903, 63.56, 0.6164787, -144.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_338" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=73971634]
+transform = Transform3D(0.9945219, 0, 0.104528464, 0, 1, 0, -0.104528464, 0, 0.9945219, 66.64, -0.08454118, -19.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_339" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=960879089]
+transform = Transform3D(-0.9659258, 0, 0.25881913, 0, 1, 0, -0.25881913, 0, -0.9659258, 61.88, -0.08454118, 61.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataTrebol_340" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1945183094]
+transform = Transform3D(0.9563048, 0, 0.2923717, 0, 1, 0, -0.2923717, 0, 0.9563048, 61.04, -0.08454118, 180.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_341" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=774719192]
+transform = Transform3D(0.34202015, 0, 0.9396926, 0, 1, 0, -0.9396926, 0, 0.34202015, 64.96, -0.08208424, 202.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_342" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1336333491]
+transform = Transform3D(-0.54463905, 0, 0.83867055, 0, 1, 0, -0.83867055, 0, -0.54463905, 68.88, -0.08454118, 223.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_343" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=82518859]
+transform = Transform3D(-0.9975641, 0, 0.06975647, 0, 1, 0, -0.06975647, 0, -0.9975641, 56.28, -0.017520865, 245.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_344" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1125456055]
+transform = Transform3D(-0.656059, 0, -0.7547096, 0, 1, 0, 0.7547096, 0, -0.656059, 60.2, 0.10904691, 283.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_345" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=965350568]
+transform = Transform3D(0.20791148, 0, -0.9781476, 0, 1, 0, 0.9781476, 0, 0.20791148, 64.12, 0.29584748, 304.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_346" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1585566050]
+transform = Transform3D(0.9063077, 0, -0.42261845, 0, 1, 0, 0.42261845, 0, 0.9063077, 68.04, 0.8224325, 326.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_347" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1710062995]
+transform = Transform3D(0.88294756, 0, 0.46947157, 0, 1, 0, -0.46947157, 0, 0.88294756, 98.56, 0.51020575, -140.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_348" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1878765710]
+transform = Transform3D(0.15643449, 0, 0.98768836, 0, 1, 0, -0.98768836, 0, 0.15643449, 85.96, 0.35930002, -119.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataFlores_349" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=717714847]
+transform = Transform3D(0.9986295, 0, -0.052335963, 0, 1, 0, 0.052335963, 0, 0.9986295, 83.44, -0.08382938, 205.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_350" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=166672071]
+transform = Transform3D(-0.9135455, 0, 0.40673658, 0, 1, 0, -0.40673658, 0, -0.9135455, 95.2, 1.1930306, 286.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_351" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1675959897]
+transform = Transform3D(-0.87461966, 0, -0.4848097, 0, 1, 0, 0.4848097, 0, -0.87461966, 99.12, 1.2584612, 308.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_352" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=972083574]
+transform = Transform3D(-0.13917325, 0, -0.99026805, 0, 1, 0, 0.99026805, 0, -0.13917325, 86.52, 1.1193079, 329.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_353" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1984952864]
+transform = Transform3D(0.70710665, 0, -0.7071069, 0, 1, 0, 0.7071069, 0, 0.70710665, 117.04, 0.40224954, -137.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_354" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=120434891]
+transform = Transform3D(0.30901697, 0, 0.95105654, 0, 1, 0, -0.95105654, 0, 0.30901697, 119.28, -0.021135295, 89.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_355" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=41342752]
+transform = Transform3D(0.92050487, 0, -0.39073107, 0, 1, 0, 0.39073107, 0, 0.92050487, 122.36, -0.058940183, 230.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_356" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=37709584]
+transform = Transform3D(-0.46947163, 0, -0.88294756, 0, 1, 0, 0.88294756, 0, -0.46947163, 152.04, 0.65519416, -150.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_357" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=376961632]
+transform = Transform3D(-0.83867055, 0, 0.54463905, 0, 1, 0, -0.54463905, 0, -0.83867055, 138.6, -0.08454118, -9.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_358" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1299195000]
+transform = Transform3D(0.58778507, 0, -0.8090171, 0, 1, 0, 0.8090171, 0, 0.58778507, 150.36, -0.08454118, 71.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_359" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=679452032]
+transform = Transform3D(-0.10452834, 0, -0.9945219, 0, 1, 0, 0.9945219, 0, -0.10452834, 140.84, 0.08157601, 233.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_360" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=115825299]
+transform = Transform3D(0.7313538, 0, -0.68199825, 0, 1, 0, 0.68199825, 0, 0.7313538, 144.76, 1.4521644, 255.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_361" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1019000969]
+transform = Transform3D(0.9848077, 0, 0.17364818, 0, 1, 0, -0.17364818, 0, 0.9848077, 148.68, 1.6647685, 276.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_362" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1013455984]
+transform = Transform3D(-0.98162717, 0, 0.19080901, 0, 1, 0, -0.19080901, 0, -0.98162717, 170.52, 0.65519416, -147.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_363" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2063605093]
+transform = Transform3D(-0.7431448, 0, -0.6691306, 0, 1, 0, 0.6691306, 0, -0.7431448, 174.44, 0.35930002, -125.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_364" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=923541825]
+transform = Transform3D(0.087155804, 0, 0.9961947, 0, 1, 0, -0.9961947, 0, 0.087155804, 168, -0.08454118, 177.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_365" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1363034379]
+transform = Transform3D(-0.7431448, 0, 0.6691306, 0, 1, 0, -0.6691306, 0, -0.7431448, 171.92, -0.07461098, 199.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_366" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=687635623]
+transform = Transform3D(-0.98162717, 0, -0.19080895, 0, 1, 0, 0.19080895, 0, -0.98162717, 175.84, -0.08454118, 220.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_367" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1170022623]
+transform = Transform3D(-0.43837097, 0, -0.8987941, 0, 1, 0, 0.8987941, 0, -0.43837097, 163.24, 1.7066972, 258.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_368" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=691619987]
+transform = Transform3D(0.45399025, 0, -0.89100665, 0, 1, 0, 0.89100665, 0, 0.45399025, 167.16, 1.7445505, 280.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_369" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=466857895]
+transform = Transform3D(0.9848077, 0, -0.17364845, 0, 1, 0, 0.17364845, 0, 0.9848077, 171.08, 1.7056407, 301.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_370" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1514942727]
+transform = Transform3D(0.7313537, 0, 0.6819984, 0, 1, 0, -0.6819984, 0, 0.7313537, 175, 1.4734986, 339.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_371" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1038973128]
+transform = Transform3D(-0.069756545, 0, -0.997564, 0, 1, 0, 0.997564, 0, -0.069756545, 195.16, 0.20136042, 121.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_372" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1378970317]
+transform = Transform3D(0.75470954, 0, -0.6560591, 0, 1, 0, 0.6560591, 0, 0.75470954, 199.08, -0.08454118, 142.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_373" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2093316415]
+transform = Transform3D(0.9781476, 0, 0.2079117, 0, 1, 0, -0.2079117, 0, 0.9781476, 203, -0.08454118, 180.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_374" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=943090659]
+transform = Transform3D(0.42261824, 0, 0.9063078, 0, 1, 0, -0.9063078, 0, 0.42261824, 190.4, -0.07720751, 202.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_375" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=859444905]
+transform = Transform3D(-0.46947157, 0, 0.88294756, 0, 1, 0, -0.88294756, 0, -0.46947157, 194.32, -0.08454118, 224)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_376" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=714180582]
+transform = Transform3D(-0.98768836, 0, 0.15643445, 0, 1, 0, -0.15643445, 0, -0.98768836, 198.24, 1.1638023, 245.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_377" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1853923464]
+transform = Transform3D(-0.7193398, 0, -0.6946584, 0, 1, 0, 0.6946584, 0, -0.7193398, 202.16, 1.7505295, 283.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_378" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=98271134]
+transform = Transform3D(0.12186914, 0, -0.9925462, 0, 1, 0, 0.9925462, 0, 0.12186914, 189.56, 1.6943542, 305.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_379" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=903823277]
+transform = Transform3D(0.8660253, 0, -0.5000002, 0, 1, 0, 0.5000002, 0, 0.8660253, 193.48, 1.5577888, 326.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_380" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=392859145]
+transform = Transform3D(0.30901712, 0, -0.9510565, 0, 1, 0, 0.9510565, 0, 0.30901712, 227.08, 0.25362355, -16.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_381" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1830231168]
+transform = Transform3D(0.052335974, 0, 0.9986295, 0, 1, 0, -0.9986295, 0, 0.052335974, 222.32, 0.25362355, 64.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataEspigas_382" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=12109806]
+transform = Transform3D(-0.97437006, 0, -0.22495104, 0, 1, 0, 0.22495104, 0, -0.97437006, 230.16, 0.028621128, 124.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_383" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=682691671]
+transform = Transform3D(-0.40673664, 0, -0.9135454, 0, 1, 0, 0.9135454, 0, -0.40673664, 217.56, -0.08454118, 146.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_384" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1416412324]
+transform = Transform3D(0.48480964, 0, -0.8746197, 0, 1, 0, 0.8746197, 0, 0.48480964, 221.48, -0.08454118, 167.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_385" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=340578939]
+transform = Transform3D(0.99026805, 0, -0.13917309, 0, 1, 0, 0.13917309, 0, 0.99026805, 225.4, 0.122670844, 205.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_386" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=470342436]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 229.32, 1.2039413, 227.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_387" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=655413487]
+transform = Transform3D(-0.13917308, 0, 0.99026805, 0, 1, 0, -0.99026805, 0, -0.13917308, 216.72, 1.7077136, 248.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_388" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1689945936]
+transform = Transform3D(-0.8746198, 0, 0.48480955, 0, 1, 0, -0.48480955, 0, -0.8746198, 220.64, 1.6812001, 287)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_389" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=643763292]
+transform = Transform3D(-0.9135455, 0, -0.40673652, 0, 1, 0, 0.40673652, 0, -0.9135455, 224.56, 1.5740781, 308.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_390" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=896256691]
+transform = Transform3D(-0.22495118, 0, -0.97437006, 0, 1, 0, 0.97437006, 0, -0.22495118, 228.48, 1.4190077, 330.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_391" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1767436101]
+transform = Transform3D(0.6427875, 0, -0.7660445, 0, 1, 0, 0.7660445, 0, 0.6427875, 242.48, 0.65519416, -153.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_392" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1343208436]
+transform = Transform3D(0.9986295, 0, 0.05233596, 0, 1, 0, -0.05233596, 0, 0.9986295, 246.4, 0.35930002, -115.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_393" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1978195303]
+transform = Transform3D(-0.9510565, 0, 0.30901703, 0, 1, 0, -0.30901703, 0, -0.9510565, 258.16, 0.25362355, -34.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataHierba_394" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=393056860]
+transform = Transform3D(-0.50000006, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, -0.50000006, 248.64, -0.08395462, 127.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_395" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=987897630]
+transform = Transform3D(-0.99254614, 0, 0.12186928, 0, 1, 0, -0.12186928, 0, -0.99254614, 252.56, -0.08454118, 149.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_396" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=245035455]
+transform = Transform3D(-0.69465834, 0, -0.71933985, 0, 1, 0, 0.71933985, 0, -0.69465834, 256.48, -0.08454118, 171.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_397" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=125984852]
+transform = Transform3D(0.15643454, 0, -0.9876883, 0, 1, 0, 0.9876883, 0, 0.15643454, 243.88, -0.07152276, 192.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_398" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1221490145]
+transform = Transform3D(0.8829476, 0, -0.46947148, 0, 1, 0, 0.46947148, 0, 0.8829476, 247.8, 1.2834018, 230.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_399" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=569174446]
+transform = Transform3D(0.90630776, 0, 0.42261827, 0, 1, 0, -0.42261827, 0, 0.90630776, 251.72, 1.5361382, 252.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_400" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=927820542]
+transform = Transform3D(0.20791166, 0, 0.9781476, 0, 1, 0, -0.9781476, 0, 0.20791166, 255.64, 1.4987731, 273.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_401" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=175037153]
+transform = Transform3D(-0.65605897, 0, 0.7547096, 0, 1, 0, -0.7547096, 0, -0.65605897, 243.04, 1.4577022, 311.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_402" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2086752150]
+transform = Transform3D(-0.9975641, 0, -0.0697564, 0, 1, 0, 0.0697564, 0, -0.9975641, 246.96, 1.3072296, 333.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_403" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=197327762]
+transform = Transform3D(-0.5446391, 0, -0.83867055, 0, 1, 0, 0.83867055, 0, -0.5446391, 277.48, 0.65519416, -150.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_404" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1807761928]
+transform = Transform3D(0.809017, 0, 0.58778524, 0, 1, 0, -0.58778524, 0, 0.809017, 272.72, 0.2531156, -69.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataHelecho_405" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=110055799]
+transform = Transform3D(-0.1736482, 0, 0.9848077, 0, 1, 0, -0.9848077, 0, -0.1736482, 271.04, -0.08454118, 152.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_406" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=265737060]
+transform = Transform3D(-0.89100647, 0, 0.45399058, 0, 1, 0, -0.45399058, 0, -0.89100647, 274.96, -0.08454118, 174.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_407" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2131662057]
+transform = Transform3D(-0.8987941, 0, -0.43837106, 0, 1, 0, 0.43837106, 0, -0.8987941, 278.88, -0.053855274, 196)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_408" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1284559808]
+transform = Transform3D(-0.19080885, 0, -0.9816272, 0, 1, 0, 0.9816272, 0, -0.19080885, 282.8, 1.1255587, 234.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_409" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1871195530]
+transform = Transform3D(0.66913074, 0, -0.74314475, 0, 1, 0, 0.74314475, 0, 0.66913074, 270.2, 1.3890065, 255.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_410" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1408243239]
+transform = Transform3D(0.9961947, 0, 0.08715574, 0, 1, 0, -0.08715574, 0, 0.9961947, 274.12, 1.3433115, 277.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_411" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1032291659]
+transform = Transform3D(0.52991927, 0, 0.8480481, 0, 1, 0, -0.8480481, 0, 0.52991927, 278.04, 1.2643937, 298.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_412" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1772166682]
+transform = Transform3D(-0.35836795, 0, 0.93358046, 0, 1, 0, -0.93358046, 0, -0.35836795, 281.96, 1.098246, 336.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_413" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=329443838]
+transform = Transform3D(-0.9612617, 0, 0.27563736, 0, 1, 0, -0.27563736, 0, -0.9612617, 295.96, 0.65519416, -147)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataHierba_414" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1610108904]
+transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 303.8, 0.2246322, -87.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_415" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=453884807]
+transform = Transform3D(0.35836798, 0, 0.9335804, 0, 1, 0, -0.9335804, 0, 0.35836798, 299.04, 0.4625538, -6.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_416" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=467633866]
+transform = Transform3D(-0.6691307, 0, -0.74314475, 0, 1, 0, 0.74314475, 0, -0.6691307, 310.8, 0.4649765, 75.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_417" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=935465900]
+transform = Transform3D(0.8910065, 0, 0.4539905, 0, 1, 0, -0.4539905, 0, 0.8910065, 306.04, -0.08454118, 139.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_418" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1696449626]
+transform = Transform3D(0.17364822, 0, 0.9848077, 0, 1, 0, -0.9848077, 0, 0.17364822, 309.96, -0.08454118, 177.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_419" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1270202569]
+transform = Transform3D(-0.6819983, 0, 0.7313537, 0, 1, 0, -0.7313537, 0, -0.6819983, 297.36, -0.026348077, 199.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_420" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=128516079]
+transform = Transform3D(-0.9945219, 0, -0.104528435, 0, 1, 0, 0.104528435, 0, -0.9945219, 301.28, 0.5759042, 220.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_421" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1080784971]
+transform = Transform3D(-0.5150383, 0, -0.8571672, 0, 1, 0, 0.8571672, 0, -0.5150383, 305.2, 1.0547518, 259)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_422" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=778905652]
+transform = Transform3D(0.37460637, 0, -0.9271839, 0, 1, 0, 0.9271839, 0, 0.37460637, 309.12, 1.0151417, 280.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_423" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1880659876]
+transform = Transform3D(0.96592575, 0, -0.25881928, 0, 1, 0, 0.25881928, 0, 0.96592575, 296.52, 1.1060617, 302.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_424" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2099153151]
+transform = Transform3D(0.7880108, 0, 0.6156615, 0, 1, 0, -0.6156615, 0, 0.7880108, 300.44, 0.98444855, 340.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_425" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1282936131]
+transform = Transform3D(-0.017452352, 0, 0.9998477, 0, 1, 0, -0.9998477, 0, -0.017452352, 330.96, 0.604827, -143.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_426" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1625154675]
+transform = Transform3D(-0.80901706, 0, 0.5877852, 0, 1, 0, -0.5877852, 0, -0.80901706, 334.88, 0.35930002, -122.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_427" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1742386544]
+transform = Transform3D(0.5446391, 0, -0.8386705, 0, 1, 0, 0.8386705, 0, 0.5446391, 330.12, 0.4649765, -40.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_428" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1835301839]
+transform = Transform3D(-0.20791163, 0, 0.9781476, 0, 1, 0, -0.9781476, 0, -0.20791163, 325.36, 0.4649765, 40.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_429" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1465136920]
+transform = Transform3D(-0.15643452, 0, -0.9876883, 0, 1, 0, 0.9876883, 0, -0.15643452, 337.12, 0.36465132, 121.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_430" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=407551726]
+transform = Transform3D(0.69465834, 0, -0.71933985, 0, 1, 0, 0.71933985, 0, 0.69465834, 324.52, -0.08454118, 143.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_431" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1389908956]
+transform = Transform3D(0.99254614, 0, 0.12186935, 0, 1, 0, -0.12186935, 0, 0.99254614, 328.44, -0.08454118, 181.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_432" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=965855909]
+transform = Transform3D(0.49999997, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.49999997, 332.36, -0.009133125, 202.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_433" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=798892685]
+transform = Transform3D(-0.39073116, 0, 0.92050487, 0, 1, 0, -0.92050487, 0, -0.39073116, 336.28, 0.45455736, 224.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_434" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=490901760]
+transform = Transform3D(-0.9702957, 0, 0.24192186, 0, 1, 0, -0.24192186, 0, -0.9702957, 323.68, 0.85220206, 245.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_435" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2094196840]
+transform = Transform3D(-0.7771459, 0, -0.62932044, 0, 1, 0, 0.62932044, 0, -0.7771459, 327.6, 0.84287786, 283.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_436" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1421973531]
+transform = Transform3D(0.03489931, 0, -0.99939084, 0, 1, 0, 0.99939084, 0, 0.03489931, 331.52, 0.81780714, 305.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_437" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1787038563]
+transform = Transform3D(0.81915194, 0, -0.57357657, 0, 1, 0, 0.57357657, 0, 0.81915194, 335.44, 0.80027145, 327.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_438" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=536449130]
+transform = Transform3D(0.95105654, 0, 0.309017, 0, 1, 0, -0.309017, 0, 0.95105654, 349.44, 0.4944394, -140.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_439" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=588482511]
+transform = Transform3D(-0.9986295, 0, 0.05233605, 0, 1, 0, -0.05233605, 0, -0.9986295, 361.2, 0.4649765, -59.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataFlores_440" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2057337596]
+transform = Transform3D(-0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, -0.70710677, 351.68, 0.4649765, 86.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_441" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=527574299]
+transform = Transform3D(-0.99026805, 0, -0.13917312, 0, 1, 0, 0.13917312, 0, -0.99026805, 355.6, 0.08060312, 124.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_442" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2032293640]
+transform = Transform3D(-0.4848096, 0, -0.8746197, 0, 1, 0, 0.8746197, 0, -0.4848096, 359.52, -0.08454118, 146.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_443" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1466723814]
+transform = Transform3D(0.40673667, 0, -0.9135454, 0, 1, 0, 0.9135454, 0, 0.40673667, 363.44, -0.08454118, 168)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_444" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1502276881]
+transform = Transform3D(0.97437006, 0, -0.22495103, 0, 1, 0, 0.22495103, 0, 0.97437006, 350.84, 0.0109352255, 206.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_445" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1920013521]
+transform = Transform3D(0.76604444, 0, 0.6427876, 0, 1, 0, -0.6427876, 0, 0.76604444, 354.76, 0.38610092, 227.64)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_446" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1097790763]
+transform = Transform3D(-0.05233594, 0, 0.9986295, 0, 1, 0, -0.9986295, 0, -0.05233594, 358.68, 0.5045219, 249.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_447" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=507917699]
+transform = Transform3D(-0.8290375, 0, 0.559193, 0, 1, 0, -0.559193, 0, -0.8290375, 362.6, 0.54404, 287.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_448" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1209301070]
+transform = Transform3D(-0.9455186, 0, -0.32556805, 0, 1, 0, 0.32556805, 0, -0.9455186, 350, 0.68341994, 308.84)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_449" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=842665427]
+transform = Transform3D(-0.3090171, 0, -0.9510565, 0, 1, 0, 0.9510565, 0, -0.3090171, 353.92, 0.69658744, 330.4)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_450" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1350190951]
+transform = Transform3D(0.57357633, 0, -0.8191521, 0, 1, 0, 0.8191521, 0, 0.57357633, 384.44, 0.65519416, -153.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_451" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1021016344]
+transform = Transform3D(0.99939084, 0, -0.0348996, 0, 1, 0, 0.0348996, 0, 0.99939084, 388.36, 0.35930002, -115.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_452" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=765876774]
+transform = Transform3D(0.62932044, 0, 0.7771459, 0, 1, 0, -0.7771459, 0, 0.62932044, 375.76, 0.33408946, -93.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataFlores_453" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=110600425]
+transform = Transform3D(0.98768836, 0, 0.15643448, 0, 1, 0, -0.15643448, 0, 0.98768836, 382.76, 0.4649765, 68.6)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_454" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=663991246]
+transform = Transform3D(0.4694716, 0, 0.88294756, 0, 1, 0, -0.88294756, 0, 0.4694716, 386.68, 0.4649765, 90.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_455" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=2033614938]
+transform = Transform3D(-0.42261833, 0, 0.90630776, 0, 1, 0, -0.90630776, 0, -0.42261833, 390.6, -0.08454118, 128.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_456" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1212189331]
+transform = Transform3D(-0.9781476, 0, 0.20791161, 0, 1, 0, -0.20791161, 0, -0.9781476, 378, -0.08454118, 149.8)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_457" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1417927508]
+transform = Transform3D(-0.75470954, 0, -0.6560591, 0, 1, 0, 0.6560591, 0, -0.75470954, 381.92, -0.08454118, 171.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_458" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1133248797]
+transform = Transform3D(0.06975657, 0, -0.997564, 0, 1, 0, 0.997564, 0, 0.06975657, 385.84, -0.081464924, 192.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataFlores_459" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=422225396]
+transform = Transform3D(0.8386706, 0, -0.54463893, 0, 1, 0, 0.54463893, 0, 0.8386706, 389.76, 0.16495262, 231)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_460" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1425337604]
+transform = Transform3D(0.9396926, 0, 0.34202012, 0, 1, 0, -0.34202012, 0, 0.9396926, 377.16, 0.34540817, 252.56)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_461" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=885633599]
+transform = Transform3D(0.29237178, 0, 0.9563047, 0, 1, 0, -0.9563047, 0, 0.29237178, 381.08, 0.36347672, 274.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_462" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1608030332]
+transform = Transform3D(-0.5877852, 0, 0.809017, 0, 1, 0, -0.809017, 0, -0.5877852, 385, 0.46350494, 312.2)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_463" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=492372640]
+transform = Transform3D(-0.9998477, 0, 0.017452458, 0, 1, 0, -0.017452458, 0, -0.9998477, 388.92, 0.52865195, 333.76)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_464" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1831310794]
+transform = Transform3D(-0.6156615, 0, -0.7880107, 0, 1, 0, 0.7880107, 0, -0.6156615, 402.92, 0.5718447, -150.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_465" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1271865283]
+transform = Transform3D(0.258819, 0, -0.9659258, 0, 1, 0, 0.9659258, 0, 0.258819, 406.84, 0.22266784, -112)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_466" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1685965227]
+transform = Transform3D(0.92718387, 0, -0.37460664, 0, 1, 0, 0.37460664, 0, 0.92718387, 410.76, 0.089326575, -90.44)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_467" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1556650157]
+transform = Transform3D(0.8571673, 0, 0.5150381, 0, 1, 0, -0.5150381, 0, 0.8571673, 414.68, 0.46455264, -68.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_468" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=731990740]
+transform = Transform3D(0.10452842, 0, 0.9945219, 0, 1, 0, -0.9945219, 0, 0.10452842, 402.08, 0.4649765, -47.32)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_469" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=674009243]
+transform = Transform3D(-0.73135376, 0, 0.6819983, 0, 1, 0, -0.6819983, 0, -0.73135376, 406, 0.4649765, -9.24)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataFlores_470" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1701973360]
+transform = Transform3D(-0.45399067, 0, -0.89100647, 0, 1, 0, 0.89100647, 0, -0.45399067, 413.84, 0.4649765, 33.88)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_471" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1667140972]
+transform = Transform3D(0.438371, 0, -0.8987941, 0, 1, 0, 0.8987941, 0, 0.438371, 417.76, 0.4649765, 71.96)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataEspigas_472" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=695827769]
+transform = Transform3D(0.98162717, 0, -0.19080916, 0, 1, 0, 0.19080916, 0, 0.98162717, 405.16, 0.4649765, 93.52)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_473" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1152637870]
+transform = Transform3D(0.7431448, 0, 0.6691306, 0, 1, 0, -0.6691306, 0, 0.7431448, 409.08, 0.4649765, 115.08)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataTrebol_474" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1640504156]
+transform = Transform3D(-0.08715577, 0, 0.9961947, 0, 1, 0, -0.9961947, 0, -0.08715577, 413, -0.08454118, 153.16)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHelecho_475" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1516522944]
+transform = Transform3D(-0.84804803, 0, 0.5299193, 0, 1, 0, -0.5299193, 0, -0.84804803, 416.92, -0.08454118, 174.72)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataFlores_476" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1318304653]
+transform = Transform3D(-0.93358046, 0, -0.35836786, 0, 1, 0, 0.35836786, 0, -0.93358046, 404.32, -0.07976713, 196.28)
+script = ExtResource("2_rotgg")
+modelo = "nature/Flowers.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHierba_477" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1439409423]
+transform = Transform3D(-0.2756372, 0, -0.96126175, 0, 1, 0, 0.96126175, 0, -0.2756372, 408.24, 0.06566706, 234.36)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 6.4
+choque = "ninguno"
+
+[node name="MataEspigas_478" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1103550429]
+transform = Transform3D(0.60181516, 0, -0.7986354, 0, 1, 0, 0.7986354, 0, 0.60181516, 412.16, 0.0970424, 255.92)
+script = ExtResource("2_rotgg")
+modelo = "nature/Wheat.obj"
+alto = 7.5
+choque = "ninguno"
+
+[node name="MataHierba_479" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=551265178]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 416.08, 0.1417153, 277.48)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_1.obj"
+alto = 4.2
+choque = "ninguno"
+
+[node name="MataTrebol_480" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1461241975]
+transform = Transform3D(0.60181504, 0, 0.79863554, 0, 1, 0, -0.79863554, 0, 0.60181504, 403.48, 0.30089062, 299.04)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_2.obj"
+alto = 5.300000000000001
+choque = "ninguno"
+
+[node name="MataHelecho_481" type="Node3D" parent="Vegetacion/MatasPradera" unique_id=1158153588]
+transform = Transform3D(-0.27563736, 0, 0.9612617, 0, 1, 0, -0.9612617, 0, -0.27563736, 407.4, 0.45927262, 337.12)
+script = ExtResource("2_rotgg")
+modelo = "nature/Plant_3.obj"
+alto = 6.4
+choque = "ninguno"
+
 [node name="Edificios" type="Node3D" parent="." unique_id=992098941]
 
 [node name="building_tavern" parent="Edificios" unique_id=162821926 instance=ExtResource("3_nou5s")]

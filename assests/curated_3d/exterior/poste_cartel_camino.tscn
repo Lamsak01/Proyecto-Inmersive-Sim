@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/rf_planks.png" id="1_g30i6"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w1dji"]
+albedo_color = Color(0.721, 0.658, 0.6085, 1)
+albedo_texture = ExtResource("1_g30i6")
+metallic = 0.02
+roughness = 0.88
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_8h8aw"]
+size = Vector3(0.7, 0.23248824, 0.29119998)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vic0j"]
+size = Vector3(0.13440001, 1.5323089, 0.14559999)
+
+[sub_resource type="BoxMesh" id="BoxMesh_q8ggm"]
+size = Vector3(0.13440001, 1.5323089, 0.14559999)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fgm2q"]
+albedo_color = Color(0.793, 0.712, 0.64000005, 1)
+albedo_texture = ExtResource("1_g30i6")
+metallic = 0.02
+roughness = 0.85
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_lcjqe"]
+size = Vector3(0.924, 0.80314124, 0.1904)
+
+[sub_resource type="PrismMesh" id="PrismMesh_tp2il"]
+size = Vector3(1.036, 0.38043532, 0.3248)
+
+[node name="PosteCartelCamino" type="Node3D" unique_id=1187172646]
+
+[node name="BaseMadera" type="MeshInstance3D" parent="." unique_id=1165742819]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11624412, 0.224)
+material_override = SubResource("StandardMaterial3D_w1dji")
+mesh = SubResource("BoxMesh_8h8aw")
+
+[node name="PosteIzquierdo" type="MeshInstance3D" parent="." unique_id=1768439572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.252, 0.76615447, 0.224)
+material_override = SubResource("StandardMaterial3D_w1dji")
+mesh = SubResource("BoxMesh_vic0j")
+
+[node name="PosteDerecho" type="MeshInstance3D" parent="." unique_id=1464572300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.252, 0.76615447, 0.224)
+material_override = SubResource("StandardMaterial3D_w1dji")
+mesh = SubResource("BoxMesh_q8ggm")
+
+[node name="TablaCartel" type="MeshInstance3D" parent="." unique_id=823123711]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0567647, 0.2464)
+material_override = SubResource("StandardMaterial3D_fgm2q")
+mesh = SubResource("BoxMesh_lcjqe")
+
+[node name="TejadilloMadera" type="MeshInstance3D" parent="." unique_id=844038894]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6274177, 0.23519999)
+material_override = SubResource("StandardMaterial3D_w1dji")
+mesh = SubResource("PrismMesh_tp2il")

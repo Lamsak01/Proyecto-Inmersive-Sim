@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jbbvu"]
+albedo_color = Color(0.14, 0.1, 0.06, 1)
+roughness = 0.95
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_u4coa"]
+size = Vector3(0.728, 0.08454118, 0.532)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8eiie"]
+albedo_color = Color(0.46, 0.3, 0.16, 1)
+metallic = 0.05
+roughness = 0.85
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_drk5f"]
+size = Vector3(0.23519999, 0.12681177, 0.4928)
+
+[sub_resource type="BoxMesh" id="BoxMesh_o5xto"]
+size = Vector3(0.23519999, 0.14794706, 0.4928)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ucsco"]
+albedo_color = Color(0.95, 0.78, 0.24, 1)
+metallic = 0.85
+roughness = 0.25
+emission_enabled = true
+emission = Color(0.92, 0.74, 0.2, 1)
+emission_energy_multiplier = 0.55
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_y83ib"]
+top_radius = 0.1232
+bottom_radius = 0.1232
+height = 0.12681177
+radial_segments = 8
+
+[node name="EsconditeSueloCasa" type="Node3D" unique_id=1873106279]
+
+[node name="HuecoBajoSuelo" type="MeshInstance3D" parent="." unique_id=1129025361]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23248824, 0)
+material_override = SubResource("StandardMaterial3D_jbbvu")
+mesh = SubResource("BoxMesh_u4coa")
+
+[node name="TablaIzquierda" type="MeshInstance3D" parent="." unique_id=1618397402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.17920001, 0.29589412, 0)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_drk5f")
+
+[node name="TablaEntreabierta" type="MeshInstance3D" parent="." unique_id=908602019]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1904, 0.34873238, -0.033600003)
+material_override = SubResource("StandardMaterial3D_8eiie")
+mesh = SubResource("BoxMesh_o5xto")
+
+[node name="MonedasOcultas" type="MeshInstance3D" parent="." unique_id=1000581201]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.29589412, 0.044800002)
+material_override = SubResource("StandardMaterial3D_ucsco")
+mesh = SubResource("CylinderMesh_y83ib")

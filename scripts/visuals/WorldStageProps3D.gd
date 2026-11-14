@@ -5,37 +5,51 @@ const Cartel = preload("res://mapa/cartel.gd") # carteles de madera: los de las 
 const ID_COMISARIA := "building_police"
 const MODELO_POZO := "exterior/pozo_clasico.tscn" ## hecho con tools/hornear_pozo.gd
 const META_TIPO_3D := "tipo_3d" ## en un dibujo del mapa: qué objeto 3D le toca, si su dibujo no basta para saberlo
-const ROCA_ALTO_PX: float = 12.0     ## rocas sueltas de adorno (cantera): algo más bajas que las que se pican (16)
-const ROCA_HUNDIDA_PX: float = -1.4  ## medio enterradas, como las de la naturaleza
-## Farolas y focos: luz eléctrica azulada del generador del Arreglador (antes había otra amarilla «sin corriente»).
-const COLOR_LUZ_ELECTRICA: Color = Color(0.58, 0.96, 1.0)
-## Farola (modelo «lightpost-single», medido 2026-11-12): el farol cuelga al sur del poste, entre las placas de 21–23 px
-## y 25–27 px de alto (9 × 4 px de planta). El cristal brilla con una caja de luz un poco dentro de las placas y dos luces: un foco hacia abajo que deja un charco de luz en el suelo y un resplandor suave para las paredes.
-## Medidas tomadas con la farola de 29 px; el usuario la pidió un 20 % más alta y con un 50 % más de luz (2026-11-12).
-const FAROLA_ALTO_MEDIDO_PX: float = 29.0
-const FAROLA_ALTO_PX: float = FAROLA_ALTO_MEDIDO_PX * 1.2
-const FAROLA_ESTIRA: float = FAROLA_ALTO_PX / FAROLA_ALTO_MEDIDO_PX ## el modelo solo se estira hacia arriba
-const FAROL_DESPLAZ: Vector2 = Vector2(0.0, 2.5)
-const FAROL_TAM: Vector2 = Vector2(8.4, 3.6)
-const FAROL_BASE_PX: float = 22.9 * FAROLA_ESTIRA
-const FAROL_ALTO_PX: float = 2.2 * FAROLA_ESTIRA
-const FAROLA_CHARCO_ENERGIA: float = 15.0
-const FAROLA_CHARCO_ALCANCE_PX: float = 6.0   ## × Mapa3D.K, como el resto de luces de la escala vieja
-const FAROLA_CHARCO_ANGULO: float = 60.0
-const FAROLA_ENERGIA: float = 3.0
-const FAROLA_ALCANCE_PX: float = 3.6
-## Con ~47 farolas, las luces lejanas se apagan solas (el farol sigue brillando): el portátil no aguanta ~90 luces a la vez.
-const FAROLA_LUZ_VISIBLE_M: float = 70.0
-const FAROLA_LUZ_FUNDIDO_M: float = 15.0
-const FOCO_ENERGIA: float = 3.2
-const FOCO_SUELO_ENERGIA: float = 2.1
+const ALTO_POZO_M: float = 2.54
+const ALTO_ROCA_SUELTA_M: float = 1.27
+const HUNDIDO_ROCA_SUELTA_M: float = 0.148
 
 ## Puesto del Paso, cementerio, alcantarillas, objetos de la época, farolas y objetos/props dinámicos 3D.
 
 const ESCENA_PUESTO_PASO := "res://mapa/edificios/puesto_del_paso.tscn"
 const ESCENA_SOTANO_CLUB := "res://mapa/edificios/sotano_club_pelea.tscn"
 const ESCENA_TRAMPILLA_CLUB := "res://assests/curated_3d/exterior/trampilla_club.tscn"
+const ESCENA_BARRERA_SACOS := "res://assests/curated_3d/exterior/barrera_sacos_alambre.tscn"
+const ESCENA_TORRE_FOCO := "res://assests/curated_3d/exterior/torre_foco_electrico.tscn"
+const ESCENA_FAROLA_CALLE := "res://assests/curated_3d/exterior/farola_calle.tscn"
+const ESCENA_LIBRO_CUENTAS := "res://assests/curated_3d/props/libro_cuentas_ayuntamiento.tscn"
+const ESCENA_MESA_CASA := "res://assests/curated_3d/props/mesa_casa_jugador.tscn"
+const ESCENA_BANCO_CASA := "res://assests/curated_3d/props/banco_trabajo_casa.tscn"
+const ESCENA_ESCONDITE_CASA := "res://assests/curated_3d/props/escondite_suelo_casa.tscn"
+const ESCENA_ESCALERA_CASA := "res://assests/curated_3d/props/escalera_trampilla_casa.tscn"
+const ESCENA_MOSTRADOR_CASA := "res://assests/curated_3d/props/mostrador_tienda_jugador.tscn"
+const ESCENA_CAMA_PERRO := "res://assests/curated_3d/props/cama_mascota_perro.tscn"
+const ESCENA_CAMA_GATO := "res://assests/curated_3d/props/cama_mascota_gato.tscn"
 const CENTRO_SOLAR_PUESTO_BASE := Vector2(1593.0, 47.0)
+
+const ESCENAS_ROBOS := {
+	"sello_noble": "res://assests/curated_3d/props/objetivo_robo_sello.tscn",
+	"caliz_capilla": "res://assests/curated_3d/props/objetivo_robo_caliz.tscn",
+}
+const ESCENA_ROBO_LIBRO := "res://assests/curated_3d/props/objetivo_robo_libro.tscn"
+
+const ESCENAS_PROPS_3D := {
+	"tent": "res://assests/curated_3d/exterior/tienda_campana.tscn",
+	"campfire": "res://assests/curated_3d/exterior/hoguera_caldero.tscn",
+	"log_seat": "res://assests/curated_3d/exterior/tronco_asiento.tscn",
+	"clothesline": "res://assests/curated_3d/exterior/tendedero_ropa.tscn",
+	"weapon_sword": "res://assests/curated_3d/exterior/caballete_espada.tscn",
+	"weapon_hammer": "res://assests/curated_3d/exterior/caballete_martillo.tscn",
+	"crate": "res://assests/curated_3d/exterior/caja_madera_prop.tscn",
+	"barrel": "res://assests/curated_3d/exterior/barril_madera_prop.tscn",
+	"weak_wall": "res://assests/curated_3d/exterior/muro_debil_piedra.tscn",
+	"sign": "res://assests/curated_3d/exterior/poste_cartel_camino.tscn",
+	"wild_herb": "res://assests/curated_3d/nature/mata_hierba_silvestre.tscn",
+	"wild_mushroom": "res://assests/curated_3d/nature/grupo_setas_silvestres.tscn",
+	"rabbit_burrow": "res://assests/curated_3d/nature/madriguera_conejo.tscn",
+	"fox_den": "res://assests/curated_3d/nature/cubil_zorro.tscn",
+	"dropped_item": "res://assests/curated_3d/props/bolsa_objeto_caido.tscn",
+}
 
 # ==============================================================================
 # 4. ASENTAMIENTO FRONTERIZO «PUESTO DEL PASO» (EN EL LINDERO ESTE)
@@ -64,6 +78,25 @@ static func _mostrar_hijo(padre: Node3D, nombre: String, ver: bool) -> void:
 	if n != null:
 		n.visible = ver
 
+static func _instanciar_escena(padre: Node3D, ruta: String, pos_3d: Vector3, giro_y: float = 0.0) -> Node3D:
+	if padre == null or not ResourceLoader.exists(ruta):
+		return null
+	var inst: Node3D = (load(ruta) as PackedScene).instantiate() as Node3D
+	inst.position = pos_3d
+	if absf(giro_y) > 0.01:
+		inst.rotation_degrees.y = giro_y
+	padre.add_child(inst)
+	return inst
+
+
+static func _quitar_luces_en_headless(nodo: Node, es_headless: bool) -> void:
+	if not es_headless or nodo == null:
+		return
+	for c: Node in nodo.find_children("*", "Light3D", true, false):
+		c.get_parent().remove_child(c)
+		c.free()
+
+
 # ==============================================================================
 # 5. TUMBAS DEL CEMENTERIO, ALCANTARILLAS (-1) Y FAROLAS CON LUZ REAL
 # ==============================================================================
@@ -72,23 +105,15 @@ func rebuild_graves_3d() -> void:
 	if vm == null:
 		return
 	_last_buried_count = vm.buried_graves.size()
-	var m_mound := _mat("grave_earth", Color(0.36, 0.25, 0.16), 0.95, 0.0)
-	var grave_models: Array[String] = [
-		"graveyard/gravestone-cross.glb",
-		"graveyard/gravestone-decorative.glb",
-		"graveyard/gravestone-round.glb",
-		"graveyard/cross-column.glb",
-	]
-
 	for i in range(vm.buried_graves.size()):
 		var g_pos: Vector2 = vm._cemetery_burial_pos
 		if i < vm._cemetery_grave_positions.size():
 			g_pos = vm._cemetery_grave_positions[i]
 		else:
-			g_pos = vm._cemetery_burial_pos + Vector2(float(i % 6) * 26.0, float(int(float(i) / 6.0) % 3) * 28.0) # más tumbas que lápidas: junto a la fosa
-		_add_box_2d(graves_root_3d, g_pos + Vector2(0, 3), Vector2(7.5, 8.5), 1.0, 1.8, m_mound)
-		var g_mdl: String = grave_models[i % grave_models.size()]
-		_add_model_2d(graves_root_3d, g_mdl, g_pos + Vector2(0, -4), 1.0, Vector2(6.8, 3.2), 8.8)
+			g_pos = vm._cemetery_burial_pos + Vector2(float(i % 6) * 26.0, float(int(float(i) / 6.0) % 3) * 28.0)
+		var ruta_tumba: String = "res://assests/curated_3d/graveyard/tumba_enterrada_%d.tscn" % ((i % 4) + 1)
+		_instanciar_escena(graves_root_3d, ruta_tumba, to_3d(g_pos, 0.0))
+
 
 func _build_sewers_3d() -> void:
 	_clear_children(sewers_root_3d)
@@ -97,81 +122,54 @@ func _build_sewers_3d() -> void:
 		return
 	var red: Node3D = escena.instantiate() as Node3D
 	var centro_mundo: Vector2 = EdificioEditorScript.a_mundo(VillageUnderworldScript.ID_RED, Vector2(420.0, VillageUnderworldScript.SEWER_Y))
-	sewers_root_3d.position = Mapa3D.a_3d(centro_mundo, Suelo.PROFUNDIDAD_SOTANO_PX)
+	sewers_root_3d.position = to_3d_flat(centro_mundo, Suelo.PROFUNDIDAD_SOTANO_PX)
 	sewers_root_3d.rotation_degrees.y = EdificioEditorScript.giro(VillageUnderworldScript.ID_RED)
 	sewers_root_3d.add_child(red)
 
-func _add_sandbag_wire_barrier_3d(parent: Node3D, pos_2d: Vector2) -> void:
-	var m_bag := _mat("epoch_sandbag", Color(0.50, 0.43, 0.31), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.8)
-	var m_stake := _mat("epoch_stake_wood", Color(0.30, 0.20, 0.12), 0.90, 0.0)
-	var m_wire := _mat("epoch_barbed_wire", Color(0.24, 0.25, 0.27), 0.48, 0.82)
-	# Dos hileras escalonadas de sacos terreros
-	for bx in [-7.5, -2.5, 2.5, 7.5]:
-		_add_box_2d(parent, pos_2d + Vector2(bx, 1.2), Vector2(4.8, 3.4), 0.0, 2.4, m_bag)
-		_add_box_2d(parent, pos_2d + Vector2(bx, -1.2), Vector2(4.8, 3.4), 0.0, 2.4, m_bag)
-	for bx2 in [-5.0, 0.0, 5.0]:
-		_add_box_2d(parent, pos_2d + Vector2(bx2, 0.0), Vector2(4.8, 3.6), 2.3, 2.3, m_bag)
-	for bx3 in [-2.5, 2.5]:
-		_add_box_2d(parent, pos_2d + Vector2(bx3, 0.0), Vector2(4.6, 3.2), 4.5, 2.0, m_bag)
-	# Caballetes en X y rollos de alambre de espino encima y delante
-	for sx in [-8.5, 0.0, 8.5]:
-		_add_cyl_2d(parent, pos_2d + Vector2(sx, -2.8), 0.65, 0.0, 8.2, m_stake, 0.55, 6)
-		_add_cyl_2d(parent, pos_2d + Vector2(sx, 2.8), 0.65, 0.0, 8.2, m_stake, 0.55, 6)
-	for wy in [5.2, 6.8, 8.0]:
-		_add_box_2d(parent, pos_2d, Vector2(21.0, 0.45), wy, 0.45, m_wire)
-	for cx in [-7.0, -3.5, 0.0, 3.5, 7.0]:
-		_add_cyl_2d(parent, pos_2d + Vector2(cx, 2.4), 2.2, 2.2, 3.8, m_wire, 2.2, 8)
 
-func _add_floodlight_tower_3d(parent: Node3D, pos_2d: Vector2, target_2d: Vector2, m_bulb: Material) -> void:
-	var m_pole := _mat("epoch_pole_wood", Color(0.28, 0.19, 0.11), 0.90, 0.0)
-	var m_hood := _mat("epoch_hood_iron", Color(0.16, 0.18, 0.21), 0.45, 0.82)
-	# Poste alto de madera con cruceta y carcasa de proyector metálico
-	_add_cyl_2d(parent, pos_2d, 2.2, 0.0, 35.0, m_pole, 1.5, 8)
-	_add_box_2d(parent, pos_2d, Vector2(7.5, 2.2), 31.5, 1.8, m_pole)
-	var dir_2d: Vector2 = (target_2d - pos_2d).normalized()
-	var head_2d: Vector2 = pos_2d + dir_2d * 2.8
-	_add_box_2d(parent, head_2d, Vector2(5.2, 5.2), 33.0, 4.2, m_hood)
-	var bulb := _add_cyl_2d(parent, head_2d + dir_2d * 1.6, 2.1, 33.4, 2.6, m_bulb, 2.1, 8)
-	var spot: SpotLight3D = null
-	var pool: OmniLight3D = null
-	if not _is_headless:
-		spot = SpotLight3D.new()
-		spot.position = to_3d(head_2d, 34.5)
-		var tgt_3d: Vector3 = to_3d(target_2d, 0.5)
-		spot.spot_range = 9.5 * Mapa3D.K
-		spot.spot_angle = 42.0
-		spot.light_energy = FOCO_ENERGIA
-		spot.light_color = COLOR_LUZ_ELECTRICA
-		parent.add_child(spot)
-		if spot.position.distance_to(tgt_3d) > 0.05:
-			spot.look_at_from_position(spot.position, tgt_3d, Vector3.UP)
-		pool = OmniLight3D.new()
-		pool.position = to_3d(pos_2d.lerp(target_2d, 0.55), 10.0)
-		pool.omni_range = 5.4 * Mapa3D.K
-		pool.light_energy = FOCO_SUELO_ENERGIA
-		pool.light_color = COLOR_LUZ_ELECTRICA
-		parent.add_child(pool)
-	_floodlight_nodes_3d.append({
-		"bulb": bulb,
-		"spot": spot,
-		"pool": pool,
-	})
+func _poner_barrera_sacos_3d(pos_2d: Vector2, giro_deg: float) -> void:
+	_instanciar_escena(streetlights_root_3d, ESCENA_BARRERA_SACOS, to_3d(pos_2d, 0.0), giro_deg)
 
-func _build_epoch_props_3d(m_bulb: Material) -> void:
-	# Los cables de la Comisaría, del Ayuntamiento y del Arreglador (con su generador) los traen sus planos
-	# (tools/casas/plano_comisaria.gd, plano_ayuntamiento.gd y plano_casa_acomodada_taller.gd, 2026-11-13)
 
-	# 3. Sacos terreros y alambre de espino a la entrada de la Comisaría (dejando libre la puerta x=901..929) y en el Puesto
-	# del Paso; 4. focos en poste de madera en los dos (se apagan si se sabotea la red eléctrica)
-	colocar_plano = _en_edificio(ID_COMISARIA) # muro norte (el de la puerta) en y ≈ 60 del plano (14 × 9,8 m)
-	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(875.0, 52.0))
-	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(955.0, 52.0))
-	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1048.0, 54.0), Vector2(915.0, 20.0), m_bulb)
+func _poner_torre_foco_3d(pos_2d: Vector2, target_2d: Vector2) -> void:
+	var pos_torre: Vector3 = to_3d(pos_2d, 0.0)
+	var tgt_3d: Vector3 = to_3d(target_2d, 0.5)
+	var charco_3d: Vector3 = to_3d(pos_2d.lerp(target_2d, 0.55), 10.0)
+	var torre: Node3D = _instanciar_escena(streetlights_root_3d, ESCENA_TORRE_FOCO, pos_torre)
+	if torre == null:
+		return
+	var cabeza := torre.get_node_or_null("CabezaFoco") as Node3D
+	var d3: Vector3 = tgt_3d - pos_torre
+	if cabeza != null and Vector2(d3.x, d3.z).length_squared() > 0.0001:
+		cabeza.rotation.y = atan2(-d3.x, -d3.z)
+	var bombilla := torre.get_node_or_null("CabezaFoco/BombillaFoco") as MeshInstance3D
+	var haz := torre.get_node_or_null("CabezaFoco/HazFoco") as SpotLight3D
+	var charco := torre.get_node_or_null("CharcoLuzSuelo") as OmniLight3D
+	if _is_headless:
+		_quitar_luces_en_headless(torre, true)
+		haz = null
+		charco = null
+	else:
+		if haz != null and (haz.global_position - tgt_3d).length() > 0.05:
+			haz.look_at_from_position(haz.global_position, tgt_3d, Vector3.UP)
+		if charco != null:
+			charco.global_position = charco_3d
+	_floodlight_nodes_3d.append({"bulb": bombilla, "spot": haz, "pool": charco})
+
+
+func _build_epoch_props_3d() -> void:
+	var giro_com: float = EdificioEditorScript.giro(ID_COMISARIA)
+	colocar_plano = _en_edificio(ID_COMISARIA)
+	_poner_barrera_sacos_3d(Vector2(875.0, 52.0), giro_com)
+	_poner_barrera_sacos_3d(Vector2(955.0, 52.0), giro_com)
+	_poner_torre_foco_3d(Vector2(1048.0, 54.0), Vector2(915.0, 20.0))
+	var giro_puesto: float = VillageLots.Solar.giro(VillageCulture.OUTPOST_SOLAR)
 	colocar_plano = _en_solar(VillageCulture.OUTPOST_SOLAR)
-	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 22.0))
-	_add_sandbag_wire_barrier_3d(streetlights_root_3d, Vector2(1528.0, 78.0))
-	_add_floodlight_tower_3d(streetlights_root_3d, Vector2(1538.0, 18.0), Vector2(1506.0, 50.0), m_bulb)
+	_poner_barrera_sacos_3d(Vector2(1528.0, 22.0), giro_puesto)
+	_poner_barrera_sacos_3d(Vector2(1528.0, 78.0), giro_puesto)
+	_poner_torre_foco_3d(Vector2(1538.0, 18.0), Vector2(1506.0, 50.0))
 	colocar_plano = Callable()
+
 
 ## Plano → mundo de un edificio o un solar, para `colocar_plano` (lo dibujado en su plano va con su pieza).
 static func _en_edificio(id: String) -> Callable:
@@ -182,51 +180,26 @@ static func _en_solar(id: String) -> Callable:
 	return func(p: Vector2) -> Vector2: return VillageLots.Solar.a_mundo(id, p)
 
 
-## Apaga poco a poco la luz de una farola cuando el jugador está lejos.
-func _fundir_de_lejos(luz: Light3D) -> void:
-	luz.distance_fade_enabled = true
-	luz.distance_fade_begin = FAROLA_LUZ_VISIBLE_M
-	luz.distance_fade_length = FAROLA_LUZ_FUNDIDO_M
-
-
 func _build_streetlights_3d() -> void:
 	_clear_children(streetlights_root_3d)
 	_streetlight_nodes_3d.clear()
 	_floodlight_nodes_3d.clear()
 	if vm == null:
 		return
-	var m_bulb := _mat("bulb_voltaic", Color(0.55, 0.96, 1.0), 0.2, 0.0, Color(0.45, 0.92, 1.0), 3.4)
-
 	for sl in vm.streetlights:
 		var pos: Vector2 = sl.get("pos", Vector2.ZERO)
-		_add_model_2d(streetlights_root_3d, "graveyard/lightpost-single.glb", pos, 0.0, Vector2(9.0, 9.0), FAROLA_ALTO_PX)
-		var farol: Vector2 = pos + FAROL_DESPLAZ
-		var bulb := _add_box_2d(streetlights_root_3d, farol, FAROL_TAM, FAROL_BASE_PX, FAROL_ALTO_PX, m_bulb)
-		var omni: OmniLight3D = null
-		var charco: SpotLight3D = null
-		if not _is_headless:
-			omni = OmniLight3D.new()
-			omni.position = to_3d(farol, FAROL_BASE_PX + FAROL_ALTO_PX * 0.5)
-			omni.omni_range = FAROLA_ALCANCE_PX * Mapa3D.K
-			omni.light_energy = FAROLA_ENERGIA
-			omni.light_color = COLOR_LUZ_ELECTRICA
-			_fundir_de_lejos(omni)
-			streetlights_root_3d.add_child(omni)
-			charco = SpotLight3D.new()
-			charco.position = to_3d(farol, FAROL_BASE_PX)
-			charco.rotation_degrees.x = -90.0 # mira hacia abajo
-			charco.spot_range = FAROLA_CHARCO_ALCANCE_PX * Mapa3D.K
-			charco.spot_angle = FAROLA_CHARCO_ANGULO
-			charco.light_energy = FAROLA_CHARCO_ENERGIA
-			charco.light_color = COLOR_LUZ_ELECTRICA
-			_fundir_de_lejos(charco)
-			streetlights_root_3d.add_child(charco)
-		_streetlight_nodes_3d.append({
-			"bulb": bulb,
-			"light": omni,
-			"charco": charco,
-		})
-	_build_epoch_props_3d(m_bulb)
+		var farola: Node3D = _instanciar_escena(streetlights_root_3d, ESCENA_FAROLA_CALLE, to_3d(pos, 0.0))
+		if farola == null:
+			continue
+		var cristal := farola.get_node_or_null("CristalFarol") as MeshInstance3D
+		var omni := farola.get_node_or_null("ResplandorFarol") as OmniLight3D
+		var charco := farola.get_node_or_null("CharcoLuzCalle") as SpotLight3D
+		if _is_headless:
+			_quitar_luces_en_headless(farola, true)
+			omni = null
+			charco = null
+		_streetlight_nodes_3d.append({"bulb": cristal, "light": omni, "charco": charco})
+	_build_epoch_props_3d()
 
 
 func _sync_dynamic_props_3d() -> void:
@@ -343,79 +316,47 @@ func _sync_home_props_3d() -> void:
 	_home_props_3d = root
 
 	var m_oak: StandardMaterial3D = _mat("hp_oak", Color(0.46, 0.30, 0.16), 0.85, 0.05)
-	var m_dark: StandardMaterial3D = _mat("hp_dark", Color(0.14, 0.10, 0.06), 0.95, 0.0)
-	var m_iron: StandardMaterial3D = _mat("hp_iron", Color(0.28, 0.32, 0.36), 0.45, 0.75)
-	var m_gold: StandardMaterial3D = _mat("hp_gold", Color(0.95, 0.78, 0.24), 0.25, 0.85, Color(0.92, 0.74, 0.20), 0.55)
-	var m_herb: StandardMaterial3D = _mat("hp_herb", Color(0.30, 0.82, 0.38), 0.45, 0.10, Color(0.20, 0.65, 0.28), 0.35)
-	var m_dust: StandardMaterial3D = _mat("hp_dust", Color(0.74, 0.44, 0.96), 0.30, 0.15, Color(0.66, 0.36, 0.90), 0.55)
-
+	var m_piedra: StandardMaterial3D = _mat("hp_piedra", Color(0.34, 0.33, 0.31), 0.95, 0.0)
 	for lid in p_lots:
-		colocar_plano = _en_solar(lid) # los muebles de la casa están escritos en el plano de su solar
+		var giro_solar: float = VillageLots.Solar.giro(lid)
+		colocar_plano = _en_solar(lid)
 		var st: Dictionary = VillageLots.lot(vm, lid)
 		var up: Dictionary = st.get("upgrades", {})
 		var tb_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_table")
-		_add_box_2d(root, tb_pos, Vector2(18.0, 10.6), 2.0, 6.2, m_oak) # Mesa de comedor
-		_add_box_2d(root, tb_pos, Vector2(19.4, 11.6), 7.8, 1.0, m_oak) # Tablero de la mesa
-		if lid == prim_lot and int(hs.get("table_rations", 0)) > 0:
-			_add_cyl_2d(root, tb_pos + Vector2(-3.2, -0.5), 2.2, 8.8, 1.4, m_gold, 2.0, 8) # Hogaza / plato en la mesa
-			_add_cyl_2d(root, tb_pos + Vector2(3.2, 0.5), 2.0, 8.8, 2.0, m_herb, 1.6, 8) # Guiso / viandas
+		var mesa: Node3D = _instanciar_escena(root, ESCENA_MESA_CASA, to_3d(tb_pos, 0.0), giro_solar)
+		if mesa != null:
+			_mostrar_hijo(mesa, "ViandasMesa", lid == prim_lot and int(hs.get("table_rations", 0)) > 0)
 		if bool(up.get("workbench", false)):
 			var wb_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_workbench")
-			if _add_model_2d(root, "props/Workbench_Drawers.gltf", wb_pos, 2.0, Vector2(18.0, 10.0), 8.2) == null:
-				_add_box_2d(root, wb_pos, Vector2(18.0, 10.0), 2.0, 7.5, m_oak)
-			_add_cyl_2d(root, wb_pos + Vector2(-4.0, -0.5), 2.2, 9.5, 2.6, m_herb, 1.8, 8) # Mortero con cataplasma
-			_add_cyl_2d(root, wb_pos + Vector2(3.5, -0.5), 2.0, 9.5, 3.8, m_dust, 1.0, 10) # Alambique de polvo de ocaso
+			_instanciar_escena(root, ESCENA_BANCO_CASA, to_3d(wb_pos, 0.0), giro_solar)
 		if lid == prim_lot and bool(hs.get("has_stash", false)):
 			var st_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_stash")
-			_add_box_2d(root, st_pos, Vector2(13.0, 9.5), 1.8, 0.8, m_dark) # Hueco bajo el suelo
-			_add_box_2d(root, st_pos + Vector2(-3.2, 0), Vector2(4.2, 8.8), 2.2, 1.2, m_oak) # Tabla izq
-			_add_box_2d(root, st_pos + Vector2(3.4, -0.6), Vector2(4.2, 8.8), 2.6, 1.4, m_oak) # Tabla entreabierta der
-			_add_cyl_2d(root, st_pos + Vector2(0, 0.8), 2.2, 2.2, 1.2, m_gold, 2.2, 8) # Monedas ocultas
-		# Paso a 3D, paso 2e: el piso alto es un suelo de madera a Suelo.ALTILLO_CASA_PX sobre toda la casa (se ve en
-		# 1.ª persona o estando arriba: desde arriba taparía la planta baja) y el sótano, una sala de piedra bajo tierra.
+			_instanciar_escena(root, ESCENA_ESCONDITE_CASA, to_3d(st_pos, 0.0), giro_solar)
 		var d_lot: Dictionary = VillageLots.lot_def(lid)
-		var casa_px: Vector2 = VillageLots.house_size(lid) # lo que mide la casa (el terreno del solar es más grande)
+		var casa_tam: Vector2 = VillageLots.house_size(lid)
 		if bool(up.get("upper_floor", false)):
-			var altillo := _add_box_2d(root, d_lot["center"], casa_px - Vector2(6.0, 6.0), Suelo.ALTILLO_CASA_PX - 1.4, 1.4, m_oak)
-			if altillo != null:
-				altillo.add_to_group("altillo_casa_3d")
+			var altillo: MeshInstance3D = _add_box(root, size_3d(casa_tam - Vector2(6.0, 6.0), 1.4), to_3d(d_lot["center"], Suelo.ALTILLO_CASA_PX - 0.7), m_oak)
+			altillo.rotation_degrees.y = giro_solar
+			altillo.add_to_group("altillo_casa_3d")
 		if bool(up.get("hidden_cellar", false)):
-			var m_piedra: StandardMaterial3D = _mat("hp_piedra", Color(0.34, 0.33, 0.31), 0.95, 0.0)
-			var sotano := Node3D.new()
-			sotano.position.y = Mapa3D.alto_a_3d(Suelo.PROFUNDIDAD_SOTANO_PX)
-			root.add_child(sotano)
-			_add_box_2d(sotano, d_lot["center"], casa_px - Vector2(6.0, 6.0), -1.0, 1.0, m_piedra) # suelo
-			_add_techo_roca(sotano, d_lot["center"], casa_px, m_piedra)
+			var suelo_sot: MeshInstance3D = _add_box(root, size_3d(casa_tam - Vector2(6.0, 6.0), 1.0), to_3d_flat(d_lot["center"], Suelo.PROFUNDIDAD_SOTANO_PX - 0.5), m_piedra)
+			suelo_sot.rotation_degrees.y = giro_solar
+			var techo_sot: MeshInstance3D = _add_box(root, size_3d(casa_tam, 2.0), to_3d_flat(d_lot["center"], -1.5), m_piedra)
+			techo_sot.rotation_degrees.y = giro_solar
+			techo_sot.add_to_group("techo_bajo_tierra_3d")
 		if bool(up.get("upper_floor", false)) or bool(up.get("hidden_cellar", false)):
 			var sr_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "home_stairs")
-			_add_box_2d(root, sr_pos, Vector2(13.0, 14.0), 1.8, 1.2, m_dark) # Trampilla / base
-			_add_box_2d(root, sr_pos, Vector2(11.6, 12.6), 2.4, 1.4, m_oak)
-			_add_box_2d(root, sr_pos + Vector2(4.0, 0), Vector2(1.8, 1.8), 3.6, 1.2, m_iron) # Argolla de hierro
-			if bool(up.get("upper_floor", false)):
-				for step_i in range(4):
-					var sy: float = -4.5 + float(step_i) * 3.0
-					var sh: float = 4.0 + float(step_i) * 4.2
-					_add_box_2d(root, sr_pos + Vector2(0, sy), Vector2(10.0, 2.2), sh, 1.6, m_oak)
+			var esc: Node3D = _instanciar_escena(root, ESCENA_ESCALERA_CASA, to_3d(sr_pos, 0.0), giro_solar)
+			if esc != null:
+				_mostrar_hijo(esc, "PeldanosAltillo", bool(up.get("upper_floor", false)))
 		if has_shop and lid == shop_lot:
 			var sc_pos: Vector2 = VillageHousingScript.home_prop_pos(vm, lid, "player_shop_counter")
-			_add_box_2d(root, sc_pos, Vector2(18.0, 9.2), 2.0, 6.8, m_oak) # Cuerpo del mostrador
-			_add_box_2d(root, sc_pos, Vector2(19.6, 10.4), 8.6, 1.2, m_oak) # Tablero del mostrador
-			_add_box_2d(root, sc_pos + Vector2(4.6, -0.2), Vector2(5.2, 4.4), 9.8, 2.6, m_iron) # Caja de recaudación
-			if int(ps.get("till_gold", 0)) > 0:
-				_add_cyl_2d(root, sc_pos + Vector2(4.6, -0.2), 1.8, 12.2, 1.2, m_gold, 1.8, 8) # Monedas en la caja
-			if int(ps.get("stock", 0)) > 0:
-				_add_box_2d(root, sc_pos + Vector2(-4.8, -0.4), Vector2(3.8, 3.6), 9.8, 2.4, m_herb) # Mercancía expuesta 1
-				if int(ps.get("stock", 0)) >= 2:
-					_add_box_2d(root, sc_pos + Vector2(-1.2, 0.4), Vector2(3.6, 3.4), 9.8, 2.2, m_gold) # Mercancía expuesta 2
+			var most: Node3D = _instanciar_escena(root, ESCENA_MOSTRADOR_CASA, to_3d(sc_pos, 0.0), giro_solar)
+			if most != null:
+				_mostrar_hijo(most, "MonedasCaja", int(ps.get("till_gold", 0)) > 0)
+				_mostrar_hijo(most, "Mercancia_1", int(ps.get("stock", 0)) > 0)
+				_mostrar_hijo(most, "Mercancia_2", int(ps.get("stock", 0)) >= 2)
 	colocar_plano = Callable()
-
-## Paso a 3D, paso 2b: techo de roca justo bajo la calle sobre una sala subterránea (dentro de `raiz`, que ya está
-## bajada Suelo.PROFUNDIDAD_SOTANO_PX). Solo se ve en 1.ª persona: desde arriba taparía la sala.
-func _add_techo_roca(raiz: Node3D, centro: Vector2, tam: Vector2, mat: Material) -> void:
-	var grosor: float = 2.0
-	var techo := _add_box_2d(raiz, centro, tam, -Suelo.PROFUNDIDAD_SOTANO_PX - grosor - 0.5, grosor, mat)
-	if techo != null:
-		techo.add_to_group("techo_bajo_tierra_3d")
 
 
 ## P6: sala del club de pelea y su trampilla en la trastienda de la taberna, cargadas desde escenas horneadas en metros.
@@ -446,20 +387,15 @@ func _sync_club_3d() -> void:
 		_mostrar_hijo(trap_node, "ClosedLid", not open_now)
 		_mostrar_hijo(trap_node, "OpenHatch", open_now)
 
-## P5: libro de cuentas abierto sobre la mesa del ayuntamiento (se construye una vez).
+## P5: libro de cuentas abierto sobre la mesa del ayuntamiento (cargado desde escena horneada en metros).
 func _sync_town_ledger_3d() -> void:
 	if vm == null or stage_root_3d == null or is_instance_valid(_town_ledger_3d):
 		return
-	var pos: Vector2 = load("res://scripts/systems/VillageCollections.gd").ledger_pos() # ya en el mundo
-	var root := Node3D.new()
-	root.name = "TownLedger3D"
-	stage_root_3d.add_child(root)
-	_town_ledger_3d = root
-	var m_leather := _mat("ledger_leather", Color(0.40, 0.20, 0.10), 0.82, 0.05)
-	var m_page := _mat("heist_page", Color(0.95, 0.90, 0.76), 0.85, 0.0)
-	_add_box_2d(root, pos, Vector2(12.0, 8.0), 10.2, 1.0, m_leather) # Tapas abiertas
-	_add_box_2d(root, pos + Vector2(-2.9, 0), Vector2(5.4, 6.8), 11.2, 0.8, m_page) # Página izquierda
-	_add_box_2d(root, pos + Vector2(2.9, 0), Vector2(5.4, 6.8), 11.2, 0.8, m_page) # Página derecha
+	var pos: Vector2 = load("res://scripts/systems/VillageCollections.gd").ledger_pos()
+	_town_ledger_3d = _instanciar_escena(stage_root_3d, ESCENA_LIBRO_CUENTAS, to_3d(pos, 0.0))
+	if _town_ledger_3d != null:
+		_town_ledger_3d.name = "TownLedger3D"
+
 
 func _sync_heist_target_3d() -> void:
 	if vm == null or stage_root_3d == null:
@@ -477,46 +413,17 @@ func _sync_heist_target_3d() -> void:
 		return
 	var h_id: String = str(ah.get("id", "sello_noble"))
 	var h_pos := Vector2(float(ah.get("pos_x", 0.0)), float(ah.get("pos_y", 0.0)))
-	var root := Node3D.new()
-	root.name = "HeistTarget3D_" + h_id
-	stage_root_3d.add_child(root)
-	_heist_prop_3d = root
-
-	var m_gold := _mat("heist_gold", Color(0.96, 0.80, 0.28), 0.25, 0.85, Color(0.95, 0.76, 0.22), 0.65)
-	var m_silver := _mat("heist_silver", Color(0.88, 0.92, 0.98), 0.20, 0.90, Color(0.75, 0.85, 1.0), 0.55)
-	var m_crimson := _mat("heist_crimson", Color(0.76, 0.14, 0.20), 0.75, 0.05)
-	var m_leather := _mat("heist_leather", Color(0.42, 0.22, 0.12), 0.82, 0.05)
-	var m_page := _mat("heist_page", Color(0.95, 0.90, 0.76), 0.85, 0.0)
-
-	match h_id:
-		"sello_noble":
-			# Sobre el escritorio del estudio de la Mansión (altura base ~10.2 px)
-			_add_box_2d(root, h_pos, Vector2(11.0, 9.0), 10.2, 2.2, m_crimson) # Cojín de terciopelo
-			_add_cyl_2d(root, h_pos + Vector2(-2.0, 0.5), 2.6, 12.4, 1.4, m_crimson, 2.6, 10) # Lacre real
-			_add_cyl_2d(root, h_pos + Vector2(1.8, -0.5), 2.2, 12.4, 5.2, m_gold, 1.5, 10) # Matriz de oro del sello
-			_add_model_2d(root, "props/Scroll_1.gltf", h_pos + Vector2(-5.0, -2.0), 10.2, Vector2(7.0, 5.0), 3.5)
-		"caliz_capilla":
-			# Sobre el altar de piedra de la Capilla (altura base ~13.0 px)
-			if _add_model_2d(root, "props/Chalice.gltf", h_pos, 13.0, Vector2(8.0, 8.0), 8.5) == null:
-				_add_cyl_2d(root, h_pos, 3.2, 13.0, 1.8, m_silver, 2.4, 10)
-				_add_cyl_2d(root, h_pos, 1.4, 14.8, 3.2, m_silver, 1.4, 10)
-				_add_cyl_2d(root, h_pos, 2.6, 18.0, 3.6, m_gold, 3.8, 12)
-			else:
-				_add_cyl_2d(root, h_pos, 4.4, 12.4, 0.8, m_gold, 4.4, 12) # Patena dorada bajo el cáliz
-		_:
-			# Libro Mayor de los Gremios sobre la mesa del Ayuntamiento (altura base ~10.2 px)
-			if _add_model_2d(root, "props/Book_5.gltf", h_pos, 10.2, Vector2(13.0, 10.0), 4.5) == null:
-				_add_box_2d(root, h_pos, Vector2(13.0, 10.0), 10.2, 1.6, m_leather)
-				_add_box_2d(root, h_pos, Vector2(11.4, 8.6), 11.8, 1.8, m_page)
-			_add_box_2d(root, h_pos + Vector2(-5.8, 0), Vector2(1.4, 8.8), 10.2, 3.6, m_gold)
-			_add_box_2d(root, h_pos + Vector2(5.8, 0), Vector2(1.4, 8.8), 10.2, 3.6, m_gold)
+	var ruta: String = String(ESCENAS_ROBOS.get(h_id, ESCENA_ROBO_LIBRO))
+	_heist_prop_3d = _instanciar_escena(stage_root_3d, ruta, to_3d(h_pos, 0.0))
+	if _heist_prop_3d != null:
+		_heist_prop_3d.name = "HeistTarget3D_" + h_id
 
 
 # ==============================================================================
 # OBJETOS QUIETOS 2D -> 3D (pozos, farolas, tablón…)
 # ==============================================================================
 ## Qué versión 3D lleva cada dibujo 2D, según el nombre de su imagen. "hide" = ya tiene 3D propio, solo se esconde.
-const TERRAZA_MARGEN_PX: float = 6.0 ## borde de la terraza que también se limpia de dibujos planos
+const TERRAZA_MARGEN_BORDE: float = 6.0 ## borde de la terraza que también se limpia de dibujos planos
 const PROP_KIND_BY_TEXTURE := {
 	"bench_0.png": "hide",
 	"flowers_plants_0.png": "hide",
@@ -583,22 +490,10 @@ func _build_pet_bed_3d_for(bed_node: Node2D) -> void:
 	var old := nature_root_3d.get_node_or_null(b_name)
 	if old != null:
 		old.queue_free()
-	var root := Node3D.new()
-	root.name = b_name
-	nature_root_3d.add_child(root)
-	var pos: Vector2 = bed_node.global_position
 	var is_dog: bool = int(bed_node.get_meta("pet_type", 0)) == 0
-	var m_frame := _mat("pet_bed_wood", Color(0.46, 0.30, 0.16), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.75)
-	var m_cush := _mat("pet_bed_cush_dog" if is_dog else "pet_bed_cush_cat", Color(0.74, 0.28, 0.24) if is_dog else Color(0.72, 0.54, 0.38), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.65)
-	var m_bowl := _mat("pet_bowl_brass", Color(0.82, 0.68, 0.30), 0.38, 0.65)
-	var m_water := _mat("pet_bowl_water", Color(0.22, 0.56, 0.82), 0.20, 0.10)
-	_add_box_2d(root, pos, Vector2(19.0, 11.0), 0.0, 2.2, m_frame)
-	_add_box_2d(root, pos + Vector2(0, -4.8), Vector2(19.0, 1.8), 2.2, 2.0, m_frame)
-	_add_box_2d(root, pos + Vector2(-8.6, 0), Vector2(1.8, 11.0), 2.2, 1.8, m_frame)
-	_add_box_2d(root, pos + Vector2(8.6, 0), Vector2(1.8, 11.0), 2.2, 1.8, m_frame)
-	_add_box_2d(root, pos + Vector2(0, 0.5), Vector2(15.0, 7.6), 1.8, 1.8, m_cush)
-	_add_cyl_2d(root, pos + Vector2(13.5, 1.0), 2.8, 0.0, 2.2, m_bowl, 2.4, 10)
-	_add_cyl_2d(root, pos + Vector2(13.5, 1.0), 2.1, 1.6, 0.8, m_water, 2.1, 10)
+	var cama: Node3D = _instanciar_escena(nature_root_3d, ESCENA_CAMA_PERRO if is_dog else ESCENA_CAMA_GATO, to_3d(bed_node.global_position, 0.0))
+	if cama != null:
+		cama.name = b_name
 
 
 func _add_prop_source(spr: Node2D) -> void:
@@ -639,12 +534,11 @@ func _sync_props_3d(only_update: bool) -> void:
 		if rec.is_empty() and (not only_update or stale) and kind != "hide":
 			var root := Node3D.new()
 			root.name = "Prop3D_" + kind
+			root.position = to_3d(spr.global_position, 0.0)
+			if spr.has_meta("giro_3d"):
+				root.rotation_degrees.y = float(spr.get_meta("giro_3d"))
 			nature_root_3d.add_child(root)
 			_build_prop_3d(root, kind, spr)
-			if spr.has_meta("giro_3d"): # su ancla se giró en el editor del mapa 3D
-				var piv: Vector3 = to_3d(spr.global_position, 0.0)
-				var gb := Basis(Vector3.UP, deg_to_rad(float(spr.get_meta("giro_3d"))))
-				root.transform = Transform3D(gb, piv - gb * piv)
 			rec = {"root": root, "variant": variant, "pos": spr.global_position}
 			_prop_nodes[id] = rec
 		var r3 = rec.get("root")
@@ -663,165 +557,33 @@ func _sync_props_3d(only_update: bool) -> void:
 
 
 func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
-	var pos: Vector2 = spr.global_position
-	# Mismos valores que tenía la madera del terreno, que antes se creaba primero con este nombre y era la que salía
-	var m_wood := _mat("prop_wood", Color(0.54, 0.36, 0.20), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
-	var m_dark := _mat("prop_dark_wood", Color(0.38, 0.24, 0.13), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/rf_planks.png", "", 0.80)
-	var m_iron := _mat("prop_iron", Color(0.30, 0.31, 0.33), 0.6, 0.5)
-	match kind:
-		"well":
-			# Pozo clásico de brocal redondo (tools/hornear_pozo.gd): el cuadrado con tejadillo no se reconocía
-			if _add_model_2d(root, MODELO_POZO, pos, 0.0, Vector2.ZERO, 24.0) == null:
-				_add_cyl_2d(root, pos, 8.5, 0.0, 7.5, _mat("well_stone", Color(0.58, 0.57, 0.54), 0.9, 0.02), 8.5, 14)
-		"tent":
-			var m_canvas := _mat("tent_canvas", Color(0.84, 0.74, 0.54), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "town_textures/T_Trim_Cloth_Normal.png", 0.55)
-			var m_flap := _mat("tent_flap", Color(0.72, 0.60, 0.42), 0.90, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.65)
-			var m_bedroll := _mat("tent_bedroll", Color(0.58, 0.24, 0.20), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.70)
-			var m_pillow := _mat("tent_pillow", Color(0.92, 0.88, 0.78), 0.90, 0.0)
-			# Plataforma base de madera + cuerpo principal de lona a dos aguas + cumbrera y postes de madera
-			_add_box_2d(root, pos + Vector2(0, 2), Vector2(34, 24), 0.0, 1.6, m_dark)
-			_add_prism_2d(root, pos + Vector2(0, 2), Vector2(32, 22), 1.4, 17.5, m_canvas, false)
-			_add_box_2d(root, pos + Vector2(0, 2), Vector2(3.0, 25.0), 17.2, 2.2, m_dark)
-			_add_cyl_2d(root, pos + Vector2(0, -9.2), 1.4, 1.4, 17.6, m_dark, 1.4, 8)
-			_add_cyl_2d(root, pos + Vector2(0, 13.2), 1.3, 1.4, 17.6, m_dark, 1.3, 8)
-			# Entrada abierta con faldones enrollados e interior con saco de dormir y almohada 3D
-			_add_box_2d(root, pos + Vector2(0, 12.6), Vector2(8.5, 1.2), 1.6, 10.5, _mat("tent_door", Color(0.16, 0.12, 0.09), 0.96, 0.0))
-			_add_cyl_2d(root, pos + Vector2(-4.8, 13.0), 1.6, 1.6, 11.2, m_flap, 1.4, 8)
-			_add_cyl_2d(root, pos + Vector2(4.8, 13.0), 1.6, 1.6, 11.2, m_flap, 1.4, 8)
-			_add_box_2d(root, pos + Vector2(0, 4.5), Vector2(8.0, 13.0), 1.6, 2.2, m_bedroll)
-			_add_box_2d(root, pos + Vector2(0, -0.5), Vector2(6.8, 3.4), 3.6, 1.4, m_pillow)
-			# Estacas y vientos tensores en las 4 esquinas
-			for stake_off in [Vector2(-18.5, -8.5), Vector2(18.5, -8.5), Vector2(-18.5, 12.5), Vector2(18.5, 12.5)]:
-				_add_cyl_2d(root, pos + stake_off, 1.0, 0.0, 4.2, m_dark, 0.8, 6)
-				_add_box_2d(root, pos + stake_off * 0.82, Vector2(3.6, 0.9), 2.5, 1.2, m_wood)
-		"campfire":
-			var m_stone_ring := _mat("campfire_stone", Color(0.48, 0.46, 0.44), 0.92, 0.02)
-			var m_ember := _mat("campfire_ember", Color(0.95, 0.34, 0.08), 0.40, 0.0, Color(1.0, 0.36, 0.06), 2.4)
-			var m_flame := _mat("campfire_flame", Color(1.0, 0.72, 0.18), 0.25, 0.0, Color(1.0, 0.58, 0.10), 3.0)
-			var m_stew := _mat("campfire_stew", Color(0.76, 0.42, 0.18), 0.35, 0.05)
-			for i in range(8):
-				var ang: float = float(i) * TAU / 8.0
-				_add_box_2d(root, pos + Vector2(cos(ang), sin(ang)) * 7.2, Vector2(3.8, 3.2), 0.0, 2.6, m_stone_ring, rad_to_deg(ang))
-			_add_cyl_2d(root, pos, 5.8, 0.0, 1.6, m_ember, 5.2, 10)
-			_add_box_2d(root, pos, Vector2(13.0, 2.4), 0.8, 2.2, m_dark, 28.0)
-			_add_box_2d(root, pos, Vector2(13.0, 2.4), 0.8, 2.2, m_dark, -32.0)
-			_add_cyl_2d(root, pos + Vector2(-1.8, 0.8), 2.4, 1.4, 4.8, m_flame, 0.4, 7)
-			_add_cyl_2d(root, pos + Vector2(1.8, -0.6), 2.0, 1.4, 4.2, m_flame, 0.3, 7)
-			_add_model_2d(root, "exterior/Bonfire_Lit.obj", pos, 0.0, Vector2(16, 16), 9.0)
-			_add_model_2d(root, "exterior/Cauldron.obj", pos, 3.2, Vector2(11, 11), 7.8)
-			_add_cyl_2d(root, pos, 3.8, 8.8, 1.2, m_stew, 3.8, 10)
-			# Trípode de hierro forjado sosteniendo la cacerola sobre la hoguera
-			for t_ang in [-2.1, 0.0, 2.1]:
-				var leg_p := pos + Vector2(cos(t_ang), sin(t_ang)) * 5.2
-				_add_cyl_2d(root, leg_p, 0.75, 0.0, 15.5, m_iron, 0.65, 6)
-			_add_cyl_2d(root, pos, 4.8, 14.5, 1.2, m_iron, 4.8, 10)
-			_add_cyl_2d(root, pos, 0.6, 9.5, 5.5, m_iron, 0.6, 6)
-			if not _is_headless:
-				var lt := OmniLight3D.new()
-				lt.position = to_3d(pos, 10.0)
-				lt.light_color = Color(1.0, 0.62, 0.28)
-				lt.light_energy = 1.35
-				lt.omni_range = 2.8 * Mapa3D.K
-				root.add_child(lt)
-		"log_seat":
-			# Tronco tumbado 3D con corteza, anillos de madera en los extremos y calzos de apoyo
-			var m_ring := _mat("log_end_ring", Color(0.78, 0.64, 0.42), 0.85, 0.0)
-			var log_mi := _add_cyl_2d(root, pos, 3.8, 0.0, 23.0, m_dark, 3.8, 10)
-			log_mi.rotation_degrees.z = 90.0
-			log_mi.position = to_3d(pos, 3.8)
-			for end_x in [-11.6, 11.6]:
-				var cap_mi := _add_cyl_2d(root, pos + Vector2(end_x, 0), 3.4, 0.0, 0.6, m_ring, 3.4, 10)
-				cap_mi.rotation_degrees.z = 90.0
-				cap_mi.position = to_3d(pos + Vector2(end_x, 0), 3.8)
-			_add_box_2d(root, pos + Vector2(-7.0, 0), Vector2(3.0, 8.2), 0.0, 2.2, m_wood)
-			_add_box_2d(root, pos + Vector2(7.0, 0), Vector2(3.0, 8.2), 0.0, 2.2, m_wood)
-		"clothesline":
-			# Tendedero 3D con dos postes de madera, cuerda tensada y 3 prendas tendidas (incluyendo la prenda morada)
-			var m_rope := _mat("clothesline_rope", Color(0.76, 0.66, 0.48), 0.90, 0.0)
-			var m_cloth_purple := _mat("cloth_purple", Color(0.62, 0.46, 0.84), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.7)
-			var m_cloth_tunic := _mat("cloth_tunic", Color(0.58, 0.52, 0.42), 0.90, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.7)
-			var m_cloth_teal := _mat("cloth_teal", Color(0.24, 0.58, 0.68), 0.88, 0.0, Color.BLACK, 0.0, "town_textures/T_Trim_Cloth_BaseColor.png", "", 0.7)
-			for px in [-13.0, 13.0]:
-				_add_box_2d(root, pos + Vector2(px, 3.0), Vector2(3.8, 3.8), 0.0, 2.0, m_dark)
-				_add_cyl_2d(root, pos + Vector2(px, 3.0), 1.6, 0.0, 16.5, m_wood, 1.4, 8)
-				_add_box_2d(root, pos + Vector2(px, 3.0), Vector2(2.6, 2.8), 13.5, 1.8, m_rope)
-			_add_box_2d(root, pos + Vector2(0, 3.0), Vector2(26.0, 1.2), 14.0, 1.0, m_rope)
-			# Prenda 1 (izquierda): pantalón/tela morada con dos perneras y pinzas de madera
-			_add_box_2d(root, pos + Vector2(-7.2, 3.2), Vector2(5.6, 1.6), 9.5, 4.8, m_cloth_purple)
-			_add_box_2d(root, pos + Vector2(-8.6, 3.2), Vector2(2.4, 1.6), 5.2, 4.5, m_cloth_purple)
-			_add_box_2d(root, pos + Vector2(-5.8, 3.2), Vector2(2.4, 1.6), 5.2, 4.5, m_cloth_purple)
-			# Prenda 2 (centro): casaca/camisa con mangas
-			_add_box_2d(root, pos + Vector2(0.0, 3.2), Vector2(6.4, 1.8), 4.8, 9.5, m_cloth_tunic)
-			_add_box_2d(root, pos + Vector2(0.0, 3.2), Vector2(9.2, 1.6), 11.2, 3.0, m_cloth_tunic)
-			# Prenda 3 (derecha): prenda azul turquesa
-			_add_box_2d(root, pos + Vector2(7.4, 3.2), Vector2(5.4, 1.6), 9.5, 4.8, m_cloth_teal)
-			_add_box_2d(root, pos + Vector2(6.1, 3.2), Vector2(2.3, 1.6), 5.5, 4.2, m_cloth_teal)
-			_add_box_2d(root, pos + Vector2(8.7, 3.2), Vector2(2.3, 1.6), 5.5, 4.2, m_cloth_teal)
-			for pin_x in [-8.4, -6.0, -1.8, 1.8, 6.2, 8.6]:
-				_add_box_2d(root, pos + Vector2(pin_x, 3.2), Vector2(0.9, 2.0), 14.2, 1.6, m_dark)
-		"weapon_sword", "weapon_hammer":
-			# Espada / Martillo 3D apoyado sobre un caballete/tocón de armero en el campamento
-			var m_steel := _mat("weapon_steel_3d", Color(0.82, 0.85, 0.90), 0.25, 0.85)
-			var m_hilt := _mat("weapon_hilt_brass", Color(0.86, 0.68, 0.24), 0.32, 0.80)
-			_add_cyl_2d(root, pos + Vector2(0, 2.0), 4.8, 0.0, 4.5, m_dark, 4.2, 10)
-			_add_box_2d(root, pos + Vector2(0, 2.0), Vector2(8.0, 3.2), 4.2, 1.6, m_wood)
-			var w_mdl_path: String = "props/Sword_Bronze.gltf" if kind == "weapon_sword" else "weapons/Hammer_Double.obj"
-			var w_mdl := _add_model_2d(root, w_mdl_path, pos + Vector2(0, 1.5), 4.5, Vector2.ZERO, 15.0, 25.0)
-			if w_mdl != null:
-				w_mdl.rotation_degrees.z = -28.0
-			else:
-				_add_box_2d(root, pos + Vector2(0, 1.5), Vector2(2.2, 13.0), 5.5, 1.8, m_steel, -25.0)
-				_add_box_2d(root, pos + Vector2(-2.2, 3.5), Vector2(5.8, 1.8), 5.2, 2.0, m_hilt, -25.0)
-		"crate":
-			if _add_model_2d(root, "exterior/Crate.obj", pos, 0.0, Vector2(14, 14), 12.0) == null:
-				_add_box_2d(root, pos, Vector2(14, 14), 0.0, 12.0, m_wood)
-		"barrel":
-			if _add_model_2d(root, "props/Barrel.gltf", pos, 0.0, Vector2(13, 13), 13.0) == null:
-				_add_cyl_2d(root, pos, 6.5, 0.0, 13.0, m_dark, 6.0, 10)
-		"weak_wall":
-			var m_ww := _mat("weak_wall_stone", Color(0.56, 0.54, 0.50), 0.90, 0.02, Color.BLACK, 0.0, "town_textures/wall_stone.png", "", 0.70)
-			_add_box_2d(root, pos, Vector2(18.0, 28.0), 0.0, 2.0, m_ww)
-			_add_box_2d(root, pos + Vector2(0.0, -4.0), Vector2(10.0, 18.0), 2.0, 12.0, m_ww)
-			_add_box_2d(root, pos + Vector2(0.0, 7.0), Vector2(10.0, 8.0), 2.0, 7.5, m_ww)
-		"sign":
-			_add_box_2d(root, pos + Vector2(0, 4.0), Vector2(12.5, 5.2), 0.0, 2.2, m_dark)
-			_add_box_2d(root, pos + Vector2(-4.5, 4.0), Vector2(2.4, 2.6), 0.0, 14.5, m_dark)
-			_add_box_2d(root, pos + Vector2(4.5, 4.0), Vector2(2.4, 2.6), 0.0, 14.5, m_dark)
-			var tabla: MeshInstance3D = _add_box_2d(root, pos + Vector2(0, 4.4), Vector2(16.5, 3.4), 6.2, 7.6, m_wood)
-			_add_prism_2d(root, pos + Vector2(0, 4.2), Vector2(18.5, 5.8), 13.6, 3.6, m_dark, false)
-			if spr.has_meta(Cartel.META_TEXTO):
-				_escribir_poste(tabla, String(spr.get_meta(Cartel.META_TEXTO)))
-		"wild_herb":
-			var m_herb := _mat("forest_herb_3d", Color(0.26, 0.74, 0.34), 0.80, 0.0)
-			if _add_model_2d(root, "nature/Flowers.obj", pos, -0.5, Vector2(12, 12), 7.5) == null:
-				for off in [Vector2(-2.5, -1.5), Vector2(2.5, -1.0), Vector2(0.0, 2.2)]:
-					_add_cyl_2d(root, pos + off, 2.2, 0.0, 5.5, m_herb, 0.6, 6)
-		"wild_mushroom":
-			var m_stem := _mat("mush_stem_3d", Color(0.92, 0.88, 0.78), 0.88, 0.0)
-			var m_cap := _mat("mush_cap_3d", Color(0.82, 0.24, 0.18), 0.78, 0.0)
-			for m_off in [Vector2(-2.2, 0.8), Vector2(2.4, -1.2), Vector2(0.2, -2.0)]:
-				var sc: float = 1.0 if m_off.x < 0.0 else 0.75
-				_add_cyl_2d(root, pos + m_off, 1.1 * sc, -0.4, 3.4 * sc, m_stem, 0.9 * sc, 7)
-				_add_cyl_2d(root, pos + m_off, 2.8 * sc, 2.6 * sc, 2.2 * sc, m_cap, 0.6 * sc, 8)
-		"rabbit_burrow":
-			var m_earth := _mat("burrow_earth_3d", Color(0.42, 0.30, 0.19), 0.95, 0.0)
-			var m_hole := _mat("burrow_hole_3d", Color(0.08, 0.06, 0.05), 0.98, 0.0)
-			_add_cyl_2d(root, pos, 8.5, -0.8, 3.2, m_earth, 5.2, 10)
-			_add_cyl_2d(root, pos + Vector2(0, 1.0), 4.2, 1.6, 1.0, m_hole, 3.8, 8)
-		"fox_den":
-			var m_den_rock := _mat("fox_den_rock_3d", Color(0.46, 0.43, 0.39), 0.92, 0.02)
-			var m_den_earth := _mat("burrow_earth_3d", Color(0.42, 0.30, 0.19), 0.95, 0.0)
-			var m_den_hole := _mat("burrow_hole_3d", Color(0.08, 0.06, 0.05), 0.98, 0.0)
-			_add_cyl_2d(root, pos, 11.5, -1.0, 5.5, m_den_earth, 7.5, 10)
-			_add_box_2d(root, pos + Vector2(0, -3.0), Vector2(14.0, 9.0), 0.0, 6.8, m_den_rock)
-			_add_cyl_2d(root, pos + Vector2(0, 2.2), 5.2, 1.2, 2.4, m_den_hole, 4.6, 8)
-		"roca":
+	if kind == "well":
+		if not _is_headless and AssetLib.has_curated_assets():
+			var pozo: Node3D = AssetLib.instantiate_model(MODELO_POZO, Vector3.ZERO, ALTO_POZO_M, true, true)
+			if pozo != null:
+				root.add_child(pozo)
+		return
+	if kind == "roca":
+		if not _is_headless and AssetLib.has_curated_assets():
 			var rocas: Array[String] = ["nature/Rock_1.obj", "nature/Rock_2.obj", "nature/Rock_3.obj", "nature/Rock_4.obj", "nature/Rock_5.obj"]
-			var h: int = absi(hash(pos.round()))
-			_add_model_2d(root, rocas[h % rocas.size()], pos, ROCA_HUNDIDA_PX, Vector2.ZERO, ROCA_ALTO_PX, float(h % 360))
-		"dropped_item":
-			var m_pouch := _mat("dropped_pouch_3d", Color(0.68, 0.52, 0.32), 0.85, 0.05)
-			_add_cyl_2d(root, pos, 3.4, 0.0, 4.2, m_pouch, 2.0, 8)
+			var h: int = absi(hash(spr.global_position.round()))
+			var roca: Node3D = AssetLib.instantiate_model(rocas[h % rocas.size()], Vector3.ZERO, ALTO_ROCA_SUELTA_M, true, true)
+			if roca != null:
+				roca.position = Vector3(0.0, -HUNDIDO_ROCA_SUELTA_M, 0.0)
+				roca.rotation_degrees.y = float(h % 360)
+				root.add_child(roca)
+		return
+	var ruta: String = String(ESCENAS_PROPS_3D.get(kind, ""))
+	if ruta.is_empty():
+		return
+	var inst: Node3D = _instanciar_escena(root, ruta, Vector3.ZERO)
+	if inst == null:
+		return
+	_quitar_luces_en_headless(inst, _is_headless)
+	if kind == "sign" and spr.has_meta(Cartel.META_TEXTO):
+		var tabla := inst.get_node_or_null("TablaCartel") as MeshInstance3D
+		if tabla != null:
+			_escribir_poste(tabla, String(spr.get_meta(Cartel.META_TEXTO)))
 
 
 ## Oculta las tiras planas 2D de muros/puertas/suelos cuando el 3D está activo (usando `self_modulate.a`
@@ -831,7 +593,7 @@ func _build_prop_3d(root: Node3D, kind: String, spr: Node2D) -> void:
 ## La terraza del restaurante está en el plano del local; los dibujos, en el mundo: se pasan sus 4 esquinas al mundo
 ## (el local puede estar movido o girado en el editor) y se toma el rectángulo que las abarca.
 func _terraza_en_mundo() -> Rect2:
-	var t: Rect2 = VillageRestaurant.TERRACE.grow(TERRAZA_MARGEN_PX)
+	var t: Rect2 = VillageRestaurant.TERRACE.grow(TERRAZA_MARGEN_BORDE)
 	var r := Rect2(VillageRestaurant.al_mundo(t.position), Vector2.ZERO)
 	for esquina: Vector2 in [Vector2(t.end.x, t.position.y), t.end, Vector2(t.position.x, t.end.y)]:
 		r = r.expand(VillageRestaurant.al_mundo(esquina))

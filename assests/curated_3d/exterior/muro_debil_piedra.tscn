@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/wall_stone.png" id="1_sc5ae"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ktywx"]
+albedo_color = Color(0.802, 0.793, 0.775, 1)
+albedo_texture = ExtResource("1_sc5ae")
+metallic = 0.02
+roughness = 0.9
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_ajqni"]
+size = Vector3(1.008, 0.21135294, 1.568)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5coon"]
+size = Vector3(0.56, 1.2681177, 1.008)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3o11c"]
+size = Vector3(0.56, 0.7925736, 0.448)
+
+[node name="MuroDebilPiedra" type="Node3D" unique_id=1409940564]
+
+[node name="ZocaloPiedra" type="MeshInstance3D" parent="." unique_id=267658086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.10567647, 0)
+material_override = SubResource("StandardMaterial3D_ktywx")
+mesh = SubResource("BoxMesh_ajqni")
+
+[node name="TramoNorte" type="MeshInstance3D" parent="." unique_id=1271670477]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8454118, -0.224)
+material_override = SubResource("StandardMaterial3D_ktywx")
+mesh = SubResource("BoxMesh_5coon")
+
+[node name="TramoSurAgrietado" type="MeshInstance3D" parent="." unique_id=432390885]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.60763973, 0.392)
+material_override = SubResource("StandardMaterial3D_ktywx")
+mesh = SubResource("BoxMesh_3o11c")

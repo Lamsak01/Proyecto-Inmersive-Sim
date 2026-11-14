@@ -1,0 +1,77 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/rf_planks.png" id="1_cpmb5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jjdjn"]
+albedo_color = Color(0.721, 0.658, 0.6085, 1)
+albedo_texture = ExtResource("1_cpmb5")
+metallic = 0.02
+roughness = 0.88
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_elyqi"]
+top_radius = 0.2128
+bottom_radius = 0.2128
+height = 2.430559
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nbrbl"]
+albedo_color = Color(0.78, 0.64, 0.42, 1)
+roughness = 0.85
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_4plmu"]
+top_radius = 0.1904
+bottom_radius = 0.1904
+height = 0.06340589
+radial_segments = 10
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_k5io0"]
+top_radius = 0.1904
+bottom_radius = 0.1904
+height = 0.06340589
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q6iol"]
+albedo_color = Color(0.793, 0.712, 0.64000005, 1)
+albedo_texture = ExtResource("1_cpmb5")
+metallic = 0.02
+roughness = 0.85
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_sxj6q"]
+size = Vector3(0.168, 0.23248824, 0.4592)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5osq0"]
+size = Vector3(0.168, 0.23248824, 0.4592)
+
+[node name="TroncoAsiento" type="Node3D" unique_id=1683016042]
+
+[node name="TroncoTumbado" type="MeshInstance3D" parent="." unique_id=1172713069]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0.40157062, 0)
+material_override = SubResource("StandardMaterial3D_jjdjn")
+mesh = SubResource("CylinderMesh_elyqi")
+
+[node name="AnilloCorteOeste" type="MeshInstance3D" parent="." unique_id=1971429462]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -0.6496, 0.40157062, 0)
+material_override = SubResource("StandardMaterial3D_nbrbl")
+mesh = SubResource("CylinderMesh_4plmu")
+
+[node name="AnilloCorteEste" type="MeshInstance3D" parent="." unique_id=1775908580]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0.6496, 0.40157062, 0)
+material_override = SubResource("StandardMaterial3D_nbrbl")
+mesh = SubResource("CylinderMesh_k5io0")
+
+[node name="CalzoOeste" type="MeshInstance3D" parent="." unique_id=1756699416]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.392, 0.11624412, 0)
+material_override = SubResource("StandardMaterial3D_q6iol")
+mesh = SubResource("BoxMesh_sxj6q")
+
+[node name="CalzoEste" type="MeshInstance3D" parent="." unique_id=1182817233]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.392, 0.11624412, 0)
+material_override = SubResource("StandardMaterial3D_q6iol")
+mesh = SubResource("BoxMesh_5osq0")

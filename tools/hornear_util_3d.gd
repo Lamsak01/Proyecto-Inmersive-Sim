@@ -22,7 +22,7 @@ static func mat(clave: String, col: Color, rugosidad: float = 0.82, metal: float
 	m.roughness = rugosidad
 	m.metallic = metal
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
-	if not tex_rel.is_empty():
+	if not tex_rel.is_empty() and ResourceLoader.exists(CURATED + tex_rel):
 		var tex := load(CURATED + tex_rel) as Texture2D
 		if tex != null:
 			m.albedo_texture = tex
@@ -30,7 +30,7 @@ static func mat(clave: String, col: Color, rugosidad: float = 0.82, metal: float
 			m.uv1_triplanar = true
 			var ts: float = (ESCALA_TEX_PUEBLO if tex_rel.begins_with("town_textures/") else escala_trip) / K
 			m.uv1_scale = Vector3(ts, ts, ts)
-		if not norm_rel.is_empty():
+		if not norm_rel.is_empty() and ResourceLoader.exists(CURATED + norm_rel):
 			var ntex := load(CURATED + norm_rel) as Texture2D
 			if ntex != null:
 				m.normal_enabled = true
