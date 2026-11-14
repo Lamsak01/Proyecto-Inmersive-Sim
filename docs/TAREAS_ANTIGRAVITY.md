@@ -17,7 +17,7 @@
 5. Si dudas de diseño, apúntala en `docs/PREGUNTAS_PENDIENTES.md` y pasa a la siguiente tarea.
 
 ## Tareas
-1. **Clientes sentados en el aire** (fallo del usuario, 3 capturas, 2026-11-14): en «El Fogón del Valle» (terraza y
+1. ~~**Clientes sentados en el aire**~~ **NO LA HAGAS**: la absorbe la fase 1 de `docs/specs/PLAN_LO_QUE_SE_VE.md` (Claude Code). Si ya la empezaste, déjala sin subir y pasa a la 2. Era: (fallo del usuario, 3 capturas, 2026-11-14): en «El Fogón del Valle» (terraza y
    comedor) los vecinos se sientan al lado de la silla y no encima. Mira dónde se calculan los asientos del restaurante
    (y de la posada, por si pasa igual) frente a dónde están las sillas de su escena. Prueba: fotos en 1.ª persona a las
    12:30 en la terraza y el comedor. Coste: poco–medio.

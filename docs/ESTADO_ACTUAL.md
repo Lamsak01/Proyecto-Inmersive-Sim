@@ -1,15 +1,13 @@
 # Estado actual (máximo 45 líneas; se reescribe al avanzar, nunca es historial)
 
-> Última actualización: 2026-11-13, Claude Code. Historial: `CHANGELOG.md` y `git log`.
+> Última actualización: 2026-11-14, Claude Code. Historial: `CHANGELOG.md` y `git log`.
 
 ## a) Tarea activa
-**Caso I jugable de verdad (usuario, 2026-11-13)**: hechos carta en la mochila, guardia que avisa y custodia
-(`Case1Aviso.gd`), claro a ~150 m del molino con fosa, preguntas del diario (`Case1Objetivos.gd`,
-`docs/specs/OBJETIVOS_CASO1.md`) y barro rojo visible. Falta: que el usuario lo juegue desde el día 2; molino con
-aspecto de molino y junto al río (lo dejó para después).
-**Diálogos provisionales (2026-11-13)**: ventana `scripts/ui/dialogo/` (caja, tienda, limpieza de texto), menú
-`NPCMenuDialogo.gd`, charla `NPCCharla.gd` + `resources/dialogos/frases_vecinos.json`. El usuario la revisa; no es la final.
-Hablar para el reloj (`WorldClock.set_dialogue_pause`, prueba `pausa_dialogo.gd`).
+**Caso I jugable (usuario lo juega desde el 14)**: aviso del guardia confirmado; cuerpo, custodia, autopsia solo en la
+morgue y tablero arreglados el 14 (`Case1Aviso.gd`, `VillageCase1.gd`, `DetectiveUI.gd`; partida automática 25/25).
+Pendiente: molino con aspecto de molino (para después); preguntar a cualquier vecino por «la mujer del arroyo» (propuesto).
+**Diálogos provisionales**: `scripts/ui/dialogo/`, `NPCMenuDialogo.gd`, `NPCCharla.gd` + `resources/dialogos/frases_vecinos.json`.
+**Fin de semana 14/15**: Antigravity en paralelo con `docs/TAREAS_ANTIGRAVITY.md` (regla temporal en `CLAUDE.md`).
 **Casas de dos plantas** (2026-11-13): campos «…_ARRIBA» y `ESCALERA` en el plano (`planta_alta.gd`); en el juego
 `scripts/fisica/PisosCasas.gd`; el trozo alto de los muros va en «PisoAlto» (se esconde desde arriba).
 
@@ -30,9 +28,12 @@ Hablar para el reloj (`WorldClock.set_dialogue_pause`, prueba `pausa_dialogo.gd`
   Borrados `mapa/anclas.gd`, la copia `Mundo3D.antes-x5.tscn` y las herramientas de estirar. Las pruebas que escriben
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
+## c0) Plan grande aprobado como idea (2026-11-14): `docs/specs/PLAN_LO_QUE_SE_VE.md`
+«Lo que se ve es lo que se usa»: muebles y piezas del editor dicen para qué sirven; el código no guarda listas a mano.
+7 fases; empezar por sillas y camas (enseñar al usuario el plan de esa fase y esperar su «sí»).
+
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
-1. **Que el usuario juegue el Caso I desde el día 2** (guardia que habla, dormir, tablón y trampillas arreglados el 14).
-   Partida del 14: pistas antes de tiempo arregladas; pendiente clientes del restaurante sentados en el aire.
+1. **Fase 1 del plan c0** (sillas y camas), con el «sí» del usuario; absorbe los clientes sentados en el aire.
 2. **Rendimiento**: sombras del sol (duplican el dibujo). Medio. 3. **Vecinos atascados**: a 0; falta que lo confirme él.
 4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
 **Contexto:** ×5 (`Mapa3D.E`) invisible; pesca, huerto, corral y campamento se rehacen en 3D tras el Caso I.
