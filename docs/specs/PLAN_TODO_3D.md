@@ -18,8 +18,9 @@ estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Terminado = 0.** Lo �
 ## Tandas (cada una deja el juego jugable y la partida automática del Caso I en verde)
 0. **Limpieza:** fuera de la escena principal lo muerto del 2D (baldosas, cajas, enemigos y vecino de prueba, caja de
    diálogo vieja) y las escenas que nadie usa. Poco.
-1. **Sistemas dormidos** (>10.000 líneas tras el modo demo): decidir con el usuario si se archivan hasta después del
-   Caso I (se migrarían al despertarlos) o se migran ahora. Sin esta decisión no se puede medir el final.
+1. **Sistemas dormidos** (>10.000 líneas tras el modo demo): **decidido por el usuario el 2026-11-14: se migran ahora
+   también**, no se archivan. Cada tanda los incluye (secta, bajos fondos, linaje, migración, clanes, fama, alcalde,
+   préstamos, enfermedades, club, trabajos nocturnos, ecosistema…); el contador los cuenta desde el principio.
 2. **Un solo espacio, en metros:** las posiciones del juego pasan a ser las de las piezas 3D; fuera el estirón ×5, el
    «mapa original» y las alturas en píxeles.
 3. **Paredes, suelos y pisos reales:** choques 3D fijos sacados de las propias escenas (no copias por paso); pisos =
