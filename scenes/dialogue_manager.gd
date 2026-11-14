@@ -225,11 +225,28 @@ func _abrir_tienda(nodo: Dictionary) -> void:
 func _on_fila_tienda(indice: int) -> void:
 	if not active or indice < 0 or indice >= current_choices.size():
 		return
-	_aplicar(current_choices[indice])
-	if graph.has(NODO_TIENDA):
-		_show_node(NODO_TIENDA) # repinta con existencias y bolsa nuevas
-	else:
-		_tienda.cerrar() # ya no vende nada (se ha ido del mostrador…)
+	var fila: Dictionary = current_choices[indice]
+	var jugador = get_tree().get_first_node_in_group("player")
+	var inv: Object = jugador.get("inventory") if jugador != null else null
+	var f: Dictionary = TiendaUIScript.describir(fila, inv)
+	var oro_antes: int = int(inv.get("gold")) if inv != null else 0
+	_aplicar(fila)
+	if not graph.has(NODO_TIENDA) or not bool((graph[NODO_TIENDA] as Dictionary).get(NODO_TIENDA, false)):
+		_tienda.cerrar() # ya no vende (se ha ido del mostrador…): vuelve a la charla
+		return
+	_show_node(NODO_TIENDA) # repinta con existencias y bolsa nuevas
+	var oro_despues: int = int(inv.get("gold")) if inv != null else oro_antes
+	_tienda.avisar(_resultado_compra(bool(f["es_compra"]), str(f["nombre"]), oro_despues - oro_antes, oro_antes, int(f["precio"])), oro_despues != oro_antes)
+
+## Qué ha pasado al pulsar una fila (el aviso del vecino sale sobre su cabeza, tapado por la tienda).
+func _resultado_compra(es_compra: bool, nombre: String, diferencia: int, oro_antes: int, precio: int) -> String:
+	if diferencia < 0:
+		return "Has comprado %s por %d %s." % [nombre, -diferencia, DialogoTexto.PALABRA_DINERO]
+	if diferencia > 0:
+		return "Has vendido %s por %d %s." % [nombre, diferencia, DialogoTexto.PALABRA_DINERO]
+	if es_compra and oro_antes < precio:
+		return "No te llega el dinero."
+	return "No ha podido ser: ya no le queda." if es_compra else "Ahora no te lo puede comprar."
 
 func _on_tienda_cerrada() -> void:
 	if not active:

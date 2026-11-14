@@ -305,7 +305,7 @@ func _process_player_attention(delta: float) -> bool:
 		var face_node: Node2D = _cached_player if talking_to_player else _interviewer_node
 		if is_instance_valid(face_node) and sprite:
 			sprite.flip_h = (face_node.global_position.x < global_position.x)
-		trigger_action_animation(0.4)
+		# Sin «animación de acción» mientras habla: en 3D es el golpe de trabajo y parecía que te atacaba (2026-11-13)
 		_update_visual_animation(delta)
 		_update_hover_label(delta)
 		return true
@@ -964,7 +964,6 @@ func _start_npc_dialogue(player: Node) -> void:
 	_stop_crafting_bar()
 	if player is Node2D and sprite:
 		sprite.flip_h = ((player as Node2D).global_position.x < global_position.x)
-	trigger_action_animation(0.8)
 	need_social = minf(100.0, need_social + 18.0)
 	var dm = get_tree().current_scene.get_node_or_null("Systems/dialogue_manager")
 	if not dm:
@@ -982,7 +981,6 @@ func start_interrogation_dialogue_with_player(player: Node) -> bool:
 	_stop_crafting_bar()
 	if player is Node2D and sprite:
 		sprite.flip_h = ((player as Node2D).global_position.x < global_position.x)
-	trigger_action_animation(0.8)
 	var dm: Node = null
 	if get_tree() and get_tree().current_scene:
 		dm = get_tree().current_scene.get_node_or_null("Systems/dialogue_manager")

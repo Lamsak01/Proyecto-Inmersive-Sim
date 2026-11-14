@@ -17,6 +17,8 @@ const COL_BORDE: Color = Color(0.725, 0.659, 0.51)
 const COL_TINTA: Color = Color(0.165, 0.141, 0.102)
 const COL_TINTA_SUAVE: Color = Color(0.37, 0.33, 0.25)
 const COL_FILA_FOCO: Color = Color(0.863, 0.812, 0.69)
+const COL_BIEN: Color = Color(0.18, 0.42, 0.20)
+const COL_MAL: Color = Color(0.62, 0.16, 0.12)
 const SIN_VENTAS: String = "No llevas nada que le interese."
 const SIN_COMPRAS: String = "Hoy no le queda nada."
 const AYUDA: String = "Clic: comprar o vender uno · Esc: volver a la charla"
@@ -27,6 +29,8 @@ var _bolsa: Label
 var _compras: VBoxContainer
 var _ventas: VBoxContainer
 var _detalle: Label
+var _ultima_pulsada: int = -1
+var _mantener_aviso: bool = false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -42,40 +46,71 @@ func abrir(nombre_tienda: String, frase: String, opciones: Array, inv: Object) -
 	_bolsa.text = "Tu bolsa: %d %s" % [int(inv.get("gold")) if inv != null else 0, DialogoTexto.PALABRA_DINERO]
 	_vaciar(_compras)
 	_vaciar(_ventas)
+	var enfocar: Control = null
 	for i in range(opciones.size()):
-		var op: Dictionary = opciones[i]
-		var partes: PackedStringArray = str(op.get("action", "")).split(":")
-		if partes.size() < 2:
-			continue
-		var es_compra: bool = partes[0] == "buy"
-		var tiene: int = int(inv.call("get_count", partes[1])) if inv != null else 0
-		if not es_compra and tiene <= 0:
+		var f: Dictionary = describir(opciones[i], inv)
+		if not bool(f["es_compra"]) and int(f["tienes"]) <= 0:
 			continue # solo se ofrece vender lo que llevas
-		var quedan: int = DialogoTexto.existencias(str(op.get("label", "")))
-		var detalle: String = ("quedan %d" % quedan if quedan >= 0 else "") if es_compra else "tienes %d" % tiene
-		(_compras if es_compra else _ventas).add_child(_fila(i, op, partes, detalle, inv))
+		var fila: Button = _fila(i, f, inv)
+		(_compras if bool(f["es_compra"]) else _ventas).add_child(fila)
+		if i == _ultima_pulsada:
+			enfocar = fila # tras comprar, el foco sigue en la misma fila
 	_nota_si_vacia(_compras, SIN_COMPRAS)
 	_nota_si_vacia(_ventas, SIN_VENTAS)
-	_detalle.text = AYUDA
+	_poner_detalle(AYUDA)
 	visible = true
-	var primera: Control = _primera_fila()
-	if primera != null:
-		primera.call_deferred("grab_focus")
+	if enfocar == null:
+		enfocar = _primera_fila()
+	if enfocar != null:
+		_enfocar.call_deferred(enfocar)
+
+## Resultado de la última compra o venta, en la línea de abajo (verde si salió bien, rojo si no).
+func avisar(texto: String, bien: bool) -> void:
+	_mantener_aviso = true # que el foco que vuelve a la fila no lo tape
+	_detalle.text = texto
+	_detalle.add_theme_color_override("font_color", COL_BIEN if bien else COL_MAL)
+
+func _poner_detalle(texto: String) -> void:
+	if _mantener_aviso:
+		_mantener_aviso = false
+		return
+	_detalle.text = texto
+	_detalle.add_theme_color_override("font_color", COL_TINTA_SUAVE)
 
 func cerrar() -> void:
 	if not visible:
 		return
+	_ultima_pulsada = -1
+	_mantener_aviso = false
 	visible = false
 	cerrada.emit()
 
-func _fila(i: int, op: Dictionary, partes: PackedStringArray, detalle: String, inv: Object) -> Button:
-	var nombre: String = str(inv.call("get_item_name", partes[1])) if inv != null else partes[1]
-	var precio: int = DialogoTexto.dinero(str(op.get("label", "")))
-	if precio < 0 and partes.size() >= 3:
-		precio = int(partes[2])
+## Cómo se lee una fila: «buy:pan:6» / «sell:piel:18» (objeto de la mochila) o una compra con acción propia
+## («Comprar Pistola de Cartuchos… (-60 Oro)»), que se nombra con su propia etiqueta.
+static func describir(op: Dictionary, inv: Object) -> Dictionary:
+	var etiqueta: String = str(op.get("label", ""))
+	var partes: PackedStringArray = str(op.get("action", "")).split(":")
+	var con_objeto: bool = partes.size() >= 3 and partes[0] in ["buy", "buy2", "buy_unlimited", "sell"]
+	var f: Dictionary = {"es_compra": partes[0] != "sell", "precio": DialogoTexto.dinero(etiqueta), "tienes": 0, "quedan": -1, "desc": ""}
+	if con_objeto:
+		f["nombre"] = str(inv.call("get_item_name", partes[1])) if inv != null else partes[1]
+		f["tienes"] = int(inv.call("get_count", partes[1])) if inv != null else 0
+		f["desc"] = str((inv.call("get_item_info", partes[1]) as Dictionary).get("desc", "")) if inv != null else ""
+		f["quedan"] = DialogoTexto.existencias(etiqueta)
+		if int(f["precio"]) < 0:
+			f["precio"] = int(partes[2])
+	else:
+		var limpia: String = DialogoTexto.limpiar_etiqueta(etiqueta).get_slice(" · ", 0)
+		f["nombre"] = limpia.trim_prefix("Comprar ").trim_prefix("Vender ")
+	return f
+
+func _fila(i: int, f: Dictionary, inv: Object) -> Button:
+	var nombre: String = str(f["nombre"])
+	var detalle: String = ("quedan %d" % int(f["quedan"]) if int(f["quedan"]) >= 0 else "") if bool(f["es_compra"]) else "tienes %d" % int(f["tienes"])
+	var precio: int = int(f["precio"])
 	var b := Button.new()
 	b.text = "%s%s" % [nombre, ("  · " + detalle) if detalle != "" else ""]
-	var etiqueta_precio := _texto(17, COL_TINTA, "%d %s" % [precio, DialogoTexto.PALABRA_DINERO])
+	var etiqueta_precio := _texto(17, COL_TINTA, ("%d %s" % [precio, DialogoTexto.PALABRA_DINERO]) if precio >= 0 else "")
 	etiqueta_precio.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
 	etiqueta_precio.offset_left = -ANCHO_PRECIO
 	etiqueta_precio.offset_right = -10.0
@@ -101,9 +136,11 @@ func _fila(i: int, op: Dictionary, partes: PackedStringArray, detalle: String, i
 	b.add_theme_stylebox_override("normal", normal)
 	for estado in ["hover", "focus", "pressed"]:
 		b.add_theme_stylebox_override(estado, foco)
-	var desc: String = str((inv.call("get_item_info", partes[1]) as Dictionary).get("desc", "")) if inv != null else ""
-	b.focus_entered.connect(func() -> void: _detalle.text = "%s: %s" % [nombre, DialogoTexto.sin_emojis(desc)] if desc != "" else AYUDA)
-	b.pressed.connect(func() -> void: fila_elegida.emit(i))
+	var desc: String = str(f["desc"])
+	b.focus_entered.connect(func() -> void: _poner_detalle("%s: %s" % [nombre, DialogoTexto.sin_emojis(desc)] if desc != "" else AYUDA))
+	b.pressed.connect(func() -> void:
+		_ultima_pulsada = i
+		fila_elegida.emit(i))
 	return b
 
 func _construir() -> void:
@@ -192,3 +229,8 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		cerrar()
 		accept_event()
+
+## Foco diferido a prueba de filas ya borradas (al repintar dos veces seguidas la fila vieja ya no está).
+func _enfocar(c: Control) -> void:
+	if is_instance_valid(c) and c.is_inside_tree():
+		c.grab_focus()

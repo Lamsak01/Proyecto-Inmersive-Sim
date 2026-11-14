@@ -10,6 +10,7 @@ signal opcion_pulsada(indice: int)
 const MARGEN_LADOS: float = 140.0
 const MARGEN_ABAJO: float = 28.0
 const LETRAS_POR_SEGUNDO: float = 70.0
+const MAX_NUMERADAS: int = 9
 const TAM_NOMBRE: int = 22
 const TAM_OFICIO: int = 14
 const TAM_CUERPO: int = 19
@@ -34,6 +35,7 @@ var _pagina: Label
 var _aviso: Label
 var _opciones: VBoxContainer
 var _letras: float = 0.0
+var _inicio_ms: int = 0
 var _fuente_libro: SystemFont
 
 func _ready() -> void:
@@ -43,10 +45,11 @@ func _ready() -> void:
 	_fuente_libro.font_names = FUENTES_LIBRO
 	_construir()
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if not visible or not revelando():
 		return
-	_letras += delta * LETRAS_POR_SEGUNDO
+	# Por reloj real: si el juego se ralentiza o se pausa mientras hablas, la frase sigue apareciendo igual
+	_letras = float(Time.get_ticks_msec() - _inicio_ms) / 1000.0 * LETRAS_POR_SEGUNDO
 	_cuerpo.visible_characters = int(_letras)
 
 ## ¿Sigue apareciendo la frase letra a letra?
@@ -67,6 +70,7 @@ func poner_hablante(nombre: String, oficio: String, relacion: String, color_rela
 func poner_trozo(texto: String, pagina: int, total: int) -> void:
 	_cuerpo.text = texto
 	_letras = 0.0
+	_inicio_ms = Time.get_ticks_msec()
 	_cuerpo.visible_characters = 0
 	_pagina.text = ("%d de %d" % [pagina, total]) if total > 1 else ""
 	_aviso.text = AVISO_SEGUIR if pagina < total else AVISO_ELEGIR
@@ -80,7 +84,7 @@ func poner_opciones(etiquetas: Array[String]) -> void:
 		_opciones.add_child(_boton_opcion(i, etiquetas[i]))
 	_opciones.visible = not etiquetas.is_empty()
 	if not etiquetas.is_empty():
-		(_opciones.get_child(0) as Button).call_deferred("grab_focus")
+		_enfocar.call_deferred(_opciones.get_child(0))
 
 ## W/S: mueve el foco entre las opciones (da la vuelta al llegar al final).
 func mover_foco(paso: int) -> void:
@@ -143,7 +147,7 @@ func _construir() -> void:
 
 func _boton_opcion(i: int, texto: String) -> Button:
 	var b := Button.new()
-	b.text = "%d    %s" % [i + 1, texto]
+	b.text = ("%d    %s" % [i + 1, texto]) if i < MAX_NUMERADAS else "      " + texto # solo hay teclas del 1 al 9
 	b.flat = true
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.focus_mode = Control.FOCUS_ALL
@@ -184,3 +188,8 @@ func _on_caja_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		avanzar_pulsado.emit()
 		accept_event()
+
+## Foco diferido a prueba de filas ya borradas (al repintar dos veces seguidas la fila vieja ya no está).
+func _enfocar(c: Control) -> void:
+	if is_instance_valid(c) and c.is_inside_tree():
+		c.grab_focus()

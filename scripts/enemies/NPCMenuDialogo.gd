@@ -28,6 +28,7 @@ const L_TURBIO: String = "Lo turbio…"
 const L_FICHA: String = "Ver ficha"
 const L_VOLVER: String = "Volver"
 const L_ADIOS: String = "Adiós"
+const FUERA_DEL_MOSTRADOR: String = "«Ahora no estoy atendiendo. Pásate por mi tienda y te vendo lo que quieras.»"
 
 ## `intro_base`: el texto con el que el oficio presenta al vecino (se cambia por un saludo; va entero a la ficha).
 static func organizar(npc, diag: Dictionary, intro_base: String, hay_crimen: bool) -> void:
@@ -56,7 +57,10 @@ static func organizar(npc, diag: Dictionary, intro_base: String, hay_crimen: boo
 		diag["talk_menu"] = {"text": "«¿Qué quieres saber?»", "choices": (g["talk"] as Array) + [back]}
 		top.append({"label": L_PREGUNTAR, "next": "talk_menu"})
 	if not (g["shop"] as Array).is_empty():
-		diag[NODO_TIENDA] = {"text": NPCCharla.frase_tienda(npc), "choices": g["shop"], NODO_TIENDA: true}
+		if _fuera_del_mostrador(npc):
+			diag[NODO_TIENDA] = {"text": FUERA_DEL_MOSTRADOR, "choices": [back]} # solo vende en su tienda: te lo dice
+		else:
+			diag[NODO_TIENDA] = {"text": NPCCharla.frase_tienda(npc), "choices": g["shop"], NODO_TIENDA: true}
 		top.append({"label": L_COMERCIAR, "next": NODO_TIENDA})
 	top.append({"label": L_MAS, "next": NODO_MAS})
 	diag[NODO_MAS] = {"text": "«¿Algo más?»", "choices": _menu_mas(npc, diag, g, intro_base, back)}
@@ -71,7 +75,7 @@ static func _grupo(c: Dictionary, diag: Dictionary, hay_crimen: bool) -> String:
 	var lbl: String = str(c.get("label", ""))
 	if _es_urgente(nx, act, lbl):
 		return "top"
-	if act.begins_with("buy:") or act.begins_with("sell:"):
+	if act.begins_with("buy:") or act.begins_with("sell:") or _compra_suelta(act, lbl):
 		return "shop"
 	if _submenu_de_tienda(diag, nx):
 		return "shop_sub"
@@ -114,13 +118,23 @@ static func _filas_de_tienda(opciones: Array) -> Array:
 		var act: String = str((c as Dictionary).get("action", "")) if c is Dictionary else ""
 		return act.begins_with("buy:") or act.begins_with("sell:"))
 
+## Los tenderos solo compran y venden atendiendo su mostrador (regla de la economía del pueblo).
+static func _fuera_del_mostrador(npc) -> bool:
+	var es_tendero: bool = npc.trade_role in VillageNPC.SHOP_ROLES or npc.trade_role == VillageNPC.TradeRole.INNKEEPER
+	return es_tendero and not npc.is_at_shop_counter()
+
+## Compras y ventas con acción propia (armas del arreglador, carreta, caballo…): también van a la tienda.
+static func _compra_suelta(act: String, lbl: String) -> bool:
+	var limpia: String = DialogoTexto.limpiar_etiqueta(lbl)
+	return act != "" and (limpia.begins_with("Comprar ") or limpia.begins_with("Vender "))
+
 ## Lo que se le puede comprar, y lo que llevas y él compra: si no queda nada, no sale «Comerciar».
 static func _filas_utiles(npc, filas: Array) -> Array:
 	var jugador = npc._get_player()
 	var inv: Object = jugador.get("inventory") if jugador != null else null
 	return filas.filter(func(c: Variant) -> bool:
 		var partes: PackedStringArray = str((c as Dictionary).get("action", "")).split(":")
-		return partes[0] == "buy" or (inv != null and partes.size() >= 2 and int(inv.call("get_count", partes[1])) > 0))
+		return partes[0] != "sell" or (inv != null and partes.size() >= 2 and int(inv.call("get_count", partes[1])) > 0))
 
 static func _es_salida(c: Dictionary, es_ultima: bool) -> bool:
 	var lbl: String = str(c.get("label", ""))
