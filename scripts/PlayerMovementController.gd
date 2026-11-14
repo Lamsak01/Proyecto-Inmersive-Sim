@@ -88,15 +88,10 @@ func parar_salto() -> void:
 	if is_instance_valid(_cuerpo):
 		_cuerpo.aterrizar()
 
-## El cuerpo 3D del protagonista (se crea la primera vez, dentro del escenario 3D si existe).
+## El cuerpo 3D del protagonista (se crea la primera vez, dentro del escenario 3D).
 func cuerpo() -> CharacterBody3D:
 	if not is_instance_valid(_cuerpo) and is_instance_valid(player) and player.is_inside_tree():
-		var vm = get_tree().get_first_node_in_group("village_manager")
-		var stage = vm.get("world_stage_3d") if vm != null else null
-		var padre: Node = player
-		if stage != null and is_instance_valid(stage.get("stage_root_3d")) and (stage.get("stage_root_3d") as Node).is_inside_tree():
-			padre = stage.get("stage_root_3d")
-		_cuerpo = Cuerpo3D.crear(player, padre)
+		_cuerpo = Cuerpo3D.de(player)
 	return _cuerpo
 
 ## Un paso de movimiento con la velocidad actual del protagonista (en el mapa): lo hace su cuerpo 3D.

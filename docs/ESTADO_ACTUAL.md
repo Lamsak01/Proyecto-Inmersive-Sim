@@ -29,12 +29,14 @@ Pendiente: molino con aspecto de molino (para después); preguntar a cualquier v
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c0) Mandato del usuario (2026-11-14): TODO en 3D, nada de 2D → `docs/specs/PLAN_TODO_3D.md`
-El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.454**
-(partió de 2.495; terminado = 0). Hechas: tanda 0 y 3a (paredes 3D compartidas, `ChoquesMundo3D`). Siguiente: tanda 4.
+El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.425**
+(partió de 2.495; terminado = 0). Hechas: tanda 0, 3a (paredes 3D compartidas, `ChoquesMundo3D`) y 4a (todo personaje
+lleva su `Cuerpo3D` siempre: `Poblacion3D`, `TallaCuerpo3D`, `AndarMapa`). Siguiente: 4b (el personaje ES su cuerpo) o 5.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
 1. **Tandas de `PLAN_TODO_3D.md`** en orden; las piezas (sillas, camas…) son su tanda 6.
-2. **Rendimiento**: sombras del sol (duplican el dibujo). Medio. 3. **Vecinos atascados**: a 0; falta que lo confirme él.
+2. **Medir fps con ventana** tras la 4a (sin ventana la física no cambia: 3,8 → 4,1 ms). 3. **Vecinos atascados**: 0 en
+8 h; falta que lo confirme él. Banco ante la puerta de la pescadería (`puertas_3d` 28/29, en `FALLOS_VISIBLES.md`).
 4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
 
 ## d) Bloqueos activos

@@ -1,7 +1,7 @@
 @tool
 extends CharacterBody2D
 class_name WildAnimal
-const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, opción B: cuerpo completo cerca del protagonista
+const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, tanda 4: todos andan siempre con su cuerpo 3D
 const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
 
 ## Fauna Silvestre con Simulación de Vida (Estilo RDR2), Sigilo/Salto de Cazador y Saciedad de 2 Niveles — Fase 3.5
@@ -250,7 +250,7 @@ func _physics_process(delta: float) -> void:
 		if far_offscreen:
 			global_position += velocity * delta
 		else:
-			AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
+			AndarMapa.paso(self, delta) # con su cuerpo 3D
 			_update_sprite_motion(delta)
 		return
 
@@ -289,7 +289,7 @@ func _physics_process(delta: float) -> void:
 				var away: Vector2 = (global_position - _cached_player.global_position) / maxf(0.01, d) if d >= 0.01 else Vector2.RIGHT
 				var push_spd: float = 60.0 if (species == SpeciesType.RABBIT or species == SpeciesType.FOX) else 38.0
 				velocity += away * ((min_r - d) / min_r) * push_spd
-		AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
+		AndarMapa.paso(self, delta) # con su cuerpo 3D
 		_update_sprite_motion(delta)
 
 ## Modo demo (2026-11-11): la simulación completa está en pausa, pero el animal pasta por su rincón, bebe, descansa y
@@ -820,7 +820,7 @@ func _process_flee(delta: float) -> void:
 	if species == SpeciesType.RABBIT and global_position.distance_squared_to(home_position) <= 18.0 * 18.0:
 		_enter_burrow(7.0)
 		return
-	if get_slide_collision_count() > 0:
+	if AndarMapa.ha_chocado(self): # su cuerpo 3D chocó con algo en el último paso
 		flee_dir = flee_dir.rotated(randf_range(1.0, 2.2))
 	if flee_timer <= 0.0:
 		state = AnimalState.GRAZE

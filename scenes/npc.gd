@@ -14,6 +14,7 @@ extends CharacterBody2D
 @onready var stun_comp: StunComponent = get_node_or_null("StunComponent")
 
 const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
+const _AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # anda con su cuerpo 3D, como todos
 
 enum Attitude { HOSTILE, UNFRIENDLY, NEUTRAL, FRIENDLY, ALLY }
 var current_attitude: Attitude = Attitude.NEUTRAL
@@ -121,13 +122,13 @@ func _physics_process(delta: float) -> void:
 	if push_velocity.length_squared() > 1.0:
 		velocity = push_velocity
 		push_velocity = push_velocity.move_toward(Vector2.ZERO, 320.0 * delta)
-		move_and_slide()
+		_AndarMapa.paso(self, delta)
 		return
 	if is_stunned_flag or not is_attacking or not enemy_ai:
 		velocity = Vector2.ZERO
 		return
 
-	move_and_slide()
+	_AndarMapa.paso(self, delta)
 
 func get_portrait_texture() -> Texture2D:
 	return portrait_texture

@@ -2,6 +2,7 @@
 extends "res://scripts/enemies/VillageNPCBase.gd"
 const _MARCA = preload("res://mapa/marca.gd")
 const _EDIFICIO = preload("res://mapa/edificio.gd")
+const _ANDAR = preload("res://scripts/fisica/AndarMapa.gd") # todos andan con su cuerpo 3D
 const _ZONA = preload("res://mapa/zona.gd") # la plaza va con su pieza de «Zonas» (mapa original ×5)
 const _PLAZA_ORIGINAL := Vector2(465, 44) ## centro de la plaza en el mapa original: sitio de reserva
 const _HOSPITAL_ID := "building_hospital"
@@ -19,20 +20,7 @@ func _finish_frame_movement(delta: float, apply_yield: bool = true) -> void:
 	var lod_k: float = _lod_k # V2: solo en los pasos simplificados de quien está lejos
 	if lod_k > 1.0:
 		velocity *= lod_k # V2: un paso de varios fotogramas recorre la distancia de todos ellos
-	var prev_pos: Vector2 = global_position
-	var cuerpo = get_meta("cuerpo3d") if has_meta("cuerpo3d") else null
-	if is_instance_valid(cuerpo):
-		cuerpo.destino_actor = _last_nav_dest # su cama o su silla no le cierran el paso
-		cuerpo.mover(velocity, delta) # paso a 3D (opción B): el cuerpo anda, choca y escribe la posición en el mapa
-	else:
-		move_and_slide()
-	if cuerpo == null and not is_sleeping and not is_at_poker_table and _cached_vm != null: # sin cuerpo: recolocar a mano como siempre
-		var in_door: bool = _cached_vm.has_method("get_doorway_clearance_nudge") and (_cached_vm.call("get_doorway_clearance_nudge", global_position, 22.0) as Vector2).length_squared() > 0.01
-		if not in_door:
-			if global_position.distance_squared_to(prev_pos) > 0.001 and _cached_vm.has_method("sanitize_npc_separation_pos"):
-				global_position = _cached_vm.call("sanitize_npc_separation_pos", prev_pos, global_position, int(elevation_level))
-			elif _cached_vm.has_method("push_out_of_furniture"):
-				global_position = _cached_vm.call("push_out_of_furniture", global_position, int(elevation_level))
+	_dar_paso(delta)
 	_enforce_npc_personal_space(delta)
 	if perf_on: _pt = _perf_add("m_move_and_slide", _pt)
 	if lod_k > 1.0:
@@ -49,6 +37,16 @@ func _finish_frame_movement(delta: float, apply_yield: bool = true) -> void:
 	if perf_on: _pt = _perf_add("m_visual_anim", _pt)
 	_update_hover_label(delta)
 	if perf_on: _perf_add("m_hover_label", _pt)
+
+## Un paso con la velocidad que lleva: lo da su cuerpo 3D, que choca con paredes, muebles, puertas cerradas y el agua,
+## sube escaleras y cambia de piso solo (paso a 3D, tanda 4: lo lleva siempre, no solo cerca del protagonista).
+func _dar_paso(delta: float) -> void:
+	var cuerpo: Node = _ANDAR.cuerpo(self)
+	if cuerpo == null: # el escenario 3D aún no existe (primer instante de la partida)
+		return
+	cuerpo.set("destino_actor", _last_nav_dest) # su cama o su silla no le cierran el paso
+	cuerpo.call("mover", velocity, delta)
+
 
 func _trigger_dynamic_npc_social_interaction(partner) -> void:
 	if not is_instance_valid(partner) or partner == self or partner.is_dead or partner.is_downed:

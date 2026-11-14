@@ -570,7 +570,7 @@ func _process_police_law_enforcement(delta: float, vm: Node) -> bool:
 				vm.call("trigger_police_confrontation", self)
 		else:
 			_move_towards_point(target_pt, 86.0 * spd_mult, delta)
-			move_and_slide()
+			_dar_paso(delta)
 		_update_visual_animation(delta)
 		_update_hover_label(delta)
 		return true

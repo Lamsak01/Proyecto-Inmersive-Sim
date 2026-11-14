@@ -7,14 +7,16 @@ Conversión terminada el 2026-11-12 (etiqueta `fin-paso-a-3d`). Plan, manuscrito
 - El **mapa 2D** (píxeles) sigue siendo donde piensan los vecinos: rutas, sitios, puertas, choques. **La física** ocurre en
   3D y escribe su resultado en el mapa. `scripts/fisica/Mapa3D.gd` es el **único** sitio que convierte mapa ↔ metros
   (1 unidad = 1 m; `ESCALA` m/px, `ALTO` m/px de altura).
-- `Cuerpo3D.gd`: cuerpo genérico (protagonista y vecinos cercanos). Flota sin losa de suelo: se le fija una altura mínima
-  de suelo (`_suelo_y`) y se le mueve en 3D; cambia de piso solo (`_nivel_visto`). Los saltos de más de 8 px del mapa se
-  tratan como teletransporte; los menores, como paso. Capas: protagonista 1 (choca con 1 y 2), vecinos 2 (chocan con 1).
-- `ChoquesCercanos3D.gd`: copia como prismas los choques del mapa cercanos a un cuerpo (salta el agua si el actor la
-  cruza, los vecinos, el jugador y el destino del actor). `CuerposDelPueblo3D.gd`: da cuerpo completo a los vecinos,
-  animales grandes, mascotas, bandidos y enemigos a menos de 150 px del protagonista (máximo 24) y lo quita al alejarse;
-  si un vecino lleva 5 s atascado, se le quita el cuerpo 10 s. `CuerposCercanos3D.gd`: cápsulas de contacto para los que
-  no tienen cuerpo completo (los sentados no tienen). `AndarMapa.paso(actor, delta)`: el paso de animales y bandidos.
+- `Cuerpo3D.gd`: cuerpo de TODO personaje, siempre (tanda 4, 2026-11-14; `Poblacion3D.gd` se lo da a cada
+  `CharacterBody2D` y al grupo `con_cuerpo_3d` al entrar en el juego). Flota sin losa de suelo: se le fija una altura
+  mínima (`_suelo_y`) y se le mueve en 3D; cambia de piso solo (el protagonista a media rampa; los vecinos, al acabar la
+  escalera, porque sus rutas piensan por pisos). Saltos de más de 8 px del mapa = teletransporte. Si nadie le pide
+  andar pero su personaje se ha movido en el mapa, le sigue sin chocar (`_seguir`; a más de 22 m del protagonista, 1 de
+  cada 10 pasos). Capas 3D: protagonista 1, vecinos y animales grandes 2, pequeños 8, muros 4, agua 16. Tamaños y
+  «apagado» en `TallaCuerpo3D.gd`. Red contra atascos: 5 s sin avanzar → 0,5 s sin chocar (`colados` lo cuenta).
+- `ChoquesMundo3D.gd`: un solo juego de paredes 3D para todos los cuerpos, por celdas de 128 px que se levantan al
+  acercarse alguien (gemelas de los choques del mapa plano: atajo). Repaso cada 2 pasos donde está el protagonista, 6
+  donde alguien toca algo y 30 donde solo se anda. `AndarMapa.gd`: `paso`, `empujon` (combate) y `ha_chocado`.
 - `Suelo.gd`: altura del suelo en cada punto (tarimas, plaza, puentes), losas de pisos altos (posada: planta +1 solo
   dentro de su rectángulo; altillo y sótano de tu casa; casas de dos plantas), de qué piso es cada choque (grupos
   `choques_piso_0` / `choques_piso_1`). `PisosCasas.gd`: casas con escalera (marcas `escalera_pie` y `escalera_cima`

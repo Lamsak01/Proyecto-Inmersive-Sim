@@ -35,11 +35,11 @@
 ## Física y mundo 3D — `scripts/fisica/` (nuevo)
 - `Mapa3D.gd` [~55] — **el único sitio** que pasa una posición del mapa a 3D y al revés, en metros (1 unidad = 1 m,
   igual en todas direcciones desde el paso 0b). Lo usan el juego, el editor del mapa y las herramientas.
-- `Cuerpo3D.gd` [~360] — el cuerpo 3D del protagonista y de los vecinos cercanos: anda, choca, cae, salta, cambia de piso; el protagonista además se hace daño al caer, vadea y nada; escribe su sitio en el mapa.
-- `ChoquesCercanos3D.gd` [~175] — copias 3D, levantadas como muros, de los choques del mapa que hay cerca de un cuerpo.
-- `AndarMapa.gd` [~15] — el paso de animales, mascotas, bandidos y enemigos: con cuerpo 3D si lo tienen, si no por el mapa.
-- `CuerposDelPueblo3D.gd` [~80] — reparte cuerpos 3D completos a los vecinos cercanos al protagonista y se los quita al alejarse (opción B, híbrida).
-- `CuerposCercanos3D.gd` [~140] — cuerpos 3D «de contacto» de los vecinos, bandidos y animales grandes cercanos al protagonista (no se les atraviesa).
+- `Cuerpo3D.gd` [~500] — el cuerpo 3D de TODO personaje, siempre (tanda 4): anda, choca, cae, salta, cambia de piso; el protagonista además se hace daño al caer, vadea y nada; escribe su sitio en el mapa. Lejos del protagonista, modo barato. Red contra atascos (atajo).
+- `Poblacion3D.gd` [~45] — da su cuerpo 3D a todo personaje al entrar en el juego (todo `CharacterBody2D` y el grupo `con_cuerpo_3d`).
+- `TallaCuerpo3D.gd` [~50] — tamaño del cuerpo de cada personaje, quién estorba el paso y cuándo se apaga (dormido, sentado, caído).
+- `ChoquesMundo3D.gd` [~160] — las paredes 3D del mundo, un solo juego compartido por todos los cuerpos, por celdas (`Prismas3D.gd`: forma; `AlturasChoque3D.gd`: franjas de altura). Aún nacen de los choques del mapa plano (atajo).
+- `AndarMapa.gd` [~40] — un solo sitio para dar el paso (`paso`), un empujón de combate (`empujon`) y saber si chocó (`ha_chocado`): siempre con el cuerpo 3D.
 - `Vista.gd` [~70] — ¿quién ve a quién, cuánto le oye y si llega a golpearle? paredes y puertas del mapa más las losas de los suelos altos (pasos 5a–5c).
 - `Agua.gd` [~55] — dónde hay agua (río y lago), a qué altura está su superficie y cuánto cubre en cada punto.
 - `RioLago.gd` [~360] — forma del río (orillas, puentes, vados) y del Lago del Oeste; como nodo, el choque del agua del lago. Salió de la pesca, borrada el 2026-11-12.

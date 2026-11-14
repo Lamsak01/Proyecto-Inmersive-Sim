@@ -1,5 +1,5 @@
 extends CharacterBody2D
-const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, opción B: cuerpo completo cerca del protagonista
+const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, tanda 4: todos andan siempre con su cuerpo 3D
 
 @onready var health_comp: HealthComponent = $HealthComponent
 @onready var stun_comp: StunComponent = get_node_or_null("StunComponent")
@@ -72,7 +72,7 @@ func _physics_process(delta: float) -> void:
 	if push_velocity.length_squared() > 1.0:
 		velocity = push_velocity
 		push_velocity = push_velocity.move_toward(Vector2.ZERO, 320.0 * delta)
-		AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
+		AndarMapa.paso(self, delta) # con su cuerpo 3D
 		return
 	if is_stunned_flag:
 		velocity = Vector2.ZERO
@@ -88,7 +88,7 @@ func _physics_process(delta: float) -> void:
 	if is_weak_flag:
 		velocity *= 0.5
 	if velocity.length_squared() > 0.01:
-		AndarMapa.paso(self, delta) # con cuerpo 3D si está cerca del protagonista
+		AndarMapa.paso(self, delta) # con su cuerpo 3D
 	if velocity.x != 0:
 		anim.flip_h = velocity.x < 0
 	if anim.sprite_frames.has_animation("run"):

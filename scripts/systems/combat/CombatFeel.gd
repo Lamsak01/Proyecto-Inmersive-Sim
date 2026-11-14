@@ -28,6 +28,7 @@ const ATTACK_FEEL: Dictionary = {
 	"colmillos": {"push": 14.0, "recover": 0.35, "miss_recover": 0.75, "pitch": 0.75},
 }
 
+const _AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # los empujones los da el cuerpo 3D de cada uno
 const SFX_SWING: AudioStream = preload("res://assests/audio/swipe.wav")
 const SFX_HIT: AudioStream = preload("res://assests/audio/hit.wav")
 const SFX_HURT: AudioStream = preload("res://assests/audio/hurt.wav")
@@ -90,8 +91,8 @@ static func apply_hit_reaction(target: Node, dir: Vector2, feel: Dictionary) -> 
 		play(t2d, SFX_HIT, t2d.global_position, float(feel.get("pitch", 1.0)))
 	var mass: float = mass_of(target)
 	var push: Vector2 = dir.normalized() * float(feel.get("knockback", 8.0)) / mass
-	if target is CharacterBody2D and push != Vector2.ZERO and target.get("is_dead") != true and target.get("is_downed") != true:
-		(target as CharacterBody2D).move_and_collide(push) # choca con muros: no atraviesa paredes
+	if push != Vector2.ZERO and t2d.has_meta(_AndarMapa.META_CUERPO) and target.get("is_dead") != true and target.get("is_downed") != true:
+		_AndarMapa.empujon(t2d, push) # lo mueve su cuerpo 3D: choca con muros, no atraviesa paredes
 	if target.has_method("apply_parry_stagger") and target.get("is_dead") != true:
 		target.call("apply_parry_stagger", float(feel.get("stagger", 0.2)) / sqrt(mass), true)
 	var rec_ms: int = maxi(200, int(clampf(float(feel.get("stagger", 0.24)) / sqrt(mass), 0.20, 0.55) * 1000.0))

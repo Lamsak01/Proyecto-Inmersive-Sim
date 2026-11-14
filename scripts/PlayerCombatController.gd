@@ -36,6 +36,7 @@ var _swing_hit_targets: Array[Node] = []
 ## C7 fase 1 (peso y respuesta): cómo se siente el golpe en curso (tabla de CombatFeel) y su duración total, que
 ## también usa el muñeco 3D para su animación. Mientras dura, la dirección del golpe queda fijada (compromiso).
 const CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd")
+const _AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # la zancada del golpe la da el cuerpo 3D
 const WeaponWear = preload("res://scripts/systems/combat/WeaponWear.gd") # C7 fase 4b: armas melladas
 var swing_duration: float = 0.36
 var swing_move_mult: float = 1.0
@@ -771,8 +772,8 @@ func attack(_aim_with_mouse: bool = true, charge: float = 0.0) -> void:
 	if my_id != _swing_id or not is_instance_valid(player):
 		return
 	# Paso adelante al soltar el golpe (choca con paredes)
-	if player is CharacterBody2D and float(f["lunge"]) > 0.0:
-		(player as CharacterBody2D).move_and_collide(current_aim_dir * float(f["lunge"]))
+	if player is Node2D and float(f["lunge"]) > 0.0:
+		_AndarMapa.empujon(player as Node2D, current_aim_dir * float(f["lunge"]))
 	swing_phase = "active"
 	swing_phase_elapsed = 0.0
 	swing_phase_duration = maxf(0.01, t_act)

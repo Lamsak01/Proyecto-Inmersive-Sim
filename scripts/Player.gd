@@ -4,6 +4,7 @@ const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const _EDIFICIO = preload("res://mapa/edificio.gd")
 const _CAMA_URGENCIAS_PLANO := Vector2(718.0, 136.0) ## cama de urgencias, en el plano del hospital
 const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7: sonidos de golpe
+const _AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # los empujones los da el cuerpo 3D
 
 @export var dialogue_manager: Node
 @export var hint_label: Label
@@ -952,7 +953,7 @@ func take_damage(data: DamageData) -> void:
 			var away: Vector2 = global_position - (data.source as Node2D).global_position
 			if away.length_squared() > 0.01:
 				var push_px: float = data.knockback_force if data.knockback_force > 0.0 else clampf(hp_lost * 0.6, 3.0, 10.0)
-				move_and_collide(away.normalized() * push_px) # C7 fase 2: el empujón depende del arma del rival
+				_AndarMapa.empujon(self, away.normalized() * push_px) # C7 fase 2: el empujón depende del arma del rival
 		if combat_ctrl == null:
 			combat_ctrl = get_node_or_null("PlayerCombatController")
 		if combat_ctrl != null and combat_ctrl.has_method("cancel_reload"):

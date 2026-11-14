@@ -82,6 +82,8 @@ func _initialize() -> void:
 	print("ATASCOS horas=%.1f pasos=%d vecinos=%d atascos=%d" % [hours, Engine.get_physics_frames() - phys0, get_nodes_in_group("village_npcs").size(), reports.size()])
 	for k3 in reports.keys():
 		print("ATASCO %s" % reports[k3])
+	# Red contra atascos del cuerpo 3D (atajo de la tanda 4): cuántas veces alguien se ha colado por no avanzar
+	print("COLADOS %d (cuerpos 3D: %d)" % [int(load("res://scripts/fisica/Cuerpo3D.gd").colados), get_nodes_in_group("cuerpos_3d").size()])
 	quit(0)
 
 

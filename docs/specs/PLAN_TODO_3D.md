@@ -42,10 +42,27 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    bajo tierra, barandilla) en vez de capas según el piso de quien choca; agua en su capa; lo del destino de un vecino,
    con excepciones de choque. **Contador: 2.441 → 2.457 (sube 16):** el sistema nuevo sigue preguntando al mapa plano
    (cada pared es «gemela» de su choque plano); baja cuando cada fuente dé su choque desde su pieza 3D (paso v del diseño).
-   **Siguiente: tanda 4** (todos los personajes con cuerpo 3D siempre), que esto ya permite sin coste por cuerpo.
+   ✅ Tanda 4a hecha sobre esta base (abajo). **Siguiente: 4b** (el personaje ES su cuerpo 3D; fuera su nodo plano).
    **3b:** pisos = altura real (losas 3D de verdad); se borran `Suelo`/`PisosCasas` como reglas y los niveles de piso.
 4. **Personajes 3D siempre:** jugador, vecinos, animales y bandidos son cuerpos 3D todo el tiempo (los lejanos, con
    simulación barata pero en 3D). Se borran `CuerposDelPueblo3D`, `CuerposCercanos3D` y los dibujos planos.
+   ✅ **4a (2026-11-14):** TODOS llevan su `Cuerpo3D` desde que entran en el juego (`Poblacion3D.gd`: todo
+   `CharacterBody2D` y el grupo `con_cuerpo_3d`, sin listas ni distancia; 77–82 cuerpos en una partida). Borrados
+   `CuerposDelPueblo3D.gd` (solo 24 cercanos) y `CuerposCercanos3D.gd` (cuerpos de contacto). Ya nadie anda con el paso
+   plano: fuera los `move_and_slide`/`move_and_collide` del mapa de vecinos, policía, vigía y empujones de combate
+   (`AndarMapa.paso/empujon/ha_chocado`). Tamaños en `TallaCuerpo3D.gd`; los pequeños chocan con paredes pero no
+   estorban. Lejos del protagonista (>22 m) el cuerpo que solo sigue a su personaje se pone al día 1 de cada 10 pasos.
+   Arreglo de paso: un vecino cambia de piso al ACABAR la escalera (a media rampa la ruta lo mandaba contra la
+   barandilla). Contador 2.428 → **2.425** (casi no baja: el cerebro sigue en el mapa plano). Pruebas: `fisica_3d`
+   100/100, `aviso_caso1`, partida del Caso I 25/25, `atascos_vecinos` 8 h = 0 atascos (la red actuó 12 veces),
+   `puertas_3d` 28/29 (la que falla ya fallaba sin este cambio: banco ante la pescadería). Coste de física sin
+   ventana: 3,8 → 4,1 ms por paso (dentro del ruido); **con ventana (fps) no se ha medido**.
+   **Sigue siendo 2D tras la 4a:** cada personaje es todavía un nodo del mapa plano (`CharacterBody2D`/`Node2D`) con
+   posición en píxeles, y su cuerpo 3D le escribe ahí el resultado; el ganado, los animales lejanos (>500 px) y
+   camas/escaleras/recolocaciones mueven la posición plana y el cuerpo les sigue sin chocar; quedan sus dibujos planos
+   escondidos, su capa de choque plana (la usan vista, la E y los golpes) y los pisos como número.
+   **4b:** el personaje pasa a SER su cuerpo 3D (posición en metros; el nodo plano y sus dibujos se borran). Depende
+   de que rutas (5) y sentidos (7) dejen de leer la posición plana: se hace por clases (animales → bandidos → vecinos).
 5. **Rutas con navegación 3D** (malla de navegación del mundo y de cada edificio). Se borran las rutas y listas de
    puertas a mano y los atajos de «colocar» vecinos (guardia mensajero, custodia).
 6. **Piezas que dicen para qué sirven** (`PLAN_LO_QUE_SE_VE.md`, fases 1–4), ya en 3D: sillas, camas, puestos, la E.
@@ -79,7 +96,14 @@ rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 
 - Paredes 3D «gemelas» de los choques del mapa plano (`ChoquesMundo3D._levantar`, 2026-11-14) → paso v de la 3a.
 - Los parámetros de dibujo plano de `_construct_solid_building` (ya sin uso; 15 llamadas) → se van con el constructor.
 - Guardia mensajero y de custodia «colocados» cerca del jugador o en su puesto (`Case1Aviso.gd`, 2026-11-14) → tanda 5.
-- Cuerpos 3D solo para 24 vecinos a ~8 m; se les quita si se atascan (`CuerposDelPueblo3D.gd`) → tanda 4.
+- ✅ (quitado en la 4a) Cuerpos 3D solo para 24 vecinos a ~8 m.
+- Red contra atascos: 5 s queriendo andar sin avanzar → 0,5 s sin chocar con nada (`Cuerpo3D._vigilar_atasco`,
+  2026-11-14; 12 veces en 8 h de pueblo) → tanda 5 (rutas 3D).
+- Los vecinos cambian de piso al acabar la escalera y no a media rampa, porque sus rutas piensan por pisos
+  (`Cuerpo3D._nivel_al_acabar_escalera`) → tanda 5.
+- Cuerpos que «siguen» sin chocar a quien aún se mueve escribiendo su posición plana: ganado, animales a más de
+  500 px, camas, escaleras con [E] (`Cuerpo3D._seguir`) → tandas 4b y 5.
+- Tabla de tamaños por grupo y especie en `TallaCuerpo3D.gd` (cada personaje debería decir el suyo) → tanda 6.
 - Dibujos 2D escondidos con capas en 1.ª persona (`WorldStage3D._ocultar_2d_tapado`) → tandas 4 y 8.
 - Cama `cama_2` de la comisaría puesta a mano; zapato del caso como «Caja_383» con etiqueta → tanda 6.
 

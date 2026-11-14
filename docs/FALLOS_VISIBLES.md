@@ -5,9 +5,14 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
-- [ ] (2026-11-14, Claude, simulación) **Dos vecinos se quedan 40 s andando contra algo a las 14:00** junto al claro del
-  norte (destinos ~(159, −2780) y (241, −2779) del mapa), lejos del jugador. Sale igual con el código anterior a la
-  tanda 3a: no viene de las paredes nuevas. `atascos_vecinos.gd -- 2 12 cocinero jugador:puerta:building_restaurant`.
+- [ ] (2026-11-14, Claude, prueba `puertas_3d`) **Hay un banco a metro y medio de la puerta de la pescadería, justo
+  en medio**: andando recto hacia la puerta te para (se rodea por un lado). Ya pasaba antes de la tanda 4a. La regla que
+  despeja las puertas solo mira 24 px delante y el banco está a 28. Arreglo: mover la pieza del banco en el mapa.
+- ✅ a medias (2026-11-14, tanda 4a) **Dos vecinos se quedaban 40 s andando contra algo a las 14:00** junto al claro del
+  norte (destinos ~(159, −2780) y (241, −2779) del mapa), lejos del jugador. La misma simulación da ahora 0 atascos
+  (`atascos_vecinos.gd -- 2 12 cocinero jugador:puerta:building_restaurant`), pero **no porque la ruta esté bien**: la
+  red contra atascos del cuerpo 3D les deja colarse medio segundo (4 veces en esas 2 h; 12 en 8 h de pueblo). El
+  arreglo de verdad son las rutas 3D (tanda 5 de `PLAN_TODO_3D.md`).
 - ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **El cuerpo sale «deteriorado» (17,6 h) el día 2 por la
   mañana y el guardia que lo custodia no está** · claro del arroyo. *(Cuenta desde la muerte, ~01:00 del día 2, una vez por
   hora (sumaba doble y desde el día 1); deterioro a las 36 h; vigilar manda sobre el turno y, sin que lo veas, el guardia

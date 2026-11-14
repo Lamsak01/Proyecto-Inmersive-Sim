@@ -29,6 +29,7 @@ func _initialize() -> void:
 	await _paso4_vecino_sube()
 	await _paso4b_contacto()
 	await _paso4c_animales()
+	await _tanda4_todos_con_cuerpo()
 	await _paso5_vista()
 	_paso5b_oido()
 	await _paso5c_golpes()
@@ -170,8 +171,8 @@ func _paso1_cuerpo() -> void:
 	var lejos: Vector2 = puerta["pos"] + fuera * 200.0
 	pl.global_position = lejos
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.1)
-	# (si justo hay alguien de pie ahí, su cuerpo de contacto lo aparta un poco: paso 4b)
-	_ok(Mapa3D.a_mapa(c.global_position).distance_to(lejos) < 12.0, "1: el cuerpo sigue al protagonista cuando lo cambian de sitio (a %.1f px; %d cuerpos cerca)" % [Mapa3D.a_mapa(c.global_position).distance_to(lejos), c.cercanos().cuantos()])
+	# (si justo hay alguien de pie ahí, su cuerpo lo aparta un poco: paso 4b)
+	_ok(Mapa3D.a_mapa(c.global_position).distance_to(lejos) < 12.0, "1: el cuerpo sigue al protagonista cuando lo cambian de sitio (a %.1f px)" % Mapa3D.a_mapa(c.global_position).distance_to(lejos))
 	mc.set_physics_process(true)
 
 
@@ -487,7 +488,7 @@ func _paso4b_contacto() -> void:
 	pl.global_position = inicio
 	n.global_position = inicio + Vector2(30, 0)
 	await _andar(pl, mc, Vector2.ZERO, 0.0, 0.1)
-	_ok(n.has_meta("cuerpo3d"), "4b: el vecino cercano tiene cuerpo 3D completo (opción B)")
+	_ok((n.has_meta("cuerpo3d") and is_instance_valid(n.get_meta("cuerpo3d"))), "4b: el vecino tiene su cuerpo 3D")
 	var sitio_vecino: Vector2 = n.global_position
 	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
 	# Con cuerpo completo (opción B) chocas con él: o te quedas delante o lo vas apartando poco a poco (se desplaza)
@@ -502,11 +503,12 @@ func _paso4b_contacto() -> void:
 	n.set_process(true)
 
 
-## Paso 4c: los animales grandes (ciervo, jabalí, ganado adulto) tienen cuerpo; los pequeños (conejo, zorro…) no.
+## Paso 4c: los animales grandes (ciervo, jabalí, ganado adulto) estorban el paso; a los pequeños (conejo, zorro…) se
+## les pasa por encima (tienen cuerpo, pero en una capa con la que nadie choca).
 func _paso4c_animales() -> void:
 	var pl = get_first_node_in_group("player")
 	var mc = pl.get_node("PlayerMovementController")
-	var Cercanos = load("res://scripts/fisica/CuerposCercanos3D.gd")
+	var Talla = load("res://scripts/fisica/TallaCuerpo3D.gd")
 	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
 	var grande = null
 	var pequeno = null
@@ -517,12 +519,12 @@ func _paso4c_animales() -> void:
 			grande = a
 		elif int(a.species) in [0, 2] and pequeno == null:
 			pequeno = a
-	_ok(grande != null and Cercanos.tamano(grande) == Cercanos.ANIMAL, "4c: un ciervo o jabalí tiene cuerpo")
-	_ok(pequeno != null and Cercanos.tamano(pequeno) == Vector2.ZERO, "4c: un conejo o zorro se atraviesa")
+	_ok(grande != null and Talla.de(grande) == Talla.ANIMAL and Talla.estorba(grande), "4c: un ciervo o jabalí estorba el paso")
+	_ok(pequeno != null and not Talla.estorba(pequeno), "4c: un conejo o zorro se atraviesa")
 	for g in get_nodes_in_group("livestock_animals"):
-		var t: Vector2 = Cercanos.tamano(g)
 		if str(g.species) == "chicken" or str(g.stage) == "chick":
-			_ok(t == Vector2.ZERO, "4c: gallinas y crías se atraviesan (%s, %s)" % [g.species, g.stage])
+			_ok(not Talla.estorba(g), "4c: gallinas y crías se atraviesan (%s, %s)" % [g.species, g.stage])
+			_ok((g.has_meta("cuerpo3d") and is_instance_valid(g.get_meta("cuerpo3d"))), "4c: pero tienen su cuerpo 3D, como todos")
 			break
 	if grande == null:
 		return
@@ -533,16 +535,16 @@ func _paso4c_animales() -> void:
 	pl.global_position = inicio
 	grande.global_position = inicio + Vector2(30, 0)
 	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
-	# Con cuerpo de contacto: te para o lo apartas poco a poco (se desplaza)
+	# Te para o lo apartas poco a poco (se desplaza)
 	_ok(pl.global_position.x < inicio.x + 25.0 or grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)) > 3.0, "4c: no se atraviesa a un animal grande sin más: choca y lo aparta (animal desplazado %.1f px)" % grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)))
-	# Opción B: el ciervo cercano tiene cuerpo completo y, andando contra la pared de la posada, se para
+	# El ciervo, andando contra la pared de la posada, se para
 	var AndarMapa = load("res://scripts/fisica/AndarMapa.gd")
 	var pared: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-60.0, 40.0) # al suroeste de la puerta, delante de la pared sur
 	grande.global_position = pared
 	pl.global_position = pared + Vector2(0.0, 40.0)
 	for _i in range(12):
 		await physics_frame
-	_ok(grande.has_meta("cuerpo3d"), "B: un ciervo cerca del protagonista tiene cuerpo 3D completo")
+	_ok((grande.has_meta("cuerpo3d") and is_instance_valid(grande.get_meta("cuerpo3d"))), "B: el ciervo tiene su cuerpo 3D")
 	for _i in range(90):
 		grande.velocity = Vector2.UP * 60.0
 		AndarMapa.paso(grande, 1.0 / 60.0)
@@ -550,6 +552,63 @@ func _paso4c_animales() -> void:
 	_ok(VillageTavern.al_plano(grande.global_position).y > VillageTavern.RECT.end.y - 2.0, "B: y la pared de la posada lo para (y %.0f; pared en %.0f)" % [VillageTavern.al_plano(grande.global_position).y, VillageTavern.RECT.end.y])
 	grande.set_physics_process(true)
 	grande.set_process(true)
+
+
+## Tanda 4 del paso a 3D: TODOS los personajes llevan su cuerpo 3D siempre, también lejos del protagonista; lejos, una
+## pared les para igual y nadie se queda sin cuerpo por atascarse.
+func _tanda4_todos_con_cuerpo() -> void:
+	var pl = get_first_node_in_group("player")
+	var VillageTavern = load("res://scripts/systems/VillageTavern.gd")
+	var Cuerpo3D = load("res://scripts/fisica/Cuerpo3D.gd")
+	var AndarMapa = load("res://scripts/fisica/AndarMapa.gd")
+	var sin_cuerpo: Array[String] = []
+	var total: int = 0
+	for g in ["village_npcs", "wild_animals", "domestic_pets", "raiders", "enemies", "livestock_animals"]:
+		for n in get_nodes_in_group(g):
+			total += 1
+			if not (n.has_meta("cuerpo3d") and is_instance_valid(n.get_meta("cuerpo3d"))):
+				sin_cuerpo.append(str(n.name))
+	_ok(total > 0 and sin_cuerpo.is_empty(), "T4: los %d personajes del juego tienen cuerpo 3D (sin él: %s)" % [total, str(sin_cuerpo.slice(0, 5))])
+	_ok(not ResourceLoader.exists("res://scripts/fisica/CuerposDelPueblo3D.gd") and not ResourceLoader.exists("res://scripts/fisica/CuerposCercanos3D.gd"), "T4: ya no existen el reparto por cercanía ni los cuerpos de contacto")
+	# Un vecino a más de 1.500 px del protagonista (~84 m) anda contra la pared sur de la posada: su cuerpo la respeta
+	var vm = get_first_node_in_group("village_manager")
+	var n = null
+	for v in vm.VillageNeeds.living(vm):
+		if v.is_conscious() and not v.is_hostile and not v.is_sleeping:
+			n = v
+			break
+	if n == null:
+		_ok(false, "T4: hay un vecino despierto para la prueba")
+		return
+	n.set_physics_process(false)
+	n.set_process(false)
+	var pared: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-60.0, 40.0)
+	var prota_antes: Vector2 = pl.global_position
+	pl.global_position = pared + Vector2(0.0, 1600.0)
+	n.global_position = pared
+	for _i in range(20):
+		await physics_frame
+	_ok(n.has_meta("cuerpo3d") and is_instance_valid(n.get_meta("cuerpo3d")) and pl.global_position.distance_to(n.global_position) > 1500.0, "T4: lejos del protagonista (%.0f px) el vecino sigue con su cuerpo" % pl.global_position.distance_to(n.global_position))
+	for _i in range(90):
+		n.velocity = Vector2.UP * 60.0
+		AndarMapa.paso(n, 1.0 / 60.0)
+		await physics_frame
+	_ok(VillageTavern.al_plano(n.global_position).y > VillageTavern.RECT.end.y - 2.0, "T4: y la pared de la posada lo para aunque no haya nadie mirando (y %.0f; pared en %.0f)" % [VillageTavern.al_plano(n.global_position).y, VillageTavern.RECT.end.y])
+	# Red contra atascos: tras ATASCO_S empujando contra la pared, se cuela un momento (atajo apuntado en el plan) y
+	# conserva su cuerpo
+	var colados_antes: int = Cuerpo3D.colados
+	for _i in range(int((Cuerpo3D.ATASCO_S + 2.0) * 60.0)):
+		n.velocity = Vector2.UP * 60.0
+		AndarMapa.paso(n, 1.0 / 60.0)
+		await physics_frame
+	_ok(Cuerpo3D.colados > colados_antes and (n.has_meta("cuerpo3d") and is_instance_valid(n.get_meta("cuerpo3d"))), "T4: atascado %d s contra la pared, se cuela un momento sin perder el cuerpo" % int(Cuerpo3D.ATASCO_S))
+	n.velocity = Vector2.ZERO
+	n.global_position = pared + Vector2(0.0, 60.0)
+	pl.global_position = prota_antes
+	n.set_physics_process(true)
+	n.set_process(true)
+	for _i in range(10):
+		await physics_frame
 
 
 ## Paso 5a: la vista con alturas. Desde el salón se ve el borde de la galería; bajo la galería no se ve a quien está encima.
@@ -716,20 +775,28 @@ func _flechazo(pl, desde: Vector2, pendiente: float):
 	return f
 
 
+## Todos los personajes con cuerpo 3D menos el protagonista (desde la tanda 4, todos lo llevan siempre).
+func _personajes() -> Array[Node2D]:
+	var out: Array[Node2D] = []
+	for c in get_nodes_in_group("cuerpos_3d"):
+		var n: Node2D = c.actor as Node2D
+		if is_instance_valid(n) and not n.is_in_group("player"):
+			out.append(n)
+	return out
+
+
 ## Aparta (300 px al sur) a los vecinos y animales que estén a menos de `radio` de `pos`, para que no estorben a la prueba.
 func _despejar(pos: Vector2, radio: float) -> void:
-	for g in load("res://scripts/fisica/CuerposCercanos3D.gd").GRUPOS:
-		for n in get_nodes_in_group(g):
-			if n is Node2D and (n as Node2D).global_position.distance_to(pos) < radio:
-				(n as Node2D).global_position += Vector2(0.0, 300.0)
+	for n in _personajes():
+		if n.global_position.distance_to(pos) < radio:
+			n.global_position += Vector2(0.0, 300.0)
 
 
-## ¿Hay algún vecino o animal (con cuerpo de contacto, paso 4b–4c) dentro de `zona`?
+## ¿Hay algún vecino o animal dentro de `zona`?
 func _alguien_en(zona: Rect2) -> bool:
-	for g in load("res://scripts/fisica/CuerposCercanos3D.gd").GRUPOS:
-		for n in get_nodes_in_group(g):
-			if n is Node2D and zona.has_point((n as Node2D).global_position):
-				return true
+	for n in _personajes():
+		if zona.has_point(n.global_position):
+			return true
 	return false
 
 

@@ -3,7 +3,8 @@ extends Node3D
 ## ChoquesMundo3D: el juego de paredes 3D del mundo, UNO SOLO y compartido por todos los cuerpos (paso a 3D, tanda 3a,
 ## 2026-11-14). Sustituye a ChoquesCercanos3D, donde cada cuerpo copiaba para sí, en cada paso, las paredes del mapa plano.
 ## - El mundo se reparte en celdas. Cuando un cuerpo anda por una celda, sus choques se levantan una vez y se quedan
-##   mientras alguien siga cerca; se repasan cada pocos pasos (puertas que se abren, árboles talados…).
+##   mientras alguien siga cerca; se repasan cada pocos pasos (puertas que se abren, árboles talados…). Desde la tanda 4
+##   todos los personajes llevan cuerpo: donde solo andan vecinos o animales sin tocar nada, se repasa despacio.
 ## - ATAJO pendiente (docs/specs/PLAN_TODO_3D.md): cada pared aún nace de su choque del mapa plano («gemelo»). Cuando cada
 ##   fuente dé su choque desde su pieza 3D, este archivo solo las guardará.
 ## - Alturas de verdad: cada choque ocupa su franja (toda la altura, solo planta baja, solo planta alta, bajo tierra,
@@ -22,8 +23,9 @@ const MARGEN_PX: float = 6.0       ## lo que la consulta de una celda se asoma a
 const MAX_POR_CELDA: int = 256
 const MASCARA_MAPA: int = 1 | Suelo.CAPA_PISOS ## capas del mapa plano donde viven las paredes
 const REPASO_PROTA: int = 2        ## pasos entre repasos de una celda donde está el protagonista (puertas al instante)
-const REPASO_VECINO: int = 6       ## y de una donde solo hay vecinos
-const CELDA_CADUCA: int = 120      ## pasos sin nadie cerca tras los que una celda suelta sus paredes
+const REPASO_VECINO: int = 6       ## de una donde un vecino o un animal está tocando algo (una puerta que se le abre)
+const REPASO_TRANQUILO: int = 30   ## y de una donde solo andan sin tocar nada
+const CELDA_CADUCA: int = 600      ## pasos sin nadie cerca tras los que una celda suelta sus paredes (10 s)
 const LIMPIEZA_CADA: int = 30
 
 var _gemelos: Dictionary = {}      ## «rid:forma» → StaticBody3D
@@ -51,8 +53,9 @@ func _init() -> void:
 	_consulta.collide_with_bodies = true
 
 
-## Un cuerpo avisa de que está en `centro` y necesita las paredes a `radio_px` a la redonda.
-func interes(espacio: PhysicsDirectSpaceState2D, centro: Vector2, radio_px: float, es_prota: bool) -> void:
+## Un cuerpo avisa de que está en `centro` y necesita las paredes a `radio_px` a la redonda, repasadas como mucho hace
+## `repaso` pasos (REPASO_PROTA, REPASO_VECINO o REPASO_TRANQUILO).
+func interes(espacio: PhysicsDirectSpaceState2D, centro: Vector2, radio_px: float, repaso: int) -> void:
 	var paso: int = Engine.get_physics_frames()
 	var c0: Vector2i = Vector2i(((centro - Vector2.ONE * radio_px) / CELDA_PX).floor())
 	var c1: Vector2i = Vector2i(((centro + Vector2.ONE * radio_px) / CELDA_PX).floor())
@@ -63,7 +66,7 @@ func interes(espacio: PhysicsDirectSpaceState2D, centro: Vector2, radio_px: floa
 				_celdas[c] = {"claves": {}, "visto": paso, "repaso": -CELDA_CADUCA}
 			var celda: Dictionary = _celdas[c]
 			celda["visto"] = paso
-			if paso - int(celda["repaso"]) >= (REPASO_PROTA if es_prota else REPASO_VECINO):
+			if paso - int(celda["repaso"]) >= repaso:
 				_repasar(espacio, c, celda, paso)
 
 

@@ -39,6 +39,7 @@ func setup_animal(p_vm: Node2D, p_index: int, d: Dictionary, p_pen_rect: Rect2) 
 	add_to_group("livestock_animal")
 	add_to_group("livestock_animals")
 	add_to_group("ranch_livestock")
+	add_to_group("con_cuerpo_3d") # Poblacion3D le da su cuerpo 3D: a un animal adulto no se le atraviesa
 
 	var fx: float = fposmod(0.22 + float(p_index) * 0.27, 0.84) + 0.08
 	var fy: float = fposmod(0.25 + float(p_index) * 0.37, 0.80) + 0.10
