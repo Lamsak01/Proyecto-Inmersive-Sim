@@ -356,11 +356,12 @@ static var CASES: Dictionary = {
 				"log": []
 			}
 		],
+		## Fichas fijas del tablero; cada una sale solo cuando encuentras alguna de sus pistas («revela»).
 		"board_suspects": [
-			{"id": "s_v", "k": "Sospechoso", "t": "«V.» — firmó la nota del bolsillo citándola en el puente viejo."},
-			{"id": "s_alch", "k": "Sospechoso", "t": "El boticario — guarda hierbas de embalsamar bajo llave."},
-			{"id": "s_miller", "k": "Sospechoso", "t": "El molinero — tiene carro y cordel de cáñamo encerado."},
-			{"id": "s_boy", "k": "Sospechoso", "t": "Muchacho de capa parda — visto corriendo junto al arroyo."}
+			{"id": "s_v", "k": "Sospechoso", "t": "«V.» — firmó la nota del bolsillo citándola en el puente viejo.", "revela": ["bolsillos:registrar"]},
+			{"id": "s_alch", "k": "Sospechoso", "t": "El boticario — guarda hierbas de embalsamar bajo llave.", "revela": ["m_sangre"]},
+			{"id": "s_miller", "k": "Sospechoso", "t": "El molinero — tiene carro y cordel de cáñamo encerado.", "revela": ["brazos:lupa", "@escena:2"]},
+			{"id": "s_boy", "k": "Sospechoso", "t": "Muchacho de capa parda — visto corriendo junto al arroyo.", "revela": ["w_1", "w2_1"]}
 		]
 	},
 	"case_02": {"id": "case_02", "number": 2, "status": PENDING_DECISION, "title": "Caso II · [PENDIENTE_DECISION_USUARIO]"},

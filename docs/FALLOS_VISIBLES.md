@@ -5,6 +5,7 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- ✅ (2026-11-13, usuario) **Se podía abrir todo el caso (autopsia, escena, tablero con sospechosos) el día 1, antes del crimen.** *(Ahora el panel no se abre hasta el recado de Vane; con la tecla del caso solo el tablero; cada sospechoso aparece al encontrar su pista.)*
 - ✅ (2026-11-13, usuario; falta que lo veas jugando) **El Caso I no se entiende jugando**: el primer día no encuentra el
   cuerpo; misiones no marca objetivos; la carta no se relee; Vane no dice nada. *(La carta va en la mochila; el día 2 un
   guardia te avisa y custodia el cuerpo; Vane te cuenta lo del arroyo; el diario tiene una pestaña «Caso» con las

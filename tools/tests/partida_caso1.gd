@@ -221,7 +221,10 @@ func _initialize() -> void:
 	var reloj: Node = root.get_node_or_null("WorldClock")
 	if reloj != null:
 		reloj.set("current_day", 2)
-	load("res://scripts/systems/VillageCase1.gd").sync(vm)
+	var caso1 = load("res://scripts/systems/VillageCase1.gd")
+	caso1.sync(vm)
+	# El guardia ya te ha dado el recado de Vane (sin él, el panel del detective no se abre: no hay caso)
+	caso1.state(vm)["aviso"] = "dado"
 	var pl = get_first_node_in_group("player") as CharacterBody2D
 	var ui_root = get_first_node_in_group("game_ui")
 	var det_ui = ui_root.get("detective_ui") if ui_root != null else null

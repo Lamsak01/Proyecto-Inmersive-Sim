@@ -3,6 +3,7 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
+- 2026-11-13 · Caso I: el panel del detective ya no se abre antes de que el guardia te avise del crimen; con la tecla del caso solo se ve el tablero (cuerpo, morgue y escena, junto al cuerpo); los sospechosos del tablero salen al encontrar su pista. Partida automática 25/25.
 
 ## 2026-11-13 — Caso I más fácil de seguir: carta, aviso del guardia, escena custodiada, preguntas y barro rojo (Claude Code)
 - La carta es solo tu contrato de detective y se relee desde la mochila (📜 Leer).

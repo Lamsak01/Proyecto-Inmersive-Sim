@@ -2,6 +2,9 @@ extends Control
 class_name DetectiveUI
 
 const DetectiveCaseDataScript = preload("res://scripts/systems/DetectiveCaseData.gd")
+const CASO1_SCRIPT: String = "res://scripts/systems/VillageCase1.gd" ## con load() en tiempo de juego: su preload haría ciclo
+const AVISO_SIN_CASO: String = "🔎 Aún no tienes ningún caso abierto."
+const AVISO_SIN_CUERPO: String = "🔎 Para examinar el cuerpo o la escena tienes que estar junto a ella."
 
 ## Herramientas del Detective (Bloques D1–D5)
 ## Copia fiel en Godot del boceto aprobado en `docs/bocetos/examen_cuerpo.html`.
@@ -1512,6 +1515,10 @@ func _add_legend_dot(parent: Node, col: Color, txt: String) -> void:
 func open_for_corpse(corpse_node: Node2D, initial_mode: String = "body") -> void:
 	if player == null:
 		player = get_tree().get_first_node_in_group("player") as Node2D
+	var es_caso1: bool = corpse_node == null or not is_instance_valid(corpse_node) or corpse_node.has_meta("scripted_case_id")
+	if es_caso1 and not _caso_abierto():
+		_avisar(AVISO_SIN_CASO)
+		return
 	current_corpse = corpse_node
 	visible = true
 	if WorldClock != null:
@@ -1566,6 +1573,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func switch_mode(mode_id: String) -> void:
+	if mode_id != "board" and not _cuerpo_a_mano():
+		_avisar(AVISO_SIN_CUERPO)
+		mode_id = "board"
 	current_mode = mode_id
 	view_body.visible = (mode_id == "body")
 	view_morgue.visible = (mode_id == "morgue")
@@ -1582,6 +1592,26 @@ func switch_mode(mode_id: String) -> void:
 	_update_header_meta()
 
 
+## Caso I: hasta que el guardia te avisa no hay crimen, así que su panel no se abre (ni con la tecla del caso);
+## los muertos de otras causas se siguen pudiendo examinar.
+func _caso_abierto() -> bool:
+	var vm = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
+	if vm == null:
+		return true # escenas de prueba sin pueblo
+	var caso1: Script = load(CASO1_SCRIPT) as Script
+	return bool(caso1.call("caso_abierto", vm))
+
+
+## Cuerpo, morgue y escena se examinan solo habiendo abierto el panel desde el cuerpo; con la tecla del caso, solo el tablero.
+func _cuerpo_a_mano() -> bool:
+	return current_corpse != null and is_instance_valid(current_corpse)
+
+
+func _avisar(texto: String) -> void:
+	if player != null and player.has_method("show_hint"):
+		player.call("show_hint", texto)
+
+
 func _refresh_tab_styles() -> void:
 	for tid in tab_buttons.keys():
 		var b: Button = tab_buttons[tid]
@@ -1594,6 +1624,7 @@ func _refresh_tab_styles() -> void:
 		b.add_theme_stylebox_override("normal", _style_box(bg, COL_LAMP if act else COL_EDGE, 1, 0, 12, 6))
 		b.add_theme_stylebox_override("hover", _style_box(bg.lightened(0.08), COL_LAMP, 1, 0, 12, 6))
 		b.add_theme_stylebox_override("pressed", _style_box(COL_LAMP, COL_LAMP, 1, 0, 12, 6))
+		b.modulate.a = 1.0 if (tid == "board" or _cuerpo_a_mano()) else 0.45 # pestañas del cuerpo apagadas lejos de él
 
 
 func set_body_gender(female: bool) -> void:
@@ -3182,6 +3213,8 @@ func get_board_items() -> Array[Dictionary]:
 		_build_board_suspects_for_corpse(current_corpse)
 	var items: Array[Dictionary] = []
 	for s in board_suspects:
+		if not _ficha_desvelada(s):
+			continue
 		items.append({
 			"id": str(s.get("id", "")),
 			"k": str(s.get("k", "Sospechoso")),
@@ -3200,6 +3233,23 @@ func get_board_items() -> Array[Dictionary]:
 			"suspect": false
 		})
 	return items
+
+
+## Las fichas fijas del caso no se ven en el tablero hasta encontrar alguna de sus pistas («revela»), para no
+## destripar sospechosos el día 1. «@escena:N» es la pista N de la escena del crimen.
+func _ficha_desvelada(ficha: Dictionary) -> bool:
+	var claves: Array = ficha.get("revela", [])
+	if claves.is_empty():
+		return true
+	for k in claves:
+		var clave: String = str(k)
+		if clave.begins_with("@escena:"):
+			var idx: int = int(clave.trim_prefix("@escena:"))
+			if scene_clues_found.get(idx) == true or has_case_progress("c_%d" % idx):
+				return true
+		elif has_case_progress(clave):
+			return true
+	return false
 
 
 func _ensure_board_positions(items: Array[Dictionary]) -> void:

@@ -104,6 +104,13 @@ static func empezado() -> bool:
 	return _today() >= 1 + DIA_DE_MARGEN
 
 
+## El panel del detective solo se abre cuando ya te han avisado del crimen (antes no hay caso que mirar).
+static func caso_abierto(vm) -> bool:
+	if vm == null:
+		return false
+	return str(state(vm).get("aviso", "")) == "dado"
+
+
 ## El cuerpo del claro existe desde el principio (así se guarda y carga como un vecino más), pero hasta que empieza el
 ## caso está escondido: ni se ve, ni se examina, ni lo descubre nadie.
 static func mostrar_cuerpo(vm, visible: bool) -> void:
