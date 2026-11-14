@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" path="res://mapa/mundo3d.gd" id="1_m3d"]
 [ext_resource type="Script" path="res://mapa/pieza.gd" id="2_rotgg"]
-[ext_resource type="Script" path="res://mapa/edificio.gd" id="3_jgq7j"]
 [ext_resource type="PackedScene" path="res://mapa/edificios/building_tavern.tscn" id="3_nou5s"]
 [ext_resource type="ArrayMesh" path="res://mapa/decorado_comun/malla_1.res" id="4_0emcy"]
 [ext_resource type="Texture2D" path="res://mapa/decorado_comun/tex_2.res" id="5_bojho"]
@@ -63,6 +62,7 @@
 [ext_resource type="Script" path="res://mapa/marca.gd" id="34_ceh11"]
 [ext_resource type="Script" path="res://mapa/zona.gd" id="34_fba6n"]
 [ext_resource type="Script" path="res://mapa/sitio.gd" id="35_7jlh3"]
+[ext_resource type="PackedScene" path="res://mapa/edificios/bajo_alcantarillas.tscn" id="62_sgkmi"]
 [ext_resource type="Script" path="res://mapa/cruce_rio.gd" id="cruce_rio_3d"]
 [ext_resource type="Script" path="res://mapa/punto_rio.gd" id="punto_rio_3d"]
 [ext_resource type="Script" path="res://mapa/rio.gd" id="rio_3d"]
@@ -23641,12 +23641,8 @@ nombre_visible = "Tablón de encargos"
 [node name="BajoTierra" type="Node3D" parent="." unique_id=1845255703]
 visible = false
 
-[node name="Alcantarillas" type="Node3D" parent="BajoTierra" unique_id=1460957937]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 117.6, 0.25362355, 17.64)
-script = ExtResource("3_jgq7j")
-id_edificio = "bajo_alcantarillas"
-centro_original = Vector2(420, 63)
-origen_3d = Vector3(23.52, 0.25362355, 3.5279999)
+[node name="Alcantarillas" parent="BajoTierra" unique_id=1964346503 instance=ExtResource("62_sgkmi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 117.6, -3.1702943, 17.64)
 
 [node name="Caminos" type="Node3D" parent="." unique_id=737939649]
 

@@ -1,0 +1,150 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jid14"]
+albedo_color = Color(0.46, 0.3, 0.16, 1)
+metallic = 0.04
+roughness = 0.85
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_tui5k"]
+size = Vector3(0.896, 0.11624412, 0.784)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fjasp"]
+albedo_color = Color(0.24, 0.27, 0.32, 1)
+metallic = 0.78
+roughness = 0.42
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_3u054"]
+size = Vector3(0.672, 0.06340589, 0.072799996)
+
+[sub_resource type="BoxMesh" id="BoxMesh_020pm"]
+size = Vector3(0.672, 0.06340589, 0.072799996)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ku6x5"]
+size = Vector3(0.896, 0.14794706, 0.089600004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_g03o8"]
+size = Vector3(0.896, 0.14794706, 0.089600004)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0k2mh"]
+size = Vector3(0.089600004, 0.14794706, 0.728)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2dcym"]
+size = Vector3(0.089600004, 0.14794706, 0.728)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kvur5"]
+albedo_color = Color(0.08, 0.1, 0.09, 1)
+roughness = 0.96
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_tbuuh"]
+size = Vector3(0.7616, 0.04227059, 0.6832)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2xbyq"]
+size = Vector3(0.8512, 1.2152795, 0.1008)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lta8w"]
+size = Vector3(0.672, 0.12681177, 0.055999998)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ptgb2"]
+size = Vector3(0.067200005, 0.5072471, 0.0784)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ahoov"]
+size = Vector3(0.067200005, 0.5072471, 0.0784)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cp676"]
+size = Vector3(0.4144, 0.08454118, 0.056)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i78ng"]
+albedo_color = Color(1, 0.76, 0.32, 1)
+roughness = 0.2
+emission_enabled = true
+emission = Color(1, 0.68, 0.22, 1)
+emission_energy_multiplier = 2.8
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_edo6u"]
+size = Vector3(0.4144, 0.08454118, 0.056)
+
+[node name="ClubTrapdoor3D" type="Node3D" unique_id=1364168951]
+
+[node name="ClosedLid" type="Node3D" parent="." unique_id=1419677520]
+
+[node name="TapaMadera" type="MeshInstance3D" parent="ClosedLid" unique_id=1599936722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.32231325, 0)
+material_override = SubResource("StandardMaterial3D_jid14")
+mesh = SubResource("BoxMesh_tui5k")
+
+[node name="HerrajeSur" type="MeshInstance3D" parent="ClosedLid" unique_id=428197049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.41213825, 0.23519999)
+material_override = SubResource("StandardMaterial3D_fjasp")
+mesh = SubResource("BoxMesh_3u054")
+
+[node name="HerrajeNorte" type="MeshInstance3D" parent="ClosedLid" unique_id=719118117]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.41213825, -0.23519999)
+material_override = SubResource("StandardMaterial3D_fjasp")
+mesh = SubResource("BoxMesh_020pm")
+
+[node name="OpenHatch" type="Node3D" parent="." unique_id=1522385161]
+
+[node name="MarcoNorte" type="MeshInstance3D" parent="OpenHatch" unique_id=1581976500]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.33816472, -0.4032)
+material_override = SubResource("StandardMaterial3D_jid14")
+mesh = SubResource("BoxMesh_ku6x5")
+
+[node name="MarcoSur" type="MeshInstance3D" parent="OpenHatch" unique_id=1372485966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.33816472, 0.4032)
+material_override = SubResource("StandardMaterial3D_jid14")
+mesh = SubResource("BoxMesh_g03o8")
+
+[node name="MarcoOeste" type="MeshInstance3D" parent="OpenHatch" unique_id=2031225241]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4368, 0.33816472, 0)
+material_override = SubResource("StandardMaterial3D_jid14")
+mesh = SubResource("BoxMesh_0k2mh")
+
+[node name="MarcoEste" type="MeshInstance3D" parent="OpenHatch" unique_id=1996876433]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4368, 0.33816472, 0)
+material_override = SubResource("StandardMaterial3D_jid14")
+mesh = SubResource("BoxMesh_2dcym")
+
+[node name="HuecoOscuroSotano" type="MeshInstance3D" parent="OpenHatch" unique_id=2132124468]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28004265, 0)
+material_override = SubResource("StandardMaterial3D_kvur5")
+mesh = SubResource("BoxMesh_tbuuh")
+
+[node name="HojaAbiertaNorte" type="MeshInstance3D" parent="OpenHatch" unique_id=922931528]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9458045, -0.4368)
+material_override = SubResource("StandardMaterial3D_jid14")
+mesh = SubResource("BoxMesh_2xbyq")
+
+[node name="HerrajeInterior" type="MeshInstance3D" parent="OpenHatch" unique_id=1408352476]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.69746476, -0.3808)
+material_override = SubResource("StandardMaterial3D_fjasp")
+mesh = SubResource("BoxMesh_lta8w")
+
+[node name="LargueroIzq" type="MeshInstance3D" parent="OpenHatch" unique_id=1461777203]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.224, 0.41213825, -0.084)
+material_override = SubResource("StandardMaterial3D_fjasp")
+mesh = SubResource("BoxMesh_ptgb2")
+
+[node name="LargueroDer" type="MeshInstance3D" parent="OpenHatch" unique_id=1722408229]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.224, 0.41213825, -0.084)
+material_override = SubResource("StandardMaterial3D_fjasp")
+mesh = SubResource("BoxMesh_ahoov")
+
+[node name="PeldanoSuperior" type="MeshInstance3D" parent="OpenHatch" unique_id=722350401]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.38043532, -0.084)
+material_override = SubResource("StandardMaterial3D_jid14")
+mesh = SubResource("BoxMesh_cp676")
+
+[node name="ResplandorSotano" type="MeshInstance3D" parent="OpenHatch" unique_id=817356871]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.31702942, 0.084)
+material_override = SubResource("StandardMaterial3D_i78ng")
+mesh = SubResource("BoxMesh_edo6u")
+
+[node name="LuzSotano" type="OmniLight3D" parent="OpenHatch" unique_id=32726441]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5812206, 0)
+light_color = Color(1, 0.72, 0.28, 1)
+light_energy = 1.35
+omni_range = 5.04

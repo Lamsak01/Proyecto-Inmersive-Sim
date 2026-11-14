@@ -1,0 +1,282 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/floor_ground_dirt.png" id="1_5arc5"]
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/floor_wood_planks.png" id="2_5yfnm"]
+[ext_resource type="Texture2D" path="res://assests/curated_3d/town_textures/wall_brick_stone_center.png" id="3_525fj"]
+[ext_resource type="Script" path="res://mapa/pieza.gd" id="4_4s72j"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gdk1q"]
+albedo_color = Color(0.75699997, 0.71650004, 0.6625, 1)
+albedo_texture = ExtResource("1_5arc5")
+roughness = 0.92
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_6kbc4"]
+size = Vector3(4.032, 0.12681177, 1.456)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wws10"]
+albedo_color = Color(0.7975, 0.73, 0.667, 1)
+albedo_texture = ExtResource("2_5yfnm")
+metallic = 0.02
+roughness = 0.88
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_0yb1n"]
+top_radius = 0.112
+bottom_radius = 0.14
+height = 1.1624413
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_mjsdl"]
+top_radius = 0.112
+bottom_radius = 0.14
+height = 1.1624413
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_2cqa4"]
+top_radius = 0.112
+bottom_radius = 0.14
+height = 1.1624413
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_451pg"]
+top_radius = 0.112
+bottom_radius = 0.14
+height = 1.1624413
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_ghfg0"]
+size = Vector3(0.224, 1.6908236, 0.224)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jri7i"]
+albedo_color = Color(0.856, 0.775, 0.694, 1)
+albedo_texture = ExtResource("2_5yfnm")
+metallic = 0.02
+roughness = 0.85
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_dw8ss"]
+size = Vector3(0.896, 0.52838236, 0.168)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p2d7i"]
+albedo_color = Color(0.8425, 0.838, 0.82000005, 1)
+albedo_texture = ExtResource("3_525fj")
+metallic = 0.04
+roughness = 0.88
+uv1_scale = Vector3(0.15, 0.15, 0.15)
+uv1_triplanar = true
+texture_filter = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_3xvhw"]
+size = Vector3(8.512, 0.15851471, 9.184)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fa7rd"]
+size = Vector3(8.512, 2.3248825, 0.336)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xrun4"]
+size = Vector3(8.512, 2.3248825, 0.336)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3u6jp"]
+size = Vector3(0.336, 2.3248825, 9.184)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ojtsk"]
+size = Vector3(0.336, 2.3248825, 3.36)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ud7tv"]
+size = Vector3(0.336, 2.3248825, 3.36)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_cv0xp"]
+top_radius = 0.196
+bottom_radius = 0.224
+height = 2.9589412
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_w4bb7"]
+top_radius = 0.196
+bottom_radius = 0.224
+height = 2.9589412
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_7ochy"]
+size = Vector3(0.448, 0.52838236, 2.464)
+
+[node name="PuestoDelPaso" type="Node3D" unique_id=1232847635]
+
+[node name="CaminoAcceso" type="Node3D" parent="." unique_id=636299183]
+
+[node name="CalzadaTierraEste" type="MeshInstance3D" parent="CaminoAcceso" unique_id=1052804324]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.536, 0.06340589, 0.168)
+material_override = SubResource("StandardMaterial3D_gdk1q")
+mesh = SubResource("BoxMesh_6kbc4")
+
+[node name="SolarSinFundar" type="Node3D" parent="." unique_id=1295929337]
+
+[node name="EstacaLinde_1" type="MeshInstance3D" parent="SolarSinFundar" unique_id=1294983976]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.352, 0.5812206, -3.64)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("CylinderMesh_0yb1n")
+
+[node name="EstacaLinde_2" type="MeshInstance3D" parent="SolarSinFundar" unique_id=37860030]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.816, 0.5812206, -3.64)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("CylinderMesh_mjsdl")
+
+[node name="EstacaLinde_3" type="MeshInstance3D" parent="SolarSinFundar" unique_id=920609270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.816, 0.5812206, 3.976)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("CylinderMesh_2cqa4")
+
+[node name="EstacaLinde_4" type="MeshInstance3D" parent="SolarSinFundar" unique_id=1767546374]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.352, 0.5812206, 3.976)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("CylinderMesh_451pg")
+
+[node name="PosteCartel" type="MeshInstance3D" parent="SolarSinFundar" unique_id=1427372369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.856, 0.8454118, 0.168)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("BoxMesh_ghfg0")
+
+[node name="TablaCartel" type="MeshInstance3D" parent="SolarSinFundar" unique_id=1861827222]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.856, 1.4266324, 0.056)
+material_override = SubResource("StandardMaterial3D_jri7i")
+mesh = SubResource("BoxMesh_dw8ss")
+
+[node name="FuerteFundado" type="Node3D" parent="." unique_id=1867474358]
+
+[node name="ExplanadaPiedra" type="MeshInstance3D" parent="FuerteFundado" unique_id=1116637265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.232, 0.079257354, 0.168)
+material_override = SubResource("StandardMaterial3D_p2d7i")
+mesh = SubResource("BoxMesh_3xvhw")
+
+[node name="EmpalizadaNorte" type="MeshInstance3D" parent="FuerteFundado" unique_id=1982274379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.232, 1.320956, -4.312)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("BoxMesh_fa7rd")
+
+[node name="EmpalizadaSur" type="MeshInstance3D" parent="FuerteFundado" unique_id=221678688]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.232, 1.320956, 4.648)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("BoxMesh_xrun4")
+
+[node name="EmpalizadaEste" type="MeshInstance3D" parent="FuerteFundado" unique_id=588520546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.376, 1.320956, 0.168)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("BoxMesh_3u6jp")
+
+[node name="EmpalizadaOesteNorte" type="MeshInstance3D" parent="FuerteFundado" unique_id=1523883906]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.912, 1.320956, -2.632)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("BoxMesh_ojtsk")
+
+[node name="EmpalizadaOesteSur" type="MeshInstance3D" parent="FuerteFundado" unique_id=700402007]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.912, 1.320956, 2.968)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("BoxMesh_ud7tv")
+
+[node name="PorticoPosteNorte" type="MeshInstance3D" parent="FuerteFundado" unique_id=948635229]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.856, 1.6379853, -0.952)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("CylinderMesh_cv0xp")
+
+[node name="PorticoPosteSur" type="MeshInstance3D" parent="FuerteFundado" unique_id=1877200385]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.856, 1.6379853, 1.288)
+material_override = SubResource("StandardMaterial3D_wws10")
+mesh = SubResource("CylinderMesh_w4bb7")
+
+[node name="PorticoDintel" type="MeshInstance3D" parent="FuerteFundado" unique_id=1150304488]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.856, 2.9061031, 0.168)
+material_override = SubResource("StandardMaterial3D_jri7i")
+mesh = SubResource("BoxMesh_7ochy")
+
+[node name="CabanaMando" type="Node3D" parent="FuerteFundado" unique_id=1735654642]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.136, 0.15851471, 0.168)
+script = ExtResource("4_4s72j")
+modelo = "buildings/House_2.obj"
+alto = 34.0
+tam = Vector2(50, 42)
+choque = "ninguno"
+
+[node name="ArcaAsentamiento" type="Node3D" parent="FuerteFundado" unique_id=68424392]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 1.568, 0.15851471, 0.168)
+script = ExtResource("4_4s72j")
+modelo = "props/Chest_Wood.gltf"
+alto = 8.0
+tam = Vector2(13, 9)
+choque = "ninguno"
+
+[node name="HogueraCentral" type="Node3D" parent="FuerteFundado" unique_id=547364508]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.224, 0.15851471, 0.168)
+script = ExtResource("4_4s72j")
+modelo = "exterior/Bonfire_Lit.obj"
+alto = 11.0
+tam = Vector2(16, 16)
+choque = "ninguno"
+
+[node name="CajaSuministros" type="Node3D" parent="FuerteFundado" unique_id=211276624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.016, 0.15851471, 1.512)
+script = ExtResource("4_4s72j")
+modelo = "props/Crate_Wooden.gltf"
+alto = 8.0
+tam = Vector2(10, 10)
+choque = "ninguno"
+
+[node name="BarrilAgua" type="Node3D" parent="FuerteFundado" unique_id=295297060]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.016, 0.15851471, -1.176)
+script = ExtResource("4_4s72j")
+modelo = "props/Barrel.gltf"
+alto = 9.5
+tam = Vector2(9, 9)
+choque = "ninguno"
+
+[node name="LuzHoguera" type="OmniLight3D" parent="FuerteFundado" unique_id=1413952507]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.224, 1.2681177, 0.168)
+light_color = Color(1, 0.65, 0.25, 1)
+light_energy = 1.6
+omni_range = 8.96
+
+[node name="MejoraAserradero" type="Node3D" parent="." unique_id=2019906470]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.224, 0, -2.632)
+
+[node name="EdificioAserradero" type="Node3D" parent="MejoraAserradero" unique_id=1093989358]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15851471, 0)
+script = ExtResource("4_4s72j")
+modelo = "buildings/Sawmill.obj"
+alto = 28.0
+tam = Vector2(48, 32)
+choque = "ninguno"
+
+[node name="TroncoCortado" type="Node3D" parent="MejoraAserradero" unique_id=969982396]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.232, 0.15851471, 0.56)
+script = ExtResource("4_4s72j")
+modelo = "nature/WoodLog.obj"
+alto = 6.0
+tam = Vector2(14, 8)
+choque = "ninguno"
+
+[node name="MejoraGranero" type="Node3D" parent="." unique_id=584638401]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.224, 0, 2.968)
+
+[node name="MolinoGranero" type="Node3D" parent="MejoraGranero" unique_id=595106083]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15851471, 0)
+script = ExtResource("4_4s72j")
+modelo = "buildings/Mill.obj"
+alto = 36.0
+tam = Vector2(38, 38)
+choque = "ninguno"
+
+[node name="MejoraAtalaya" type="Node3D" parent="." unique_id=159093342]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.904, 0, -2.968)
+
+[node name="AtalayaGuardia" type="Node3D" parent="MejoraAtalaya" unique_id=1251129184]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15851471, 0)
+script = ExtResource("4_4s72j")
+modelo = "buildings/Bell_Tower.obj"
+alto = 48.0
+tam = Vector2(30, 30)
+choque = "ninguno"

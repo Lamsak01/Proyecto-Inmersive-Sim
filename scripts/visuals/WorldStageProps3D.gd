@@ -32,81 +32,37 @@ const FOCO_SUELO_ENERGIA: float = 2.1
 
 ## Puesto del Paso, cementerio, alcantarillas, objetos de la época, farolas y objetos/props dinámicos 3D.
 
+const ESCENA_PUESTO_PASO := "res://mapa/edificios/puesto_del_paso.tscn"
+const ESCENA_SOTANO_CLUB := "res://mapa/edificios/sotano_club_pelea.tscn"
+const ESCENA_TRAMPILLA_CLUB := "res://assests/curated_3d/exterior/trampilla_club.tscn"
+const CENTRO_SOLAR_PUESTO_BASE := Vector2(1593.0, 47.0)
+
 # ==============================================================================
 # 4. ASENTAMIENTO FRONTERIZO «PUESTO DEL PASO» (EN EL LINDERO ESTE)
 # ==============================================================================
 func rebuild_outpost_3d() -> void:
 	_clear_children(outpost_root_3d)
-	if vm == null:
+	if vm == null or not ResourceLoader.exists(ESCENA_PUESTO_PASO):
 		return
 	var op: Dictionary = VillageCulture.outpost_state(vm)
 	var founded: bool = bool(op.get("founded", false))
 	var upgs: Dictionary = op.get("upgrades", {})
-	var c: Vector2 = VillageCulture.outpost_center()
-	var gate_p: Vector2 = VillageCulture.outpost_gate_pos()
-	colocar_plano = _en_solar(VillageCulture.OUTPOST_SOLAR) # el puesto está escrito en el plano de su solar
-	_dibujar_puesto(founded, upgs, c, gate_p)
-	colocar_plano = Callable()
+	var puesto: Node3D = (load(ESCENA_PUESTO_PASO) as PackedScene).instantiate() as Node3D
+	var solar_id: String = VillageCulture.OUTPOST_SOLAR
+	puesto.position = to_3d(VillageLots.Solar.a_mundo(solar_id, CENTRO_SOLAR_PUESTO_BASE), 0.0)
+	puesto.rotation_degrees.y = VillageLots.Solar.giro(solar_id)
+	_mostrar_hijo(puesto, "SolarSinFundar", not founded)
+	_mostrar_hijo(puesto, "FuerteFundado", founded)
+	_mostrar_hijo(puesto, "MejoraAserradero", founded and bool(upgs.get("sawmill", false)))
+	_mostrar_hijo(puesto, "MejoraGranero", founded and bool(upgs.get("granary", false)))
+	_mostrar_hijo(puesto, "MejoraAtalaya", founded and bool(upgs.get("watchtower", false)))
+	outpost_root_3d.add_child(puesto)
 
 
-func _dibujar_puesto(founded: bool, upgs: Dictionary, c: Vector2, gate_p: Vector2) -> void:
-	var m_road := _mat("road_dirt", Color(0.46, 0.37, 0.25), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.35)
-	var m_log := _mat("outpost_log", Color(0.55, 0.40, 0.26), 0.88, 0.02, Color.BLACK, 0.0, "town_textures/floor_wood_planks.png", "", 0.45)
-	var m_plank := _mat("outpost_plank", Color(0.68, 0.50, 0.32), 0.85, 0.02, Color.BLACK, 0.0, "town_textures/floor_wood_planks.png", "", 0.45)
-	var m_stone := _mat("outpost_stone", Color(0.65, 0.64, 0.60), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.35)
-
-	# Extensión del camino del este hasta el Puesto del Paso
-	_add_box_2d(outpost_root_3d, Vector2(1512, 50), Vector2(72, 26), 0.0, 1.2, m_road)
-
-	if not founded:
-		# Solar fronterizo con estacas, mesa de planos y cartel
-		for p in [Vector2(-64, -68), Vector2(64, -68), Vector2(64, 68), Vector2(-64, 68)]:
-			_add_cyl_2d(outpost_root_3d, c + p, 2.5, 0.0, 11.0, m_log, 2.0, 8)
-		_add_box_2d(outpost_root_3d, gate_p, Vector2(4.0, 4.0), 0.0, 16.0, m_log)
-		_add_box_2d(outpost_root_3d, gate_p + Vector2(0, -2), Vector2(16.0, 3.0), 11.0, 5.0, m_plank)
-		return
-
-	# Explanada fortificada y empalizada de troncos 3D
-	_add_box_2d(outpost_root_3d, c, Vector2(152, 164), 0.0, 1.5, m_stone)
-	_add_box_2d(outpost_root_3d, c + Vector2(0, -80), Vector2(152, 6), 1.5, 22.0, m_log)
-	_add_box_2d(outpost_root_3d, c + Vector2(0, 80), Vector2(152, 6), 1.5, 22.0, m_log)
-	_add_box_2d(outpost_root_3d, c + Vector2(74, 0), Vector2(6, 164), 1.5, 22.0, m_log)
-	_add_box_2d(outpost_root_3d, c + Vector2(-74, -50), Vector2(6, 60), 1.5, 22.0, m_log)
-	_add_box_2d(outpost_root_3d, c + Vector2(-74, 50), Vector2(6, 60), 1.5, 22.0, m_log)
-	# Pórtico de entrada en Vector2(1542, 50)
-	_add_cyl_2d(outpost_root_3d, gate_p + Vector2(0, -20), 4.0, 1.5, 28.0, m_log, 3.5, 8)
-	_add_cyl_2d(outpost_root_3d, gate_p + Vector2(0, 20), 4.0, 1.5, 28.0, m_log, 3.5, 8)
-	_add_box_2d(outpost_root_3d, gate_p, Vector2(8.0, 44.0), 25.0, 5.0, m_plank)
-
-	# Cabaña de mando 3D, Arca del asentamiento y Hoguera central encendida
-	_add_model_2d(outpost_root_3d, "buildings/House_2.obj", c + Vector2(34, 0), 1.5, Vector2(50, 42), 34.0, -90.0)
-	_add_model_2d(outpost_root_3d, "props/Chest_Wood.gltf", c + Vector2(6, 0), 1.5, Vector2(13, 9), 8.0, -90.0)
-	_add_model_2d(outpost_root_3d, "exterior/Bonfire_Lit.obj", c + Vector2(-18, 0), 1.5, Vector2(16, 16), 11.0)
-	_add_model_2d(outpost_root_3d, "props/Crate_Wooden.gltf", c + Vector2(14, 24), 1.5, Vector2(10, 10), 8.0)
-	_add_model_2d(outpost_root_3d, "props/Barrel.gltf", c + Vector2(14, -24), 1.5, Vector2(9, 9), 9.5)
-	if not _is_headless:
-		var fire_lt := OmniLight3D.new()
-		fire_lt.position = to_3d(c + Vector2(-18, 0), 12.0)
-		fire_lt.light_color = Color(1.0, 0.65, 0.25)
-		fire_lt.light_energy = 1.6
-		fire_lt.omni_range = 3.2 * Mapa3D.K
-		outpost_root_3d.add_child(fire_lt)
-
-	# Mejora 1: Aserradero Fronterizo
-	if bool(upgs.get("sawmill", false)):
-		var sm_p := c + Vector2(-26, -50)
-		_add_model_2d(outpost_root_3d, "buildings/Sawmill.obj", sm_p, 1.5, Vector2(48, 32), 28.0)
-		_add_model_2d(outpost_root_3d, "nature/WoodLog.obj", sm_p + Vector2(22, 10), 1.5, Vector2(14, 8), 6.0)
-
-	# Mejora 2: Granero / Molino del Paso
-	if bool(upgs.get("granary", false)):
-		var gr_p := c + Vector2(-26, 50)
-		_add_model_2d(outpost_root_3d, "buildings/Mill.obj", gr_p, 1.5, Vector2(38, 38), 36.0)
-
-	# Mejora 3: Atalaya de Guardia
-	if bool(upgs.get("watchtower", false)):
-		var wt_p := c + Vector2(-56, -56)
-		_add_model_2d(outpost_root_3d, "buildings/Bell_Tower.obj", wt_p, 1.5, Vector2(30, 30), 48.0)
+static func _mostrar_hijo(padre: Node3D, nombre: String, ver: bool) -> void:
+	var n := padre.get_node_or_null(nombre) as Node3D
+	if n != null:
+		n.visible = ver
 
 # ==============================================================================
 # 5. TUMBAS DEL CEMENTERIO, ALCANTARILLAS (-1) Y FAROLAS CON LUZ REAL
@@ -136,107 +92,14 @@ func rebuild_graves_3d() -> void:
 
 func _build_sewers_3d() -> void:
 	_clear_children(sewers_root_3d)
-	var m_bedrock := _mat("sewer_bedrock", Color(0.08, 0.10, 0.09), 0.96, 0.0)
-	var m_brick := _mat("sewer_brick", Color(0.28, 0.34, 0.30), 0.90, 0.05, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.35)
-	var m_walkway := _mat("sewer_walkway", Color(0.36, 0.40, 0.38), 0.88, 0.04, Color.BLACK, 0.0, "town_textures/rf_cobblestone.png", "", 0.45)
-	var m_water := _mat("sewer_water", Color(0.14, 0.46, 0.36, 0.92), 0.25, 0.15, Color(0.10, 0.42, 0.30), 0.35)
-	var m_iron := _mat("sewer_iron", Color(0.24, 0.27, 0.32), 0.42, 0.78)
-	var m_wood := _mat("sewer_wood", Color(0.46, 0.30, 0.16), 0.85, 0.04)
-	var m_brass := _mat("sewer_brass", Color(0.90, 0.74, 0.26), 0.28, 0.85, Color(0.85, 0.68, 0.20), 0.45)
-	var m_torch := _mat("sewer_torch", Color(1.0, 0.76, 0.32), 0.20, 0.0, Color(1.0, 0.68, 0.22), 2.8)
-
-	var sy: float = VillageUnderworldScript.SEWER_Y
-	# Editor del mapa 3D: la red entera se desplaza lo que el usuario la movió (VillageUnderworld.desp_red)
-	var d_red: Vector2 = VillageUnderworldScript.desp_red
-	# Losa oscura de roca subterránea para cubrir el entorno exterior alrededor de la red de túneles bajo el pueblo (y = SEWER_Y)
-	var zona: Rect2 = VillageUnderworldScript.zona_alcantarillas()
-	_add_box_2d(sewers_root_3d, zona.get_center() - d_red, zona.size, 1.2, 0.8, m_bedrock)
-	_add_techo_roca(sewers_root_3d, zona.get_center() - d_red, zona.size, m_bedrock)
-	# Paso a 3D, paso 2b: la red está de verdad bajo tierra (Suelo.PROFUNDIDAD_SOTANO_PX bajo la calle)
-	sewers_root_3d.position = Mapa3D.a_3d(d_red, Suelo.PROFUNDIDAD_SOTANO_PX)
-
-	# 3 cámaras conectadas bajo el centro del pueblo: Bóveda Inundada (260, SEWER_Y), Pasadizo del Contrabandista (420, SEWER_Y) y Cisterna (580, SEWER_Y)
-	for loc_id in ["flooded_vault", "smuggler_tunnel", "cistern"]:
-		var def: Dictionary = VillageUnderworldScript.SEWER_LOCATIONS_BASE[loc_id]
-		var ch_p: Vector2 = def["chamber_center"]
-		var lad_p: Vector2 = def["ladder_pos"]
-		var chs_p: Vector2 = def["chest_pos"]
-
-		# Suelo de piedra, andén seco norte y canal de aguas turbias al sur
-		_add_box_2d(sewers_root_3d, ch_p, Vector2(110.0, 80.0), 2.0, 1.4, m_brick)
-		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, -8.0), Vector2(106.0, 56.0), 3.4, 1.2, m_walkway)
-		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, 26.0), Vector2(106.0, 18.0), 2.6, 1.0, m_water)
-
-		# Muro norte alto y zócalo sur bajo (para que la cámara isométrica vea el interior sin tapar al jugador)
-		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, -43.0), Vector2(116.0, 6.0), 3.0, 20.0, m_brick)
-		_add_box_2d(sewers_root_3d, ch_p + Vector2(0.0, 43.0), Vector2(116.0, 6.0), 3.0, 5.0, m_brick)
-
-		# Escalerilla 3D de salida a la calle junto a la boca del túnel
-		_add_box_2d(sewers_root_3d, lad_p + Vector2(0.0, -2.0), Vector2(11.0, 8.0), 4.6, 0.8, m_iron)
-		_add_box_2d(sewers_root_3d, lad_p + Vector2(-4.0, -10.0), Vector2(1.4, 2.0), 4.6, 20.0, m_iron)
-		_add_box_2d(sewers_root_3d, lad_p + Vector2(4.0, -10.0), Vector2(1.4, 2.0), 4.6, 20.0, m_iron)
-		for rung_i in range(6):
-			_add_box_2d(sewers_root_3d, lad_p + Vector2(0.0, -10.0), Vector2(8.0, 1.2), 6.5 + float(rung_i) * 3.0, 0.9, m_brass)
-
-		# Antorcha mural subterránea junto a la escalerilla
-		_add_cyl_2d(sewers_root_3d, lad_p + Vector2(12.0, -13.0), 1.4, 13.0, 5.0, m_wood, 1.0, 6)
-		_add_cyl_2d(sewers_root_3d, lad_p + Vector2(12.0, -13.0), 2.2, 18.0, 3.0, m_torch, 1.4, 8)
-		if not _is_headless:
-			var t_light := OmniLight3D.new()
-			t_light.position = to_3d(lad_p + Vector2(12.0, -8.0), 19.0)
-			t_light.light_color = Color(1.0, 0.78, 0.42)
-			t_light.light_energy = 1.35
-			t_light.omni_range = 3.2 * Mapa3D.K
-			sewers_root_3d.add_child(t_light)
-
-		# Cofre de contrabando 3D sobre losa de piedra + barriles y cajas de alijo
-		_add_box_2d(sewers_root_3d, chs_p, Vector2(16.0, 12.0), 4.6, 1.4, m_brick)
-		if _add_model_2d(sewers_root_3d, "props/Chest_Wood.gltf", chs_p, 6.0, Vector2(13.0, 9.5), 8.5) == null:
-			_add_box_2d(sewers_root_3d, chs_p, Vector2(13.0, 9.0), 6.0, 5.5, m_wood)
-			_add_box_2d(sewers_root_3d, chs_p, Vector2(13.4, 9.4), 11.5, 2.5, m_iron)
-		_add_box_2d(sewers_root_3d, chs_p + Vector2(0.0, 4.6), Vector2(2.4, 1.4), 8.5, 2.6, m_brass)
-		if loc_id == "cistern":
-			_vestir_renidero_3d(ch_p, m_wood, m_iron, m_brass)
-			continue
-		_add_model_2d(sewers_root_3d, "props/Barrel.gltf", ch_p + Vector2(-38.0, 6.0), 4.6, Vector2(9.0, 9.0), 9.5)
-		_add_model_2d(sewers_root_3d, "props/Crate_Wooden.gltf", ch_p + Vector2(38.0, 6.0), 4.6, Vector2(11.0, 11.0), 8.5)
-
-	# 2 galerías de conexión entre las 3 cámaras (x = 340 y x = 500) y muros laterales de cierre
-	for corr_x in [340.0, 500.0]:
-		var cp := Vector2(corr_x, sy)
-		_add_box_2d(sewers_root_3d, cp, Vector2(56.0, 42.0), 2.0, 2.4, m_walkway)
-		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, 14.0), Vector2(56.0, 10.0), 2.6, 1.0, m_water)
-		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, -23.0), Vector2(56.0, 6.0), 3.0, 18.0, m_brick)
-		_add_box_2d(sewers_root_3d, cp + Vector2(0.0, 23.0), Vector2(56.0, 6.0), 3.0, 5.0, m_brick)
-	for sx in [315.0, 365.0, 475.0, 525.0]:
-		_add_box_2d(sewers_root_3d, Vector2(sx, sy - 32.0), Vector2(6.0, 22.0), 3.0, 20.0, m_brick)
-		_add_box_2d(sewers_root_3d, Vector2(sx, sy + 32.0), Vector2(6.0, 22.0), 3.0, 5.0, m_brick)
-	_add_box_2d(sewers_root_3d, Vector2(202.0, sy), Vector2(6.0, 86.0), 3.0, 20.0, m_brick)
-	_add_box_2d(sewers_root_3d, Vector2(638.0, sy), Vector2(6.0, 86.0), 3.0, 20.0, m_brick)
-
-func _add_green_crt_terminal_3d(parent: Node3D, pos_2d: Vector2, base_h: float, face_north: bool = false) -> void:
-	var m_crt_case := _mat("crt_case_iron", Color(0.22, 0.25, 0.24), 0.55, 0.68)
-	var m_crt_bezel := _mat("crt_bezel_dark", Color(0.11, 0.13, 0.12), 0.65, 0.35)
-	var m_crt_green := _mat("crt_screen_green", Color(0.12, 0.96, 0.34), 0.18, 0.0, Color(0.10, 0.88, 0.28), 2.2)
-	var m_crt_line := _mat("crt_scanline", Color(0.42, 1.0, 0.58), 0.12, 0.0, Color(0.32, 0.96, 0.46), 2.8)
-	var dir_y: float = -1.0 if face_north else 1.0
-	# Monitor CRT compacto con chasis metálico y pantalla de fósforo verde
-	_add_box_2d(parent, pos_2d + Vector2(0, -0.8 * dir_y), Vector2(8.4, 6.0), base_h, 5.8, m_crt_case)
-	_add_box_2d(parent, pos_2d + Vector2(0, 1.8 * dir_y), Vector2(7.4, 1.4), base_h + 0.6, 4.6, m_crt_bezel)
-	_add_box_2d(parent, pos_2d + Vector2(0, 2.3 * dir_y), Vector2(6.4, 0.8), base_h + 1.0, 3.8, m_crt_green)
-	# Líneas de texto fosforescentes en la pantalla
-	for ly in [1.7, 2.7, 3.7]:
-		_add_box_2d(parent, pos_2d + Vector2(-0.5, 2.6 * dir_y), Vector2(4.4, 0.35), base_h + ly, 0.32, m_crt_line)
-	# Teclado mecánico delantero
-	_add_box_2d(parent, pos_2d + Vector2(0, 3.8 * dir_y), Vector2(7.8, 2.8), base_h, 1.0, m_crt_case)
-	_add_box_2d(parent, pos_2d + Vector2(0, 3.8 * dir_y), Vector2(6.8, 1.9), base_h + 0.85, 0.35, m_crt_bezel)
-	if not _is_headless:
-		var crt_lt := OmniLight3D.new()
-		crt_lt.position = to_3d(pos_2d + Vector2(0, 3.2 * dir_y), base_h + 3.6)
-		crt_lt.light_color = Color(0.16, 0.96, 0.38)
-		crt_lt.light_energy = 0.75
-		crt_lt.omni_range = 1.8 * Mapa3D.K
-		parent.add_child(crt_lt)
+	var escena: PackedScene = EdificioEditorScript.escena(VillageUnderworldScript.ID_RED)
+	if escena == null:
+		return
+	var red: Node3D = escena.instantiate() as Node3D
+	var centro_mundo: Vector2 = EdificioEditorScript.a_mundo(VillageUnderworldScript.ID_RED, Vector2(420.0, VillageUnderworldScript.SEWER_Y))
+	sewers_root_3d.position = Mapa3D.a_3d(centro_mundo, Suelo.PROFUNDIDAD_SOTANO_PX)
+	sewers_root_3d.rotation_degrees.y = EdificioEditorScript.giro(VillageUnderworldScript.ID_RED)
+	sewers_root_3d.add_child(red)
 
 func _add_sandbag_wire_barrier_3d(parent: Node3D, pos_2d: Vector2) -> void:
 	var m_bag := _mat("epoch_sandbag", Color(0.50, 0.43, 0.31), 0.95, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.8)
@@ -555,160 +418,33 @@ func _add_techo_roca(raiz: Node3D, centro: Vector2, tam: Vector2, mat: Material)
 		techo.add_to_group("techo_bajo_tierra_3d")
 
 
-## P6: sala del club de pelea (se construye una vez; solo se ve estando dentro).
-## Reñidero de la Cisterna (fallo visible «alcantarillas vacías», 2026-11-11): un cuadrilátero de cuerdas con sus postes,
-## bancos, la mesa del apostador con su pizarra y una pintada que manda a las peleas de verdad (el club bajo la posada).
-## Solo se ve: nada choca (la cámara es estrecha y los vecinos no bajan aquí).
-func _vestir_renidero_3d(c: Vector2, m_wood: Material, m_iron: Material, m_brass: Material) -> void:
-	var r := sewers_root_3d
-	var suelo: float = 4.6
-	var m_cuerda := _mat("sewer_rope", Color(0.72, 0.60, 0.36), 0.92, 0.0)
-	var m_serrin := _mat("sewer_sawdust", Color(0.46, 0.33, 0.20), 0.95, 0.0)
-	var m_sangre := _mat("sewer_blood", Color(0.30, 0.08, 0.06), 0.90, 0.0)
-	var m_pizarra := _mat("sewer_slate", Color(0.10, 0.11, 0.10), 0.85, 0.0)
-	var m_tiza := _mat("sewer_chalk", Color(0.92, 0.92, 0.88), 0.80, 0.0)
-	# Cuadrilátero: serrín, manchas, 4 postes y 2 alturas de cuerda
-	_add_box_2d(r, c + Vector2(0.0, -8.0), Vector2(34.0, 26.0), suelo, 0.3, m_serrin)
-	for mancha in [Vector2(-5.0, -12.0), Vector2(7.0, -3.0), Vector2(2.0, 2.0)]:
-		_add_box_2d(r, c + mancha, Vector2(3.5, 2.5), suelo + 0.32, 0.1, m_sangre, randf() * 60.0)
-	for px in [-17.0, 17.0]:
-		for py in [-21.0, 5.0]:
-			_add_cyl_2d(r, c + Vector2(px, py), 1.1, suelo, 11.0, m_wood, 1.1, 6)
-		for h in [suelo + 5.0, suelo + 9.0]:
-			_add_box_2d(r, c + Vector2(px, -8.0), Vector2(0.7, 26.0), h, 0.7, m_cuerda)
-	for py in [-21.0, 5.0]:
-		for h in [suelo + 5.0, suelo + 9.0]:
-			_add_box_2d(r, c + Vector2(0.0, py), Vector2(34.0, 0.7), h, 0.7, m_cuerda)
-	# Bancos del público: uno pegado al muro norte, otro en el lado oeste
-	for banco in [[Vector2(0.0, -34.0), Vector2(26.0, 5.0)], [Vector2(-38.0, -8.0), Vector2(5.0, 24.0)]]:
-		_add_box_2d(r, banco[0], banco[1], suelo + 3.5, 1.2, m_wood)
-		var hb: Vector2 = (banco[1] as Vector2) * 0.5 - Vector2(1.5, 1.5)
-		for esquina in [Vector2(-hb.x, -hb.y), Vector2(hb.x, -hb.y), Vector2(-hb.x, hb.y), Vector2(hb.x, hb.y)]:
-			_add_box_2d(r, (banco[0] as Vector2) + esquina, Vector2(1.4, 1.4), suelo, 3.5, m_wood)
-	# Mesa del apostador (lado este) con monedas, y pizarra de apuestas en el muro
-	var mesa: Vector2 = c + Vector2(37.0, -6.0)
-	_add_box_2d(r, mesa, Vector2(12.0, 9.0), suelo + 6.0, 1.0, m_wood)
-	for pata in [Vector2(-5.0, -3.5), Vector2(5.0, -3.5), Vector2(-5.0, 3.5), Vector2(5.0, 3.5)]:
-		_add_box_2d(r, mesa + pata, Vector2(1.2, 1.2), suelo, 6.0, m_wood)
-	for moneda in [Vector2(-2.5, -1.0), Vector2(1.0, 1.5), Vector2(3.0, -2.0)]:
-		_add_cyl_2d(r, mesa + moneda, 0.9, suelo + 7.0, 0.3, m_brass, 0.9, 8)
-	_add_box_2d(r, mesa + Vector2(0.0, 2.0), Vector2(3.0, 2.0), suelo + 7.0, 1.2, m_iron) # caja de apuestas
-	_add_box_2d(r, c + Vector2(53.0, -8.0), Vector2(1.0, 16.0), suelo + 8.0, 10.0, m_pizarra)
-	for raya in range(4):
-		_add_box_2d(r, c + Vector2(52.3, -13.0 + float(raya) * 3.2), Vector2(0.4, 8.0 - float(raya) * 1.5), suelo + 15.5 - float(raya) * 2.0, 0.5, m_tiza)
-	if _is_headless:
-		return
-	var pintada := Label3D.new()
-	pintada.text = "PELEAS · SÓTANO DEL JABALÍ\nNOCHES PARES · A LAS 23"
-	pintada.font_size = 48
-	pintada.pixel_size = 0.0022 * Mapa3D.K
-	pintada.modulate = Color(0.90, 0.88, 0.80, 0.85)
-	pintada.position = to_3d(c + Vector2(0.0, -39.0), suelo + 12.0) # en el muro norte, mirando al sur (hacia el reñidero)
-	r.add_child(pintada)
-	var luz := OmniLight3D.new()
-	luz.position = to_3d(c + Vector2(0.0, -8.0), 18.0)
-	luz.light_color = Color(1.0, 0.72, 0.40)
-	luz.light_energy = 1.2
-	luz.omni_range = 3.0 * Mapa3D.K
-	r.add_child(luz)
-
+## P6: sala del club de pelea y su trampilla en la trastienda de la taberna, cargadas desde escenas horneadas en metros.
 func _sync_club_3d() -> void:
 	if vm == null or stage_root_3d == null:
 		return
 	var Club = load("res://scripts/systems/VillageClub.gd")
-	if not is_instance_valid(_club_root_3d):
-		_club_root_3d = Node3D.new()
+	var giro_taberna: float = EdificioEditorScript.giro(Club.TAVERN_ID)
+	if not is_instance_valid(_club_root_3d) and ResourceLoader.exists(ESCENA_SOTANO_CLUB):
+		_club_root_3d = (load(ESCENA_SOTANO_CLUB) as PackedScene).instantiate() as Node3D
 		_club_root_3d.name = "FightClub3D"
-		_club_root_3d.position.y = Mapa3D.alto_a_3d(Suelo.PROFUNDIDAD_SOTANO_PX) # paso a 3D, paso 2b: de verdad bajo tierra
+		_club_root_3d.position = to_3d(Club.CLUB_CENTER, Suelo.PROFUNDIDAD_SOTANO_PX)
+		_club_root_3d.rotation_degrees.y = giro_taberna
 		stage_root_3d.add_child(_club_root_3d)
-		var m_rock := _mat("sewer_bedrock", Color(0.08, 0.10, 0.09), 0.96, 0.0)
-		var m_dirt := _mat("club_dirt", Color(0.36, 0.27, 0.18), 0.95, 0.0)
-		var m_stone := _mat("sewer_brick", Color(0.28, 0.34, 0.30), 0.90, 0.05, Color.BLACK, 0.0, "town_textures/wall_brick_stone_center.png", "", 0.35)
-		var m_rope := _mat("club_rope", Color(0.78, 0.66, 0.42), 0.9, 0.0)
-		var m_wood := _mat("sewer_wood", Color(0.46, 0.30, 0.16), 0.85, 0.04)
-		var m_iron := _mat("sewer_iron", Color(0.24, 0.27, 0.32), 0.42, 0.78)
-		var m_torch := _mat("sewer_torch", Color(1.0, 0.76, 0.32), 0.20, 0.0, Color(1.0, 0.68, 0.22), 2.8)
-		var c: Vector2 = Club.CLUB_CENTER
-		var sz: Vector2 = Club.CLUB_SIZE
-		_add_box_2d(_club_root_3d, c, sz + Vector2(80, 80), 0.0, 1.0, m_rock)
-		_add_techo_roca(_club_root_3d, c, sz + Vector2(80, 80), m_rock)
-		_add_box_2d(_club_root_3d, c, sz, 1.0, 1.2, m_dirt)
-		_add_box_2d(_club_root_3d, c + Vector2(0, -sz.y * 0.5 - 3), Vector2(sz.x + 12, 6), 2.0, 22.0, m_stone) # muro norte alto
-		_add_box_2d(_club_root_3d, c + Vector2(0, sz.y * 0.5 + 3), Vector2(sz.x + 12, 6), 2.0, 5.0, m_stone) # zócalo sur bajo
-		_add_box_2d(_club_root_3d, c + Vector2(-sz.x * 0.5 - 3, 0), Vector2(6, sz.y), 2.0, 22.0, m_stone)
-		_add_box_2d(_club_root_3d, c + Vector2(sz.x * 0.5 + 3, 0), Vector2(6, sz.y), 2.0, 22.0, m_stone)
-		# Corro: 12 postes y cuerda entre ellos
-		var r: float = Club.RING_RADIUS
-		for i in range(12):
-			var a0: float = TAU * float(i) / 12.0
-			var a1: float = TAU * float(i + 1) / 12.0
-			var p0: Vector2 = c + Vector2(cos(a0), sin(a0)) * r
-			var p1: Vector2 = c + Vector2(cos(a1), sin(a1)) * r
-			_add_cyl_2d(_club_root_3d, p0, 1.2, 2.2, 9.0, m_wood, 1.2, 6)
-			var mid: Vector2 = (p0 + p1) * 0.5
-			_add_box_2d(_club_root_3d, mid, Vector2(maxf(absf(p1.x - p0.x), 1.2), maxf(absf(p1.y - p0.y), 1.2)), 8.0, 0.8, m_rope)
-		# Escalerilla de subida a la trampilla
-		var lad: Vector2 = Club.LADDER_POS
-		_add_box_2d(_club_root_3d, lad + Vector2(-4, -6), Vector2(1.4, 2.0), 2.4, 22.0, m_iron)
-		_add_box_2d(_club_root_3d, lad + Vector2(4, -6), Vector2(1.4, 2.0), 2.4, 22.0, m_iron)
-		for k in range(6):
-			_add_box_2d(_club_root_3d, lad + Vector2(0, -6), Vector2(8.0, 1.2), 4.0 + float(k) * 3.2, 0.9, m_wood)
-		# Faroles en las esquinas
-		for off in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
-			var tp: Vector2 = c + Vector2(off.x * (sz.x * 0.5 - 8), off.y * (sz.y * 0.5 - 8))
-			_add_cyl_2d(_club_root_3d, tp, 1.4, 2.0, 10.0, m_wood, 1.0, 6)
-			_add_cyl_2d(_club_root_3d, tp, 2.2, 12.0, 3.0, m_torch, 1.4, 8)
-			if not _is_headless:
-				var lt := OmniLight3D.new()
-				lt.position = to_3d(tp, 16.0)
-				lt.light_color = Color(1.0, 0.78, 0.42)
-				lt.light_energy = 1.2
-				lt.omni_range = 3.4 * Mapa3D.K
-				_club_root_3d.add_child(lt)
-		# Trampilla en la sala trasera de escalera/bodega de la taberna (sobre la losa del suelo en h = 2.5)
-		var trap := Node3D.new()
+	if stage_root_3d.get_node_or_null("ClubTrapdoor3D") == null and ResourceLoader.exists(ESCENA_TRAMPILLA_CLUB):
+		var trap: Node3D = (load(ESCENA_TRAMPILLA_CLUB) as PackedScene).instantiate() as Node3D
 		trap.name = "ClubTrapdoor3D"
+		trap.position = to_3d(Club.TRAPDOOR_POS, 0.0)
+		trap.rotation_degrees.y = giro_taberna
 		stage_root_3d.add_child(trap)
-		var closed_lid := Node3D.new()
-		closed_lid.name = "ClosedLid"
-		trap.add_child(closed_lid)
-		_add_box_2d(closed_lid, Club.TRAPDOOR_POS, Vector2(16.0, 14.0), 2.5, 1.1, m_wood)
-		_add_box_2d(closed_lid, Club.TRAPDOOR_POS + Vector2(0, 4.2), Vector2(12.0, 1.3), 3.6, 0.6, m_iron)
-		_add_box_2d(closed_lid, Club.TRAPDOOR_POS + Vector2(0, -4.2), Vector2(12.0, 1.3), 3.6, 0.6, m_iron)
-		var open_hatch := Node3D.new()
-		open_hatch.name = "OpenHatch"
-		trap.add_child(open_hatch)
-		# Marco de madera, hueco oscuro hacia el sótano (-1), hoja levantada al norte y peldaños de escalera asomando
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, -7.2), Vector2(16.0, 1.6), 2.5, 1.4, m_wood)
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, 7.2), Vector2(16.0, 1.6), 2.5, 1.4, m_wood)
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(-7.8, 0), Vector2(1.6, 13.0), 2.5, 1.4, m_wood)
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(7.8, 0), Vector2(1.6, 13.0), 2.5, 1.4, m_wood)
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS, Vector2(13.6, 12.2), 2.45, 0.4, m_rock) # Pozo oscuro abierto
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, -7.8), Vector2(15.2, 1.8), 3.2, 11.5, m_wood) # Tapa abierta levantada
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, -6.8), Vector2(12.0, 0.6), 6.0, 1.2, m_iron) # Herraje interior
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(-4.0, -1.5), Vector2(1.2, 1.4), 1.5, 4.8, m_iron) # Larguero izq
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(4.0, -1.5), Vector2(1.2, 1.4), 1.5, 4.8, m_iron) # Larguero der
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, -1.5), Vector2(7.4, 1.0), 3.2, 0.8, m_wood) # Peldaño superior
-		_add_box_2d(open_hatch, Club.TRAPDOOR_POS + Vector2(0, 1.5), Vector2(7.4, 1.0), 2.6, 0.8, m_torch) # Resplandor cálido del sótano
-		if not _is_headless:
-			var t_lt := OmniLight3D.new()
-			t_lt.position = to_3d(Club.TRAPDOOR_POS, 5.5)
-			t_lt.light_color = Color(1.0, 0.72, 0.28)
-			t_lt.light_energy = 1.35
-			t_lt.omni_range = 1.8 * Mapa3D.K
-			open_hatch.add_child(t_lt)
 	var in_club_now: bool = Club.is_player_in_club(vm)
 	var open_now: bool = Club.is_open_now(vm)
-	_club_root_3d.visible = in_club_now
+	if is_instance_valid(_club_root_3d):
+		_club_root_3d.visible = in_club_now
 	var trap_node := stage_root_3d.get_node_or_null("ClubTrapdoor3D") as Node3D
 	if is_instance_valid(trap_node):
 		trap_node.visible = not in_club_now
-		var cl_n := trap_node.get_node_or_null("ClosedLid") as Node3D
-		var op_n := trap_node.get_node_or_null("OpenHatch") as Node3D
-		if is_instance_valid(cl_n):
-			cl_n.visible = not open_now
-		if is_instance_valid(op_n):
-			op_n.visible = open_now
+		_mostrar_hijo(trap_node, "ClosedLid", not open_now)
+		_mostrar_hijo(trap_node, "OpenHatch", open_now)
 
 ## P5: libro de cuentas abierto sobre la mesa del ayuntamiento (se construye una vez).
 func _sync_town_ledger_3d() -> void:
