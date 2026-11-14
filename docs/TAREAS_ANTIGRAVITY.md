@@ -26,6 +26,7 @@
 - ✅ 1. Rendimiento: sombras del sol y geometría junto al río (`perf_zonas` 24–30 → 35–40 fps; `contar_2d.sh` 2.441 → 2.438), 2026-11-14.
 - ✅ 2. Lluvia, luz y sonido en 3D (`Clima3D` sin llover bajo techo, día/noche solo con luz 3D sin `CanvasModulate` ni tintes/nieblas 2D en `RetroPostFX`, sonido 3D de pasos, puertas, voces y río; `contar_2d.sh` 2.454 → 2.428), 2026-11-14.
 - ✅ 3. El mundo dibujado por código pasa a ser piezas del editor: 0 llamadas `_add_box/cyl/model_2d` en `WorldStageProps3D` y `WorldStageTerrain3D`, 481 matas de pradera en `Vegetacion/MatasPradera`, 33 escenas de objetos/bajo tierra/puesto horneadas y las 416 piezas anónimas del `Decorado` nombradas y agrupadas en 32 objetos (`contar_2d.sh` 2.428 → 2.409), 2026-11-14.
+- ✅ 4. Interiores de tamaño real de la casa de la cantera (`mixed_family_quarry`, 8,4 × 9,8 m con taller de cantero al este) y del restaurante (`building_restaurant`, 15,4 × 10,64 m con terraza iluminada, comedor, cocina, cámara fría, reservado, bodega y alcoba de dos camas; `contar_2d.sh` 2.406 → 2.407 por una `Texture2D` de material 3D), 2026-11-14.
 
 ## Tareas
 1. ✅ **Rendimiento: sombras del sol** (prioridad 1 de `FALLOS_VISIBLES.md`) y **geometría junto al río**. Abaratar sin que
@@ -39,7 +40,7 @@
    se hornean una vez a `mapa/Mundo3D.tscn` con herramienta (`tools/hornear_*.gd`), **con nombre que diga qué son**, y se
    borra su código. De paso, poner nombre a las 305 «Caja_N» del decorado (qué es cada una) agrupándolas por objeto.
    Por tandas pequeñas (un tipo de objeto cada vez), con foto de antes y después. Coste: mucho.
-4. **Interiores de tamaño real que faltan:** la casa de la cantera y el restaurante (la taberna espera la pregunta 0b del
+4. ✅ **Interiores de tamaño real que faltan:** la casa de la cantera y el restaurante (la taberna espera la pregunta 0b del
    usuario: no la toques). Lee antes `docs/specs/REGISTRO_EDITOR_3D.md` y `docs/specs/BOCETOS_EDIFICIOS.md`. Coste: mucho.
 5. **Quitar el estirón ×5 y el «mapa original»** de tus archivos y de las formas del mundo (auditoría A5): relieve hecho
    por el juego, forma del lago y de la ciénaga, manchas del mapa del valle (`WorldStageTerrain3D.gd`, `mapa/zona.gd`,

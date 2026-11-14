@@ -120,7 +120,8 @@ static func _muebles(grupo: Node3D, plano: Dictionary, planta: String, piso: int
 		cuenta[base] = int(cuenta.get(base, 0)) + 1
 		var nombre: String = base if int(cuenta[base]) == 1 else "%s%d" % [base, cuenta[base]]
 		var pieza := _hijo(grupo, Node3D.new(), nombre, MUEBLE_GD)
-		pieza.position = _en_suelo(m["pos"], Mapa3D.piso_alto_m() if piso > 0 else (0.0 if bool(m.get("fuera", false)) else Cascaron.SUELO_Y_M))
+		var suelo_base: float = 0.0 if bool(m.get("fuera", false)) else Cascaron.SUELO_Y_M
+		pieza.position = _en_suelo(m["pos"], Mapa3D.piso_alto_m() if piso > 0 else float(m.get("base_y", suelo_base)))
 		pieza.set("piso", piso)
 		pieza.rotation_degrees.y = float(m.get("giro", 0.0))
 		pieza.set("clave", "%s_%s" % [plano["ID"], nombre.to_lower()])

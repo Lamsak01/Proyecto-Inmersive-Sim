@@ -48,7 +48,8 @@ func _planta_en_el_mapa(id: String, planta: Vector2, puerta: float) -> void:
 	var cabecera: String = '[node name="%s" type="Node3D" parent="Edificios"' % id
 	var ini: int = texto.find(cabecera)
 	if ini < 0:
-		push_error("CASA: el mapa no tiene la pieza «%s»" % id)
+		if texto.find('[node name="%s" parent="Edificios"' % id) < 0:
+			push_error("CASA: el mapa no tiene la pieza «%s»" % id)
 		return
 	var fin: int = texto.find("\n[", ini + 1)
 	var bloque: String = texto.substr(ini, fin - ini)

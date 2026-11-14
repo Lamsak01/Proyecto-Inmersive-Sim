@@ -10,6 +10,7 @@ const Oficio = preload("res://tools/casas/cosas_oficio.gd")
 const Acomodada = preload("res://tools/casas/cosas_casa_acomodada.gd")
 const Senorial = preload("res://tools/casas/cosas_casa_senorial.gd")
 const Molino = preload("res://tools/casas/cosas_molino.gd")
+const Restaurante = preload("res://tools/casas/cosas_restaurante.gd")
 
 
 static func dibujar(pieza: Node3D, m: Dictionary) -> void:
@@ -56,6 +57,26 @@ static func dibujar(pieza: Node3D, m: Dictionary) -> void:
 			Oficio.mesa_morgue(pieza)
 		"pizarra":
 			Oficio.pizarra(pieza)
+		"banco_cantero":
+			Oficio.banco_cantero(pieza)
+		"sillares_piedra":
+			Oficio.sillares_piedra(pieza)
+		"terraza_trattoria":
+			Restaurante.terraza_trattoria(pieza)
+		"mesa_terraza_verde":
+			Restaurante.mesa_terraza(pieza, true)
+		"mesa_terraza_crema":
+			Restaurante.mesa_terraza(pieza, false)
+		"mantel_trattoria":
+			Restaurante.mantel_trattoria(pieza)
+		"piano_vertical":
+			Restaurante.piano_vertical(pieza)
+		"fogones_trattoria":
+			Restaurante.fogones_trattoria(pieza)
+		"camara_fria":
+			Restaurante.camara_fria(pieza)
+		"mesa_reservado":
+			Restaurante.mesa_reservado(pieza)
 		"ventilador":
 			Acomodada.ventilador(pieza, Cascaron.MURO_ALTO_M - Cascaron.SUELO_Y_M)
 		"inodoro":

@@ -115,3 +115,28 @@ static func pizarra(padre: Node3D) -> void:
 	var marco := PIZARRA_TAM + Vector3(MARCO_M, MARCO_M, 0.0) * 2.0
 	Piezas.caja(padre, Vector3(0.0, PIZARRA_ALTO_M - MARCO_M, 0.0), marco, Cosas.mat(MADERA_MARCO))
 	Piezas.caja(padre, Vector3(0.0, PIZARRA_ALTO_M, PIZARRA_TAM.z), PIZARRA_TAM, Cosas.mat(PIZARRA_VERDE))
+
+
+## Caballete de cantero con un bloque de caliza a medio labrar, cuñas de hierro y maza sobre el sillar.
+static func banco_cantero(padre: Node3D) -> void:
+	var piedra: Material = Piezas.material("wall_stone.png", Color(0.76, 0.75, 0.72))
+	var madera: Material = Cosas.mat(MADERA_MARCO)
+	var hierro: Material = Piezas.material("", HIERRO, 0.75)
+	for x: float in [-0.36, 0.36]:
+		Piezas.caja(padre, Vector3(x, 0.0, 0.0), Vector3(0.12, 0.48, 0.62), madera)
+	Piezas.caja(padre, Vector3(0.0, 0.44, 0.0), Vector3(1.05, 0.08, 0.68), madera)
+	Piezas.caja(padre, Vector3(-0.06, 0.52, 0.0), Vector3(0.68, 0.42, 0.48), piedra)
+	Piezas.caja(padre, Vector3(0.34, 0.52, 0.08), Vector3(0.08, 0.06, 0.24), hierro, 18.0)
+	Piezas.caja(padre, Vector3(0.32, 0.52, -0.08), Vector3(0.32, 0.04, 0.04), madera, -22.0)
+	Piezas.caja(padre, Vector3(-0.12, 0.94, 0.05), Vector3(0.04, 0.08, 0.18), hierro, 12.0)
+
+
+## Pila de sillares de piedra ya escuadrados sobre dos rastreles de madera, listos para entregar.
+static func sillares_piedra(padre: Node3D) -> void:
+	var piedra: Material = Piezas.material("wall_stone.png", Color(0.80, 0.79, 0.76))
+	var madera: Material = Cosas.mat(MADERA_MARCO)
+	for z: float in [-0.22, 0.22]:
+		Piezas.caja(padre, Vector3(0.0, 0.0, z), Vector3(0.96, 0.06, 0.09), madera)
+	Piezas.caja(padre, Vector3(-0.23, 0.06, 0.0), Vector3(0.42, 0.30, 0.52), piedra)
+	Piezas.caja(padre, Vector3(0.23, 0.06, 0.0), Vector3(0.42, 0.30, 0.52), piedra)
+	Piezas.caja(padre, Vector3(0.0, 0.36, 0.0), Vector3(0.46, 0.28, 0.48), piedra, 4.0)
