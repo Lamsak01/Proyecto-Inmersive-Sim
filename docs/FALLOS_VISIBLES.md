@@ -5,6 +5,9 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **Vane contesta en la esquina y cierra la charla** · comisaría,
+  martes 07:25. *(La acción de apuntar el encargo rehacía la charla sin su respuesta y la cerraba. Ahora la respuesta se
+  queda en la caja, y mientras hablas las pistas se apuntan en el cuaderno sin repetirse en la esquina.)*
 - ✅ (2026-11-14, usuario; **confirmado jugando** el 14) **Nadie vino a hablar conmigo el día 2** (partida nueva). *(El guardia
   iba andando a un tercio de tu paso y, si te movías, no te alcanzaba; a las 2 h salía una línea que se pierde. Ahora va
   corriendo, vuelve a salir a ~50 m si te alejas, te llama a ~4 m y, si aun así no llega, un chico te lo dice en la caja. 2.ª vez (el usuario, quieto fuera): no se

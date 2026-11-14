@@ -720,8 +720,11 @@ func _record_case_clue(
 	player: Node2D, title: String, hint_txt: String, note_txt: String,
 	tag: String, source_key: String, msg_col: Color
 ) -> void:
-	_msg_player(player, title, msg_col, -42.0)
-	_hint_player(hint_txt, player)
+	# Si te lo está contando un vecino, ya lo lees en la caja de diálogo: solo se apunta en el cuaderno, sin repetirlo
+	var dm = player.get("dialogue_manager") if player != null else null
+	if not (dm != null and bool(dm.call("is_active"))):
+		_msg_player(player, title, msg_col, -42.0)
+		_hint_player(hint_txt, player)
 	var ui_root := get_tree().get_first_node_in_group("game_ui")
 	if ui_root and "detective_ui" in ui_root and is_instance_valid(ui_root.detective_ui):
 		if ui_root.detective_ui.has_method("add_notebook_note"):

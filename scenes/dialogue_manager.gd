@@ -216,6 +216,11 @@ func _aplicar(elegida: Dictionary) -> void:
 		var nuevo: Dictionary = current_speaker.call("_build_dialogue")
 		if current_speaker.has_method("_inject_character_lore_into_dialogue"):
 			nuevo = current_speaker.call("_inject_character_lore_into_dialogue", nuevo)
+		# La respuesta que acabas de pedir se conserva aunque la acción la quite del árbol nuevo (p. ej. Vane ya te ha
+		# contado lo del arroyo): antes la charla se cerraba y la respuesta solo salía en la esquina (usuario, 2026-11-14)
+		var siguiente: String = str(elegida.get("next", ""))
+		if siguiente != "" and not nuevo.has(siguiente) and graph.has(siguiente):
+			nuevo[siguiente] = graph[siguiente]
 		graph = nuevo
 		_poner_hablante()
 

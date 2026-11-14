@@ -3,6 +3,7 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
+- 2026-11-14 · Diálogos: al elegir una pregunta que apunta algo (p. ej. el encargo de Vane), la respuesta sale en la caja y la charla sigue; mientras hablas, las pistas no se repiten en la esquina. Prueba `tools/tests/vane_dialogo.gd`.
 - 2026-11-14 · Vecinos: un recado urgente (el guardia del día 2) manda sobre su turno, su hambre y su sueño, y el cansancio solo le frena un 15 %; antes iba y venía y se arrastraba. La prueba `aviso_caso1` usa un guardia cansado y hambriento, con el jugador quieto.
 - 2026-11-14 · Caso I: al aparecer el cuerpo (día 2, 06:00) se corta el tiempo adelantado (Ctrl+T o dormir), y también cuando el guardia llega a tu lado; la prueba `aviso_caso1` pulsa Ctrl+T a las 05:50.
 - 2026-11-14 · Caso I: seguro del aviso: si a los 20 min de juego el guardia no te ha alcanzado (p. ej. con el tiempo acelerado), aparece a tu espalda y te habla; probado con el guardia congelado (06:20).
