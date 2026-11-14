@@ -1,15 +1,14 @@
 @tool
 extends Node2D
 class_name RioLago
-const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd") # mapa ×E (sin ciclos: Mapa3D no carga nada)
 
 ## Forma del río y del Lago del Oeste: orillas, puentes, vados y contorno del agua (lo usan el terreno 3D, el agua para
 ## nadar, los vecinos y el editor del mapa). Como nodo, solo pone el choque del agua del lago para los vecinos.
 ## Antes vivía dentro de la pesca; la pesca se borró el 2026-11-12 (se rehará en 3D tras el Caso I).
 
-const MUELLE_LARGO_PX: float = 38.0   ## hueco del choque para pisar el muelle: lo que entra en el agua (mapa ×E)
-const MUELLE_ANCHO_PX: float = 12.0   ## medio ancho del hueco
-const MUELLE_FUERA_PX: float = 8.0    ## lo que el hueco sale del agua hacia la orilla
+const MUELLE_LARGO: float = 38.0   ## hueco del choque para pisar el muelle: lo que entra en el agua
+const MUELLE_ANCHO: float = 12.0   ## medio ancho del hueco
+const MUELLE_FUERA: float = 8.0    ## lo que el hueco sale del agua hacia la orilla
 
 ## Río y arroyo que cruza el pueblo de norte a sur (Caso I: molino viejo abandonado, claro del arroyo y puente viejo).
 const ABANDONED_MILL_CENTER := Vector2(188.0, -1060.0)
@@ -109,79 +108,84 @@ static func nearest_river_crossing(from_pos: Vector2, to_pos: Vector2) -> Dictio
 			best = cr
 	return best
 
-## Lago del Oeste: posición del nodo en el mapa original (World.gd lo coloca) y orilla del agua (un solo muelle al este).
-const LAKE_NODE_POS := Vector2(-715, 105)
-const DOCK_INSET_PX: float = 18.0 ## lo que el muelle se mete en el agua desde la orilla este
+## Lago del Oeste en coordenadas reales del mundo y orilla del agua (un solo muelle al este; sigue a su pieza en «Zonas»).
+const LAKE_NODE_POS := Vector2(-715, 105) ## compatibilidad con World.gd:97 mientras coloca LagoOeste
+const LAGO_NODO_BASE := Vector2(-3575.0, 525.0)
+const MUELLE_ENTRADA: float = 18.0 ## lo que el muelle se mete en el agua desde la orilla este
 const Zona = preload("res://mapa/zona.gd")
-const LAKE_WATER_WORLD: Array[Vector2] = [
-	Vector2(-710, 76), Vector2(-672, 82), Vector2(-665, 105), Vector2(-675, 142), Vector2(-720, 164),
-	Vector2(-785, 186), Vector2(-855, 214), Vector2(-925, 238), Vector2(-1005, 242), Vector2(-1065, 206),
-	Vector2(-1082, 150), Vector2(-1058, 102), Vector2(-990, 82), Vector2(-910, 80), Vector2(-835, 82),
-	Vector2(-760, 80),
+const CONTORNO_LAGO_BASE: Array[Vector2] = [
+	Vector2(-3550.0, 380.0), Vector2(-3360.0, 410.0), Vector2(-3325.0, 525.0), Vector2(-3375.0, 710.0),
+	Vector2(-3600.0, 820.0), Vector2(-3925.0, 930.0), Vector2(-4275.0, 1070.0), Vector2(-4625.0, 1190.0),
+	Vector2(-5025.0, 1210.0), Vector2(-5325.0, 1030.0), Vector2(-5410.0, 750.0), Vector2(-5290.0, 510.0),
+	Vector2(-4950.0, 410.0), Vector2(-4550.0, 400.0), Vector2(-4175.0, 410.0), Vector2(-3800.0, 400.0),
 ]
 
 
-## Contorno del lago en el mapa original. Con el mapa ×E se redondea (dos pasadas de cortar esquinas): los 16 vértices
-## estirados ×5 se verían como un bloque de lados rectos.
-static func lake_outline() -> PackedVector2Array:
-	var out := PackedVector2Array(LAKE_WATER_WORLD)
-	if Mapa3D.E == 1.0:
-		return out
+## Contorno redondeado del lago en coordenadas reales del mundo (sigue a su pieza en «Zonas»).
+static func lake_outline_world() -> PackedVector2Array:
+	var base := PackedVector2Array(CONTORNO_LAGO_BASE)
 	for _k in range(2):
 		var suave := PackedVector2Array()
-		for i in range(out.size()):
-			var a: Vector2 = out[i]
-			var b: Vector2 = out[(i + 1) % out.size()]
+		for i in range(base.size()):
+			var a: Vector2 = base[i]
+			var b: Vector2 = base[(i + 1) % base.size()]
 			suave.append(a.lerp(b, 0.25))
 			suave.append(a.lerp(b, 0.75))
-		out = suave
+		base = suave
+	var desplaz: Vector2 = Zona.desplazamiento("lago")
+	if desplaz == Vector2.ZERO:
+		return base
+	var out := PackedVector2Array()
+	for v: Vector2 in base:
+		out.append(v + desplaz)
 	return out
 
 
-## El mismo contorno en el mundo (mapa ×E).
-static func lake_outline_world() -> PackedVector2Array:
-	return Zona.estirar_puntos(lake_outline()) # va con la pieza del lago («Zonas» del editor)
-
-
-## El agua del lago que se ve: la cuenca del relieve se hunde hasta el contorno (factor 1); la lámina dibujada un poco
-## más grande (1,12) queda tapada por la hierba. Es la que cuenta para nadar, chocar y el muelle.
-static func lake_water() -> PackedVector2Array:
-	return lake_outline()
-
+## El agua del lago que cuenta para nadar, chocar y situar el muelle (coordenadas reales del mundo).
 static func lake_water_world() -> PackedVector2Array:
-	return Zona.estirar_puntos(lake_water())
+	return lake_outline_world()
 
-## Orilla este del agua dibujada a la altura `y` (coordenadas del mapa original): la x mayor donde aún hay agua.
-static func lake_east_shore_x(y: float) -> float:
-	var poli: PackedVector2Array = lake_water()
+
+## Orilla este del agua del lago a la altura `y_mundo`: la x mayor donde aún hay agua.
+static func orilla_este_lago_x(y_mundo: float) -> float:
+	var poli: PackedVector2Array = lake_water_world()
 	var mejor: float = -INF
 	for i in range(poli.size()):
 		var a: Vector2 = poli[i]
 		var b: Vector2 = poli[(i + 1) % poli.size()]
-		if (a.y <= y and b.y >= y) or (b.y <= y and a.y >= y):
-			if absf(b.y - a.y) < 0.001:
-				mejor = maxf(mejor, maxf(a.x, b.x))
-			else:
-				mejor = maxf(mejor, a.x + (b.x - a.x) * (y - a.y) / (b.y - a.y))
-	return mejor if mejor > -INF else LAKE_WATER_WORLD[2].x
+		if (a.y <= y_mundo and b.y >= y_mundo) or (b.y <= y_mundo and a.y >= y_mundo):
+			var x_corte: float = maxf(a.x, b.x) if absf(b.y - a.y) < 0.001 else a.x + (b.x - a.x) * (y_mundo - a.y) / (b.y - a.y)
+			mejor = maxf(mejor, x_corte)
+	return mejor if mejor > -INF else (CONTORNO_LAGO_BASE[2].x + Zona.desplazamiento("lago").x)
 
-## Centro del muelle del lago en el mundo: en la orilla este del agua dibujada, a la altura del nodo, metido 18 px.
+
+## Centro del muelle del lago en el mundo: en la orilla este del agua, metido hacia dentro.
 static func lake_dock_center() -> Vector2:
-	return Zona.estirar(Vector2(lake_east_shore_x(LAKE_NODE_POS.y), LAKE_NODE_POS.y)) - Vector2(DOCK_INSET_PX, 0.0)
+	var y_nodo: float = LAGO_NODO_BASE.y + Zona.desplazamiento("lago").y
+	return Vector2(orilla_este_lago_x(y_nodo) - MUELLE_ENTRADA, y_nodo)
 
 
-## Polígono escalado respecto a su centro (para la orilla de arena y la zona honda).
-static func lake_scaled(factor: float, grow_px: float = 0.0) -> PackedVector2Array:
-	var base: PackedVector2Array = lake_outline()
+## Polígono del lago escalado respecto a su centro en coordenadas reales del mundo (lámina exterior y zona honda).
+static func lake_scaled_world(factor: float, margen_mundo: float = 0.0) -> PackedVector2Array:
+	var base: PackedVector2Array = lake_outline_world()
 	var c := Vector2.ZERO
-	for v in base:
+	for v: Vector2 in base:
 		c += v
 	c /= float(base.size())
 	var out := PackedVector2Array()
-	for v in base:
+	for v: Vector2 in base:
 		var d: Vector2 = v - c
-		out.append(c + d * factor + d.normalized() * grow_px)
+		out.append(c + d * factor + d.normalized() * margen_mundo)
 	return out
+
+
+## Compatibilidad temporal para VillageManagerSocial.gd:477 (multiplica el resultado por 5).
+static func lake_scaled(factor: float, margen_viejo: float = 0.0) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for v: Vector2 in lake_scaled_world(factor, margen_viejo * 5.0):
+		out.append(v * 0.2)
+	return out
+
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
@@ -195,14 +199,15 @@ func _poner_choque_del_agua() -> void:
 	body.add_to_group("agua_2d")
 	body.collision_layer = 1
 	body.collision_mask = 0
+	var nodo_mundo: Vector2 = LAGO_NODO_BASE + Zona.desplazamiento("lago")
 	var pts := PackedVector2Array()
-	for v in lake_water():
-		pts.append((v - LAKE_NODE_POS) * Mapa3D.E)
+	for v: Vector2 in lake_water_world():
+		pts.append(v - nodo_mundo)
 	# Hueco para caminar sobre el muelle de madera sin pisar el agua
-	var sx: float = (lake_east_shore_x(LAKE_NODE_POS.y) - LAKE_NODE_POS.x) * Mapa3D.E
-	var x0: float = sx - MUELLE_LARGO_PX
-	var x1: float = sx + MUELLE_FUERA_PX
-	var hueco := PackedVector2Array([Vector2(x0, -MUELLE_ANCHO_PX), Vector2(x1, -MUELLE_ANCHO_PX), Vector2(x1, MUELLE_ANCHO_PX), Vector2(x0, MUELLE_ANCHO_PX)])
+	var sx: float = orilla_este_lago_x(nodo_mundo.y) - nodo_mundo.x
+	var x0: float = sx - MUELLE_LARGO
+	var x1: float = sx + MUELLE_FUERA
+	var hueco := PackedVector2Array([Vector2(x0, -MUELLE_ANCHO), Vector2(x1, -MUELLE_ANCHO), Vector2(x1, MUELLE_ANCHO), Vector2(x0, MUELLE_ANCHO)])
 	var recorte: Array[PackedVector2Array] = Geometry2D.clip_polygons(pts, hueco)
 	if not recorte.is_empty():
 		pts = recorte[0]

@@ -27,6 +27,7 @@
 - ✅ 2. Lluvia, luz y sonido en 3D (`Clima3D` sin llover bajo techo, día/noche solo con luz 3D sin `CanvasModulate` ni tintes/nieblas 2D en `RetroPostFX`, sonido 3D de pasos, puertas, voces y río; `contar_2d.sh` 2.454 → 2.428), 2026-11-14.
 - ✅ 3. El mundo dibujado por código pasa a ser piezas del editor: 0 llamadas `_add_box/cyl/model_2d` en `WorldStageProps3D` y `WorldStageTerrain3D`, 481 matas de pradera en `Vegetacion/MatasPradera`, 33 escenas de objetos/bajo tierra/puesto horneadas y las 416 piezas anónimas del `Decorado` nombradas y agrupadas en 32 objetos (`contar_2d.sh` 2.428 → 2.409), 2026-11-14.
 - ✅ 4. Interiores de tamaño real de la casa de la cantera (`mixed_family_quarry`, 8,4 × 9,8 m con taller de cantero al este) y del restaurante (`building_restaurant`, 15,4 × 10,64 m con terraza iluminada, comedor, cocina, cámara fría, reservado, bodega y alcoba de dos camas; `contar_2d.sh` 2.406 → 2.407 por una `Texture2D` de material 3D), 2026-11-14.
+- ✅ 5. Quitado el estirón ×5 y el «mapa original» del relieve, lago, ciénaga, plaza y mapa cartográfico del valle (`WorldStageBase3D`, `WorldStageTerrain3D`, `mapa/zona.gd`, `mapa/mundo3d.gd`, `RioLago.gd`, `Agua.gd`, `ValleyMapUI.gd` y `ValleMapaPiezas.gd` en coordenadas reales; movido además `Banco_Plaza_Oeste` delante de la pescadería → `puertas_3d` 29/29; `contar_2d.sh` 2.407 → 2.312), 2026-11-14.
 
 ## Tareas
 1. ✅ **Rendimiento: sombras del sol** (prioridad 1 de `FALLOS_VISIBLES.md`) y **geometría junto al río**. Abaratar sin que
@@ -42,7 +43,7 @@
    Por tandas pequeñas (un tipo de objeto cada vez), con foto de antes y después. Coste: mucho.
 4. ✅ **Interiores de tamaño real que faltan:** la casa de la cantera y el restaurante (la taberna espera la pregunta 0b del
    usuario: no la toques). Lee antes `docs/specs/REGISTRO_EDITOR_3D.md` y `docs/specs/BOCETOS_EDIFICIOS.md`. Coste: mucho.
-5. **Quitar el estirón ×5 y el «mapa original»** de tus archivos y de las formas del mundo (auditoría A5): relieve hecho
+5. ✅ **Quitar el estirón ×5 y el «mapa original»** de tus archivos y de las formas del mundo (auditoría A5): relieve hecho
    por el juego, forma del lago y de la ciénaga, manchas del mapa del valle (`WorldStageTerrain3D.gd`, `mapa/zona.gd`,
    `scripts/fisica/RioLago.gd` y `Agua.gd` solo en lo que toca a esas formas, `scripts/ui/ValleyMapUI.gd`). Las formas
    pasan a estar escritas una vez en su sitio real del mundo (o en piezas del editor) y se borran `Mapa3D.E`,

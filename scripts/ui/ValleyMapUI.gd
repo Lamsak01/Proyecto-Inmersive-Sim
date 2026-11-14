@@ -22,8 +22,8 @@ var _label_hits: Array[Dictionary] = [] # rectángulos del mapa grande con su no
 var _minimap_redraw_timer: float = 0.0
 var _fullmap_redraw_timer: float = 0.0
 
-const WORLD_RECT := Rect2(Vector2(-2150.0, -900.0) * Mapa3D.E, Vector2(3900.0, 3350.0) * Mapa3D.E) # Paso 2: abarca Llanura/Ciénaga separadas al oeste y Bosque Profundo ampliado al sur
-const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
+const WORLD_RECT := Rect2(Vector2(-10750.0, -4500.0), Vector2(19500.0, 16750.0))
+const RADIO_MINIMAPA_MUNDO: float = 2700.0
 const Zona = preload("res://mapa/zona.gd") ## plaza, lago y ciénaga van con su pieza del editor
 const Piezas = preload("res://scripts/ui/ValleMapaPiezas.gd") ## edificios, solares, plaza y agua desde el editor
 const VillageLots = preload("res://scripts/systems/VillageLots.gd")
@@ -168,7 +168,8 @@ func _clip_rect_to_circle(r: Rect2, center: Vector2, max_rad: float) -> Rect2:
 	if max_x <= min_x or max_y <= min_y:
 		return Rect2()
 	var clipped := Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))
-	if clipped.get_center().distance_to(center) > max_rad - 2.0:
+	var max_r: float = maxf(0.0, max_rad - 2.0)
+	if clipped.get_center().distance_squared_to(center) > max_r * max_r:
 		return Rect2()
 	return clipped
 
@@ -178,66 +179,59 @@ func _draw_round_paper_minimap(canvas: Control) -> void:
 		return
 	var center: Vector2 = csize * 0.5
 	var rad: float = minf(csize.x, csize.y) * 0.5 - 2.0
-	var p_world: Vector2 = player.global_position if is_instance_valid(player) else Vector2(450.0, 40.0)
-	var scale_px: float = rad / (540.0 * Mapa3D.E) # ~540 px (del mapa original) de radio alrededor del jugador
+	var p_world: Vector2 = player.global_position if is_instance_valid(player) else Vector2(2250.0, 200.0)
+	var scale_world: float = rad / RADIO_MINIMAPA_MUNDO
 
 	# Sombra dura estilo papel + fondo pergamino redondo
 	canvas.draw_circle(center + Vector2(3.0, 3.0), rad, Color(0.0, 0.0, 0.0, 0.45))
 	canvas.draw_circle(center, rad, Color(0.875, 0.820, 0.698, 1.0)) # #dfd1b2
 
 	var to_mini := func(wpos: Vector2) -> Vector2:
-		return center + (wpos - p_world) * scale_px
+		return center + (wpos - p_world) * scale_world
 
 	# Agua (lago y ciénaga)
 	for w_rect in Piezas.agua():
-		var mr := Rect2(to_mini.call(w_rect.position), w_rect.size * scale_px)
+		var mr := Rect2(to_mini.call(w_rect.position), w_rect.size * scale_world)
 		var cr := _clip_rect_to_circle(mr, center, rad - 3.0)
 		if cr.size.x > 0.5:
 			canvas.draw_rect(cr, Color(0.498, 0.639, 0.678, 0.90), true)
 
 	# Caminos y plaza en tono pergamino tostado (#b9a882)
 	var road_col := Color(0.725, 0.659, 0.510, 0.95)
-	for r_rect in _e_lista([
-		Rect2(Vector2(-1950, 36), Vector2(2960, 28)),
-		Rect2(Vector2(-688, -88), Vector2(18, 124)),
-		Rect2(Vector2(448, -135), Vector2(34, 920)),
-		Rect2(Vector2(140, 130), Vector2(24, 248)),
-		Rect2(Vector2(140, 356), Vector2(312, 22)),
-		Rect2(Vector2(660, -135), Vector2(280, 24)),
-		Rect2(Vector2(660, -135), Vector2(24, 185)),
-	] + VillageLots.ROADS if _tramos_ed().is_empty() else []) + [Piezas.plaza()]:
-		var mr2 := Rect2(to_mini.call(r_rect.position), r_rect.size * scale_px)
-		var cr2 := _clip_rect_to_circle(mr2, center, rad - 3.0)
-		if cr2.size.x > 0.5:
-			canvas.draw_rect(cr2, road_col, true)
+	var mr2 := Rect2(to_mini.call(Piezas.plaza().position), Piezas.plaza().size * scale_world)
+	var cr2 := _clip_rect_to_circle(mr2, center, rad - 3.0)
+	if cr2.size.x > 0.5:
+		canvas.draw_rect(cr2, road_col, true)
 
-	# Editor del mapa 3D (2026-11-10): tramos de «Caminos», recortados al círculo a trocitos
+	# Tramos de «Caminos» del editor 3D, recortados al círculo
+	var r_tramo2: float = (rad - 3.0) * (rad - 3.0)
 	for t in _tramos_ed():
 		var ta: Vector2 = t["a"]
 		var tb: Vector2 = t["b"]
-		var n_tr: int = maxi(1, int(ceil(ta.distance_to(tb) / 12.0)))
+		var n_tr: int = maxi(1, int(ceil((tb - ta).length() / 60.0)))
 		for k in range(n_tr):
 			var q0: Vector2 = to_mini.call(ta.lerp(tb, float(k) / n_tr))
 			var q1: Vector2 = to_mini.call(ta.lerp(tb, float(k + 1) / n_tr))
-			if q0.distance_to(center) < rad - 3.0 and q1.distance_to(center) < rad - 3.0:
-				canvas.draw_line(q0, q1, road_col, maxf(1.0, float(t["ancho"]) * scale_px))
+			if q0.distance_squared_to(center) < r_tramo2 and q1.distance_squared_to(center) < r_tramo2:
+				canvas.draw_line(q0, q1, road_col, maxf(1.0, float(t["ancho"]) * scale_world))
 
 	# Edificios (#8a7356 con borde de tinta #3a3228)
 	var b_rects: Array[Rect2] = [] # cada edificio donde esté su pieza en el editor 3D
 	for b_pieza: Dictionary in Piezas.edificios():
 		b_rects.append(b_pieza["rect"])
 	for br_w in b_rects:
-		var mr3 := Rect2(to_mini.call(br_w.position), br_w.size * scale_px)
+		var mr3 := Rect2(to_mini.call(br_w.position), br_w.size * scale_world)
 		var cr3 := _clip_rect_to_circle(mr3, center, rad - 4.0)
 		if cr3.size.x > 1.5 and cr3.size.y > 1.5:
 			canvas.draw_rect(cr3, Color(0.541, 0.451, 0.337, 0.96), true)
 			canvas.draw_rect(cr3, Color(0.227, 0.196, 0.157, 0.95), false, 1.0)
 
 	# Vecinos vivos (#5a5042) y cadáveres (#8f2d26)
+	var r_npc2: float = (rad - 5.0) * (rad - 5.0)
 	for npc in get_tree().get_nodes_in_group("village_npcs"):
 		if npc is VillageNPC and (npc as Node2D).visible and not bool(npc.get("corpse_buried")):
 			var np: Vector2 = to_mini.call((npc as Node2D).global_position)
-			if np.distance_to(center) <= rad - 5.0:
+			if np.distance_squared_to(center) <= r_npc2:
 				var col_n: Color = Color(0.561, 0.176, 0.149, 1.0) if npc.is_dead else Color(0.353, 0.314, 0.259, 0.95)
 				canvas.draw_circle(np, 2.3 if npc.is_dead else 2.0, col_n)
 
@@ -338,15 +332,16 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	canvas.draw_rect(Rect2(Vector2.ZERO, csize), Color(0.875, 0.820, 0.698, 1.0), true)
 
 	# 2. Bioma Oeste: Llanura Salvaje (Noroeste) y Ciénaga de Ranas (Suroeste), en aguadas de tinta sobre papel
-	var plains_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-2060, -560), Vector2(980, 540))])[0], csize)
+	var plains_r := _world_rect_to_map(Rect2(Vector2(-10300.0, -2800.0), Vector2(4900.0, 2700.0)), csize)
 	canvas.draw_rect(plains_r, Color(0.81, 0.75, 0.58, 0.72), true)
 	canvas.draw_rect(plains_r, Color(0.42, 0.35, 0.25, 0.78), false, 1.5)
 
-	var bandit_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-1760, -390), Vector2(470, 230))])[0], csize)
+	var bandit_r := _world_rect_to_map(Rect2(Vector2(-8800.0, -1950.0), Vector2(2350.0, 1150.0)), csize)
 	canvas.draw_rect(bandit_r, Color(0.73, 0.56, 0.48, 0.72), true)
 	canvas.draw_rect(bandit_r, Color(0.48, 0.26, 0.22, 0.78), false, 1.0)
 
-	var marsh_r := _world_rect_to_map(Zona.rect_mundo("cienaga"), csize)
+	var marsh_w: Rect2 = Zona.rect_mundo("cienaga")
+	var marsh_r := _world_rect_to_map(marsh_w, csize)
 	canvas.draw_rect(marsh_r, Color(0.58, 0.69, 0.64, 0.82), true)
 	canvas.draw_rect(marsh_r, Color(0.30, 0.42, 0.38, 0.85), false, 1.2)
 
@@ -361,49 +356,34 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		canvas.draw_polyline(border_pts, Color(0.32, 0.39, 0.26, 0.85), 1.5)
 
 	# Sub-hábitat 1: Soto de Conejos (Noroeste del Bosque)
-	var rab_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-1050, 800), Vector2(720, 520))])[0], csize)
+	var rab_r := _world_rect_to_map(Rect2(Vector2(-5250.0, 4000.0), Vector2(3600.0, 2600.0)), csize)
 	canvas.draw_rect(rab_r, Color(0.65, 0.73, 0.55, 0.48), true)
 	# Sub-hábitat 2: Claros de Venados (Centro-Sur del Bosque)
-	var deer_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-220, 960), Vector2(820, 1180))])[0], csize)
+	var deer_r := _world_rect_to_map(Rect2(Vector2(-1100.0, 4800.0), Vector2(4100.0, 5900.0)), csize)
 	canvas.draw_rect(deer_r, Color(0.67, 0.74, 0.56, 0.48), true)
 	# Sub-hábitat 3: Riscos y Zorros (Este del Bosque)
-	var fox_r := _world_rect_to_map(_e_lista([Rect2(Vector2(700, 820), Vector2(760, 920))])[0], csize)
+	var fox_r := _world_rect_to_map(Rect2(Vector2(3500.0, 4100.0), Vector2(3800.0, 4600.0)), csize)
 	canvas.draw_rect(fox_r, Color(0.72, 0.66, 0.55, 0.52), true)
 	# Sub-hábitat 4: Robledal de Jabalíes (Suroeste del Bosque)
-	var boar_r := _world_rect_to_map(_e_lista([Rect2(Vector2(-1060, 1380), Vector2(760, 740))])[0], csize)
+	var boar_r := _world_rect_to_map(Rect2(Vector2(-5300.0, 6900.0), Vector2(3800.0, 3700.0)), csize)
 	canvas.draw_rect(boar_r, Color(0.68, 0.63, 0.52, 0.48), true)
 
 	# 4. Red de Caminos y Plaza Central en tono pergamino tostado (#b9a882)
 	var road_col := Color(0.725, 0.659, 0.510, 0.96)
-	for r_rect in _e_lista([
-		Rect2(Vector2(-1950, 36), Vector2(2960, 28)),
-		Rect2(Vector2(-688, -88), Vector2(18, 124)),
-		Rect2(Vector2(-688, 64), Vector2(18, 36)),
-		Rect2(Vector2(448, -135), Vector2(34, 920)),
-		Rect2(Vector2(140, 130), Vector2(24, 248)),
-		Rect2(Vector2(140, 356), Vector2(312, 22)),
-		Rect2(Vector2(-380, 760), Vector2(1040, 24)),
-		Rect2(Vector2(130, 780), Vector2(26, 260)),
-		Rect2(Vector2(660, -135), Vector2(280, 24)),
-		Rect2(Vector2(660, -135), Vector2(24, 185))
-	] + VillageLots.ROADS if _tramos_ed().is_empty() else []):
-		canvas.draw_rect(_world_rect_to_map(r_rect, csize), road_col, true)
 	for t in _tramos_ed():
 		var tw2: float = _world_rect_to_map(Rect2(Vector2.ZERO, Vector2(float(t["ancho"]), float(t["ancho"]))), csize).size.x
-		canvas.draw_line(_world_rect_to_map(Rect2(t["a"], Vector2.ZERO), csize).position, _world_rect_to_map(Rect2(t["b"], Vector2.ZERO), csize).position, road_col, maxf(1.0, tw2))
-	for cr in VillageLots.CURVED_ROADS: # Bloque AB: callejas curvas del norte
-		var cpts := PackedVector2Array()
-		for p in VillageLots.curved_road_points(cr):
-			cpts.append(_world_rect_to_map(Rect2(p, Vector2.ZERO), csize).position)
-		var cw: float = _world_rect_to_map(Rect2(Vector2.ZERO, Vector2(float(cr["w"]), float(cr["w"]))), csize).size.x
-		canvas.draw_polyline(cpts, road_col, maxf(1.0, cw))
+		canvas.draw_line(_world_to_map(t["a"], csize), _world_to_map(t["b"], csize), road_col, maxf(1.0, tw2))
+	var cw_norte: float = _world_rect_to_map(Rect2(Vector2.ZERO, Vector2(100.0, 100.0)), csize).size.x
+	for cr_cfg: Array in [[1350.0, 5700.0, -2580.0, 0.0], [650.0, 5700.0, -3380.0, 2.1]]:
+		canvas.draw_polyline(_puntos_calleja_curva(float(cr_cfg[0]), float(cr_cfg[1]), float(cr_cfg[2]), float(cr_cfg[3]), csize), road_col, maxf(1.0, cw_norte))
 
 	var plaza_r := _world_rect_to_map(Piezas.plaza(), csize)
 	canvas.draw_rect(plaza_r, Color(0.67, 0.62, 0.52, 0.95), true)
 	canvas.draw_rect(plaza_r, Color(0.227, 0.196, 0.157, 0.70), false, 1.0)
 
-	# 5. Lago del Oeste, Río de Norte a Sur, Puente Viejo, Campamento del Jugador y Gallinero/Huerto
-	var lake_r := _world_rect_to_map(Zona.rect_mundo("lago"), csize)
+	# 5. Lago del Oeste, Río de Norte a Sur y Puente Viejo
+	var lake_w: Rect2 = Zona.rect_mundo("lago")
+	var lake_r := _world_rect_to_map(lake_w, csize)
 	canvas.draw_rect(lake_r, Color(0.498, 0.639, 0.678, 0.94), true)
 	canvas.draw_rect(lake_r, Color(0.24, 0.35, 0.39, 0.90), false, 1.2)
 
@@ -412,7 +392,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 		riv_pts.append(_world_to_map(wp, csize))
 	if riv_pts.size() >= 2:
 		canvas.draw_polyline(riv_pts, Color(0.32, 0.54, 0.68, 0.92), 4.0)
-	var ob_map_r := _world_rect_to_map(_e_lista([Rect2(Vector2(82, 32), Vector2(88, 36))])[0], csize)
+	var ob_map_r := _world_rect_to_map(Rect2(Vector2(410.0, 160.0), Vector2(440.0, 180.0)), csize)
 	canvas.draw_rect(ob_map_r, Color(0.56, 0.44, 0.30, 0.96), true)
 
 	# 6. Edificios de la Aldea en tonos teja/madera y borde de tinta
@@ -446,14 +426,14 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	var ink_main := Color(0.149, 0.129, 0.106, 1.0)
 	var ink_sub := Color(0.28, 0.23, 0.18, 1.0)
 	if detailed and font:
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1980, -490) * Mapa3D.E, csize), "Llanura Salvaje", 11, ink_main)
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1710, -290) * Mapa3D.E, csize), "Ruinas Bandidos", 10, Color(0.48, 0.18, 0.15, 1.0))
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1940, 290) * Mapa3D.E, csize), "Ciénaga de las Ranas", 11, ink_main)
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-1035, 165) * Mapa3D.E, csize), "Lago del Oeste", 10, Color(0.14, 0.26, 0.32, 1.0))
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-980, 960) * Mapa3D.E, csize), "Soto de Conejos", 10, ink_sub)
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-980, 1620) * Mapa3D.E, csize), "Robledal de Jabalíes", 10, ink_sub)
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-120, 1280) * Mapa3D.E, csize), "Claros de Venados", 10, ink_sub)
-		_draw_ink_tag(canvas, font, _world_to_map(Vector2(740, 1120) * Mapa3D.E, csize), "Riscos y Zorros", 10, ink_sub)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-9900.0, -2450.0), csize), "Llanura Salvaje", 11, ink_main)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-8550.0, -1450.0), csize), "Ruinas Bandidos", 10, Color(0.48, 0.18, 0.15, 1.0))
+		_draw_ink_tag(canvas, font, _world_to_map(marsh_w.position + Vector2(600.0, 975.0), csize), "Ciénaga de las Ranas", 11, ink_main)
+		_draw_ink_tag(canvas, font, _world_to_map(lake_w.position + Vector2(500.0, 675.0), csize), "Lago del Oeste", 10, Color(0.14, 0.26, 0.32, 1.0))
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-4900.0, 4800.0), csize), "Soto de Conejos", 10, ink_sub)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-4900.0, 8100.0), csize), "Robledal de Jabalíes", 10, ink_sub)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(-600.0, 6400.0), csize), "Claros de Venados", 10, ink_sub)
+		_draw_ink_tag(canvas, font, _world_to_map(Vector2(3700.0, 5600.0), csize), "Riscos y Zorros", 10, ink_sub)
 
 	# 7. Puntos en Vivo de Fauna del Bosque
 	for animal in get_tree().get_nodes_in_group("wild_animals"):
@@ -575,11 +555,11 @@ func _update_census_and_hover() -> void:
 	var vm = get_tree().get_first_node_in_group("village_manager")
 	if vm and "shop_businesses" in vm:
 		var shop_rects: Array[Dictionary] = [
-			{"role": int(VillageNPC.TradeRole.BLACKSMITH), "rect": Rect2(Vector2(277, -74), Vector2(116, 76))},
-			{"role": int(VillageNPC.TradeRole.BUTCHER), "rect": Rect2(Vector2(527, -74), Vector2(116, 76))},
-			{"role": int(VillageNPC.TradeRole.CARPENTER), "rect": Rect2(Vector2(527, 110), Vector2(116, 76))},
-			{"role": int(VillageNPC.TradeRole.FISHMONGER), "rect": Rect2(Vector2(407, 110), Vector2(116, 76))},
-			{"role": int(VillageNPC.TradeRole.HERBALIST), "rect": Rect2(Vector2(261, 107), Vector2(128, 96))}
+			{"role": int(VillageNPC.TradeRole.BLACKSMITH), "rect": Piezas.edificio("shop_family_smith")},
+			{"role": int(VillageNPC.TradeRole.BUTCHER), "rect": Piezas.edificio("shop_family_butcher")},
+			{"role": int(VillageNPC.TradeRole.CARPENTER), "rect": Piezas.edificio("shop_family_carpenter")},
+			{"role": int(VillageNPC.TradeRole.FISHMONGER), "rect": Piezas.edificio("shop_family_fishmonger")},
+			{"role": int(VillageNPC.TradeRole.HERBALIST), "rect": Piezas.edificio("mixed_family_herbalist")},
 		]
 		for sr in shop_rects:
 			var r_id: int = int(sr["role"])
@@ -612,18 +592,17 @@ func _update_census_and_hover() -> void:
 	hover_info_label.text = best_txt
 
 
-## Mapa ×E: zonas y caminos escritos a mano (mapa original) → mundo estirado.
-func _e_lista(lista: Array) -> Array:
-	var out: Array = []
-	for r in lista:
-		if r is Rect2:
-			var tam: Vector2 = (r as Rect2).size * Mapa3D.E
-			out.append(Rect2(Zona.estirar((r as Rect2).get_center()) - tam * 0.5, tam)) # plaza, lago y ciénaga van con su pieza
-		elif r is Vector2:
-			out.append(Zona.estirar(r as Vector2))
-		else:
-			out.append(r)
-	return out
+func _puntos_calleja_curva(x0: float, x1: float, y_base: float, fase: float, csize: Vector2) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	var x: float = x0
+	var span: float = maxf(1.0, x1 - x0)
+	while x < x1:
+		var onda: float = 55.0 * sin(((x - x0) / span) * TAU * 0.85 + fase)
+		pts.append(_world_to_map(Vector2(x, y_base + onda), csize))
+		x += 225.0
+	var onda_fin: float = 55.0 * sin(TAU * 0.85 + fase)
+	pts.append(_world_to_map(Vector2(x1, y_base + onda_fin), csize))
+	return pts
 
 
 func _tramos_ed() -> Array:

@@ -1,18 +1,19 @@
 extends SceneTree
 
-## Sondeo de las zonas de terreno (Claude Code, 2026-11-11): mueve en memoria la plaza, el lago y la ciénaga del editor
-## (mapa/Mundo3D.tscn → «Zonas», sin guardar) y comprueba que el agua, la hondonada y el muelle van con su pieza y que
-## en el sitio viejo ya no queda nada. Sin ventana, unos segundos:
+## Sondeo de las zonas de terreno: mueve en memoria la plaza, el lago y la ciénaga del editor
+## (mapa/Mundo3D.tscn → «Zonas», sin guardar) y comprueba que el agua, la hondonada, la plataforma y el muelle
+## van con su pieza en coordenadas reales del mundo y que en el sitio viejo ya no queda nada:
 ##   flatpak run org.godotengine.Godot --headless --path . -s tools/tests/sondeo_zonas.gd
 
 const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 const ESCENA_EDITOR := "res://mapa/Mundo3D.tscn"
-const DESPLAZAMIENTO_PX := Vector2(2600.0, -1900.0) ## lejos: la zona movida no se solapa con su sitio viejo
-const LAGO_DENTRO := Vector2(-870.0, 160.0)   ## mapa original: en mitad del agua del lago
-const CIENAGA_DENTRO := Vector2(-1535.0, 328.0) ## mapa original: centro de la cuenca de la ciénaga
-const HONDO_PX: float = -2.0                  ## por debajo de esto el terreno es cuenca de agua
+const DESPLAZAMIENTO_MUNDO := Vector2(2600.0, -1900.0)
+const LAGO_VIEJO := Vector2(-4350.0, 800.0)
+const CIENAGA_VIEJA := Vector2(-7675.0, 1640.0)
+const PLAZA_VIEJA := Vector2(2325.0, 245.0)
+const HONDO_COTA: float = -2.0
 
-var _escena_movida: PackedScene = null ## si nadie la guarda, la caché la suelta y se vuelve a leer el archivo
+var _escena_movida: PackedScene = null
 var _fallos: int = 0
 
 
@@ -21,24 +22,24 @@ func _initialize() -> void:
 	var zona: GDScript = load("res://mapa/zona.gd")
 	var agua: GDScript = load("res://scripts/fisica/Agua.gd")
 	var relieve: GDScript = load("res://scripts/visuals/WorldStageBase3D.gd")
-	var pesca: GDScript = load("res://scripts/fisica/RioLago.gd")
-	var lago_viejo: Vector2 = LAGO_DENTRO * Mapa3D.E
-	var lago_nuevo: Vector2 = lago_viejo + DESPLAZAMIENTO_PX
-	_comprobar("el lago se estira a su sitio nuevo", (zona.call("estirar", LAGO_DENTRO) as Vector2).is_equal_approx(lago_nuevo))
+	var rio_lago: GDScript = load("res://scripts/fisica/RioLago.gd")
+	var lago_nuevo: Vector2 = LAGO_VIEJO + DESPLAZAMIENTO_MUNDO
+	_comprobar("el lago se desplaza a su sitio nuevo", (zona.call("rect_mundo", "lago") as Rect2).has_point(lago_nuevo))
 	_comprobar("se nada en el lago nuevo", bool(agua.call("en_lago", lago_nuevo)))
-	_comprobar("no se nada en el sitio viejo", not bool(agua.call("en_lago", lago_viejo)))
-	_comprobar("hay hondonada en el lago nuevo", float(relieve.call("terrain_height_px", lago_nuevo)) < HONDO_PX)
-	_comprobar("no queda hondonada en el sitio viejo", float(relieve.call("terrain_height_px", lago_viejo)) > HONDO_PX)
-	var muelle: Vector2 = pesca.call("lake_dock_center")
-	_comprobar("el muelle va con el lago", (zona.call("desestirar", muelle) as Vector2).distance_to(LAGO_DENTRO) < 300.0)
+	_comprobar("no se nada en el sitio viejo", not bool(agua.call("en_lago", LAGO_VIEJO)))
+	_comprobar("hay hondonada en el lago nuevo", float(relieve.call("terrain_height_px", lago_nuevo)) < HONDO_COTA)
+	_comprobar("no queda hondonada en el sitio viejo", float(relieve.call("terrain_height_px", LAGO_VIEJO)) > HONDO_COTA)
+	var muelle: Vector2 = rio_lago.call("lake_dock_center")
+	_comprobar("el muelle va con el lago", muelle.distance_to(lago_nuevo) < 1500.0)
 	_comprobar("el muelle no es agua", not bool(agua.call("en_lago", muelle)))
-	var cienaga_nueva: Vector2 = CIENAGA_DENTRO * Mapa3D.E + DESPLAZAMIENTO_PX
-	_comprobar("hay cuenca en la ciénaga nueva", float(relieve.call("terrain_height_px", cienaga_nueva)) < HONDO_PX)
-	_comprobar("no queda cuenca en la ciénaga vieja", float(relieve.call("terrain_height_px", CIENAGA_DENTRO * Mapa3D.E)) > HONDO_PX)
+	var cienaga_nueva: Vector2 = CIENAGA_VIEJA + DESPLAZAMIENTO_MUNDO
+	_comprobar("hay cuenca en la ciénaga nueva", float(relieve.call("terrain_height_px", cienaga_nueva)) < HONDO_COTA)
+	_comprobar("no queda cuenca en la ciénaga vieja", float(relieve.call("terrain_height_px", CIENAGA_VIEJA)) > HONDO_COTA)
 	_comprobar("el jugador enferma en la ciénaga nueva", (zona.call("rect_mundo", "cienaga") as Rect2).has_point(cienaga_nueva))
-	_comprobar("y no en la vieja", not (zona.call("rect_mundo", "cienaga") as Rect2).has_point(CIENAGA_DENTRO * Mapa3D.E))
-	var campo := Vector2(-300.0, 1500.0)
-	_comprobar("el campo abierto no cambia", (zona.call("estirar", campo) as Vector2).is_equal_approx(campo * Mapa3D.E))
+	_comprobar("y no en la vieja", not (zona.call("rect_mundo", "cienaga") as Rect2).has_point(CIENAGA_VIEJA))
+	var plaza_nueva: Vector2 = PLAZA_VIEJA + DESPLAZAMIENTO_MUNDO
+	_comprobar("la plaza va a su sitio nuevo", (zona.call("rect_mundo", "plaza") as Rect2).has_point(plaza_nueva))
+	_comprobar("y no queda en el sitio viejo", not (zona.call("rect_mundo", "plaza") as Rect2).has_point(PLAZA_VIEJA))
 	print("SONDEO zonas: %s" % ("bien" if _fallos == 0 else "%d fallos" % _fallos))
 	quit(1 if _fallos > 0 else 0)
 
@@ -49,13 +50,12 @@ func _comprobar(que: String, bien: bool) -> void:
 		print("SONDEO zonas FALLA: " + que)
 
 
-## Mueve en memoria cada pieza de «Zonas» y hace que el juego lea esa versión en vez del archivo.
 func _mover_zonas() -> void:
 	var escena: Node = (load(ESCENA_EDITOR) as PackedScene).instantiate()
-	var d3: Vector3 = Mapa3D.a_3d(DESPLAZAMIENTO_PX, 0.0) - Mapa3D.a_3d(Vector2.ZERO, 0.0)
+	var d3: Vector3 = Mapa3D.a_3d(DESPLAZAMIENTO_MUNDO, 0.0) - Mapa3D.a_3d(Vector2.ZERO, 0.0)
 	d3.y = 0.0
-	for zona: Node in escena.get_node("Zonas").get_children():
-		(zona as Node3D).position += d3
+	for z: Node in escena.get_node("Zonas").get_children():
+		(z as Node3D).position += d3
 	_escena_movida = PackedScene.new()
 	_escena_movida.pack(escena)
 	_escena_movida.take_over_path(ESCENA_EDITOR)

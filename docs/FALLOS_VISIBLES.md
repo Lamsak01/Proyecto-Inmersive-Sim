@@ -5,9 +5,9 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
-- [ ] (2026-11-14, Claude, prueba `puertas_3d`) **Hay un banco a metro y medio de la puerta de la pescadería, justo
+- ✅ (2026-11-14, Antigravity; apuntado por Claude en prueba `puertas_3d`) **Hay un banco a metro y medio de la puerta de la pescadería, justo
   en medio**: andando recto hacia la puerta te para (se rodea por un lado). Ya pasaba antes de la tanda 4a. La regla que
-  despeja las puertas solo mira 24 px delante y el banco está a 28. Arreglo: mover la pieza del banco en el mapa.
+  despeja las puertas solo mira 24 px delante y el banco está a 28. Arreglo: mover la pieza del banco en el mapa. *(Movido `Banco_Plaza_Oeste` 8,4 m al oeste en el paseo sur de `Mundo3D.tscn`; `puertas_3d` 29/29 en verde; foto `docs/capturas_arreglos/2026-11-14_t5_pescaderia_banco_1p.png`.)*
 - ✅ a medias (2026-11-14, tanda 4a) **Dos vecinos se quedaban 40 s andando contra algo a las 14:00** junto al claro del
   norte (destinos ~(159, −2780) y (241, −2779) del mapa), lejos del jugador. La misma simulación da ahora 0 atascos
   (`atascos_vecinos.gd -- 2 12 cocinero jugador:puerta:building_restaurant`), pero **no porque la ruta esté bien**: la

@@ -31,7 +31,10 @@ static func a_original(p_mundo: Vector2) -> Vector2:
 		var q: Vector2 = EdificioEditor.a_plano(id, p_mundo)
 		if (_plantas()[id] as Rect2).has_point(q):
 			return q
-	return Zona.desestirar(p_mundo)
+	for zona: Dictionary in Zona.todas():
+		if (zona["rect"] as Rect2).has_point(p_mundo):
+			return (p_mundo - (zona["d"] as Vector2)) * 0.2
+	return p_mundo * 0.2
 
 
 ## El edificio más pequeño cuya planta (con lo pegado) contiene p ("" si ninguno).

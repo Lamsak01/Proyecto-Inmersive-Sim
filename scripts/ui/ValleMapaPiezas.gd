@@ -40,7 +40,12 @@ static func edificios() -> Array[Dictionary]:
 	return out
 
 
-## Rectángulo de algo construido en un solar, dado en el plano del solar (mapa original) → mundo, ya girado.
+## Rectángulo en el mundo de un edificio concreto según su pieza del editor 3D.
+static func edificio(id: String) -> Rect2:
+	return _caja_girada(id, Planta.de_edificio(id).get("size", Vector2.ZERO))
+
+
+## Rectángulo de algo construido en un solar, dado en el plano del solar → mundo, ya girado.
 static func en_solar(id_solar: String, r_plano: Rect2) -> Rect2:
 	var caja := Rect2(Solar.a_mundo(id_solar, r_plano.position), Vector2.ZERO)
 	for esquina: Vector2 in [r_plano.end, Vector2(r_plano.end.x, r_plano.position.y), Vector2(r_plano.position.x, r_plano.end.y)]:

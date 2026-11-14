@@ -70,11 +70,11 @@ func _build_ground_3d() -> void:
 	var m_terrain: Material = _make_ground_shader_mat("ground_terrain_heightfield_sh", Color(0.28, 0.40, 0.21), Color(0.20, 0.30, 0.15), Color(0.37, 0.29, 0.19), 0.26)
 	if m_terrain is ShaderMaterial:
 		(m_terrain as ShaderMaterial).set_shader_parameter("use_vertex_biomes", 1.0)
-	var min_x: float = -3450.0 * Mapa3D.E
-	var max_x: float = 3050.0 * Mapa3D.E
-	var min_y: float = -1850.0 * Mapa3D.E
-	var max_y: float = 3250.0 * Mapa3D.E
-	var step: float = 34.0 * maxf(1.0, Mapa3D.E * 0.4)
+	var min_x: float = -17250.0
+	var max_x: float = 15250.0
+	var min_y: float = -9250.0
+	var max_y: float = 16250.0
+	var step: float = 68.0
 	var nx: int = int(ceil((max_x - min_x) / step))
 	var ny: int = int(ceil((max_y - min_y) / step))
 	var cols_total: int = nx + 1
@@ -161,9 +161,6 @@ func _crear_sector_suelo_3d(
 	parent.add_child(sector_mi)
 
 func _add_road_strip_3d(parent: Node3D, rect: Rect2, height_px: float, mat: Material) -> MeshInstance3D:
-	if estirar_terreno:
-		var tam: Vector2 = rect.size * Mapa3D.E
-		rect = Rect2(Zona.estirar(rect.get_center()) - tam * 0.5, tam)
 	var step: float = 20.0
 	var nx: int = maxi(1, int(ceil(rect.size.x / step)))
 	var ny: int = maxi(1, int(ceil(rect.size.y / step)))
@@ -214,11 +211,11 @@ func _marcar_mata_sin_sombra(nodo: Node) -> void:
 		mi.set_meta(&"mata_baja", true)
 
 
-## Lago 3D con abundante agua azul a cota -1.5 px, orillas suaves de hierba con juncos y piedras, y un único muelle a ras del agua.
+## Lago 3D con abundante agua azul, orillas suaves de hierba con juncos y piedras, y un único muelle a ras del agua.
 func _build_lake_3d() -> void:
 	var m_lake := _mat_agua("lake_water", Color(0.24, 0.54, 0.82, 0.92))
 	var m_deep := _mat_agua("lake_deep", Color(0.14, 0.34, 0.60, 0.95))
-	var mi_lago: MeshInstance3D = _add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled(1.12, 8.0), -1.0, m_lake, true)
+	var mi_lago: MeshInstance3D = _add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled_world(1.12, 40.0), -1.0, m_lake, true)
 	if mi_lago != null and mi_lago.mesh != null and terrain_root_3d != null:
 		var c_lago: AABB = mi_lago.mesh.get_aabb()
 		var cx_l: float = c_lago.position.x + c_lago.size.x * 0.5
@@ -230,14 +227,12 @@ func _build_lake_3d() -> void:
 			var ang_l: float = TAU * float(k_l) / 12.0
 			pts_lago.append(Vector3(cx_l + cos(ang_l) * rx_l, c_lago.position.y, cz_l + sin(ang_l) * rz_l))
 		terrain_root_3d.set_meta("puntos_lago_3d", pts_lago)
-	_add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled(0.66, 0.0), -0.8, m_deep, true)
+	_add_flat_poly_2d(terrain_root_3d, RioLagoScript.lake_scaled_world(0.66, 0.0), -0.8, m_deep, true)
 	# El muelle y las piedras y plantas de la orilla son piezas de «Decorado» (editor del mapa)
 
 
-## Superficie plana con la forma de un polígono del mapa 2D, a una altura dada (si absolute_h es true, no suma el relieve).
+## Superficie plana con la forma de un polígono en coordenadas reales del mundo, a una altura dada.
 func _add_flat_poly_2d(parent: Node3D, pts: PackedVector2Array, h_px: float, mat: Material, absolute_h: bool = false) -> MeshInstance3D:
-	if estirar_terreno:
-		pts = Zona.estirar_puntos(pts)
 	var idx := Geometry2D.triangulate_polygon(pts)
 	if idx.is_empty():
 		return null
@@ -485,10 +480,8 @@ func _make_nature_3d(n: Node2D, kind: String) -> Dictionary:
 
 
 
-## Rendimiento (Claude Code, 2026-11-09): las piezas quietas del terreno (sotobosque, rocas, barro y grava de las orillas,
-## bancos, vallas…) se juntan por zonas de 256 px: muchas menos llamadas de dibujo y las zonas fuera de cámara siguen sin
-## dibujarse. No se tocan las piezas grandes (suelo, caminos, agua), las de shader propio ni las que miran a cámara.
-const TERRAIN_MERGE_CHUNK_PX: float = 256.0
+## Rendimiento: las piezas quietas del terreno (sotobosque, rocas, barro y grava de las orillas, bancos, vallas…)
+## se juntan por sectores en metros; muchas menos llamadas de dibujo y las zonas fuera de cámara siguen sin dibujarse.
 ## Las sondas (tools/tests/inventario_mundo.gd) lo apagan para ver cada pieza por separado y saber de dónde sale.
 static var juntar_por_zonas: bool = true
 
@@ -603,50 +596,49 @@ func _plain_static_materials(mi: MeshInstance3D) -> bool:
 ## de «Decorado» en mapa/Mundo3D.tscn y se coloca desde el editor (2026-11-12).
 func _build_static_terrain_3d() -> void:
 	_clear_children(terrain_root_3d)
-	estirar_terreno = true # mapa ×E: las listas del código están en el mapa original (ver WorldStageBase3D)
 	_build_ground_3d()
 	var m_road := _mat("road_dirt", Color(0.56, 0.46, 0.34), 0.92, 0.0, Color.BLACK, 0.0, "town_textures/floor_ground_dirt.png", "", 0.55)
 	var m_plaza := _mat("plaza_stone", Color(0.66, 0.62, 0.56), 0.85, 0.05, Color.BLACK, 0.0, "town_textures/rf_cobblestone.png", "", 0.65)
 	var m_marsh := _mat("water_marsh", Color(0.20, 0.42, 0.30, 0.92), 0.28, 0.10)
 
-	# Caminos principales y calles con relieve 3D (divididos en el cruce del Puente Viejo en x = 92..144)
-	var road_rects: Array = CALLES_PRINCIPALES
-	# Editor del mapa 3D (2026-11-10): si mapa/Mundo3D.tscn tiene «Caminos», esos tramos sustituyen a las calles rectas
-	var tramos_ed: Array = load("res://mapa/camino.gd").tramos()
-	if not tramos_ed.is_empty():
-		road_rects = []
-		estirar_terreno = false # los tramos del editor ya están en el mundo actual
-		for t in tramos_ed:
-			_add_tramo_3d(terrain_root_3d, t["a"], t["b"], float(t["ancho"]), 0.25, m_road)
-		estirar_terreno = true
-	for rr in road_rects:
-		_add_road_strip_3d(terrain_root_3d, rr, 0.25, m_road)
-	for lr in (VillageLots.ROADS if tramos_ed.is_empty() else []):
-		if lr is Rect2:
-			_add_road_strip_3d(terrain_root_3d, lr as Rect2, 0.25, m_road)
+	# Tramos de caminos de mapa/Mundo3D.tscn → «Caminos» (ya en coordenadas reales del mundo)
+	for t: Dictionary in load("res://mapa/camino.gd").tramos():
+		_add_tramo_3d(terrain_root_3d, t["a"], t["b"], float(t["ancho"]), 0.25, m_road)
 
-	# Plaza Central Empedrada en plataforma ligeramente elevada (+2.4 px en terreno); sus bordillos son piezas de «Decorado»
-	_add_road_strip_3d(terrain_root_3d, PLAZA_RECT, 0.35, m_plaza)
+	# Plaza Central Empedrada sobre su plataforma elevada (sigue a su pieza en «Zonas»)
+	_add_road_strip_3d(terrain_root_3d, plaza_rect_mundo(), 0.35, m_plaza)
 	if terrain_root_3d != null and terrain_root_3d.get_child_count() > 0:
 		var mi_plaza := terrain_root_3d.get_child(terrain_root_3d.get_child_count() - 1) as MeshInstance3D
 		if mi_plaza != null and mi_plaza.mesh != null:
 			terrain_root_3d.set_meta("caja_plaza_3d", mi_plaza.mesh.get_aabb())
 
-	# Lago del Oeste y Ciénaga de las Ranas del Suroeste (lámina de agua a -1.4 px; sus orillas son piezas de «Decorado»)
+	# Lago del Oeste y Ciénaga de las Ranas del Suroeste (siguen a sus piezas en «Zonas»)
 	_build_lake_3d()
-	_add_flat_poly_2d(terrain_root_3d, MARSH_WATER_PTS, -1.4, m_marsh, true)
+	_add_flat_poly_2d(terrain_root_3d, agua_cienaga_mundo(), -1.4, m_marsh, true)
 
-	# Río de norte a sur, Puente Viejo en el centro del pueblo, arroyo del bosque norte, Claro (barro pardo) y Molino Viejo (barro rojo / arcilla)
+	# Río de norte a sur, Puente Viejo en el centro del pueblo, arroyo del bosque norte, Claro y Molino Viejo
 	_build_river_and_arroyo_3d()
-	estirar_terreno = false
 
-## Plaza Central (mapa original) y lámina de agua de la ciénaga: mallas de suelo que aún dibuja el código.
-const PLAZA_RECT: Rect2 = Rect2(Vector2(388, 12), Vector2(154, 72))
-const MARSH_WATER_PTS: PackedVector2Array = [
-	Vector2(-1860, 210), Vector2(-1620, 165), Vector2(-1340, 180), Vector2(-1200, 250),
-	Vector2(-1220, 390), Vector2(-1360, 470), Vector2(-1650, 485), Vector2(-1850, 420),
-	Vector2(-1910, 310),
+
+## Plaza Central y lámina de agua de la ciénaga en coordenadas reales del mundo (siguen a sus piezas en «Zonas»).
+const PLAZA_RECT: Rect2 = Rect2(Vector2(1940.0, 60.0), Vector2(770.0, 360.0))
+const MARSH_WATER_BASE: PackedVector2Array = [
+	Vector2(-9300.0, 1050.0), Vector2(-8100.0, 825.0), Vector2(-6700.0, 900.0), Vector2(-6000.0, 1250.0),
+	Vector2(-6100.0, 1950.0), Vector2(-6800.0, 2350.0), Vector2(-8250.0, 2425.0), Vector2(-9250.0, 2100.0),
+	Vector2(-9550.0, 1550.0),
 ]
+
+static func plaza_rect_mundo() -> Rect2:
+	return Rect2(PLAZA_RECT.position + Zona.desplazamiento("plaza"), PLAZA_RECT.size)
+
+static func agua_cienaga_mundo() -> PackedVector2Array:
+	var desplaz: Vector2 = Zona.desplazamiento("cienaga")
+	if desplaz == Vector2.ZERO:
+		return MARSH_WATER_BASE
+	var out := PackedVector2Array()
+	for v: Vector2 in MARSH_WATER_BASE:
+		out.append(v + desplaz)
+	return out
 
 ## Río de norte a sur y arroyo del bosque: lámina de agua, cauce hondo y orillas de tierra y barro repartidos en tramos
 ## indexados (los kilómetros fuera de cámara no se dibujan y los vértices compartidos se calculan una sola vez).
@@ -1075,30 +1067,9 @@ func _a_mapa_2d(v: Vector3) -> Vector2:
 	return Mapa3D.a_mapa(v)
 
 
-## Calles rectas de siempre (las usa tools/hornear_caminos.gd para crear los tramos del editor).
-const CALLES_PRINCIPALES: Array = [
-		Rect2(Vector2(-1950, 36), Vector2(2042, 28)),
-		Rect2(Vector2(144, 36), Vector2(1194, 28)),
-		Rect2(Vector2(-688, 64), Vector2(18, 36)),
-		Rect2(Vector2(-1520, -140), Vector2(22, 176)),
-		Rect2(Vector2(-1520, 64), Vector2(22, 120)),
-		Rect2(Vector2(452, -132), Vector2(26, 172)),
-		Rect2(Vector2(452, 62), Vector2(26, 700)),
-		Rect2(Vector2(-380, 760), Vector2(1040, 24)),
-		Rect2(Vector2(130, 780), Vector2(26, 260)),
-		Rect2(Vector2(140, 130), Vector2(24, 248)),
-		Rect2(Vector2(140, 356), Vector2(312, 22)),
-		Rect2(Vector2(822, -230), Vector2(24, 466)),
-		Rect2(Vector2(215, -310), Vector2(20, 515)),
-		Rect2(Vector2(1078, -230), Vector2(20, 480)),
-		Rect2(Vector2(1318, -230), Vector2(20, 480)),
-		Rect2(Vector2(452, 232), Vector2(885, 20)),
-]
-
-
 ## Tramo de camino de a a b (cualquier dirección), pegado al terreno como _add_road_strip_3d.
 func _add_tramo_3d(parent: Node3D, a: Vector2, b: Vector2, ancho: float, height_px: float, mat: Material) -> MeshInstance3D:
-	var largo: float = a.distance_to(b)
+	var largo: float = (b - a).length()
 	if largo < 1.0:
 		return null
 	var dir: Vector2 = (b - a) / largo

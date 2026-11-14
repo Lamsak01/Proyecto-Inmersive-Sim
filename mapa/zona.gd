@@ -1,28 +1,30 @@
 @tool
 extends Node3D
-const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
-## Zona de terreno en el editor del mapa 3D (mapa/Mundo3D.tscn → «Zonas»), 2026-11-11: la plaza, el lago o la ciénaga.
-## Muévela con el ratón: su suelo o su agua, la hondonada del terreno y lo que el juego pone encima salen ahí.
-## No gira ni cambia de forma. Paso 2 de docs/PLAN_MUNDO_DESDE_EDITOR.md. El terreno, el agua y el mapa del valle la
-## leen con `estirar`, `estirar_puntos` y `desestirar` (abajo).
+## Zona de terreno en el editor del mapa 3D (mapa/Mundo3D.tscn → «Zonas»): la plaza, el lago o la ciénaga.
+## Muévela con el ratón: su suelo o su agua, la hondonada del terreno y lo que el juego pone encima salen ahí
+## directamente en coordenadas reales del mundo, sin factor de estirado.
 
 const CARPETA := "Zonas"
 const ESCENA := "res://mapa/Mundo3D.tscn"
+const METROS_POR_UNIDAD: float = 0.056
 const VISTA_COLOR := Color(0.3, 0.6, 0.95, 0.25)
 const VISTA_ALTO_M: float = 0.1
 const LETRERO_ALTURA_M: float = 6.0
 const LETRERO_TAM_PIXEL: float = 0.04
 const LETRERO_VISTO_HASTA_M: float = 800.0
+const CENTROS_FABRICA_M: Dictionary = {
+	"plaza": Vector2(130.2, 13.72),
+	"lago": Vector2(-242.9, 46.2),
+	"cienaga": Vector2(-447.3, 93.8),
+}
 
 ## Nombre interno de la zona en el juego (no lo cambies).
 @export var id_zona: String = ""
-## Dónde estaba su centro en el mapa 2D cuando se creó la pieza (no lo cambies).
-@export var centro_original: Vector2 = Vector2.ZERO
-## Tamaño de la zona en el mundo: ancho (este-oeste) × fondo (norte-sur), en metros (no lo cambies).
+## Tamaño de la zona en el mundo: ancho (este-oeste) × fondo (norte-sur), en metros.
 @export var terreno_m: Vector2 = Vector2.ZERO
 
-## Las zonas leídas de la escena: {"id", "rect": Rect2 en el mapa original, "d": desplazamiento en el mundo}.
+## Las zonas leídas de la escena en coordenadas reales del mundo: {"id", "centro", "rect", "rect_fabrica", "d"}.
 static var _zonas: Array[Dictionary] = []
 static var _leidas: bool = false
 
@@ -42,7 +44,7 @@ func _poner_vista() -> void:
 	losa.material = material
 	var vista := MeshInstance3D.new()
 	vista.mesh = losa
-	add_child(vista) # sin «owner»: no se guarda en la escena
+	add_child(vista)
 	var letrero := Label3D.new()
 	letrero.text = "Zona: " + id_zona
 	letrero.pixel_size = LETRERO_TAM_PIXEL
@@ -60,63 +62,37 @@ static func todas() -> Array[Dictionary]:
 	return _zonas
 
 
-## Terreno hecho por código (suelos, agua, orillas): punto del mapa original → mundo. Fuera de una zona es campo
-## abierto estirado E veces; dentro, se estira igual pero va a donde esté la pieza.
-static func estirar(p: Vector2) -> Vector2:
-	return _con_zona(_zona_de(p), p)
-
-
-## Como `estirar` para un polígono entero: todos sus puntos van con la zona en la que cae su centro.
-static func estirar_puntos(pts: PackedVector2Array) -> PackedVector2Array:
-	var centro := Vector2.ZERO
-	for q: Vector2 in pts:
-		centro += q
-	var zona: Dictionary = _zona_de(centro / maxf(1.0, float(pts.size())))
-	var out := PackedVector2Array()
-	for q: Vector2 in pts:
-		out.append(_con_zona(zona, q))
-	return out
-
-
-## Lo contrario de `estirar` (mundo → mapa original), para el relieve y el agua. Un punto dentro de una zona movida da
-## el interior de esa zona; el hueco que dejó la zona en su sitio viejo da su borde (ahí ya no hay lago ni plaza).
-static func desestirar(p: Vector2) -> Vector2:
-	for zona: Dictionary in todas():
-		var q: Vector2 = (p - (zona["d"] as Vector2)) / Mapa3D.E
-		if (zona["rect"] as Rect2).has_point(q):
-			return q
-	var o: Vector2 = p / Mapa3D.E
-	for zona: Dictionary in todas():
-		if (zona["rect"] as Rect2).has_point(o):
-			return _al_borde(zona["rect"], o)
-	return o
-
-
-## Rectángulo de la zona `id` en el mundo (vacío si no existe): para preguntar «¿estoy en la ciénaga?».
+## Rectángulo de la zona `id` en el mundo (vacío si no existe).
 static func rect_mundo(id: String) -> Rect2:
 	for zona: Dictionary in todas():
 		if zona["id"] == id:
-			var r: Rect2 = zona["rect"]
-			return Rect2(r.position * Mapa3D.E + (zona["d"] as Vector2), r.size * Mapa3D.E)
+			return zona["rect"] as Rect2
 	return Rect2()
 
 
-static func _con_zona(zona: Dictionary, p: Vector2) -> Vector2:
-	return p * Mapa3D.E if zona.is_empty() else p * Mapa3D.E + (zona["d"] as Vector2)
-
-
-static func _zona_de(p: Vector2) -> Dictionary:
+## Centro actual de la zona `id` en el mundo.
+static func centro_mundo(id: String) -> Vector2:
 	for zona: Dictionary in todas():
-		if (zona["rect"] as Rect2).has_point(p):
-			return zona
-	return {}
+		if zona["id"] == id:
+			return zona["centro"] as Vector2
+	return Vector2.ZERO
 
 
-## El punto del borde del rectángulo más cercano a q (q está dentro).
-static func _al_borde(r: Rect2, q: Vector2) -> Vector2:
-	var hasta: Array[float] = [q.x - r.position.x, r.end.x - q.x, q.y - r.position.y, r.end.y - q.y]
-	var bordes: Array[Vector2] = [Vector2(r.position.x, q.y), Vector2(r.end.x, q.y), Vector2(q.x, r.position.y), Vector2(q.x, r.end.y)]
-	return bordes[hasta.find(hasta.min())]
+## Cuánto se ha desplazado la zona `id` respecto a su sitio de fábrica en la escena 3D.
+static func desplazamiento(id: String) -> Vector2:
+	for zona: Dictionary in todas():
+		if zona["id"] == id:
+			return zona["d"] as Vector2
+	return Vector2.ZERO
+
+
+## Compatibilidad temporal para sistemas de vecinos aún no migrados (VillageManager* y VillageNPCSocial).
+static func estirar(p: Vector2) -> Vector2:
+	var p_mundo: Vector2 = p * 5.0
+	for zona: Dictionary in todas():
+		if (zona["rect_fabrica"] as Rect2).has_point(p_mundo):
+			return p_mundo + (zona["d"] as Vector2)
+	return p_mundo
 
 
 static func _leer() -> void:
@@ -129,9 +105,17 @@ static func _leer() -> void:
 		var datos: Dictionary = {}
 		for k in range(estado.get_node_property_count(i)):
 			datos[estado.get_node_property_name(i, k)] = estado.get_node_property_value(i, k)
-		var centro: Vector2 = datos.get("centro_original", Vector2.ZERO)
+		var id: String = String(datos.get("id_zona", ""))
 		var tam_m: Vector2 = datos.get("terreno_m", Vector2.ZERO)
-		var tam: Vector2 = Mapa3D.a_mapa(Vector3(tam_m.x, 0.0, tam_m.y)) / Mapa3D.E
 		var origen: Vector3 = (datos.get("transform", Transform3D.IDENTITY) as Transform3D).origin
-		_zonas.append({"id": String(datos.get("id_zona", "")), "rect": Rect2(centro - tam * 0.5, tam),
-			"d": Mapa3D.a_mapa(origen) - centro * Mapa3D.E})
+		var centro: Vector2 = Vector2(origen.x, origen.z) / METROS_POR_UNIDAD
+		var tam: Vector2 = tam_m / METROS_POR_UNIDAD
+		var fab_m: Vector2 = CENTROS_FABRICA_M.get(id, Vector2(origen.x, origen.z))
+		var fab: Vector2 = fab_m / METROS_POR_UNIDAD
+		_zonas.append({
+			"id": id,
+			"centro": centro,
+			"rect": Rect2(centro - tam * 0.5, tam),
+			"rect_fabrica": Rect2(fab - tam * 0.5, tam),
+			"d": centro - fab,
+		})

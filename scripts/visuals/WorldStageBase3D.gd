@@ -21,11 +21,6 @@ const RioLagoScript = preload("res://scripts/fisica/RioLago.gd")
 const Zona = preload("res://mapa/zona.gd") ## plaza, lago y ciénaga: su terreno va con su pieza del editor
 const EdificioEditorScript = preload("res://mapa/edificio.gd")
 const ID_MOLINO := "building_abandoned_mill" ## el molino corta el río: ahí el cauce no se hunde
-## Mapa ×E (2026-11-11): mientras se construye el terreno desde las listas del código (coordenadas del mapa original),
-## cada posición se estira E veces tal cual (`_add_box_2d`, `_add_cyl_2d`, `_add_model_2d`, polígonos y calles): el
-## terreno es el mapa original estirado y no sigue a las piezas movidas (como hasta ahora). Lo que viene del editor o de
-## nodos del juego ya está en el mundo actual y se añade con esto apagado.
-static var estirar_terreno: bool = false
 ## Dibujos escritos en el plano de una pieza (obra de un solar, Puesto del Paso, generador y cables de un edificio):
 ## mientras tenga una función (plano → mundo, la de esa pieza), cada punto que llega a `to_3d` pasa por ella.
 static var colocar_plano: Callable = Callable()
@@ -97,7 +92,6 @@ var _nature_scan_accum: float = 10.0
 var _nature_sources: Array = [] # [{"node": Node2D, "kind": "pine"|"rock"|"forage_herb"|…}]
 var _nature_nodes: Dictionary = {} # instance_id -> {"tree": Node3D, "stump": Node3D}
 ## Rendimiento: árboles y rocas iguales se dibujan juntos por zonas (una sola orden a la tarjeta por modelo y zona).
-const BATCH_CHUNK_PX: float = 512.0
 var _batches: Dictionary = {} # clave -> {"mmi": MultiMeshInstance3D, "entries": [{"xf": Transform3D, "vis": bool}]}
 var _batch_dirty: Dictionary = {}
 var _prop_sources: Array = [] # [{"sprite": Sprite2D, "kind": String}] objetos quietos 2D con su versión 3D
@@ -436,76 +430,76 @@ static func _dist_to_seg_2d(p: Vector2, a: Vector2, b: Vector2) -> float:
 	var ab: Vector2 = b - a
 	var l2: float = ab.length_squared()
 	if l2 <= 0.0001:
-		return p.distance_to(a)
+		return (p - a).length()
 	var t: float = clampf((p - a).dot(ab) / l2, 0.0, 1.0)
-	return p.distance_to(a + ab * t)
+	return (p - (a + ab * t)).length()
 
 
 static func _road_flat_mask(pos_2d: Vector2) -> float:
-	var d_min: float = 99999.0
-	# Calzada principal Oeste-Este (y = 50)
-	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-2150.0, 50.0), Vector2(1800.0, 50.0)))
-	# Ramal Norte-Sur de la Llanura Salvaje (x = -1509, hasta las ruinas del norte en y = -285)
-	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-1509.0, -285.0), Vector2(-1509.0, 210.0)))
-	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-1560.0, -220.0), Vector2(-1460.0, -220.0)))
-	# Camino transversal de entrada al Bosque y Caseríos (y = 772)
-	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-710.0, 772.0), Vector2(680.0, 772.0)))
-	# Camino central del Bosque (x = 143) y bajada desde el pueblo (x = 465)
-	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(143.0, 640.0), Vector2(143.0, 1080.0)))
-	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(465.0, 640.0), Vector2(465.0, 790.0)))
-	# Senda de los Caseríos del Bosque (x = -680)
-	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-680.0, 600.0), Vector2(-680.0, 960.0)))
-	return smoothstep(32.0, 155.0, d_min)
+	var d_min: float = 999999.0
+	# Calzada principal Oeste-Este (y = 250)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-10750.0, 250.0), Vector2(9000.0, 250.0)))
+	# Ramal Norte-Sur de la Llanura Salvaje (x = -7545, hasta las ruinas del norte en y = -1425)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-7545.0, -1425.0), Vector2(-7545.0, 1050.0)))
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-7800.0, -1100.0), Vector2(-7300.0, -1100.0)))
+	# Camino transversal de entrada al Bosque y Caseríos (y = 3860)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-3550.0, 3860.0), Vector2(3400.0, 3860.0)))
+	# Camino central del Bosque (x = 715) y bajada desde el pueblo (x = 2325)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(715.0, 3200.0), Vector2(715.0, 5400.0)))
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(2325.0, 3200.0), Vector2(2325.0, 3950.0)))
+	# Senda de los Caseríos del Bosque (x = -3400)
+	d_min = minf(d_min, _dist_to_seg_2d(pos_2d, Vector2(-3400.0, 3000.0), Vector2(-3400.0, 4800.0)))
+	return smoothstep(160.0, 775.0, d_min)
 
 
-## Relieve Fase B (pueblo): desniveles suaves por terrazas dentro del pueblo.
-## - Calles que suben suavemente hacia el barrio norte (+4.2 -> +7.0 -> +9.4 px) y hacia el barrio cívico del este (+3.2 -> +5.2 px).
-## - Plaza Central ligeramente elevada (+2.4 px) con rampa/escalones suaves.
-## - Campos del sur ligeramente más bajos (-2.0 px).
-## - Cada solar y edificio se asienta en una terraza/plataforma horizontal llana (pendiente 0° bajo la huella del edificio).
+## Plataforma elevada (+2.4) de la Plaza Central con rampas suaves en sus accesos; sigue a su pieza en «Zonas».
+static func _plaza_terrace_height(pos_2d: Vector2) -> float:
+	var pc: Vector2 = Zona.centro_mundo("plaza")
+	var dx: float = pos_2d.x - pc.x
+	var dy: float = pos_2d.y - pc.y
+	if absf(dx) >= 565.0 or dy <= -335.0 or dy >= 325.0:
+		return 0.0
+	var px_in: float = smoothstep(-545.0, -415.0, dx) * (1.0 - smoothstep(415.0, 545.0, dx))
+	var py_in: float = smoothstep(-315.0, -205.0, dy) * (1.0 - smoothstep(195.0, 305.0, dy))
+	return 2.4 * px_in * py_in
+
+
+## Relieve Fase B (pueblo) directamente en coordenadas reales del mundo: terrazas suaves bajo cada barrio y solar.
 static func _village_terrace_height_px(pos_2d: Vector2) -> float:
 	var x: float = pos_2d.x
 	var y: float = pos_2d.y
 
-	# 1. Terrazas norte (y < -330): suben suavemente de sur a norte; cada fila (n, m, u, f1, f2, w1) es una meseta llana.
+	# 1. Terrazas norte (y < -1200): suben de sur a norte; cada fila (n, m, u, f1, f2, w1) es una meseta llana.
 	var north_h: float = 0.0
-	if y < -240.0 and x > -400.0 and x < 1520.0:
-		var t_n1: float = smoothstep(-245.0, -350.0, y) # subida de la posada/casas hacia la calle norte (n0..n6): +4.2 px
-		var t_n2: float = smoothstep(-480.0, -525.0, y) # subida hacia la calleja de atrás (m1..m6, f2): +2.8 px adicionales (total +7.0 px)
-		var t_n3: float = smoothstep(-640.0, -685.0, y) # subida hacia la ronda alta (u0..u6): +2.4 px adicionales (total +9.4 px)
-		var w_fade: float = smoothstep(-390.0, -140.0, x) * (1.0 - smoothstep(1420.0, 1510.0, x))
+	if y < -1200.0 and x > -2000.0 and x < 7600.0:
+		var t_n1: float = smoothstep(-1225.0, -1750.0, y)
+		var t_n2: float = smoothstep(-2400.0, -2625.0, y)
+		var t_n3: float = smoothstep(-3200.0, -3425.0, y)
+		var w_fade: float = smoothstep(-1950.0, -700.0, x) * (1.0 - smoothstep(7100.0, 7550.0, x))
 		north_h = (t_n1 * 4.2 + t_n2 * 2.8 + t_n3 * 2.4) * w_fade
-		# Terraza propia llana para la Cantera del Noroeste (w1: x = -345..-115, y = -410..-250) a +3.5 px
-		if x < -95.0 and y < -200.0:
-			var qw: float = smoothstep(-380.0, -340.0, x) * (1.0 - smoothstep(-115.0, -65.0, x))
-			var qy: float = smoothstep(-210.0, -255.0, y) * (1.0 - smoothstep(-415.0, -455.0, y))
+		# Terraza propia llana para la Cantera del Noroeste (w1) a +3.5
+		if x < -475.0 and y < -1000.0:
+			var qw: float = smoothstep(-1900.0, -1700.0, x) * (1.0 - smoothstep(-575.0, -325.0, x))
+			var qy: float = smoothstep(-1050.0, -1275.0, y) * (1.0 - smoothstep(-2075.0, -2275.0, y))
 			north_h = lerpf(north_h, 3.5, qw * qy)
 
-	# 2. Terrazas este (x > 640, y in -280..450): barrio residencial/cívico (+3.2 px) y loma del este / Puesto del Paso (+5.2 px)
+	# 2. Terrazas este (x > 3200, y in -1550..2300): barrio residencial/cívico (+3.2) y loma del este / Puesto del Paso (+5.2)
 	var east_h: float = 0.0
-	if x > 640.0 and y > -310.0 and y < 460.0:
-		var t_e1: float = smoothstep(642.0, 682.0, x) # subida tras cruzar la calle de los talleres hacia casas/hospital/comisaría/capilla: +3.2 px
-		var t_e2: float = smoothstep(1015.0, 1072.0, x) # subida hacia los solares del este (e2..e6, Puesto del Paso, Molino): +2.0 px (total +5.2 px)
-		var ey_fade: float = smoothstep(-305.0, -245.0, y) * (1.0 - smoothstep(425.0, 458.0, y))
+	if x > 3200.0 and y > -1550.0 and y < 2300.0:
+		var t_e1: float = smoothstep(3210.0, 3410.0, x)
+		var t_e2: float = smoothstep(5075.0, 5360.0, x)
+		var ey_fade: float = smoothstep(-1525.0, -1225.0, y) * (1.0 - smoothstep(2125.0, 2290.0, y))
 		east_h = (t_e1 * 3.2 + t_e2 * 2.0) * ey_fade
 
-	# 3. Plataforma elevada de la Plaza Central (x in 380..550, y in 4..92): +2.4 px en llano con rampas suaves en los 4 accesos
-	var plaza_h: float = 0.0
-	if x > 352.0 and x < 578.0 and y > -18.0 and y < 114.0:
-		var px_in: float = smoothstep(356.0, 382.0, x) * (1.0 - smoothstep(548.0, 574.0, x))
-		var py_in: float = smoothstep(-14.0, 8.0, y) * (1.0 - smoothstep(88.0, 110.0, y))
-		plaza_h = 2.4 * px_in * py_in
-
-	# 4. Vaguada suave de los campos del sur y Barrio del Lago (y > 235): -1.8 px en llano bajo granjas, rancho y casitas
+	# 3. Vaguada suave de los campos del sur y Barrio del Lago (y > 1100): -1.8 en llano; Parque del Roble a +0.6
 	var south_h: float = 0.0
-	if y > 220.0 and x > -520.0 and x < 520.0:
-		var sy_in: float = smoothstep(225.0, 285.0, y) * (1.0 - smoothstep(595.0, 645.0, y))
-		var sx_in: float = smoothstep(-510.0, -430.0, x) * (1.0 - smoothstep(435.0, 505.0, x))
-		# El Parque del Roble (x in 168..440, y in 208..354) queda a cota +0.6 px como terraza ajardinada
-		var in_park: float = smoothstep(155.0, 172.0, x) * (1.0 - smoothstep(436.0, 452.0, x)) * smoothstep(198.0, 212.0, y) * (1.0 - smoothstep(350.0, 366.0, y))
+	if y > 1100.0 and x > -2600.0 and x < 2600.0:
+		var sy_in: float = smoothstep(1125.0, 1425.0, y) * (1.0 - smoothstep(2975.0, 3225.0, y))
+		var sx_in: float = smoothstep(-2550.0, -2150.0, x) * (1.0 - smoothstep(2175.0, 2525.0, x))
+		var in_park: float = smoothstep(775.0, 860.0, x) * (1.0 - smoothstep(2180.0, 2260.0, x)) * smoothstep(990.0, 1060.0, y) * (1.0 - smoothstep(1750.0, 1830.0, y))
 		south_h = lerpf(-1.8 * sy_in * sx_in, 0.6, in_park)
 
-	return north_h + east_h + plaza_h + south_h
+	return north_h + east_h + _plaza_terrace_height(pos_2d) + south_h
 
 
 static func _river_bank_terrace_height_px(y: float) -> float:
@@ -566,29 +560,27 @@ static func surface_elevation_offset_px(pos_2d: Vector2) -> float:
 	if RioLagoScript.is_in_river_crossing(pos_2d, 3.0):
 		var bank_h: float = _river_bank_terrace_height_px(pos_2d.y)
 		var base_t: float = terrain_height_px(pos_2d)
-		var cr_boost: float = 1.6 if absf(pos_2d.y - 50.0) <= 24.0 else 0.9
+		var cr_boost: float = 1.6 if absf(pos_2d.y - 250.0) <= 120.0 else 0.9
 		for cr in RioLagoScript.river_crossings():
 			if String(cr.get("kind", "")) == "log" and absf(pos_2d.y - float(cr["pos"].y)) <= float(cr["half_h"]) + 3.0:
 				cr_boost = 4.6 # se camina por encima del tronco caído (8 de grosor, apoyado 3 por debajo de la orilla)
 		return maxf(0.45, (bank_h - base_t) + cr_boost)
-	if Rect2(Vector2(384.0, 8.0), Vector2(162.0, 80.0)).has_point(pos_2d):
+	if Zona.rect_mundo("plaza").has_point(pos_2d):
 		return 0.48
 	if _road_flat_mask(pos_2d) < 0.85:
 		return 0.28
 	return 0.15
 
 
-## Relieve del terreno en un punto, con memoria por celdas de RELIEVE_CELDA_PX (rendimiento, noche del 2026-11-11): se
-## preguntaba cientos de veces por fotograma (cuerpos, muñecos, animales, vista) y cada cálculo recorre el río, el lago,
-## la ciénaga, las terrazas y los caminos. El terreno no cambia salvo al cargar otro río (`olvidar_relieve`).
-const RELIEVE_CELDA_PX: float = 4.0
+## Relieve del terreno en un punto, con memoria por celdas (se borra al recargar el río o las zonas con `olvidar_relieve`).
+const RELIEVE_CELDA_PASO: float = 4.0
 static var _relieve_cache: Dictionary = {}
 
 static func terrain_height_px(pos_2d: Vector2) -> float:
-	var celda := Vector2i(floori(pos_2d.x / RELIEVE_CELDA_PX), floori(pos_2d.y / RELIEVE_CELDA_PX))
+	var celda := Vector2i(floori(pos_2d.x / RELIEVE_CELDA_PASO), floori(pos_2d.y / RELIEVE_CELDA_PASO))
 	var h = _relieve_cache.get(celda)
 	if h == null:
-		h = _terrain_height_px_calc((Vector2(celda) + Vector2(0.5, 0.5)) * RELIEVE_CELDA_PX)
+		h = _terrain_height_px_calc((Vector2(celda) + Vector2(0.5, 0.5)) * RELIEVE_CELDA_PASO)
 		_relieve_cache[celda] = h
 	return h
 
@@ -597,108 +589,103 @@ static func olvidar_relieve() -> void:
 	_relieve_cache.clear()
 
 
-## Distancia (px del mapa original) de `o` al contorno del lago: negativa dentro del agua.
-static func _lake_signed_dist_px(o: Vector2) -> float:
-	var poli: PackedVector2Array = RioLagoScript.lake_outline()
-	var d: float = INF
+## Distancia con signo de `pos_2d` al contorno real del lago en el mundo (negativa dentro del agua).
+static func _lake_signed_dist(pos_2d: Vector2) -> float:
+	var poli: PackedVector2Array = RioLagoScript.lake_outline_world()
+	var d2_min: float = INF
 	for i in range(poli.size()):
-		var q: Vector2 = Geometry2D.get_closest_point_to_segment(o, poli[i], poli[(i + 1) % poli.size()])
-		d = minf(d, o.distance_to(q))
-	return -d if Geometry2D.is_point_in_polygon(o, poli) else d
+		var q: Vector2 = Geometry2D.get_closest_point_to_segment(pos_2d, poli[i], poli[(i + 1) % poli.size()])
+		d2_min = minf(d2_min, pos_2d.distance_squared_to(q))
+	var dist: float = sqrt(d2_min)
+	return -dist if Geometry2D.is_point_in_polygon(pos_2d, poli) else dist
 
 
 static func _terrain_height_px_calc(pos_2d: Vector2) -> float:
-	# Mapa ×E: las lomas, cuencas y terrazas están escritas en el mapa original → se miran en `o` (el mundo encogido E
-	# veces); el río viene del editor (mundo actual) → se mira en `pos_2d`
-	var o: Vector2 = Zona.desestirar(pos_2d) # las zonas de terreno (lago, ciénaga, plaza) van con su pieza
-	var x: float = o.x
-	var y: float = o.y
+	var x: float = pos_2d.x
+	var y: float = pos_2d.y
 
-	# 0. Cuenca suave del Río y del Arroyo del Bosque Norte (y = -1180..940)
+	# 0. Cuenca suave del Río y del Arroyo del Bosque Norte
 	var river_cut_h: float = 0.0
-	# Editor del mapa (2026-11-09): el río puede llegar a lomas y bosque; ahí el relieve se allana en su cauce para que el agua no quede bajo tierra
 	var river_flat: float = 0.0
-	if pos_2d.y >= RioLagoScript.river_y_start() and pos_2d.y <= RioLagoScript.river_y_end() and not RioLagoScript.ABANDONED_MILL_RECT.grow(4.0).has_point(o):
-		var riv_cx: float = RioLagoScript.river_center_x(pos_2d.y)
-		var riv_hw: float = RioLagoScript.river_half_width(pos_2d.y)
-		var d_riv: float = absf(pos_2d.x - riv_cx)
+	if y >= RioLagoScript.river_y_start() and y <= RioLagoScript.river_y_end() and not RioLagoScript.ABANDONED_MILL_RECT.grow(4.0).has_point(EdificioEditorScript.a_plano(ID_MOLINO, pos_2d)):
+		var riv_cx: float = RioLagoScript.river_center_x(y)
+		var riv_hw: float = RioLagoScript.river_half_width(y)
+		var d_riv: float = absf(x - riv_cx)
 		if d_riv < riv_hw + 20.0:
 			river_cut_h = -1.8 * (1.0 - smoothstep(riv_hw * 0.5, riv_hw + 20.0, d_riv))
 		river_flat = 1.0 - smoothstep(riv_hw + 12.0, riv_hw + 90.0, d_riv)
 
-	# 1. Cuenca baja y de orillas suaves del Lago del Oeste: sigue el contorno del agua (RioLago.lake_outline), así la
-	#    orilla que se ve es la misma que la de nadar, chocar y el muelle (mapa ×E: antes la cuenca era una elipse a ojo)
+	# 1. Cuenca baja y de orillas suaves del Lago del Oeste (sigue a su pieza en «Zonas»)
 	var lake_h: float = 0.0
-	if x < -600.0 and x > -1180.0 and y > 30.0 and y < 300.0:
-		var d_in: float = _lake_signed_dist_px(o) # negativo dentro del agua
-		if d_in < 11.0:
-			# Lecho suave (-5.8 px) bajo la lámina de agua (-0.8 px); la lámina (-1 px) corta justo en el contorno y la orilla
-			# sube tendida en los 11 px de fuera
-			lake_h = -5.8 * (1.0 - smoothstep(-29.0, 11.0, d_in))
+	if Zona.rect_mundo("lago").grow(200.0).has_point(pos_2d):
+		var d_in: float = _lake_signed_dist(pos_2d)
+		if d_in < 55.0:
+			lake_h = -5.8 * (1.0 - smoothstep(-145.0, 55.0, d_in))
 
-	# 2. Cuenca baja de la Ciénaga de las Ranas (x ~ -1960..-1100, y ~ 135..520)
+	# 2. Cuenca baja de la Ciénaga de las Ranas (sigue a su pieza en «Zonas»)
 	var marsh_h: float = 0.0
-	if x < -1080.0 and y > 105.0 and y < 580.0:
-		var mc := Vector2(-1535.0, 328.0)
-		var md := Vector2((x - mc.x) / 390.0, (y - mc.y) / 180.0)
-		var mr: float = md.length()
+	var mc: Vector2 = Zona.centro_mundo("cienaga") + Vector2(312.5, -35.0)
+	if x < mc.x + 2275.0 and y > mc.y - 1115.0 and y < mc.y + 1260.0:
+		var mr: float = Vector2((x - mc.x) / 1950.0, (y - mc.y) / 900.0).length()
 		if mr < 1.32:
 			var m_basin: float = -3.6 * (1.0 - smoothstep(0.55, 1.12, mr))
 			var m_bank: float = 2.2 * smoothstep(0.95, 1.14, mr) * (1.0 - smoothstep(1.16, 1.32, mr))
 			marsh_h = m_basin + m_bank
 
-	# 3. Relieve Fase B (pueblo): desniveles suaves por terrazas (calle norte y cívico ligeramente más altos, plaza en plataforma con escalones/rampas, campos del sur algo más bajos), mientras CADA edificio se asienta en un solar/zócalo completamente llano.
-	var north_lim_y: float = -1155.0 if (x > 25.0 and x < 310.0) else -825.0
-	var dx_v: float = (-665.0 - x) if x < -665.0 else ((x - 1785.0) if x > 1785.0 else 0.0)
-	var dy_v: float = (north_lim_y - y) if y < north_lim_y else ((y - 650.0) if y > 650.0 else 0.0)
+	# 3. Terrazas y explanadas del pueblo, campamento inicial y Caseríos del Bosque
+	var north_lim_y: float = -5775.0 if (x > 125.0 and x < 1550.0) else -4125.0
+	var dx_v: float = (-3325.0 - x) if x < -3325.0 else ((x - 8925.0) if x > 8925.0 else 0.0)
+	var dy_v: float = (north_lim_y - y) if y < north_lim_y else ((y - 3250.0) if y > 3250.0 else 0.0)
 	var d_village: float = sqrt(dx_v * dx_v + dy_v * dy_v)
 
-	# Claro llano del campamento inicial, huerto 3x3 y gallinero (x in -935..-640, y in -215..72)
-	var dx_c: float = (-935.0 - x) if x < -935.0 else ((x + 640.0) if x > -640.0 else 0.0)
-	var dy_c: float = (-215.0 - y) if y < -215.0 else ((y - 72.0) if y > 72.0 else 0.0)
+	var dx_c: float = (-4675.0 - x) if x < -4675.0 else ((x + 3200.0) if x > -3200.0 else 0.0)
+	var dy_c: float = (-1075.0 - y) if y < -1075.0 else ((y - 360.0) if y > 360.0 else 0.0)
 	var d_camp: float = sqrt(dx_c * dx_c + dy_c * dy_c)
 
-	# Explanada llana de los Caseríos del Bosque (c1, c2, c3 en x = -610..-600, y = 668..1040)
-	var dx_cas: float = (-725.0 - x) if x < -725.0 else ((x + 505.0) if x > -505.0 else 0.0)
-	var dy_cas: float = (600.0 - y) if y < 600.0 else ((y - 1045.0) if y > 1045.0 else 0.0)
+	var dx_cas: float = (-3625.0 - x) if x < -3625.0 else ((x + 2525.0) if x > -2525.0 else 0.0)
+	var dy_cas: float = (3000.0 - y) if y < 3000.0 else ((y - 5225.0) if y > 5225.0 else 0.0)
 	var d_cas: float = sqrt(dx_cas * dx_cas + dy_cas * dy_cas)
 
-	if d_camp <= 0.001 or d_cas <= 0.001:
-		return 0.0
+	var en_cuenca: bool = absf(lake_h) >= 0.001 or absf(marsh_h) >= 0.001
+	if (d_camp <= 0.005 or d_cas <= 0.005) and not en_cuenca:
+		return _plaza_terrace_height(pos_2d)
 
-	# Relieve suave dentro del casco del pueblo y sus terrazas (Fase B):
-	if d_village <= 0.001 and absf(lake_h) < 0.001:
-		return _village_terrace_height_px(o) + river_cut_h
+	if d_village <= 0.005 and not en_cuenca:
+		return _village_terrace_height_px(pos_2d) + river_cut_h
 
 	var d_out: float = minf(d_village, minf(d_camp, d_cas))
-	var village_edge_h: float = _village_terrace_height_px(Vector2(clampf(x, -665.0, 1785.0), clampf(y, north_lim_y, 650.0))) * (1.0 - smoothstep(0.0, 160.0, d_village))
-	var outer_mask: float = smoothstep(0.0, 175.0, d_out) * _road_flat_mask(o)
+	var village_edge_h: float = _village_terrace_height_px(Vector2(clampf(x, -3325.0, 8925.0), clampf(y, north_lim_y, 3250.0))) * (1.0 - smoothstep(0.0, 800.0, d_village))
+	if en_cuenca:
+		village_edge_h *= (1.0 - clampf(absf(lake_h + marsh_h) / 2.2, 0.0, 1.0))
+	var outer_mask: float = smoothstep(0.0, 875.0, d_out) * _road_flat_mask(pos_2d)
 
-	# 4. Lomas anchas y suaves en la Llanura Salvaje y borde exterior (sin montículos aislados; pendiente < 10°)
+	# 4. Lomas anchas y suaves en la Llanura Salvaje y borde exterior del mundo
 	var plains_h: float = 0.0
-	if x < -665.0 or y < north_lim_y or x > 1785.0:
-		var w1: float = sin(x * 0.0024 + 0.5) * cos(y * 0.0028 - 0.3)
-		var w2: float = sin((x * 0.0036 - y * 0.0030) + 1.4) * 0.55
+	if x < -3325.0 or y < north_lim_y or x > 8925.0:
+		var w1: float = sin(x * 0.00048 + 0.5) * cos(y * 0.00056 - 0.3)
+		var w2: float = sin((x * 0.00072 - y * 0.00060) + 1.4) * 0.55
 		var swell: float = maxf(0.0, w1 + w2 * 0.70 + 0.35)
 		plains_h = swell * 13.5
-		# Horizonte suavemente elevado en el borde lejano del mundo para tapar el corte del suelo
-		var rim_w: float = smoothstep(-1850.0, -2550.0, x) * 14.0
-		var rim_n: float = smoothstep(-950.0, -1450.0, y) * 12.0
-		var rim_e: float = smoothstep(1900.0, 2500.0, x) * 12.0
+		var rim_w: float = smoothstep(-9250.0, -12750.0, x) * 14.0
+		var rim_n: float = smoothstep(-4750.0, -7250.0, y) * 12.0
+		var rim_e: float = smoothstep(9500.0, 12500.0, x) * 12.0
 		plains_h += rim_w + rim_n + rim_e
 		var near_water: float = clampf(absf(lake_h + marsh_h + river_cut_h) / 2.2, 0.0, 1.0)
 		plains_h *= (1.0 - near_water * 0.90)
 
-	# 5. Ondulaciones anchas y bajas en el Bosque Profundo (sur, y > 650)
+	# 5. Ondulaciones anchas y bajas en el Bosque Profundo (sur, y > 3250)
 	var forest_h: float = 0.0
-	if y > 650.0:
-		var fy: float = smoothstep(650.0, 880.0, y)
-		var fw1: float = sin(x * 0.0026 - 0.6) * sin((y - 700.0) * 0.0028 + 0.5)
-		var fw2: float = cos(x * 0.0040 + y * 0.0034 + 1.1) * 0.50
-		var rim_s: float = smoothstep(2050.0, 2650.0, y) * 14.0
+	if y > 3250.0:
+		var fy: float = smoothstep(3250.0, 4400.0, y)
+		var fw1: float = sin(x * 0.00052 - 0.6) * sin((y - 3500.0) * 0.00056 + 0.5)
+		var fw2: float = cos(x * 0.00080 + y * 0.00068 + 1.1) * 0.50
+		var rim_s: float = smoothstep(10250.0, 13250.0, y) * 14.0
 		forest_h = ((fw1 * 11.0 + fw2 * 7.5 + 5.5) + rim_s) * fy
+		var near_basin: float = clampf(absf(lake_h + marsh_h) / 2.2, 0.0, 1.0)
+		forest_h *= (1.0 - near_basin * 0.90)
 
-	return (plains_h + forest_h) * outer_mask * (1.0 - river_flat) + village_edge_h + lake_h + marsh_h + river_cut_h
+	var extra_plaza: float = _plaza_terrace_height(pos_2d) if d_village > 0.005 else 0.0
+	return (plains_h + forest_h) * outer_mask * (1.0 - river_flat) + village_edge_h + extra_plaza + lake_h + marsh_h + river_cut_h
 
 
 ## Mapa → 3D sin relieve del suelo.
@@ -708,7 +695,7 @@ func to_3d_flat(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
 	return Mapa3D.a_3d(pos_2d, h_px)
 
 
-## Mapa → 3D sobre el relieve del suelo (por debajo de −40 px se entiende «bajo tierra» y no se suma el relieve).
+## Mapa → 3D sobre el relieve del suelo (por debajo de −40 se entiende «bajo tierra» y no se suma el relieve).
 func to_3d(pos_2d: Vector2, h_px: float = 0.0) -> Vector3:
 	if colocar_plano.is_valid():
 		pos_2d = colocar_plano.call(pos_2d)
@@ -725,29 +712,26 @@ func terrain_normal_3d(pos_2d: Vector2, step_px: float = 10.0) -> Vector3:
 
 
 func _terrain_biome_color(pos_2d: Vector2, normal_3d: Vector3) -> Color:
-	# Mapa ×E: bosque, llanura, lago y ciénaga están escritos en el mapa original → se miran en el mundo encogido E veces;
-	# el río viene del editor (mundo actual) → se mira en `pos_2d`
-	var o: Vector2 = Zona.desestirar(pos_2d) # las zonas de terreno (lago, ciénaga, plaza) van con su pieza
-	var x: float = o.x
-	var y: float = o.y
-	var edge_wave: float = sin(x * 0.009 + 1.2) * 32.0 + cos(x * 0.021 - 0.5) * 16.0
-	var w_forest: float = maxf(smoothstep(665.0 + edge_wave, 775.0 + edge_wave, y), smoothstep(-735.0, -830.0, y))
-	var w_plains: float = smoothstep(-940.0, -1180.0, x) * smoothstep(20.0, -90.0, y)
+	var x: float = pos_2d.x
+	var y: float = pos_2d.y
+	var edge_wave: float = sin(x * 0.0018 + 1.2) * 160.0 + cos(x * 0.0042 - 0.5) * 80.0
+	var w_forest: float = maxf(smoothstep(3325.0 + edge_wave, 3875.0 + edge_wave, y), smoothstep(-3675.0, -4150.0, y))
+	var w_plains: float = smoothstep(-4700.0, -5900.0, x) * smoothstep(100.0, -450.0, y)
 	var w_mud: float = 0.0
-	if pos_2d.y >= RioLagoScript.river_y_start() and pos_2d.y <= RioLagoScript.river_y_end():
-		var riv_cx: float = RioLagoScript.river_center_x(pos_2d.y)
-		var riv_hw: float = RioLagoScript.river_half_width(pos_2d.y)
-		var d_riv: float = absf(pos_2d.x - riv_cx)
+	if y >= RioLagoScript.river_y_start() and y <= RioLagoScript.river_y_end():
+		var riv_cx: float = RioLagoScript.river_center_x(y)
+		var riv_hw: float = RioLagoScript.river_half_width(y)
+		var d_riv: float = absf(x - riv_cx)
 		if d_riv < riv_hw + 9.0:
 			w_mud = maxf(w_mud, (1.0 - smoothstep(riv_hw * 0.65, riv_hw + 9.0, d_riv)) * 0.62)
-	# Lecho húmedo solo bajo el agua del Lago del Oeste (la orilla exterior queda de hierba verde)
-	var lc := Vector2(-875.0, 152.0)
-	var lr: float = Vector2((x - lc.x) / 195.0, (y - lc.y) / 76.0).length()
-	if lr < 0.92 and x < -655.0:
+	# Lecho húmedo bajo el agua del Lago del Oeste (sigue a su pieza en «Zonas»)
+	var lc: Vector2 = Zona.centro_mundo("lago") + Vector2(-37.5, -65.0)
+	var lr: float = Vector2((x - lc.x) / 975.0, (y - lc.y) / 380.0).length()
+	if lr < 0.92 and x < lc.x + 1100.0:
 		w_mud = maxf(w_mud, (1.0 - smoothstep(0.55, 0.92, lr)) * 0.55)
-	# Lecho húmedo de la Ciénaga de las Ranas
-	var mc := Vector2(-1535.0, 328.0)
-	var mr: float = Vector2((x - mc.x) / 385.0, (y - mc.y) / 175.0).length()
+	# Lecho húmedo de la Ciénaga de las Ranas (sigue a su pieza en «Zonas»)
+	var mc: Vector2 = Zona.centro_mundo("cienaga") + Vector2(312.5, -35.0)
+	var mr: float = Vector2((x - mc.x) / 1925.0, (y - mc.y) / 875.0).length()
 	if mr < 1.05:
 		w_mud = maxf(w_mud, (1.0 - smoothstep(0.65, 1.05, mr)) * 0.65)
 	var w_slope: float = clampf((1.0 - normal_3d.y) * 2.6, 0.0, 1.0)
@@ -866,8 +850,6 @@ func check_furniture_overlaps(warn_on_overlap: bool = true) -> Array[String]:
 	return overlaps
 
 func _add_model_2d(parent: Node3D, rel_path: String, center_2d: Vector2, bottom_h_px: float, sz_2d: Vector2 = Vector2.ZERO, height_px: float = 24.0, rot_y_deg: float = 0.0) -> Node3D:
-	if estirar_terreno:
-		center_2d = Zona.estirar(center_2d)
 	if not _permitir_en_rio and es_vegetacion_en_rio(rel_path, center_2d):
 		return null
 	if _construyendo_estatico and not _permitir_en_rio and rel_path.begins_with("nature/") and (grabar_vegetacion or vegetacion_en_escena):
@@ -909,8 +891,6 @@ func _particulas_a_metros(p: CPUParticles3D) -> void:
 
 
 func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px: float, height_px: float, mat: Material, rot_y_deg: float = 0.0, absolute_h: bool = false) -> MeshInstance3D:
-	if estirar_terreno:
-		center_2d = Zona.estirar(center_2d)
 	var mi := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = size_3d(sz_2d, height_px)
@@ -924,8 +904,6 @@ func _add_box_2d(parent: Node3D, center_2d: Vector2, sz_2d: Vector2, bottom_h_px
 	return mi
 
 func _add_cyl_2d(parent: Node3D, center_2d: Vector2, radius_px: float, bottom_h_px: float, height_px: float, mat: Material, top_radius_px: float = -1.0, radial_segs: int = 12) -> MeshInstance3D:
-	if estirar_terreno:
-		center_2d = Zona.estirar(center_2d)
 	var mi := MeshInstance3D.new()
 	var cm := CylinderMesh.new()
 	cm.bottom_radius = maxf(0.01, radius_px * WORLD_SCALE)

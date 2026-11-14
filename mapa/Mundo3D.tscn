@@ -17370,21 +17370,18 @@ id_marca = "trabajo_3"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.2, 0, 13.72)
 script = ExtResource("34_fba6n")
 id_zona = "plaza"
-centro_original = Vector2(465, 49)
 terreno_m = Vector2(58.8, 24.08)
 
 [node name="zona_lago" type="Node3D" parent="Zonas" unique_id=1317786544]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -242.9, 0, 46.2)
 script = ExtResource("34_fba6n")
 id_zona = "lago"
-centro_original = Vector2(-867.5, 165)
 terreno_m = Vector2(149.8, 75.6)
 
 [node name="zona_cienaga" type="Node3D" parent="Zonas" unique_id=1472191765]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -447.3, 0, 93.8)
 script = ExtResource("34_fba6n")
 id_zona = "cienaga"
-centro_original = Vector2(-1597.5, 335)
 terreno_m = Vector2(259, 134.4)
 
 [node name="Sitios" type="Node3D" parent="." unique_id=723647206]
@@ -20212,7 +20209,7 @@ material_override = SubResource("StandardMaterial3D_u7lyt")
 mesh = SubResource("BoxMesh_pcs4s")
 
 [node name="Banco_Plaza_Oeste" type="Node3D" parent="Decorado/Zona_1_0" unique_id=1596498505]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130.36801, 0.30434826, 37.744)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 122, 0.30434826, 37.744)
 metadata/pos_original = Vector2(467.99997, 82)
 metadata/radio = 8.0
 metadata/choque = Vector2(16, 7)
