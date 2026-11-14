@@ -71,7 +71,7 @@ func _que_hay_cerca(pl, id: String) -> void:
 		if n.global_position.distance_to(pl.global_position) < 30.0:
 			print("    DBG %s: vecino %s en %s vel %s cuerpo %s" % [id, n.npc_name, str(n.global_position.round()), str(n.velocity.round()), str(n.has_meta("cuerpo3d"))])
 	var c = pl.get_node("PlayerMovementController").cuerpo()
-	print("    DBG %s: cuerpo 3D en %s suelo %.2f copias %d" % [id, str(c.global_position), c._suelo_y, c.choques_copiados()])
+	print("    DBG %s: cuerpo 3D en %s suelo %.2f paredes %d" % [id, str(c.global_position), c._suelo_y, c.paredes_del_mundo()])
 	for n3 in _todos(c.get_parent()):
 		if n3 is CollisionObject3D and n3 != c and (n3 as Node3D).global_position.distance_to(c.global_position) < 1.0:
 			var forma = n3.get_child(0) if n3.get_child_count() > 0 else null

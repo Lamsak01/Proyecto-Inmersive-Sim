@@ -5,6 +5,9 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- [ ] (2026-11-14, Claude, simulación) **Dos vecinos se quedan 40 s andando contra algo a las 14:00** junto al claro del
+  norte (destinos ~(159, −2780) y (241, −2779) del mapa), lejos del jugador. Sale igual con el código anterior a la
+  tanda 3a: no viene de las paredes nuevas. `atascos_vecinos.gd -- 2 12 cocinero jugador:puerta:building_restaurant`.
 - ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **El cuerpo sale «deteriorado» (17,6 h) el día 2 por la
   mañana y el guardia que lo custodia no está** · claro del arroyo. *(Cuenta desde la muerte, ~01:00 del día 2, una vez por
   hora (sumaba doble y desde el día 1); deterioro a las 36 h; vigilar manda sobre el turno y, sin que lo veas, el guardia

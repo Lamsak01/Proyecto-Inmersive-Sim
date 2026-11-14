@@ -6,7 +6,7 @@
 
 ## Qué significa «terminado» (se mide, no se opina)
 `bash tools/contar_2d.sh` cuenta los restos 2D (cuerpos, áreas, dibujos, cámara, navegación, píxeles, pisos de mentira,
-estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Hoy: 2.441. Terminado = 0.** Lo único plano que queda es la interfaz
+estirón ×5…). **Punto de partida el 2026-11-14: 2.495. Hoy: 2.457. Terminado = 0.** Lo único plano que queda es la interfaz
 (menús, HUD, paneles), como en cualquier juego 3D; la vista desde arriba se mantiene como **cámara 3D**.
 
 ## Reglas de honestidad (obligatorias para cualquier agente)
@@ -36,8 +36,13 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    «mapa original» y las alturas en píxeles.
 3. **Paredes, suelos y pisos reales**, en pasos:
    ✅ **3a-0 (2026-11-14):** los edificios ya no crean su suelo y sus muros planos (se creaban y se hacían transparentes).
-   **3a (siguiente, diseño abajo):** un solo juego de choques 3D **fijo y compartido** por todos los cuerpos, en vez de
-   que cada cuerpo copie las paredes del mapa plano a su alrededor en cada paso (`ChoquesCercanos3D.gd`, que se borra).
+   ✅ **3a (2026-11-14):** un solo juego de paredes 3D compartido por todos los cuerpos (`fisica/ChoquesMundo3D.gd`, con
+   `Prismas3D.gd` y `AlturasChoque3D.gd`), por celdas de ~7 m que se levantan una vez y se repasan cada pocos pasos.
+   Borrado `ChoquesCercanos3D.gd` (copias por cuerpo y por paso). Franjas de altura reales (planta baja, planta alta,
+   bajo tierra, barandilla) en vez de capas según el piso de quien choca; agua en su capa; lo del destino de un vecino,
+   con excepciones de choque. **Contador: 2.441 → 2.457 (sube 16):** el sistema nuevo sigue preguntando al mapa plano
+   (cada pared es «gemela» de su choque plano); baja cuando cada fuente dé su choque desde su pieza 3D (paso v del diseño).
+   **Siguiente: tanda 4** (todos los personajes con cuerpo 3D siempre), que esto ya permite sin coste por cuerpo.
    **3b:** pisos = altura real (losas 3D de verdad); se borran `Suelo`/`PisosCasas` como reglas y los niveles de piso.
 4. **Personajes 3D siempre:** jugador, vecinos, animales y bandidos son cuerpos 3D todo el tiempo (los lejanos, con
    simulación barata pero en 3D). Se borran `CuerposDelPueblo3D`, `CuerposCercanos3D` y los dibujos planos.
@@ -71,6 +76,7 @@ fuente a fuente, el choque sale de la pieza 3D y se borra el plano (muros desde 
 rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 4, 5 y 7, no antes.
 
 ## Atajos vivos que hay que quitar (apuntar aquí los nuevos)
+- Paredes 3D «gemelas» de los choques del mapa plano (`ChoquesMundo3D._levantar`, 2026-11-14) → paso v de la 3a.
 - Los parámetros de dibujo plano de `_construct_solid_building` (ya sin uso; 15 llamadas) → se van con el constructor.
 - Guardia mensajero y de custodia «colocados» cerca del jugador o en su puesto (`Case1Aviso.gd`, 2026-11-14) → tanda 5.
 - Cuerpos 3D solo para 24 vecinos a ~8 m; se les quita si se atascan (`CuerposDelPueblo3D.gd`) → tanda 4.

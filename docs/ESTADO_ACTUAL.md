@@ -29,8 +29,8 @@ Pendiente: molino con aspecto de molino (para después); preguntar a cualquier v
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c0) Mandato del usuario (2026-11-14): TODO en 3D, nada de 2D → `docs/specs/PLAN_TODO_3D.md`
-El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.441**
-(partió de 2.495; terminado = 0). Tanda 0 hecha; los sistemas dormidos se migran también. Siguiente: tanda 2 (metros).
+El juego es un híbrido (3D lo que se ve; lógica en mapa 2D en píxeles). Contador `bash tools/contar_2d.sh`: **2.457**
+(partió de 2.495; terminado = 0). Hechas: tanda 0 y 3a (paredes 3D compartidas, `ChoquesMundo3D`). Siguiente: tanda 4.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
 1. **Tandas de `PLAN_TODO_3D.md`** en orden; las piezas (sillas, camas…) son su tanda 6.

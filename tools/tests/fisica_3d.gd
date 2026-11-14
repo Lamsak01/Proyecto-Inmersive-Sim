@@ -147,7 +147,7 @@ func _paso1_cuerpo() -> void:
 	pl.global_position = puerta["pos"] + fuera * 30.0
 	await _andar(pl, mc, -fuera, 120.0, 1.6)
 	_ok(rect.has_point(pl.global_position), "1: cruza la puerta de la taberna y entra (" + str(pl.global_position.round()) + ")")
-	_ok(c.choques_copiados() > 0, "1: hay %d choques copiados en 3D alrededor" % c.choques_copiados())
+	_ok(c.paredes_del_mundo() > 0, "1: hay %d paredes 3D levantadas en el mundo" % c.paredes_del_mundo())
 	# Muro: desde dentro, andar hacia un muro lateral sin puerta → se queda dentro
 	var lado := Vector2(fuera.y, -fuera.x)
 	pl.global_position = rect.get_center()

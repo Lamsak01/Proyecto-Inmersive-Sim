@@ -31,7 +31,7 @@ const ESTIRA_VERTICAL: float = 1.1317307 ## 1 / sin(62,08°)
 
 ## Pisos de los edificios (2026-11-13): la tarima de dentro y el suelo de la planta alta, en píxeles de altura sobre la
 ## calle. La planta alta es la misma en la posada y en las casas de dos plantas (scripts/fisica/PisosCasas.gd): así las
-## paredes de cada planta se levantan igual en 3D (scripts/fisica/ChoquesCercanos3D.gd).
+## paredes de cada planta se levantan igual en 3D (scripts/fisica/ChoquesMundo3D.gd).
 const TARIMA_PX: float = 2.65
 const PISO_ALTO_PX: float = 34.55
 
