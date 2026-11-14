@@ -387,7 +387,7 @@ var interior_walls: Dictionary = {} ## id del edificio → sus paredes de dentro
 ## del edificio (mapa/planta.gd); las casas de recién llegados pasan la `planta` de su casa modelo.
 func _construct_solid_building(
 	b_id: String, b_title: String, center: Vector2,
-	floor_tex_path: String, wall_h_path: String, wall_v_path: String,
+	_floor_tex_path: String, _wall_h_path: String, _wall_v_path: String, # dibujos planos del 2D: ya no se crean (se quitan con el constructor, tanda 3)
 	planta: Dictionary = {}
 ) -> void:
 	if planta.is_empty():
@@ -445,51 +445,38 @@ func _construct_solid_building(
 	if orig_info.has("giro"):
 		(building_footprints[-1] as Dictionary).merge(orig_info)
 
-	var floor_tex := _load_tex(floor_tex_path)
-	if floor_tex:
-		var f_rect := TextureRect.new()
-		f_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		f_rect.texture = floor_tex
-		f_rect.stretch_mode = TextureRect.STRETCH_TILE
-		f_rect.position = rect.position
-		f_rect.size = size
-		f_rect.z_index = -2
-		f_rect.set_meta("flat_2d_building_visual", true)
-		entities_root.add_child(f_rect)
-
-	var tex_h := _load_tex(wall_h_path)
-	var tex_v := _load_tex(wall_v_path)
+	# (El suelo y los muros planos del 2D ya no se dibujan: se creaban y se hacían transparentes; paso a 3D, 2026-11-14)
 	var wall_t: float = 7.0
 
 	if is_horiz_door:
-		_add_solid_wall_segment(Vector2(rect.position.x, center.y), Vector2(wall_t, size.y), tex_v)
-		_add_solid_wall_segment(Vector2(rect.end.x, center.y), Vector2(wall_t, size.y), tex_v)
+		_add_solid_wall_segment(Vector2(rect.position.x, center.y), Vector2(wall_t, size.y))
+		_add_solid_wall_segment(Vector2(rect.end.x, center.y), Vector2(wall_t, size.y))
 
 		var closed_y: float = (center.y - half.y) if is_south else (center.y + half.y)
-		_add_solid_wall_segment(Vector2(center.x, closed_y), Vector2(size.x, wall_t), tex_h)
+		_add_solid_wall_segment(Vector2(center.x, closed_y), Vector2(size.x, wall_t))
 
 		var door_left_x: float = door_pos.x - door_width * 0.5
 		var door_right_x: float = door_pos.x + door_width * 0.5
 		var left_seg_w: float = maxf(8.0, door_left_x - rect.position.x)
 		var right_seg_w: float = maxf(8.0, rect.end.x - door_right_x)
 
-		_add_solid_wall_segment(Vector2(rect.position.x + left_seg_w * 0.5, door_pos.y), Vector2(left_seg_w, wall_t), tex_h)
-		_add_solid_wall_segment(Vector2(rect.end.x - right_seg_w * 0.5, door_pos.y), Vector2(right_seg_w, wall_t), tex_h)
+		_add_solid_wall_segment(Vector2(rect.position.x + left_seg_w * 0.5, door_pos.y), Vector2(left_seg_w, wall_t))
+		_add_solid_wall_segment(Vector2(rect.end.x - right_seg_w * 0.5, door_pos.y), Vector2(right_seg_w, wall_t))
 	else:
-		_add_solid_wall_segment(Vector2(center.x, rect.position.y), Vector2(size.x, wall_t), tex_h)
-		_add_solid_wall_segment(Vector2(center.x, rect.end.y), Vector2(size.x, wall_t), tex_h)
+		_add_solid_wall_segment(Vector2(center.x, rect.position.y), Vector2(size.x, wall_t))
+		_add_solid_wall_segment(Vector2(center.x, rect.end.y), Vector2(size.x, wall_t))
 
 		var is_east: bool = (door_dir == "east")
 		var closed_x: float = (center.x - half.x) if is_east else (center.x + half.x)
-		_add_solid_wall_segment(Vector2(closed_x, center.y), Vector2(wall_t, size.y), tex_v)
+		_add_solid_wall_segment(Vector2(closed_x, center.y), Vector2(wall_t, size.y))
 
 		var door_top_y: float = door_pos.y - door_width * 0.5
 		var door_bot_y: float = door_pos.y + door_width * 0.5
 		var top_seg_h: float = maxf(8.0, door_top_y - rect.position.y)
 		var bot_seg_h: float = maxf(8.0, rect.end.y - door_bot_y)
 
-		_add_solid_wall_segment(Vector2(door_pos.x, rect.position.y + top_seg_h * 0.5), Vector2(wall_t, top_seg_h), tex_v)
-		_add_solid_wall_segment(Vector2(door_pos.x, rect.end.y - bot_seg_h * 0.5), Vector2(wall_t, bot_seg_h), tex_v)
+		_add_solid_wall_segment(Vector2(door_pos.x, rect.position.y + top_seg_h * 0.5), Vector2(wall_t, top_seg_h))
+		_add_solid_wall_segment(Vector2(door_pos.x, rect.end.y - bot_seg_h * 0.5), Vector2(wall_t, bot_seg_h))
 
 	_spawn_building_door_and_window(b_id, b_title, rect, door_pos, is_south, door_width, door_dir, window_pos)
 	# Paredes de dentro (grupo «Tabiques» de la escena): van escritas respecto al centro, en el plano del edificio
@@ -497,7 +484,7 @@ func _construct_solid_building(
 	for tabique: Dictionary in planta["partitions"]:
 		var tam: Vector2 = tabique["size"]
 		var p_tabique: Vector2 = colocar.call(center_orig + (tabique["offset"] as Vector2))
-		var pared: StaticBody2D = _add_solid_wall_segment(p_tabique, tam, tex_h if tam.x >= tam.y else tex_v, bool(tabique["blocks_vision"]), -deg_to_rad(g_edif))
+		var pared: StaticBody2D = _add_solid_wall_segment(p_tabique, tam, bool(tabique["blocks_vision"]), -deg_to_rad(g_edif))
 		if PisosCasas.tiene(b_id): # casa de dos plantas: cada tabique choca solo en la suya
 			_de_un_piso(pared, int(tabique["piso"]))
 		tabiques.append(pared)
@@ -566,7 +553,7 @@ func _spawn_building_door_and_window(
 	})
 
 ## Pared con su sitio ya en el mundo; `giro` en radianes del mapa plano (el de un tabique en un edificio girado).
-func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_vision: bool = true, giro: float = 0.0) -> StaticBody2D:
+func _add_solid_wall_segment(pos: Vector2, sz: Vector2, blocks_vision: bool = true, giro: float = 0.0) -> StaticBody2D:
 	var sb := StaticBody2D.new()
 	sb.global_position = pos
 	sb.collision_layer = 1
@@ -583,15 +570,6 @@ func _add_solid_wall_segment(pos: Vector2, sz: Vector2, tex: Texture2D, blocks_v
 	if blocks_vision:
 		_wall_occluder_rects.append(Rect2(pos - sz * 0.5, sz))
 
-	if tex:
-		var tex_rect := TextureRect.new()
-		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tex_rect.texture = tex
-		tex_rect.stretch_mode = TextureRect.STRETCH_TILE
-		tex_rect.position = -sz * 0.5
-		tex_rect.size = sz
-		tex_rect.z_index = 2
-		sb.add_child(tex_rect)
 	entities_root.add_child(sb)
 	return sb
 

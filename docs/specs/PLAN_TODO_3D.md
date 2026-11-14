@@ -34,10 +34,10 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    préstamos, enfermedades, club, trabajos nocturnos, ecosistema…); el contador los cuenta desde el principio.
 2. **Un solo espacio, en metros:** las posiciones del juego pasan a ser las de las piezas 3D; fuera el estirón ×5, el
    «mapa original» y las alturas en píxeles.
-3. **Paredes, suelos y pisos reales**, en dos pasos:
-   **3a (siguiente):** choques 3D **fijos**, creados una sola vez desde las piezas (muros, tabiques, muebles, puertas,
-   rocas, vallas), en vez de copiar las paredes del mapa plano alrededor de cada cuerpo en cada paso. Se borra
-   `ChoquesCercanos3D.gd`. El jugador y los vecinos con cuerpo chocan con ellos. Mide fps antes y después.
+3. **Paredes, suelos y pisos reales**, en pasos:
+   ✅ **3a-0 (2026-11-14):** los edificios ya no crean su suelo y sus muros planos (se creaban y se hacían transparentes).
+   **3a (siguiente, diseño abajo):** un solo juego de choques 3D **fijo y compartido** por todos los cuerpos, en vez de
+   que cada cuerpo copie las paredes del mapa plano a su alrededor en cada paso (`ChoquesCercanos3D.gd`, que se borra).
    **3b:** pisos = altura real (losas 3D de verdad); se borran `Suelo`/`PisosCasas` como reglas y los niveles de piso.
 4. **Personajes 3D siempre:** jugador, vecinos, animales y bandidos son cuerpos 3D todo el tiempo (los lejanos, con
    simulación barata pero en 3D). Se borran `CuerposDelPueblo3D`, `CuerposCercanos3D` y los dibujos planos.
@@ -49,7 +49,29 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    lluvia y sonido en 3D.
 9. **Datos fuera del código y objetos gigantes partidos**, según se toque cada sistema (auditoría B y C).
 
+## Diseño de la 3a: choques 3D fijos y compartidos (estudiado el 2026-11-14, sin empezar)
+**Qué hay hoy.** Las paredes de verdad son `StaticBody2D`: muros de cada edificio (`_construct_solid_building` desde
+`mapa/planta.gd`), tabiques (piezas «Tabiques», metros), muebles (piezas «Muebles» con `tam3`, vía
+`_register_furniture_rect`), choques de código (`add_choque_mundo` 16, `choque_en_edificio` 9), puertas (cuerpo que se
+apaga al abrir), reja de la celda, agua (grupo `agua_2d`), club y alcantarillas, árboles y rocas. Las escenas de los
+edificios **no tienen ningún choque 3D** y sus muros visibles no son los que chocan. Cada cuerpo 3D pregunta al mapa plano
+qué tiene cerca y levanta prismas (`ChoquesCercanos3D`): el jugador en cada paso; cada vecino, 1 de cada 3.
+**Casos que la copia resuelve y el sistema nuevo debe cubrir:** (1) choques de un solo piso (bandas de altura por grupo
+`choques_piso_0/1`, hoy además cambian de capa según el piso del jugador); (2) bajo tierra (nivel −1: otra máscara y otro
+suelo); (3) el agua frena a los vecinos y no al jugador; (4) lo que hay en el destino de un vecino no le frena (su
+cama, su silla): hacerlo con excepciones de choque por cuerpo; (5) barandillas a la cintura; (6) cosas que se mueven o
+se apagan (puertas, carros, árbol talado); (7) altura de base = suelo del sitio del choque, no del cuerpo.
+**Pasos.** (i) `ChoquesMundo3D`: un nodo con el juego fijo; las piezas que ya están en metros (tabiques, muebles) entran
+directas desde su pieza; el resto entra como gemelo fijo de su choque plano, creado una vez y avisado al cambiar
+(atajo, apuntado abajo). (ii) `Cuerpo3D` deja de tener copia propia y usa capas: muros, agua (solo vecinos), bajo tierra.
+(iii) fuera `ChoquesCercanos3D`. (iv) con eso barato, todos los personajes llevan cuerpo siempre (tanda 4). (v) después,
+fuente a fuente, el choque sale de la pieza 3D y se borra el plano (muros desde las mallas «Muros», naturaleza desde
+`Mundo3D.tscn`…). **Pruebas:** `fisica_3d`, `puertas_3d`, `atascos_vecinos`, partida del Caso I, fps antes y después.
+**Por qué no se puede «solo paredes» de una vez:** mientras algún personaje ande por el mapa plano (vecinos lejanos,
+rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 4, 5 y 7, no antes.
+
 ## Atajos vivos que hay que quitar (apuntar aquí los nuevos)
+- Los parámetros de dibujo plano de `_construct_solid_building` (ya sin uso; 15 llamadas) → se van con el constructor.
 - Guardia mensajero y de custodia «colocados» cerca del jugador o en su puesto (`Case1Aviso.gd`, 2026-11-14) → tanda 5.
 - Cuerpos 3D solo para 24 vecinos a ~8 m; se les quita si se atascan (`CuerposDelPueblo3D.gd`) → tanda 4.
 - Dibujos 2D escondidos con capas en 1.ª persona (`WorldStage3D._ocultar_2d_tapado`) → tandas 4 y 8.

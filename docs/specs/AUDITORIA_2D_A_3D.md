@@ -13,7 +13,7 @@ cerebro en el mapa».)
 
 ## Qué SÍ se migró en la semana del 3D (comprobado en el código)
 Lo que se ve y lo que pisa el jugador: terreno, edificios e interiores son escenas 3D de tamaño real editables; el dibujo
-2D del pueblo y del terreno está borrado; el jugador tiene física 3D (gravedad, salto, caída, agua, buceo, pisos); el mapa
+2D ya no se ve (pero buena parte se sigue creando y se hace transparente: ver C1); el jugador tiene física 3D (gravedad, salto, caída, agua, buceo, pisos); el mapa
 se edita en 3D y los edificios ya no se «traducen» desde el mapa viejo. **Lo que no se migró es el «cerebro»:** fue una
 decisión escrita del plan («cuerpo en 3D, cerebro en el mapa», híbrido por rendimiento), no un olvido; pero decir «mundo
 3D terminado» (`CLAUDE.md` §5) da a entender más de lo que hay.
@@ -70,10 +70,11 @@ decisión escrita del plan («cuerpo en 3D, cerebro en el mapa», híbrido por r
     (`DetectiveUI.gd`: 3.528 líneas; `ui_root.gd`: 1.589).
 
 ## C. Código ineficiente o frágil
-1. **Quedan dibujos 2D debajo del 3D:** el dibujo 2D del terreno y de los edificios **sí se borró** (comprobado:
-   `_construct_solid_building` ya no crea dibujos), pero los personajes y algunos objetos del suelo siguen teniendo su
-   dibujo plano, que en 1.ª persona se esconde con un truco de capas (`_ocultar_2d_tapado`); la imagen 3D se rehace
-   siempre. Las piezas hechas por código no comparten malla: miles de llamadas de dibujo (prioridad 1 de `FALLOS_VISIBLES.md`).
+1. **Los dibujos 2D se siguen creando y luego se hacen transparentes** (`WorldStageProps3D._sync_2d_flat_visuals`
+   pone a 0 la opacidad de suelos y muros planos de cada edificio, muebles planos, árboles, rocas y objetos; los
+   personajes se esconden con un truco de capas). Quitado el 2026-11-14: suelos y muros planos de los edificios
+   (`_construct_solid_building`). Quedan: muebles, naturaleza, objetos y personajes planos. La imagen 3D se rehace
+   siempre y las piezas hechas por código no comparten malla (prioridad 1 de `FALLOS_VISIBLES.md`).
 2. **Llamadas «a ciegas»:** 858 `has_method`, 655 `.call("…")`, 1.160 variables sin tipo, 60 funciones sin tipo de
    retorno. Más lento y esconde errores (el tipado al 100 % de `CLAUDE.md` no se cumple).
 3. **Buscar en vez de saber:** 197 `get_first_node_in_group` (103 al jugador, 69 al gestor del pueblo), 167
