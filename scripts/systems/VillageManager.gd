@@ -61,7 +61,6 @@ func setup_village(target_entities_root: Node) -> void:
 	VillageUnderworld.build_sewers_world(self) # FIS3: trampillas en la calle y red de túneles conectada al sur
 	VillageClub.build_world(self) # P6: trampilla tras la taberna y club de pelea en el sótano
 	VillageHousing.sync_home_props(self) # FIS-P1 y P1: objetos físicos en tu casa y mostrador de tu tienda
-	_spawn_domestic_pets()
 	VillageSecrets.seed_founder_history(self) # B6: rasgos con variante, red de amistades/rencores y 2–3 secretos por fundador
 	if not in_editor and DisplayServer.get_name() != "headless":
 		VillageMigration.seed_start_population(self) # Provisional: arranque con 40 vecinos para probar (no en las pruebas)
@@ -75,6 +74,7 @@ func setup_village(target_entities_root: Node) -> void:
 	add_child(world_stage_3d)
 	world_stage_3d.setup_stage(self)
 	VillageHousing.sync_livestock(self) # FIS4: ganado vivo del rancho; son cuerpos 3D y viven en el escenario recién creado
+	_spawn_domestic_pets() # las mascotas también son cuerpos 3D
 
 	if not in_editor:
 		_setup_Interactive_modals_ui()

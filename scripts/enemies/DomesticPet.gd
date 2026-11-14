@@ -1,618 +1,272 @@
-@tool
-extends CharacterBody2D
 class_name DomesticPet
-const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, tanda 4: todos andan siempre con su cuerpo 3D
+extends "res://scripts/fisica/CuerpoBase3D.gd"
 
-const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
-
-## Mascotas Domésticas Vivas y Mortales de la Aldea y la Granja (Perros y Gatos)
-## - Entidades 100% sistémicas: tienen Salud (`HealthComponent`), Sangrado, Aturdimiento (`StunComponent`),
-##   Hambre real (`need_hunger`), Energía/Sueño (`need_energy`), combate defensivo (Perros) o huida (Gatos),
-##   muerte real e inanición si su familia muere y nadie las alimenta, y cadáver saqueable con [E].
+## Mascota del pueblo (perro o gato): vive alrededor de la casa de su familia, pasea, duerme en su cama, come de su
+## cuenco y se deja acariciar o alimentar con [E]. Si la atacan, el gato huye y el perro se revuelve; maltratarla es delito.
+## Desde la tanda 4b-3 del paso a 3D (2026-11-14) ES su cuerpo 3D: vive en el escenario 3D y piensa en metros sobre el
+## suelo (x → este, y → sur). Ya no tiene nodo, dibujo ni áreas en el mapa plano: se le hiere por su Diana3D y se la usa
+## por su Tocable3D. Sus piezas están en `mascotas/` (MascotaNecesidades, MascotaPelea, MascotaCasa, MascotaTrato).
 
 enum PetType { DOG, CAT }
+
+const RUTA_MODELO: String = "res://scripts/visuals/AnimalModel3D.gd" ## se carga al usarlo (sin ciclo de preloads)
+## Modelo 3D y alto (m) de cada clase. El gato usa de momento el modelo del zorro (no hay gato).
+const MODELOS: Dictionary = {PetType.DOG: ["animals/animated/ShibaInu.glb", 0.62], PetType.CAT: ["animals/animated/Fox.glb", 0.45]}
+const VIDA: Dictionary = {PetType.DOG: 45.0, PetType.CAT: 24.0}
+const AGUANTE_ATURDIR: Dictionary = {PetType.DOG: 60.0, PetType.CAT: 35.0}
+const ATURDIDA_S: float = 6.0
+const AFECTO_PERDIDO_AL_PEGARLE: float = 45.0
+const PAREDES_M: float = 2.7          ## pide las paredes del mundo a esta distancia a la redonda
+const REPASO_PAREDES: int = 6
+const ZONA_E_M: float = 0.5           ## radio de la zona donde la tecla E la encuentra
+const ROTULO_ALTO_M: float = 0.9
+const ROTULO_CADA_S: float = 0.1
+const SOBRE_EL_ROTULO_M: float = 0.3   ## lo que dice sale por encima de su nombre, sin taparlo
+const COLOR_ROTULO: Color = Color(0.95, 0.91, 0.83)
 
 @export var pet_type: PetType = PetType.DOG
 @export var pet_name: String = "Toby"
 @export var owner_label: String = "Granja"
 @export var family_id: String = "none"
-@export var home_position: Vector2 = Vector2.ZERO
 @export var is_guard_dog: bool = false
 @export var tint_color: Color = Color.WHITE
 
-var hit_mass: float = 0.5 ## C7 fase 2: un animal pequeño sale despedido con cualquier golpe
+var hit_mass: float = 0.5            ## un animal pequeño sale despedido con cualquier golpe
+var casa: Vector2 = Vector2.ZERO     ## su cama y su cuenco (metros sobre el suelo)
+var andar: Vector2 = Vector2.ZERO    ## hacia dónde y a qué velocidad quiere ir (m/s sobre el suelo)
 var is_fed_today: bool = true
 var affection: float = 75.0
 var need_hunger: float = 88.0
 var digestion_buffer: float = 0.0
 var need_energy: float = 92.0
-
 var is_dead: bool = false
 var corpse_looted: bool = false
 var is_stunned_flag: bool = false
 var is_sleeping: bool = false
 var is_hostile: bool = false
-var _hostile_timer: float = 0.0
-var _flee_timer: float = 0.0
-var _flee_from_pos: Vector2 = Vector2.ZERO
-var _attack_cooldown: float = 0.0
-var _bite_windup_timer: float = 0.0
+var hostile_timer: float = 0.0
+var flee_timer: float = 0.0
+var flee_de: Vector2 = Vector2.ZERO
+var attack_cooldown: float = 0.0
+var bite_windup_timer: float = 0.0
 var stagger_timer: float = 0.0
-var _starve_tick_timer: float = 0.0
-
-var _wander_target: Vector2 = Vector2.ZERO
-var _wander_timer: float = 1.0
-var _sleep_walk_timer: float = 0.0
-var _hop_phase: float = 0.0
-var _guard_scan_timer: float = 0.4
-var _bark_cooldown: float = 0.0
-var _label_timer: float = 0.0
-var _player_near: bool = false
-
-var sprite: Sprite2D = null
-var status_label: Label = null
-var interact_area: Area2D = null
+var starve_timer: float = 0.0
+var paseo_meta: Vector2 = Vector2.ZERO
+var paseo_s: float = 1.0
+var vuelta_s: float = 0.0
+var vigila_s: float = 0.4
+var ladrido_s: float = 0.0
 var health_comp: HealthComponent = null
 var stun_comp: StunComponent = null
+var rotulo: Label3D = null           ## su nombre, cuando es lo que la tecla E tiene elegido
+var zona_e: Tocable3D = null
 
-const FloatingTextScene = preload("res://scenes/ui/FloatingText.tscn")
+var _vm: Node = null
+var _talla_paso: int = 0
+var _rotulo_s: float = 0.0
+
+## Dónde está, en metros sobre el suelo. Al ponerlo, va allí de golpe y pisa el suelo de ese sitio.
+var sitio: Vector2:
+	get:
+		return Vector2(global_position.x, global_position.z)
+	set(valor):
+		global_position = Vector3(valor.x, suelo_y(valor.x, valor.y, 0, _vm), valor.y)
+		velocity = Vector3.ZERO
+
+## Tumbada en el suelo: muerta o aturdida (lo mira su modelo 3D).
+var tumbado: bool:
+	get:
+		return is_dead or is_stunned_flag
+
+
+## Una mascota nueva dentro del escenario 3D. Devuelve null si el escenario aún no existe.
+static func crear(arbol: SceneTree) -> DomesticPet:
+	var raiz: Node = escenario(arbol)
+	if raiz == null:
+		return null
+	var m := DomesticPet.new()
+	raiz.add_child(m)
+	return m
+
 
 func _ready() -> void:
-	var in_editor := Engine.is_editor_hint()
-	set_physics_process(not in_editor)
-	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	_vm = get_tree().get_first_node_in_group("village_manager")
+	_crear_forma()
+	_poner_diana(self)
 	add_to_group("domestic_pets")
-	# Sin Body Block (layer 0): el jugador y los NPCs atraviesan libremente a las mascotas sin quedar bloqueados
-	collision_layer = 0
-	collision_mask = 1
+	WorldClock.day_passed.connect(_on_day_passed)
 
-	if home_position == Vector2.ZERO:
-		home_position = global_position
-	_wander_target = home_position
 
-	_setup_components_and_visuals()
-	if not in_editor and WorldClock:
-		if not WorldClock.day_passed.is_connected(_on_day_passed):
-			WorldClock.day_passed.connect(_on_day_passed)
-
-func _add_circle_col(parent: Node, radius: float) -> void:
-	var col := CollisionShape2D.new()
-	var c := CircleShape2D.new()
-	c.radius = radius
-	col.shape = c
-	parent.add_child(col)
-
-func _set_area_disabled(area: Area2D, dis: bool) -> void:
-	if area and area.get_child_count() > 0:
-		var col := area.get_child(0) as CollisionShape2D
-		if col:
-			col.set_deferred("disabled", dis)
-
-func _setup_components_and_visuals() -> void:
-	_add_circle_col(self, 5.0)
-
+## La pone en su casa con su vida, su modelo y su zona de la tecla E (lo llama quien la crea, con sus datos ya puestos).
+func instalar(p_casa: Vector2) -> void:
+	casa = p_casa
+	sitio = p_casa
+	paseo_meta = p_casa
 	health_comp = HealthComponent.new()
 	health_comp.name = "HealthComponent"
-	health_comp.max_health = 45.0 if pet_type == PetType.DOG else 24.0
+	health_comp.max_health = float(VIDA[pet_type])
 	health_comp.current_health = health_comp.max_health
-	health_comp.died.connect(_on_died)
-	health_comp.bleed_triggered.connect(func(_dps = 0): _spawn_floating_text("🩸 ¡Sangrado!", Color.CRIMSON))
+	health_comp.died.connect(morir)
+	health_comp.bleed_triggered.connect(func(_dps: float = 0.0) -> void: decir("¡Sangrado!", Color.CRIMSON))
 	add_child(health_comp)
-
 	stun_comp = StunComponent.new()
 	stun_comp.name = "StunComponent"
-	stun_comp.max_stun = 60.0 if pet_type == PetType.DOG else 35.0
-	stun_comp.stun_duration = 6.0
+	stun_comp.max_stun = float(AGUANTE_ATURDIR[pet_type])
+	stun_comp.stun_duration = ATURDIDA_S
 	stun_comp.stunned.connect(_on_stunned)
 	add_child(stun_comp)
+	(load(RUTA_MODELO) as GDScript).call("attach", self, str((MODELOS[pet_type] as Array)[0]), float((MODELOS[pet_type] as Array)[1]) / Mapa3D.ESCALA, 0.0, tint_color)
+	zona_e = Tocable3D.poner(self, self, ZONA_E_M)
+	rotulo = Label3D.new()
+	rotulo.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	rotulo.fixed_size = true
+	rotulo.font_size = TextoFlotante3D.TAMANO_LETRA
+	rotulo.pixel_size = TextoFlotante3D.TAMANO_PUNTO
+	rotulo.outline_size = TextoFlotante3D.BORDE
+	rotulo.outline_modulate = Color.BLACK
+	rotulo.position.y = ROTULO_ALTO_M
+	rotulo.visible = false
+	add_child(rotulo)
+	_vestir(self, false)
 
-	sprite = Sprite2D.new()
-	sprite.name = "Sprite2D"
-	sprite.texture = _load_tex("res://assests/world/pets/pet_dog.png" if pet_type == PetType.DOG else "res://assests/world/pets/pet_cat.png")
-	sprite.modulate = tint_color
-	sprite.scale = Vector2(1.15, 1.15)
-	sprite.position = Vector2(0, -5)
-	add_child(sprite)
-	# Modelo 3D (solo visual) para el perro; el gato sigue en 2D hasta tener modelo.
-	if pet_type == PetType.DOG:
-		AnimalModel3DScript.attach(self, "animals/animated/ShibaInu.glb", 11.0, 1.0, tint_color)
-	else:
-		AnimalModel3DScript.attach(self, "animals/animated/Fox.glb", 8.0, 1.0, tint_color)
-
-	interact_area = Area2D.new()
-	interact_area.name = "PetInteractArea"
-	interact_area.collision_layer = 1
-	interact_area.collision_mask = 2
-	interact_area.add_to_group("interactable")
-	_add_circle_col(interact_area, 16.0)
-	interact_area.body_entered.connect(func(b: Node): if b.is_in_group("player"): _player_near = true)
-	interact_area.body_exited.connect(func(b: Node): if b.is_in_group("player"): _player_near = false)
-	add_child(interact_area)
-
-	status_label = Label.new()
-	status_label.visible = false
-	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status_label.position = Vector2(-125, -32)
-	status_label.custom_minimum_size = Vector2(250, 22)
-	status_label.add_theme_font_size_override("font_size", 9)
-	status_label.add_theme_color_override("font_color", Color(1.0, 0.90, 0.68))
-	status_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	status_label.add_theme_constant_override("outline_size", 3)
-	status_label.z_index = 22
-	add_child(status_label)
 
 func _physics_process(delta: float) -> void:
-	if Engine.is_editor_hint() or corpse_looted:
+	if corpse_looted:
 		return
-	if is_dead:
-		velocity = Vector2.ZERO
-		_update_label(delta)
+	_poner_rotulo(delta)
+	if is_dead or (WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen()):
 		return
-	if WorldClock and WorldClock.has_method("is_time_frozen") and WorldClock.is_time_frozen():
-		return
-
-	if _bark_cooldown > 0.0:
-		_bark_cooldown -= delta
-	if _attack_cooldown > 0.0:
-		_attack_cooldown -= delta
-
-	if is_stunned_flag:
-		velocity = Vector2.ZERO
-		_update_label(delta)
-		return
-
-	# 1. Digestión gradual estilo Kenshi + Desgaste biológico de 3 días (100% -> 0% en 72 horas = 1080s reales)
-	if digestion_buffer > 0.0:
-		var absorb: float = minf(digestion_buffer, 0.42 * delta)
-		digestion_buffer = maxf(0.0, digestion_buffer - absorb)
-		need_hunger = minf(100.0, need_hunger + absorb)
-	else:
-		var hunger_rate: float = 0.055 if is_sleeping else 0.098
-		need_hunger = maxf(0.0, need_hunger - hunger_rate * delta)
-
-	if is_sleeping:
-		need_energy = minf(100.0, need_energy + 1.25 * delta)
-	else:
-		var fat_mult: float = lerpf(1.25, 1.0, clampf(need_hunger / 60.0, 0.0, 1.0))
-		need_energy = maxf(0.0, need_energy - 0.145 * fat_mult * delta)
-
-	# Si tiene hambre (< 70%) y no está ya digiriendo comida, intenta comer en su casa si su familia sigue viva
-	if need_hunger < 70.0 and digestion_buffer < 10.0 and not is_hostile and _flee_timer <= 0.0:
-		_try_eat_from_home_bowl(delta)
-
-	# Solo tras 3 días completos sin comer (`need_hunger <= 0%` y `digestion_buffer <= 0%`) sufre daño letal por inanición
-	if need_hunger <= 0.0 and digestion_buffer <= 0.0:
-		_starve_tick_timer -= delta
-		if _starve_tick_timer <= 0.0:
-			_starve_tick_timer = 3.5
-			if health_comp:
-				var st_dmg := DamageData.new()
-				st_dmg.amount = 3.0
-				health_comp.take_damage(st_dmg)
-				_spawn_floating_text("💀🍖 ¡%s muere de hambre (+3 días)!" % pet_name, Color.ORANGE_RED)
+	ladrido_s = maxf(0.0, ladrido_s - delta)
+	attack_cooldown = maxf(0.0, attack_cooldown - delta)
+	andar = Vector2.ZERO
+	if not is_stunned_flag:
+		MascotaNecesidades.pasar(self, delta)
 		if is_dead:
 			return
+		_hacer_lo_suyo(delta)
+	_moverse(delta)
 
-	var pet_spd_mult: float = 1.0
-	if need_hunger < 33.33:
-		pet_spd_mult = lerpf(0.45, 0.70, clampf(need_hunger / 33.33, 0.0, 1.0))
-	elif need_hunger < 66.67:
-		pet_spd_mult = lerpf(0.70, 1.0, (need_hunger - 33.33) / 33.34)
 
-	# 2. Huida por pánico (Gatos o mascotas heridas)
-	if _flee_timer > 0.0:
-		_flee_timer -= delta
-		is_sleeping = false
-		var away: Vector2 = (global_position - _flee_from_pos).normalized()
-		if away.length_squared() < 0.01:
-			away = Vector2.RIGHT
-		velocity = away * 74.0
-		AndarMapa.paso(self, delta) # con su cuerpo 3D
-		if sprite:
-			sprite.rotation_degrees = 0.0
-			sprite.flip_h = velocity.x < -1.0
-		_update_label(delta)
-		return
-
-	# 3. Combate defensivo (Perros atacados)
-	if is_hostile and pet_type == PetType.DOG:
-		_hostile_timer -= delta
-		var player := get_tree().get_first_node_in_group("player") as Node2D
-		var vm_p := get_tree().get_first_node_in_group("village_manager")
-		var player_jailed: bool = vm_p != null and (bool(vm_p.get("player_being_escorted_to_jail")) or bool(vm_p.get("player_in_jail")))
-		var diff_elev: bool = vm_p != null and int(vm_p.get("player_elevation_level")) != 0
-		if _hostile_timer <= 0.0 or not is_instance_valid(player) or player_jailed or diff_elev or global_position.distance_to(player.global_position) > 190.0:
-			is_hostile = false
-			_bite_windup_timer = 0.0
-			remove_from_group("enemies")
-		else:
-			is_sleeping = false
-			if stagger_timer > 0.0:
-				stagger_timer = maxf(0.0, stagger_timer - delta)
-				_bite_windup_timer = 0.0
-				velocity = Vector2.ZERO
-				if stagger_timer <= 0.0 and sprite:
-					sprite.modulate = tint_color
-				_update_label(delta)
-				return
-			if _bite_windup_timer > 0.0:
-				_bite_windup_timer = maxf(0.0, _bite_windup_timer - delta)
-				velocity = Vector2.ZERO
-				if _bite_windup_timer <= 0.0:
-					_attack_cooldown = 1.05
-					if sprite:
-						sprite.modulate = tint_color
-					if is_instance_valid(player) and global_position.distance_to(player.global_position) <= 22.0 and player.has_method("take_damage"):
-						var bite := DamageData.new()
-						bite.amount = 9.0 * pet_spd_mult
-						bite.type = CombatConstants.DamageType.CUT
-						bite.bleed_buildup = 18.0 * pet_spd_mult
-						bite.source = self
-						player.call("take_damage", bite)
-						_spawn_floating_text("🐕🦷 ¡Mordisco de %s!" % pet_name, Color.ORANGE_RED)
-				_update_label(delta)
-				return
-			var dist_p: float = global_position.distance_to(player.global_position)
-			if dist_p > 18.0:
-				velocity = (player.global_position - global_position).normalized() * (68.0 * pet_spd_mult)
-				AndarMapa.paso(self, delta) # con su cuerpo 3D
-			else:
-				velocity = Vector2.ZERO
-				if _attack_cooldown <= 0.0:
-					_bite_windup_timer = 0.40
-					if sprite:
-						sprite.modulate = Color(1.35, 0.88, 0.42)
-					_spawn_floating_text("❗", Color.ORANGE_RED)
-			_update_label(delta)
-			return
-
-	var is_night: bool = false
-	if WorldClock:
-		var h: int = WorldClock.current_hour
-		is_night = (h >= 22 or h < 6)
-
-	# Si es perro guardián con energía y sin hambre crítica, vigila contra zorros cerca del gallinero
-	if pet_type == PetType.DOG and is_guard_dog and need_hunger > 15.0 and need_energy > 22.0 and not is_sleeping:
-		_guard_scan_timer -= delta
-		if _guard_scan_timer <= 0.0:
-			_guard_scan_timer = 0.45
-			_check_for_fox_intruders()
-
-	if (is_night and not is_guard_dog) or need_energy < 25.0 or (is_sleeping and need_energy < 92.0):
-		var to_home: Vector2 = home_position - global_position
-		if not is_sleeping and to_home.length() > 16.0 and _sleep_walk_timer < 3.2 and need_energy > 2.0:
-			_sleep_walk_timer += delta
-			velocity = to_home.normalized() * 36.0
-			AndarMapa.paso(self, delta) # con su cuerpo 3D
-			if sprite:
-				sprite.flip_h = velocity.x < -1.0
-		else:
-			if not is_sleeping:
-				is_sleeping = true
-				_sleep_walk_timer = 0.0
-				_spawn_floating_text("💤 %s se echó a dormir en su cama" % pet_name, Color(0.75, 0.85, 1.0))
-			velocity = Vector2.ZERO
-			if sprite:
-				sprite.offset.y = 0.0
-				sprite.scale = Vector2(1.18, 0.88)
-		_update_label(delta)
-		return
-
-	is_sleeping = false
-	_sleep_walk_timer = 0.0
-	if sprite:
-		sprite.scale = Vector2(1.15, 1.15)
-
-	_wander_timer -= delta
-	if _wander_timer <= 0.0:
-		_wander_timer = randf_range(2.0, 4.5)
-		var radius: float = 28.0 if is_guard_dog else 36.0
-		_wander_target = home_position + Vector2(randf_range(-radius, radius), randf_range(-radius, radius))
-		var vm_w = get_tree().get_first_node_in_group("village_manager") if is_inside_tree() else null
-		if vm_w != null and vm_w.has_method("clamp_point_outside_buildings"):
-			_wander_target = vm_w.call("clamp_point_outside_buildings", home_position, _wander_target)
-
-	var diff: Vector2 = _wander_target - global_position
-	var soft_push: Vector2 = _compute_player_soft_push()
-	if diff.length() > 4.0 or soft_push.length_squared() > 1.0:
-		var spd: float = (36.0 if pet_type == PetType.DOG else 30.0) * pet_spd_mult
-		var base_vel: Vector2 = diff.normalized() * spd if diff.length() > 4.0 else Vector2.ZERO
-		velocity = base_vel + soft_push
-		AndarMapa.paso(self, delta) # con su cuerpo 3D
-		if sprite:
-			if absf(velocity.x) > 1.0:
-				sprite.flip_h = velocity.x < -1.0
-			_hop_phase += delta * 12.0
-			sprite.offset.y = -absf(sin(_hop_phase)) * 1.8
+## Lo que toca ahora: huir, pelear, dormir o pasear (y vigilar, si es guardián). Cada pieza deja en `andar` su paso.
+func _hacer_lo_suyo(delta: float) -> void:
+	if flee_timer > 0.0:
+		MascotaPelea.huir(self, delta)
+	elif is_hostile and pet_type == PetType.DOG:
+		MascotaPelea.pelear(self, delta)
 	else:
-		velocity = Vector2.ZERO
-		if sprite:
-			sprite.offset.y = 0.0
+		MascotaCasa.vigilar(self, delta)
+		if MascotaCasa.toca_dormir(self):
+			MascotaCasa.dormir(self, delta)
+		else:
+			MascotaCasa.pasear(self, delta)
 
-	_update_label(delta)
 
-func _compute_player_soft_push() -> Vector2:
-	var p := get_tree().get_first_node_in_group("player") as Node2D
-	if not is_instance_valid(p):
-		return Vector2.ZERO
-	var d_sq: float = global_position.distance_squared_to(p.global_position)
-	var min_r: float = 15.0
-	if d_sq >= min_r * min_r:
-		return Vector2.ZERO
-	var d: float = sqrt(d_sq)
-	var away: Vector2 = (global_position - p.global_position) / d if d >= 0.01 else Vector2.RIGHT
-	return away * ((min_r - d) / min_r) * 58.0
+## Da el paso de este fotograma con su cuerpo: choca con las paredes del pueblo.
+func _moverse(delta: float) -> void:
+	var paso: int = Engine.get_physics_frames()
+	if paso - _talla_paso >= TALLA_CADA:
+		_talla_paso = paso
+		_vestir(self, false)
+	_suelo_y = suelo_y(global_position.x, global_position.z, 0, _vm)
+	_pedir_paredes(_vm, PAREDES_M, REPASO_PAREDES)
+	_paso_fisico(andar, delta)
+	_pisar()
 
-func _try_eat_from_home_bowl(_delta: float) -> void:
-	# Camina hacia su casa para buscar comida
-	if global_position.distance_to(home_position) > 14.0:
-		_wander_target = home_position
+
+## Dice algo sobre ella (un texto que sube y se desvanece).
+func decir(texto: String, color: Color) -> void:
+	TextoFlotante3D.decir(self, texto, color, ROTULO_ALTO_M + SOBRE_EL_ROTULO_M)
+
+
+## Su nombre aparece cuando es lo que la tecla E tiene elegido.
+func _poner_rotulo(delta: float) -> void:
+	_rotulo_s -= delta
+	if _rotulo_s > 0.0:
 		return
-	var vm = get_tree().get_first_node_in_group("village_manager")
-	if family_id != "none" and vm and vm.has_method("can_family_feed_pet"):
-		if bool(vm.call("can_family_feed_pet", family_id)):
-			digestion_buffer = clampf(digestion_buffer + 38.0, 0.0, maxf(18.0, 100.0 - need_hunger))
-			is_fed_today = true
-			_spawn_floating_text("🥣↗ %s comió en casa (Digeriendo...)" % pet_name, Color.SPRING_GREEN)
+	_rotulo_s = ROTULO_CADA_S
+	var pl: Node = get_tree().get_first_node_in_group("player")
+	var selector: Variant = pl.get("interaction_selector") if pl != null else null
+	var elegida: bool = is_instance_valid(selector) and (selector.call("selected") as Dictionary).get("target") == self
+	rotulo.visible = elegida
+	if not elegida:
+		return
+	var estado: String = "Muerto" if is_dead else ("Aturdido" if is_stunned_flag else ("Perro" if pet_type == PetType.DOG else "Gato"))
+	rotulo.text = "%s · %s" % [pet_name, estado]
+	rotulo.modulate = COLOR_ROTULO
+
+
+## Algo ha cambiado (ha muerto, la han desollado, se ha cargado partida): pone al día su diana, su zona de la E y su cuerpo.
+func al_cambiar_de_estado() -> void:
+	Diana3D.poner_activa(self, not is_dead)
+	zona_e.collision_layer = 0 if corpse_looted else Capas3D.TOCABLES
+	_vestir(self, false)
+
+
+## Alguien que anda contra ella la aparta un poco (lo llama el cuerpo del protagonista).
+func apartar(desplazamiento: Vector3) -> void:
+	move_and_collide(desplazamiento)
+
+
+## Un empujón de golpe (el de un golpe recibido), en metros sobre el suelo: choca con las paredes.
+func empujar_suelo(desplazamiento: Vector2) -> void:
+	move_and_collide(Vector3(desplazamiento.x, 0.0, desplazamiento.y))
+
 
 func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	stagger_timer = maxf(stagger_timer, duration)
-	_bite_windup_timer = 0.0
-	_attack_cooldown = maxf(_attack_cooldown, duration)
-	velocity = Vector2.ZERO
-	if sprite:
-		sprite.modulate = Color(0.65, 0.88, 1.35)
+	bite_windup_timer = 0.0
+	attack_cooldown = maxf(attack_cooldown, duration)
 	if not quiet:
-		_spawn_floating_text("💫 ¡Desequilibrado!", Color.AQUA)
+		decir("¡Desequilibrado!", Color.AQUA)
+
 
 func take_damage(data: DamageData) -> void:
 	if is_dead or corpse_looted:
 		return
 	is_sleeping = false
-	var attacker_is_player: bool = data != null and is_instance_valid(data.source) and data.source.is_in_group("player")
-	if attacker_is_player:
-		affection = maxf(0.0, affection - 45.0)
-		var vm = get_tree().get_first_node_in_group("village_manager")
-		if vm and vm.has_method("report_pet_assault_crime"):
-			vm.call("report_pet_assault_crime", self)
-
-	if pet_type == PetType.DOG:
-		is_hostile = true
-		_hostile_timer = 14.0
-		add_to_group("enemies")
-	else:
-		_flee_timer = 6.0
-		_flee_from_pos = Lugar.en_mapa(data.source) if (data and is_instance_valid(data.source) and (data.source is Node2D or data.source is Node3D)) else global_position
-
-	if health_comp:
-		health_comp.take_damage(data)
-	if stun_comp and health_comp and health_comp.current_health > 0.0:
+	if data != null and is_instance_valid(data.source) and data.source.is_in_group("player"):
+		affection = maxf(0.0, affection - AFECTO_PERDIDO_AL_PEGARLE)
+		if _vm != null and _vm.has_method("report_pet_assault_crime"):
+			_vm.call("report_pet_assault_crime", self)
+	MascotaPelea.reaccionar(self, data)
+	health_comp.take_damage(data)
+	if health_comp.current_health > 0.0:
 		stun_comp.take_damage(data)
 
-func _on_stunned(stunned: bool) -> void:
-	if is_dead:
-		return
-	is_stunned_flag = stunned
-	if stunned:
-		is_hostile = false
-		remove_from_group("enemies")
-		velocity = Vector2.ZERO
-	if sprite:
-		sprite.rotation_degrees = 90.0 if stunned else 0.0
-		sprite.modulate = Color(0.65, 0.75, 1.0) if stunned else tint_color
 
-func _on_died(silent: bool = false) -> void:
+func _on_stunned(aturdida: bool) -> void:
 	if is_dead:
 		return
-	if health_comp:
-		health_comp.stop_bleeding()
+	is_stunned_flag = aturdida
+	if aturdida:
+		MascotaPelea.calmar(self)
+
+
+## Muere donde está (`silent`: sin decirlo, al cargar una partida).
+func morir(silent: bool = false) -> void:
+	if is_dead:
+		return
+	health_comp.stop_bleeding()
 	is_dead = true
-	is_hostile = false
 	is_sleeping = false
-	remove_from_group("enemies")
-	velocity = Vector2.ZERO
-	Diana3D.poner_activa(self, false)
-	if sprite:
-		sprite.rotation_degrees = 90.0
-		sprite.offset.y = 0.0
-		sprite.modulate = Color(0.62, 0.45, 0.45, 0.96)
+	MascotaPelea.calmar(self)
+	al_cambiar_de_estado()
 	if not silent:
-		_spawn_floating_text("💀 %s ha muerto" % pet_name, Color.CRIMSON)
+		decir("%s ha muerto" % pet_name, Color.CRIMSON)
 
-func _check_for_fox_intruders() -> void:
-	var guard_center: Vector2 = home_position
 
-	for node in get_tree().get_nodes_in_group("wild_animals"):
-		if not is_instance_valid(node) or not (node is Node2D):
-			continue
-		var anim_node: Node2D = node as Node2D
-		var sp_val: int = int(anim_node.get("species")) if "species" in anim_node else -1
-		var is_alive_flag: bool = bool(anim_node.call("is_alive_in_ecosystem")) if anim_node.has_method("is_alive_in_ecosystem") else true
-		if sp_val == 2 and is_alive_flag:
-			var dist_to_coop: float = Lugar.en_mapa(anim_node).distance_to(guard_center)
-			if dist_to_coop <= 98.0:
-				_wander_target = Lugar.en_mapa(anim_node)
-				if anim_node.has_method("huir_de"):
-					anim_node.call("huir_de", Lugar.de(self))
-				if _bark_cooldown <= 0.0:
-					_bark_cooldown = 4.5
-					_spawn_floating_text("🐕💢 ¡GUAU GUAU! (Zorro ahuyentado)", Color.GOLD)
-					var player = get_tree().get_first_node_in_group("player")
-					if player and player.has_method("show_hint"):
-						player.show_hint("🐕🛡️ ¡%s ha ladrado y ahuyentado a un Zorro que intentaba acercarse al Gallinero!" % pet_name)
-				break
+func interact(player: Node) -> void:
+	MascotaTrato.usar(self, player)
 
-func interact(player: Node2D) -> void:
-	if not player or corpse_looted:
-		return
-	var inv: SimpleInventory = player.get("inventory") if "inventory" in player else null
-
-	# Si está muerto en el suelo, [E] permite desollar/saquear el cuerpo
-	if is_dead:
-		corpse_looted = true
-		visible = false
-		_set_area_disabled(interact_area, true)
-		var vm_skin = get_tree().get_first_node_in_group("village_manager")
-		if vm_skin and vm_skin.has_method("report_pet_assault_crime"):
-			vm_skin.call("report_pet_assault_crime", self)
-		if inv:
-			inv.add_item("raw_meat", 1)
-			if pet_type == PetType.DOG:
-				inv.add_item("leather", 1)
-				_spawn_floating_text("🔪 Desollaste a %s (+1 Carne Cruda, +1 Cuero)" % pet_name, Color.ORANGE_RED)
-			else:
-				_spawn_floating_text("🔪 Desollaste a %s (+1 Carne Cruda)" % pet_name, Color.ORANGE_RED)
-		return
-
-	if is_stunned_flag:
-		_spawn_floating_text("💫 %s está aturdido" % pet_name, Color.SKY_BLUE)
-		return
-
-	var icon_str: String = "🐕" if pet_type == PetType.DOG else "🐈"
-	var sound_str: String = "¡Guau guau!" if pet_type == PetType.DOG else "¡Prrr miau!"
-
-	# Si tiene hambre (< 80%) y el jugador lleva comida adecuada, alimentarlo
-	if inv and (not is_fed_today or need_hunger < 80.0):
-		for f_id in (["raw_meat", "raw_chicken", "cooked_meat"] if pet_type == PetType.DOG else ["river_trout", "golden_carp", "raw_chicken", "cooked_fish"]):
-			if inv.has_item(f_id, 1):
-				var f_name: String = inv.get_item_name(f_id)
-				inv.remove_item(f_id, 1)
-				is_fed_today = true
-				digestion_buffer = clampf(digestion_buffer + 42.0, 0.0, maxf(20.0, 100.0 - need_hunger))
-				if health_comp:
-					health_comp.heal(15.0)
-				var animals_mult: float = 1.0 + (float(player.call("get_skill_bonus", "animals")) if player.has_method("get_skill_bonus") else 0.0)
-				affection = clampf(affection + 20.0 * animals_mult, 0.0, 100.0)
-				if player.has_method("add_skill_xp"):
-					player.call("add_skill_xp", "animals", 8)
-				_play_happy_bounce()
-				_spawn_floating_text("%s🍖↗ %s comió %s (Digeriendo gradualmente | Lealtad %d%%)" % [icon_str, pet_name, f_name, int(affection)], Color.SPRING_GREEN)
-				_boost_nearby_npc_mood()
-				return
-
-	# Acariciar a la mascota
-	affection = clampf(affection + 5.0, 0.0, 100.0)
-	_play_happy_bounce()
-	_spawn_floating_text("%s❤️ %s: %s (Afecto %d%%)" % [icon_str, pet_name, sound_str, int(affection)], Color.PINK)
-	_boost_nearby_npc_mood()
-	if player.has_node("StaminaComponent"):
-		var stam: StaminaComponent = player.get_node("StaminaComponent")
-		stam.current_stamina = minf(stam.max_stamina, stam.current_stamina + 10.0)
-		stam.stamina_changed.emit(stam.current_stamina, stam.max_stamina)
-
-func _boost_nearby_npc_mood() -> void:
-	for npc in get_tree().get_nodes_in_group("village_npcs"):
-		if is_instance_valid(npc) and npc is Node2D:
-			if (npc as Node2D).global_position.distance_squared_to(global_position) <= 180.0 * 180.0:
-				if npc.has_method("add_thought"):
-					npc.call("add_thought", "Vio a %s feliz (+6)" % pet_name, 6.0)
-
-func _play_happy_bounce() -> void:
-	if not sprite:
-		return
-	var tw := create_tween()
-	tw.tween_property(sprite, "scale", Vector2(1.35, 1.35), 0.08)
-	tw.tween_property(sprite, "scale", Vector2(1.15, 1.15), 0.08)
 
 func _on_day_passed(_new_day: int) -> void:
-	if is_dead:
-		return
-	is_fed_today = false
+	if not is_dead:
+		is_fed_today = false
 
-func _update_label(delta: float = 0.016) -> void:
-	if not status_label:
-		return
-	_label_timer -= delta
-	if _label_timer > 0.0:
-		return
-	_label_timer = 0.10
-
-	var is_selected_pet: bool = false
-	var pl := get_tree().get_first_node_in_group("player")
-	if pl != null and is_instance_valid(pl):
-		var isel = pl.get("interaction_selector")
-		if isel != null and is_instance_valid(isel) and isel.has_method("selected"):
-			var sel: Dictionary = isel.call("selected")
-			if not sel.is_empty() and sel.get("target") == self:
-				is_selected_pet = true
-	status_label.scale = Vector2(0.68, 0.68)
-	if is_selected_pet:
-		var kind_str: String = "Perro" if pet_type == PetType.DOG else "Gato"
-		if is_dead:
-			status_label.text = "%s · Muerto" % pet_name
-			status_label.add_theme_color_override("font_color", Color(0.95, 0.55, 0.55))
-		elif is_stunned_flag:
-			status_label.text = "%s · Aturdido" % pet_name
-			status_label.add_theme_color_override("font_color", Color(0.65, 0.85, 1.0))
-		else:
-			status_label.text = "%s · %s" % [pet_name, kind_str]
-			status_label.add_theme_color_override("font_color", Color(0.95, 0.91, 0.83))
-		status_label.visible = true
-	else:
-		status_label.visible = false
-
-func _spawn_floating_text(text: String, color: Color, offset_y: float = -24.0) -> void:
-	var scene_root: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
-	if FloatingTextScene and scene_root:
-		var ft = FloatingTextScene.instantiate()
-		ft.start_text = text
-		ft.text_color = color
-		ft.global_position = global_position + Vector2(0, offset_y)
-		scene_root.add_child(ft)
-
-func _load_tex(res_path: String) -> Texture2D:
-	if ResourceLoader.exists(res_path):
-		var t = load(res_path)
-		if t is Texture2D:
-			return t
-	var abs_path := ProjectSettings.globalize_path(res_path)
-	if FileAccess.file_exists(abs_path):
-		var img := Image.load_from_file(abs_path)
-		if img and not img.is_empty():
-			return ImageTexture.create_from_image(img)
-	return null
 
 func to_save_dict() -> Dictionary:
-	return {
-		"pet_name": pet_name, "is_fed_today": is_fed_today, "affection": affection,
-		"need_hunger": need_hunger, "digestion_buffer": digestion_buffer, "need_energy": need_energy,
-		"is_dead": is_dead, "corpse_looted": corpse_looted,
-		"pos_x": global_position.x, "pos_y": global_position.y,
-		"hp": health_comp.current_health if health_comp else 36.0
-	}
+	return MascotaTrato.guardar(self)
+
 
 func from_save_dict(data: Dictionary) -> void:
-	is_fed_today = bool(data.get("is_fed_today", true))
-	affection = clampf(float(data.get("affection", 75.0)), 0.0, 100.0)
-	need_hunger = clampf(float(data.get("need_hunger", 90.0)), 0.0, 100.0)
-	digestion_buffer = clampf(float(data.get("digestion_buffer", 0.0)), 0.0, 100.0)
-	need_energy = clampf(float(data.get("need_energy", 90.0)), 0.0, 100.0)
-	if data.has("pos_x") and data.has("pos_y"):
-		global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
-	if bool(data.get("is_dead", false)):
-		_on_died(true)
-		corpse_looted = bool(data.get("corpse_looted", false))
-		visible = not corpse_looted
-		_set_area_disabled(interact_area, corpse_looted)
-	else:
-		is_dead = false
-		is_sleeping = false
-		corpse_looted = false
-		is_hostile = false
-		_hostile_timer = 0.0
-		_flee_timer = 0.0
-		is_stunned_flag = false
-		remove_from_group("enemies")
-		visible = true
-		_set_area_disabled(interact_area, false)
-		Diana3D.poner_activa(self, true)
-		if sprite:
-			sprite.rotation_degrees = 0.0
-			sprite.scale = Vector2(1.15, 1.15)
-			sprite.modulate = tint_color
-		if stun_comp:
-			stun_comp.clear_stun()
-		if health_comp:
-			health_comp.stop_bleeding()
-			if data.has("hp"):
-				health_comp.current_health = clampf(float(data["hp"]), 1.0, health_comp.max_health)
+	MascotaTrato.cargar(self, data)

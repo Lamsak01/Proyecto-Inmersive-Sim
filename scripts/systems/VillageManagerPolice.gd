@@ -55,10 +55,10 @@ func on_civilian_corpse_reported(victim: VillageNPC, death_pos: Vector2, weapon_
 		var m: int = victim.death_minute if ("death_minute" in victim and victim.death_minute >= 0) else (WorldClock.current_minute if WorldClock else 0)
 		start_sheriff_investigation(victim, death_pos, weapon_name, discoverer_name, d * 1440 + h * 60 + m)
 
-func report_pet_assault_crime(pet: Node2D) -> void:
+func report_pet_assault_crime(pet: Node) -> void:
 	if not pet or ("family_id" in pet and str(pet.get("family_id")) == "player_farm"):
 		return
-	var witness: VillageNPC = _find_conscious_witness_near(pet.global_position, 145.0, null)
+	var witness: VillageNPC = _find_conscious_witness_near(Lugar.en_mapa(pet), 145.0, null)
 	if witness != null:
 		wanted_level = clampi(wanted_level + 1, 1, 5)
 		bounty_gold += 18

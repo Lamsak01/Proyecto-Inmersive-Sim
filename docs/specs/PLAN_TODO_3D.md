@@ -84,7 +84,16 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    los pasa a metros al crear cada animal (`EcosystemManager._spawn_animal_pool`); la orilla del río se pregunta a
    `RioLago` en píxeles (`VidaAnimal._orilla_cercana`); las plantas que comen son nodos planos (`HarvestableNode`);
    quien aún piensa en plano los lee con `Lugar.en_mapa` (cazadores, cepos, perros, mapa del valle, cruz del ratón).
-   **Siguiente 4b-3: mascotas (`DomesticPet`) y bandidos (`Raider`, `DummyEnemy`).**
+   ✅ **4b-3a (2026-11-14): las mascotas del pueblo.** `DomesticPet` hereda de `CuerpoBase3D`, vive en el escenario
+   3D y en metros; se la hiere por su `Diana3D` y se la usa con [E] por su `Tocable3D` (segundo usuario de la E en 3D).
+   Su archivo de 627 líneas queda en `DomesticPet.gd` + `enemies/mascotas/` (`MascotaNecesidades`, `MascotaPelea`,
+   `MascotaCasa`, `MascotaTrato`). Nuevo `ui/TextoFlotante3D.gd` (texto que sube y se desvanece, en 3D). Fuera su
+   dibujo plano, su choque, su área de la E y su rótulo planos; las mascotas se crean tras el escenario 3D. Contador
+   2.239 → **2.219**. Pruebas: `mascotas_3d` (nueva, 22 comprobaciones), `animales_3d`, `fisica_3d`, partida del Caso I
+   25/25, fotos. **Sigue siendo 2D:** su cama y su cuenco (objetos del mapa plano); para no pasear por dentro de las
+   casas pregunta al pueblo en píxeles (`MascotaCasa._sitio_de_paseo`); `EnemyAI` y el aviso de maltrato leen su sitio
+   con `Lugar.en_mapa`. No llevan la red contra atascos ni rutas: andan en línea recta cerca de su casa.
+   **Siguiente 4b-3b: bandidos (`Raider`, `MillKidnapper` del Caso I, `DummyEnemy`) y el vigía (`scenes/npc.gd`).**
 5. **Rutas con navegación 3D** (malla de navegación del mundo y de cada edificio). Se borran las rutas y listas de
    puertas a mano y los atajos de «colocar» vecinos (guardia mensajero, custodia).
 6. **Piezas que dicen para qué sirven** (`PLAN_LO_QUE_SE_VE.md`, fases 1–4), ya en 3D: sillas, camas, puestos, la E.

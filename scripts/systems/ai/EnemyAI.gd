@@ -211,7 +211,7 @@ func _process_chase() -> void:
 			
 			for ally in get_tree().get_nodes_in_group("enemies"):
 				if ally == parent: continue
-				var dist_sq = parent.global_position.distance_squared_to(ally.global_position)
+				var dist_sq = parent.global_position.distance_squared_to(Lugar.en_mapa(ally))
 				if dist_sq <= 360000.0:
 					var ai = ally.get_node_or_null("EnemyAI")
 					if ai and (ai.current_state == State.CHASE or ai.current_state == State.SEARCH):
@@ -359,7 +359,7 @@ func _calculate_separation_vector() -> Vector2:
 	var separation := Vector2.ZERO
 	for ally in get_tree().get_nodes_in_group("enemies"):
 		if ally == parent: continue
-		var diff: Vector2 = parent.global_position - ally.global_position
+		var diff: Vector2 = parent.global_position - Lugar.en_mapa(ally)
 		var dist_sq := diff.length_squared()
 		if dist_sq < 2500.0 and dist_sq > 0.0001:
 			separation += diff / dist_sq
@@ -446,7 +446,7 @@ func _broadcast_alert() -> void:
 	var alert_radius: float = 300.0
 	for ally in get_tree().get_nodes_in_group("enemies"):
 		if ally == parent or not ally.is_physics_processing(): continue
-		var distance := parent.global_position.distance_to(ally.global_position)
+		var distance := parent.global_position.distance_to(Lugar.en_mapa(ally))
 		if distance > alert_radius: continue
 		var ally_ai := ally.get_node_or_null("EnemyAI") as EnemyAI
 		if not ally_ai or ally_ai.current_state in [State.CHASE, State.ATTACK, State.FLEE] or ally_ai.alert_cooldown_timer > 0.0:

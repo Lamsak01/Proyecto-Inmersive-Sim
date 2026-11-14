@@ -530,11 +530,11 @@ static func sync_relocated_camp_assets(vm, teleport_toby: bool = false) -> void:
 				bed.global_position = t_pos
 		var toby = find_toby(vm)
 		if toby != null and is_instance_valid(toby):
-			toby.home_position = t_pos
+			toby.casa = Lugar.a_suelo(t_pos)
 			toby.owner_label = "Casa del Jugador (%s)" % t_lot
-			if teleport_toby or toby.global_position.distance_to(t_pos) > 120.0:
-				toby.global_position = t_pos
-				toby._wander_target = t_pos
+			if teleport_toby or Lugar.en_mapa(toby).distance_to(t_pos) > 120.0:
+				toby.sitio = toby.casa
+				toby.paseo_meta = toby.casa
 
 static func move_toby_to_lot(vm, lot_id: String = "") -> bool:
 	if vm == null:

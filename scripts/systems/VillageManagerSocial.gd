@@ -417,17 +417,18 @@ func _spawn_domestic_pets() -> void:
 			continue
 		var p_pos: Vector2 = VillageWork.Sitio.mundo(str(pdef["sitio"])) # cama y cuenco: su cruz de «Sitios», ya en el mundo
 		_spawn_pet_bed_and_bowl(p_pos, pdef["type"], str(pdef["name"]))
-		var pet := DomesticPet.new()
+		var pet: DomesticPet = DomesticPet.crear(get_tree()) # ya ES un cuerpo 3D: vive en el escenario 3D (tanda 4b-3)
+		if pet == null:
+			push_error("No hay escenario 3D donde poner a las mascotas")
+			return
 		pet.name = "Pet_" + str(pdef["name"])
 		pet.pet_type = pdef["type"]
 		pet.pet_name = str(pdef["name"])
 		pet.owner_label = str(pdef["owner"])
 		pet.family_id = str(pdef["fam"])
-		pet.home_position = p_pos
-		pet.global_position = p_pos
 		pet.is_guard_dog = bool(pdef["guard"])
 		pet.tint_color = pdef["tint"]
-		entities_root.add_child(pet)
+		pet.instalar(Lugar.a_suelo(p_pos))
 		domestic_pets.append(pet)
 
 func _spawn_pet_bed_and_bowl(pos: Vector2, p_type: int, _p_name: String) -> void:
