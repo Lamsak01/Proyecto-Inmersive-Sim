@@ -35,8 +35,8 @@
 3. ✅ **(2026-11-14) Carpeta `archived_systems/`:** respondido: **se borra**. Borrados los cuatro sistemas viejos de código
    (armaduras, inventario de rejilla, interiores con teletransporte, red eléctrica). **Queda una duda nueva:** dentro había
    también dibujos del usuario de las primeras pruebas (`unused_assets_and_tools/`: kanjis, escopeta, barras, hoja de
-   personaje, en .png, .rar y .zip) que no están en ningún otro sitio del proyecto. No se han borrado: ¿se quedan ahí, se
-   mueven a otra carpeta o se borran también?
+   personaje, en .png, .rar y .zip) que no están en ningún otro sitio del proyecto. Respondido (2026-11-14): **se quedan
+   donde están**; no se tocan.
 4. ✅ **(2026-11-14) La flecha cae por su peso:** respondido: **se queda así** (arco de verdad).
 5. ✅ **(2026-11-14) Rótulo de los animales:** respondido: **se queda** saliendo al acercarse a menos de 8 m.
 6. ✅ **(2026-11-14) Emojis en los textos:** respondido: **se van quitando poco a poco**, al reescribir cada sistema (sin
