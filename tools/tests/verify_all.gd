@@ -2833,11 +2833,13 @@ func _initialize() -> void:
 			vm.unemployed_npcs.append(v9_t)
 	print("V9 children OK")
 
-	# 72. UI1: el menú principal del diálogo es corto y agrupa el resto.
+	# 72. UI1: el menú principal del diálogo es corto y agrupa el resto (charlar, preguntar, tienda aparte, «Más…»).
 	var ui1_n = v5b_people[0]
 	var ui1_d: Dictionary = ui1_n._inject_character_lore_into_dialogue(ui1_n._build_dialogue())
 	var ui1_start: Array = ui1_d["start"]["choices"]
-	assert(ui1_d.has("npc_ficha") and ui1_start.any(func(c): return str(c.get("next", "")) == "npc_ficha"), "UI1: There is a profile entry")
+	assert(ui1_d.has("npc_ficha") and (ui1_d["mas_menu"]["choices"] as Array).any(func(c): return str(c.get("next", "")) == "npc_ficha"), "UI1: There is a profile entry under «Más…»")
+	assert(ui1_start.any(func(c): return str(c.get("next", "")) == "charla") and ui1_d.has("charla_pueblo"), "UI1: «Charlar» opens a small talk")
+	assert(not ui1_start.any(func(c): return str(c.get("action", "")).begins_with("buy:") or str(c.get("action", "")).begins_with("sell:")), "UI1: Buying and selling live in the shop window")
 	assert(not ui1_start.any(func(c): return str(c.get("next", "")) in ["neighbor_opinions", "npc_news"]) and ui1_d.has("talk_menu"), "UI1: Small talk goes into its own submenu")
 	assert(not str(ui1_d["start"]["text"]).contains("Rasgos:"), "UI1: The header is short")
 	print("UI1 dialogue menu OK")

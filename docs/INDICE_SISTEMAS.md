@@ -8,11 +8,11 @@
 | `scripts/` (sueltos) | Protagonista: `Player.gd`, `PlayerMovementController.gd`, `PlayerCombatController.gd`; `World.gd` monta la partida |
 | `scripts/fisica/` | Mundo 3D: `Mapa3D` (mapa ↔ metros), `Cuerpo3D` (cuerpo del jugador y vecinos), `ChoquesCercanos3D`, `CuerposDelPueblo3D`, `CuerposCercanos3D`, `AndarMapa`, `Vista` (ver/oír/alcanzar), `Agua`, `Suelo` |
 | `scripts/visuals/` | Escenario 3D: `WorldStage3D` (cámara, manos), `WorldStageTerrain3D`, `WorldStageBuildings3D`, `WorldStageProps3D`, `WorldStageBase3D`; muñecos `CharacterAvatar3D`/`CharacterRig3D`, `AnimalModel3D`, `BanditModel3D`; `AssetLibrary3D` |
-| `scripts/enemies/` | Vecinos (`VillageNPCBase/NPC/Social/Work/Duties`, `NPCDialogue`), `WildAnimal`, `DomesticPet`, `Raider`, `DummyEnemy`, `MillKidnapper` |
+| `scripts/enemies/` | Vecinos (`VillageNPCBase/NPC/Social/Work/Duties`, `NPCDialogue`; menú principal `NPCMenuDialogo`, charla `NPCCharla` con frases en `resources/dialogos/`), `WildAnimal`, `DomesticPet`, `Raider`, `DummyEnemy`, `MillKidnapper` |
 | `scripts/systems/` | Reglas del pueblo: base `VillageManagerBase/Manager/Economy/Social/Police`, `VillageWorldBuilder`; economía, vida social, crimen y justicia, lugares (`VillageTavern`, `VillageClub`…), gobierno, naturaleza. `VillageSect.gd`: **no tocar** |
 | `scripts/systems/combat/` · `quests/` · `ai/` · `game_objectives/` | Golpes y heridas · misiones secundarias · IA · objetivos del Caso I |
 | `scripts/obstacles/` | Cosas interactivas: caballo, carro, animales de corral, objetos. Forma del río y del lago: `scripts/fisica/RioLago.gd` |
-| `scripts/ui/` · `scenes/ui_root.gd` | Paneles (detective, mapa, mochila, salud, casino, crónica); `InteractionSelector` (tecla E); HUD y pausa |
+| `scripts/ui/` · `scenes/ui_root.gd` | Paneles (detective, mapa, mochila, salud, casino, crónica); `InteractionSelector` (tecla E); HUD y pausa; ventana de diálogo y tienda en `scripts/ui/dialogo/` (las mueve `scenes/dialogue_manager.gd`) |
 | `scripts/data/` | Datos fijos: nombres, rasgos, frases, fichas de vecinos |
 | `scenes/` | `World.tscn`, `MenuPrincipal.tscn`, interfaz |
 | `mapa/` | Mapa editable `Mundo3D.tscn` y sus piezas (`pieza.gd`, `edificio.gd`, `mueble.gd`, `marca.gd`, `sitio.gd`, `zona.gd`, `solar.gd`, `planta.gd`, `tabique.gd`, `casa_modelo.gd`, `camino.gd`, `rio.gd`, `anclas.gd`) |

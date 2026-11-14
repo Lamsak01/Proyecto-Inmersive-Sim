@@ -26,6 +26,7 @@ const VillageJustice = preload("res://scripts/systems/VillageJustice.gd")
 const TraitDiscovery = preload("res://scripts/systems/TraitDiscovery.gd")
 const TraitCatalog = preload("res://scripts/data/TraitCatalog.gd")
 const VillageCase1 = preload("res://scripts/systems/VillageCase1.gd") # Caso I: diálogos del caso
+const NPCMenuDialogo = preload("res://scripts/enemies/NPCMenuDialogo.gd") # reparte las opciones del menú principal
 
 ## Menús y acciones de diálogo de los habitantes (tiendas, interrogatorios, lore, acciones de las opciones).
 ## Extraído de VillageNPC.gd. Cada función recibe al NPC como primer parámetro (`npc`); VillageNPC mantiene
@@ -38,6 +39,7 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 	if not start_node.has("choices") or typeof(start_node["choices"]) != TYPE_ARRAY:
 		return diag
 	var ch_arr: Array = start_node["choices"]
+	var intro_base: String = str(start_node.get("text", "")) # presentación del oficio: el menú la cambia por un saludo
 	var vm_diag = npc._get_vm()
 	var demo_active: bool = (vm_diag != null and vm_diag.has_method("is_demo_mode") and bool(vm_diag.call("is_demo_mode"))) or (GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode())
 	if demo_active:
@@ -200,85 +202,23 @@ static func _inject_character_lore_into_dialogue(npc: VillageNPC, diag: Dictiona
 	_add_neighbor_opinions(npc, diag, ch_arr)
 	if vm_diag != null:
 		VillageQuests.add_quest_dialogue(vm_diag, npc, diag, ch_arr)
-	_organize_start(npc, diag)
+	NPCMenuDialogo.organizar(npc, diag, intro_base, _case_open(npc))
 	return diag
 
-# ---------------------------------------------------------------- UI1: menú principal ordenado
-## Qué va dentro de cada grupo (por adónde lleva o qué hace la opción, no por su texto).
-const TALK_NEXT: Array = ["neighbor_opinions", "npc_news", "town_vote", "desire_ask", "faith_lore", "faith_ask", "character_lore", "clan_menu", "lineage_menu", "faith_confess_menu", "town_mayor_menu", "housing_menu"]
-const GIFT_ACTIONS: Array = ["give_npc_food_ration", "needs_alms", "needs_gift", "needs_round"]
-const SHADY_NEXT: Array = ["pocket_stealth_menu", "witness_manipulation_menu", "forensic_menu", "underworld_menu"]
-
+# ---------------------------------------------------------------- menú principal (NPCMenuDialogo)
+## ¿Hay un crimen abierto del que hablar o en el que manipular testigos? (investigación de la guardia o Caso I)
 static func _case_open(npc) -> bool:
 	if is_instance_valid(npc._reporting_corpse_target):
 		return true
 	var vm = npc._get_vm()
 	if vm == null:
 		return false
+	if VillageCase1.caso_abierto(vm):
+		return true
 	for k in ["active_sheriff_investigation", "active_royal_investigation"]:
 		if k in vm and vm.get(k) is Dictionary and bool(vm.get(k).get("active", false)):
 			return true
 	return false
-
-static func _short_status(npc) -> String:
-	var counter: String = ""
-	if npc.trade_role in VillageNPC.SHOP_ROLES or npc.trade_role == VillageNPC.TradeRole.INNKEEPER:
-		counter = " | 🟢 En el mostrador" if npc.is_at_shop_counter() else " | 🔴 Fuera del mostrador"
-	return "[%s | 😊 Humor %d%%%s]" % [npc.get_activity_description(), int(round(npc.mood)), counter]
-
-## UI1: el menú principal enseña lo del momento arriba y agrupa el resto (charlar, invitar, lo turbio, ficha).
-## La cabecera se queda corta: los datos completos van a «Ver ficha».
-static func _organize_start(npc, diag: Dictionary) -> void:
-	var start: Dictionary = diag["start"]
-	var src: Array = start["choices"]
-	var top: Array = []
-	var talk: Array = []
-	var gift: Array = []
-	var shady: Array = []
-	var profile: Array = []
-	var exit_c = null
-	var case_open: bool = _case_open(npc)
-	for i in range(src.size()):
-		var c = src[i]
-		if typeof(c) != TYPE_DICTIONARY:
-			top.append(c)
-			continue
-		var nx: String = str(c.get("next", ""))
-		var act: String = str(c.get("action", ""))
-		var lbl: String = str(c.get("label", ""))
-		if "[Salir]" in lbl or (i == src.size() - 1 and nx == "END" and act == ""):
-			exit_c = c
-		elif nx in TALK_NEXT:
-			talk.append(c)
-		elif act in GIFT_ACTIONS or act.begins_with("gift_"):
-			gift.append(c)
-		elif nx in SHADY_NEXT and not lbl.begins_with("🚨"):
-			if nx == "witness_manipulation_menu" and not case_open:
-				continue # Sin caso abierto no hay testigo que manipular
-			shady.append(c)
-		elif act == "open_social_glossary":
-			profile.append(c)
-		else:
-			top.append(c)
-	var back: Dictionary = {"label": "⬅️ Volver", "next": "start"}
-	for g in [["talk_menu", talk, "🗣️ Charlar…", "🗣️ ¿De qué quieres hablar con %s?" % npc.npc_name],
-			["gift_menu", gift, "🎁 Invitar o regalar…", "🎁 ¿Qué le ofreces a %s?" % npc.npc_name],
-			["shady_menu", shady, "🕵️ Lo turbio…", "🕵️ Con cuidado de que no te vean…"]]:
-		var items: Array = g[1]
-		if items.size() >= 2:
-			top.append({"label": g[2], "next": g[0]})
-			diag[g[0]] = {"text": g[3], "choices": items + [back]}
-		else:
-			top.append_array(items)
-	var full: String = npc._get_needs_status_line()
-	diag["npc_ficha"] = {"text": "📋 %s (%s)\n%s" % [npc.npc_name, npc.npc_role, full], "choices": profile + [back]}
-	top.append({"label": "📋 Ver ficha de %s" % npc.npc_name, "next": "npc_ficha"})
-	if exit_c != null:
-		top.append(exit_c)
-	start["choices"] = top
-	var txt: String = str(start.get("text", ""))
-	if full in txt:
-		start["text"] = txt.replace(full, _short_status(npc))
 
 ## B5.1: Texto corto de lo que un vecino siente por otro; lo comparten el diálogo y la escucha a escondidas.
 static func describe_feeling(rel: int) -> String:

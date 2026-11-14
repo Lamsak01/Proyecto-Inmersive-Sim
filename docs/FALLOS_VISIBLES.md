@@ -17,8 +17,11 @@
 - ✅ (2026-11-13, usuario, 2 capturas, ambos ordenadores; falta que lo veas jugando) **El juego se congela varios segundos
   cada hora desde las 12:00** · 1.ª persona. *(La lista de asientos del restaurante crecía sin parar y buscar mesa a los
   clientes tardaba cada vez más. Arreglado; con ventana de 11:00 a 19:00 ningún parón.)*
-- [ ] (2026-11-13, usuario, captura del Comisario Vane) **El menú de diálogos hay que cambiarlo por completo**: hoy es un
-  panel enorme con ficha, estado y 6+ opciones con números, iconos y oro mezclados. Falta decidir con el usuario cómo lo quiere.
+- ✅ (2026-11-13, usuario, captura del Comisario Vane; falta que lo veas jugando) **El menú de diálogos hay que cambiarlo
+  por completo**: hoy es un panel enorme con ficha, estado y 6+ opciones con números, iconos y oro mezclados. *(Versión
+  PROVISIONAL según el dibujo aprobado: caja oscura abajo, frase letra a letra en trozos, opciones sin emojis ni
+  «+Relación»; menú fijo Charlar / Preguntar por… / Comerciar / Más… / adiós; tienda en ventana aparte; frases de
+  charla por oficio en `resources/dialogos/frases_vecinos.json`. El usuario dice que no será la definitiva. Fotos vistas.)*
 - ✅ (2026-11-13, usuario, 3 capturas; falta que lo veas jugando) **Restaurante, camas de mascota y puente corto.**
   1. **Adornos del restaurante esparcidos** a metros del local (macetas, postes negros, losa). *(Iban horneados dentro del
      propio restaurante y el ×5 los apartó 39 m; vueltos a la terraza: 4 macetas, 5 postes, la losa de la puerta y las

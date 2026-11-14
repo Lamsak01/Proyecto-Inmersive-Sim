@@ -5,8 +5,10 @@
 ## a) Tarea activa
 **Caso I jugable de verdad (usuario, 2026-11-13)**: hechos carta en la mochila, guardia que avisa y custodia
 (`Case1Aviso.gd`), claro a ~150 m del molino con fosa, preguntas del diario (`Case1Objetivos.gd`,
-`docs/specs/OBJETIVOS_CASO1.md`) y barro rojo visible. Falta: que el usuario lo juegue desde el día 2; rehacer el
-menú de diálogos (espera su idea); molino con aspecto de molino y junto al río (lo dejó para después).
+`docs/specs/OBJETIVOS_CASO1.md`) y barro rojo visible. Falta: que el usuario lo juegue desde el día 2; molino con
+aspecto de molino y junto al río (lo dejó para después).
+**Diálogos provisionales (2026-11-13)**: ventana `scripts/ui/dialogo/` (caja, tienda, limpieza de texto), menú
+`NPCMenuDialogo.gd`, charla `NPCCharla.gd` + `resources/dialogos/frases_vecinos.json`. El usuario la revisa; no es la final.
 **Interiores de tamaño real**: todos hechos salvo la taberna (pregunta 0b), la casa de la cantera y el restaurante.
 **Casas de dos plantas** (2026-11-13): campos «…_ARRIBA» y `ESCALERA` en el plano (`planta_alta.gd`); en el juego
 `scripts/fisica/PisosCasas.gd`; el trozo alto de los muros va en «PisoAlto» (se esconde desde arriba).
@@ -29,15 +31,14 @@ menú de diálogos (espera su idea); molino con aspecto de molino y junto al rí
   sitios en el mapa original usan `tools/tests/mapa_viejo.gd`.
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
-1. **Que el usuario juegue el Caso I desde el día 2** (parón de cada hora arreglado). Pide **rehacer el menú de
-   diálogos**: falta que diga cómo lo quiere.
+1. **Que el usuario juegue el Caso I desde el día 2** y revise los diálogos nuevos.
 2. **Rendimiento** (prioridad 1 en FALLOS_VISIBLES): pendiente las sombras del sol (duplican el dibujo). Medio.
 3. **Vecinos atascados**: simulaciones a 0; abierto hasta que el usuario lo confirme jugando.
 4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
-**Contexto:** ×5 que queda (`Mapa3D.E`: relieve, lago, ciénaga, mapa del valle) no se ve; quitarlo es mucho. Del 2D solo
-quedan 6 dibujos planos ya apagados. Pesca, huerto, corral y campamento borrados: se rehacen en 3D tras el Caso I.
+**Contexto:** el ×5 que queda (`Mapa3D.E`) no se ve; pesca, huerto, corral y campamento se rehacen en 3D tras el Caso I.
 
 ## d) Bloqueos activos
+- `verify_all.gd` se para en «V4: …carpenter on site» (ya fallaba antes, 2026-11-13); lo de después no corre.
 - Prueba `verify_all.gd`, sección «S2: un testigo convierte la infidelidad en chisme»: falla al azar (repetir si falla). «No two conscious villagers may overlap» (puerta del restaurante): mejorado el 2026-11-13 (cola en las puertas); con 6 vecinos a la vez aún se juntan algo.
 - Fallos de las partidas ×5 (`docs/FALLOS_VISIBLES.md`): se resuelven con la migración. Inventario 2026-11-12
   (`docs/INVENTARIO_MUNDO.md`): sigue 5.297, quieto 75 (río, luces, sitios del código que quedan), doble 0, otro

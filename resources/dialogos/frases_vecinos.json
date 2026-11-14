@@ -1,0 +1,63 @@
+{
+	"_nota": "Frases PROVISIONALES de los vecinos (Claude Code, 2026-11-13). Se pueden reescribir sin tocar el código: cada lista es un montón de frases y el juego elige una al azar (la misma durante una hora). {nombre} es el nombre del vecino. Los oficios usan el nombre interno (BAKER = panadero...).",
+	"saludos": {
+		"madrugada": ["¿Tú también en pie a estas horas? El valle aún duerme.", "Ni los gallos han cantado y ya estás por aquí.", "Buenas… si es que a esto se le puede llamar mañana."],
+		"manana": ["Buenos días, forastero.", "Buen día. ¿Qué te trae por aquí?", "Ah, el detective. Buenos días.", "Buenos días. Hoy se presenta largo."],
+		"tarde": ["Buenas tardes.", "Buenas. ¿Cómo va el día?", "Ah, eres tú. Buenas tardes.", "Buenas tardes, forastero. ¿Ya te has hecho al valle?"],
+		"noche": ["Es tarde para andar de charla.", "Buenas noches. No te alejes mucho de las luces.", "¿A estas horas? Bueno, dime.", "Buenas noches. Cierro en nada."]
+	},
+	"saludos_frios": ["¿Qué quieres?", "Di lo que tengas que decir.", "Tú otra vez."],
+	"saludos_amigos": ["¡Hombre, qué alegría verte!", "Mira quién viene. Siéntate un momento, si quieres.", "Ya te echaba de menos por aquí."],
+	"tiempo": {
+		"lluvia": ["Con esta lluvia no hay quien salga. Al menos el huerto lo agradece.", "Llevo los pies empapados desde el alba. Este valle no se seca nunca.", "Dicen que si llueve así tres días, el arroyo se lleva el puente viejo."],
+		"niebla": ["Con esta niebla no se ve ni la punta de la nariz.", "La niebla baja del bosque cada mañana. Mi abuela decía que no es buena señal.", "Cuidado por los caminos con esta niebla; uno se pierde enseguida."],
+		"despejado": ["Por fin un día claro. Da gusto.", "Con este sol hasta el humor mejora.", "Buen día para trabajar al aire libre."]
+	},
+	"pueblo": {
+		"normal": ["Por aquí no pasa gran cosa. Bueno, nada que se cuente en voz alta.", "En la taberna se habla de las cosechas, de deudas y de quién se casa con quién. Lo de siempre.", "Dicen que el alcalde anda preocupado por las cuentas. Yo no me meto.", "Hace días que no viene ningún mercader. Si no llega pronto, faltará sal.", "Los guardias hacen la ronda más a menudo últimamente. Alguien les habrá dado un susto."],
+		"crimen": ["Todo el pueblo habla de la mujer del arroyo. Nadie duerme tranquilo.", "Dicen que la encontraron al alba junto al arroyo. Pobre mujer… ¿Quién haría algo así?", "Desde lo de la mujer muerta, la gente cierra la puerta con llave. Antes nadie lo hacía.", "Hay quien dice que fue un forastero. Otros miran a los vecinos de reojo. Yo ya no sé qué pensar.", "Si buscas al que lo hizo, pregunta en la taberna. Allí todo el mundo sabe algo y nadie dice nada."]
+	},
+	"animo": {
+		"bien": ["Yo bien, la verdad. No me puedo quejar.", "Bien, bien. Hoy las cosas salen solas.", "Contento. Hay días buenos, y este es uno."],
+		"mal": ["Mal, si te soy sincero. No es mi mejor día.", "Cansado. Muy cansado.", "Mejor no preguntes. Ya pasará."],
+		"hambre": ["Con hambre. No he probado bocado desde ayer.", "Me sonaban las tripas hace un rato; a ver si como algo."],
+		"sueno": ["Me caigo de sueño. Anoche apenas dormí.", "Los ojos se me cierran solos."]
+	},
+	"respuestas": {
+		"oficio": "¿Y qué tal va el trabajo?",
+		"pueblo": "¿Qué se cuenta por el pueblo?",
+		"animo": "¿Y tú qué tal estás?",
+		"irse": "Bueno, te dejo seguir.",
+		"despedida": "Cuídate."
+	},
+	"oficios": {
+		"_cualquiera": {"charla": ["Aquí, a lo mío. El día no se hace solo.", "Uno trabaja, come, duerme y vuelta a empezar. Así es el valle.", "No me quejo. Otros lo tienen peor."], "tienda": "Echa un vistazo, a ver si algo te sirve."},
+		"INNKEEPER": {"charla": ["La taberna no para: unos vienen a beber y otros a contar lo que no deberían.", "Si quieres saber lo que pasa en el valle, siéntate en una mesa del fondo y escucha.", "La cerveza de este año ha salido buena. No lo digo yo, lo dicen los vasos vacíos."], "tienda": "¿Qué te pongo?"},
+		"BUTCHER": {"charla": ["Hoy he despiezado dos cerdos antes del alba. Las manos ya no las siento.", "La gente quiere carne pero no quiere ver de dónde sale.", "Si cazas algo en el bosque, tráemelo entero. Lo aprovecho todo."], "tienda": "Si traes piezas de caza, te las pago bien. Lo de hoy está colgado ahí detrás."},
+		"BLACKSMITH": {"charla": ["El fuego de la fragua no se apaga nunca. Ni de noche.", "Una buena hoja se templa con paciencia. Como las personas.", "Últimamente me piden más cerrojos que herraduras. Mala señal."], "tienda": "Todo lo de aquí lo he forjado yo. Si se rompe, me lo traes."},
+		"CARPENTER": {"charla": ["La madera tiene memoria: si la cortas mal, te lo recuerda toda la vida.", "Estoy con un tejado que gotea desde el invierno pasado.", "Huele a serrín, ¿verdad? A mí ya ni me llega."], "tienda": "Tablas, mangos, lo que necesites. Madera buena del bosque del norte."},
+		"HERBALIST": {"charla": ["Cada hierba tiene su momento: unas se cogen al alba y otras con luna llena.", "Medio pueblo viene a por remedios para dormir. Algo les quita el sueño.", "Hay plantas que curan y plantas que matan. A veces son la misma, cambia la dosis."], "tienda": "No toques los frascos de arriba. Lo que se vende está aquí delante."},
+		"FISHMONGER": {"charla": ["El arroyo baja revuelto estos días. Los peces se esconden.", "Pescar es esperar. Y yo tengo mucha paciencia.", "Antes sacaba truchas así de grandes. Ahora, con suerte, la mitad."], "tienda": "Pescado de esta mañana. Mañana ya no lo vendo."},
+		"DOCTOR": {"charla": ["La mitad de lo que curo son golpes de gente que no mira dónde pisa.", "Llevo días con la morgue ocupada. No es un trabajo que se olvide al cerrar.", "Lávese las manos antes de comer. Le ahorrará una visita."], "tienda": "Vendas, cataplasmas y botiquines. Ojalá no los necesite."},
+		"SHERIFF": {"charla": ["En este valle todo el mundo calla algo. Mi trabajo es saber qué.", "La guardia es poca y el valle grande. Hacemos lo que podemos.", "Prefiero un mal arreglo a un buen juicio. Pero a veces no queda otra."], "tienda": "Si traes algo de los bandidos, la comisaría lo paga."},
+		"GUARD": {"charla": ["Ronda de mañana, ronda de tarde, ronda de noche. Y el sueldo, el mismo.", "Si ve algo raro, avíseme. Aunque le parezca una tontería.", "Las botas se me deshacen de tanto patear el camino del norte."], "tienda": "Poca cosa tengo para vender, la verdad."},
+		"TRAVELING_MERCHANT": {"charla": ["Vengo de tres valles más allá. En todos se quejan de lo mismo: impuestos y lobos.", "Un buen mercader sabe qué le falta a cada pueblo antes de llegar.", "No me quedo mucho en ningún sitio. Así nadie me echa de menos."], "tienda": "Género de fuera, a buen precio. Hoy está, mañana no."},
+		"PRIEST": {"charla": ["La capilla está más llena desde lo ocurrido. El miedo acerca a la gente.", "Escucho muchas confesiones. Y guardo todas.", "Rece si quiere; y si no, al menos descanse. El alma también se cansa."], "tienda": "Velas y poco más. La capilla vive de lo que da la gente."},
+		"BAKER": {"charla": ["El horno lleva encendido desde antes del alba y aun así no doy abasto.", "Con este frío todo el mundo quiere pan caliente.", "Se me ha quemado una hornada esta mañana. Mejor no me preguntes cómo."], "tienda": "Pan de hoy, recién salido. El de ayer, más barato."},
+		"TAILOR": {"charla": ["Remiendo más de lo que coso. La gente no tira nada.", "Por la ropa se sabe mucho de una persona: dónde ha estado y con quién.", "Una buena capa dura diez inviernos si se cuida. Nadie las cuida."], "tienda": "Telas y ropa hecha. Si no te queda bien, te la arreglo."},
+		"LODGEKEEPER": {"charla": ["Las habitaciones están casi todas vacías. Ya no viene tanta gente al valle.", "Los huéspedes dejan cosas olvidadas. Te sorprendería lo que encuentro.", "Duerma tranquilo: aquí las puertas cierran bien."], "tienda": "Si necesita algo para el cuarto, dígamelo."},
+		"FARMER": {"charla": ["La tierra no espera a nadie. Si no siembras a tiempo, no comes.", "Este año la cosecha viene corta. Rezo para que aguante el invierno.", "Las gallinas ponen menos cuando hay tormenta. Cosas del campo."], "tienda": "Lo que da la tierra, sin trampa."},
+		"RANCHER": {"charla": ["Las ovejas se asustan con cualquier cosa últimamente. Algo ronda por el monte.", "Un buen perro vale más que tres pastores.", "Por las noches oigo cosas en el bosque. Prefiero no saber qué son."], "tienda": "Lana, leche y queso. Todo de mis animales."},
+		"QUARRYMAN": {"charla": ["La piedra no se queja, pero te rompe la espalda igual.", "En la cantera se oye todo el valle. El eco no miente.", "Una mala veta y pierdes una semana."], "tienda": "Piedra buena para construir. Y barata, si cargas tú."},
+		"WOODCUTTER": {"charla": ["Corto desde que sale el sol. El bosque del norte no se acaba nunca.", "Veo pasar a mucha gente por los caminos del bosque. Más de la que crees.", "Un hacha bien afilada hace la mitad del trabajo."], "tienda": "Leña seca y troncos. Lo mejor para el invierno."},
+		"TINKER": {"charla": ["Si tiene engranajes, lo arreglo. Si no, también lo intento.", "La gente tira cosas que todavía sirven. A mí me dan de comer.", "Ando con un invento entre manos. Aún no te lo puedo enseñar."], "tienda": "Piezas, chapuzas y algún aparato que funciona."},
+		"NOBLE": {"charla": ["El valle sería otra cosa si la gente supiera cuál es su sitio.", "Mi familia lleva aquí más generaciones que nadie. Eso tiene un peso.", "No suelo hablar con forasteros. Considérelo un privilegio."], "tienda": "No comercio con desconocidos."},
+		"CHILD": {"charla": ["¿Eres el detective? ¡Mi madre dice que no hable contigo!", "Ayer vi una rana enorme en el arroyo. ¡Así de grande!", "Me aburro. ¿Juegas conmigo?"], "tienda": "No tengo nada, ¡soy pequeño!"},
+		"TEACHER": {"charla": ["Los niños aprenden más rápido de lo que creen sus padres.", "Media escuela falta cuando hay cosecha. Así no hay manera.", "Leer es la única forma de salir de este valle sin moverse de él."], "tienda": "Libros, si encuentro alguno que sobre."},
+		"RESTAURATEUR": {"charla": ["Hoy hay guiso. Mañana, también, pero distinto.", "La cocina es como la vida: con prisa sale todo crudo.", "Los clientes de siempre se sientan en la misma mesa. Si cambian, algo pasa."], "tienda": "Lo que hay en la carta, recién hecho."},
+		"WAITER": {"charla": ["Llevo platos de aquí para allá todo el día. Y nadie da las gracias.", "En las mesas se oye de todo. Yo hago como que no.", "Si quieres mesa junto al fuego, ven pronto."], "tienda": "¿Le pido algo a la cocina?"},
+		"UNEMPLOYED": {"charla": ["Busco trabajo, pero en este valle los oficios se heredan.", "Hago recados por aquí y por allá. Da para comer, poco más.", "Si sabes de alguien que necesite manos, dímelo."], "tienda": "No tengo nada que vender, lo siento."},
+		"FAMILY_MEMBER": {"charla": ["Ayudo en casa con el negocio. Algún día será mío, supongo.", "Mi familia trabaja de sol a sol. Yo hago lo que puedo.", "En casa no se habla de otra cosa que del trabajo."], "tienda": "Lo de la tienda lo lleva mi familia."},
+		"ROYAL_INVESTIGATOR": {"charla": ["La Corona no envía a nadie a un valle así por gusto.", "Hago preguntas. Es mi oficio. Usted también, según me cuentan.", "Aquí todos se conocen. Eso hace que todos mientan mejor."], "tienda": "No estoy aquí para comerciar."}
+	}
+}

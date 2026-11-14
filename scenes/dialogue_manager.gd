@@ -1,10 +1,18 @@
 extends Node
-## Sistema de Diálogo reconstruido desde cero:
-## - Interfaz centrada automáticamente con estilo limpio (Nombre del NPC, Estado de Relación, Texto con efecto máquina de escribir opcional y Opciones numeradas).
-## - Controles intuitivos por Teclado ([1]-[9], W/S/Flechas + Enter/Espacio, ESC para salir) y Ratón.
-## - Soporte directo para cambios de Afinidad/Relación ("affinity") y acciones ("action") por opción.
+## Gestor de diálogos: recorre el árbol de frases y opciones que montan los vecinos y lo enseña en la ventana
+## provisional (scripts/ui/dialogo/). Frases largas en trozos que se pasan con clic, E, Espacio o Intro; opciones
+## con 1-9, W/S o ratón; Esc sale. Un nodo marcado «tienda» abre la ventana de tienda en vez de la caja.
+## Cada opción puede cambiar la relación («affinity») y lanzar una acción («action»); eso no cambia (2026-11-13).
 
-@export var dialogue_box: Control
+const DialogoTexto = preload("res://scripts/ui/dialogo/DialogoTexto.gd")
+const DialogoVentanaScript = preload("res://scripts/ui/dialogo/DialogoVentana.gd")
+const TiendaUIScript = preload("res://scripts/ui/dialogo/TiendaUI.gd")
+
+const ESPERA_ENTRE_PULSACIONES: float = 0.15 ## evita que la E que abre el diálogo pase ya la primera frase
+const XP_CARISMA_POR_CHARLA: int = 3
+const NODO_TIENDA: String = "tienda"
+
+@export var dialogue_box: Control ## caja antigua de la escena: se esconde
 @export var dialogue_text: Label
 @export var choices_box: VBoxContainer
 
@@ -17,356 +25,215 @@ var active: bool = false
 var current_speaker: Node = null
 var current_choices: Array = []
 
-# Nodos de UI construidos/gestionados limpiamente
-var _panel: PanelContainer
-var _portrait_frame: PanelContainer
-var _portrait_rect: TextureRect
-var _speaker_label: Label
-var _tagline_label: Label
-var _relation_label: Label
-var _body_label: Label
-var _choices_scroll: ScrollContainer
-var _choices_container: VBoxContainer
-var _hint_footer: Label
-var _input_cooldown: float = 0.0
+var _ventana: Control
+var _tienda: Control
+var _trozos: Array[String] = []
+var _trozo: int = 0
+var _opciones_puestas: bool = false
+var _espera: float = 0.0
 
 func _ready() -> void:
-	# Ocultar el contenedor viejo mal centrado si existe en la escena
 	if dialogue_box:
 		dialogue_box.visible = false
-	_build_clean_ui()
+	_construir()
+
+func _construir() -> void:
+	var cs: Node = get_tree().current_scene
+	var padre: Node = cs.get_node_or_null("UI/UIRoot") if cs else null
+	if padre == null:
+		padre = get_parent()
+	_ventana = DialogoVentanaScript.new()
+	_ventana.name = "DialoguePanel"
+	_ventana.visible = false
+	_ventana.avanzar_pulsado.connect(_avanzar)
+	_ventana.opcion_pulsada.connect(_on_choice_pressed)
+	_tienda = TiendaUIScript.new()
+	_tienda.name = "TiendaPanel"
+	_tienda.fila_elegida.connect(_on_fila_tienda)
+	_tienda.cerrada.connect(_on_tienda_cerrada)
+	padre.call_deferred("add_child", _ventana)
+	padre.call_deferred("add_child", _tienda)
 
 func _process(delta: float) -> void:
-	if _panel != null and (_panel.offset_top < -600.0 or not is_instance_valid(_choices_scroll)):
-		var was_active: bool = active
-		_panel.queue_free()
-		_panel = null
-		_build_clean_ui()
-		if was_active:
-			_update_header()
-			_panel.visible = true
-			_show_node(current_id)
-	if _input_cooldown > 0.0:
-		_input_cooldown -= delta
-	if active and current_speaker != null:
-		var sed_val: float = float(current_speaker.get("sedated_timer")) if (is_instance_valid(current_speaker) and "sedated_timer" in current_speaker) else 0.0
-		if not is_instance_valid(current_speaker) or current_speaker.get("is_dead") == true or current_speaker.get("is_downed") == true or current_speaker.get("is_hostile") == true or current_speaker.get("is_attacking") == true or current_speaker.get("is_stunned_flag") == true or sed_val > 0.0:
-			end_dialogue()
+	if _espera > 0.0:
+		_espera -= delta
+	if not active:
+		return
+	if not _hablante_puede_seguir():
+		end_dialogue()
+		return
+	if not _opciones_puestas and _trozo == _trozos.size() - 1 and not _ventana.revelando():
+		_poner_opciones()
 
-func _make_dlg_style(bg: Color, border: Color, bw: int, rad: int, mx: int, my: int) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = bg
-	s.border_color = border
-	s.set_border_width_all(bw)
-	s.set_corner_radius_all(rad)
-	s.content_margin_left = mx
-	s.content_margin_right = mx
-	s.content_margin_top = my
-	s.content_margin_bottom = my
-	return s
-
-func _make_dlg_lbl(txt: String, f_sz: int, col: Color, autowrap: bool = false, align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT, expand_h: bool = false) -> Label:
-	var l := Label.new()
-	l.text = txt
-	l.horizontal_alignment = align
-	if autowrap:
-		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	if expand_h:
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	l.add_theme_font_size_override("font_size", f_sz)
-	l.add_theme_color_override("font_color", col)
-	return l
-
-func _build_clean_ui() -> void:
-	var cs: Node = get_tree().current_scene
-	if cs == null and get_parent() != null:
-		cs = get_parent().get_parent()
-	var ui_parent: Node = cs.get_node_or_null("UI/UIRoot") if cs else null
-	if not ui_parent:
-		ui_parent = get_parent()
-
-	_panel = PanelContainer.new()
-	_panel.name = "DialoguePanel"
-	_panel.visible = false
-	_panel.add_theme_stylebox_override("panel", _make_dlg_style(Color(0.08, 0.09, 0.12, 0.94), Color(0.75, 0.65, 0.42, 0.9), 2, 6, 20, 14))
-	_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_panel.custom_minimum_size = Vector2(720, 190)
-	_panel.offset_left = -360
-	_panel.offset_right = 360
-	_panel.offset_bottom = -24
-	_panel.offset_top = -220
-
-	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 10)
-	_panel.add_child(main_vbox)
-
-	var header_hbox := HBoxContainer.new()
-	header_hbox.add_theme_constant_override("separation", 14)
-	main_vbox.add_child(header_hbox)
-
-	_portrait_frame = PanelContainer.new()
-	_portrait_frame.custom_minimum_size = Vector2(72, 72)
-	_portrait_frame.add_theme_stylebox_override("panel", _make_dlg_style(Color(0.11, 0.12, 0.16, 0.98), Color(0.85, 0.72, 0.42, 0.95), 2, 6, 4, 4))
-	header_hbox.add_child(_portrait_frame)
-
-	_portrait_rect = TextureRect.new()
-	_portrait_rect.custom_minimum_size = Vector2(64, 64)
-	_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_portrait_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_portrait_frame.add_child(_portrait_rect)
-
-	var header_info_vbox := VBoxContainer.new()
-	header_info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header_info_vbox.add_theme_constant_override("separation", 3)
-	header_hbox.add_child(header_info_vbox)
-
-	var title_row := HBoxContainer.new()
-	header_info_vbox.add_child(title_row)
-	_speaker_label = _make_dlg_lbl("NPC", 18, Color(1.0, 0.85, 0.45), false, HORIZONTAL_ALIGNMENT_LEFT, true)
-	title_row.add_child(_speaker_label)
-	_relation_label = _make_dlg_lbl("Neutral (0)", 14, Color(0.75, 0.8, 0.85), false, HORIZONTAL_ALIGNMENT_RIGHT)
-	title_row.add_child(_relation_label)
-
-	_tagline_label = _make_dlg_lbl("", 12, Color(0.84, 0.78, 0.62), true)
-	_tagline_label.custom_minimum_size = Vector2(580, 0)
-	_tagline_label.max_lines_visible = 2
-	header_info_vbox.add_child(_tagline_label)
-
-	main_vbox.add_child(HSeparator.new())
-	_body_label = _make_dlg_lbl("", 15, Color(0.95, 0.95, 0.95), true)
-	_body_label.custom_minimum_size = Vector2(680, 44)
-	_body_label.max_lines_visible = 6
-	main_vbox.add_child(_body_label)
-
-	_choices_scroll = ScrollContainer.new()
-	_choices_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_choices_scroll.follow_focus = true
-	_choices_scroll.custom_minimum_size = Vector2(680, 120)
-	main_vbox.add_child(_choices_scroll)
-
-	_choices_container = VBoxContainer.new()
-	_choices_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_choices_container.add_theme_constant_override("separation", 6)
-	_choices_scroll.add_child(_choices_container)
-
-	_hint_footer = _make_dlg_lbl("[1-9] Elegir opción   |   [W/S + Espacio/Enter] Navegar   |   [ESC] Cerrar", 12, Color(0.55, 0.58, 0.65), false, HORIZONTAL_ALIGNMENT_CENTER)
-	main_vbox.add_child(_hint_footer)
-
-	ui_parent.call_deferred("add_child", _panel)
+func _hablante_puede_seguir() -> bool:
+	if current_speaker == null:
+		return true
+	if not is_instance_valid(current_speaker):
+		return false
+	var sedado: float = float(current_speaker.get("sedated_timer")) if "sedated_timer" in current_speaker else 0.0
+	for estado in ["is_dead", "is_downed", "is_hostile", "is_attacking", "is_stunned_flag"]:
+		if current_speaker.get(estado) == true:
+			return false
+	return sedado <= 0.0
 
 func is_active() -> bool:
 	return active
 
 func start_dialogue(new_graph: Dictionary, start_id: String, speaker: Node = null) -> void:
-	if not _panel:
-		_build_clean_ui()
-
 	graph = new_graph
-	current_id = start_id
 	current_speaker = speaker
 	active = true
-	_input_cooldown = 0.15
-
-	_update_header()
-	_panel.visible = true
-	_show_node(current_id)
-
-func _update_header() -> void:
-	if not _speaker_label or not _relation_label:
-		return
-	if is_instance_valid(current_speaker):
-		var npc_name: String = current_speaker.get("npc_name") if "npc_name" in current_speaker else current_speaker.name
-		var npc_role: String = str(current_speaker.get("npc_role")) if "npc_role" in current_speaker else ""
-		_speaker_label.text = ("%s — %s" % [npc_name, npc_role]) if npc_role != "" else npc_name
-		if current_speaker.has_method("get_relationship_status_text"):
-			_relation_label.text = current_speaker.get_relationship_status_text()
-			_relation_label.modulate = current_speaker.get_relationship_color()
-		else:
-			_relation_label.text = ""
-		if _tagline_label:
-			var tag_txt: String = str(current_speaker.call("get_character_tagline")) if current_speaker.has_method("get_character_tagline") else ""
-			_tagline_label.text = "📜 " + tag_txt if tag_txt != "" else ""
-			_tagline_label.visible = (tag_txt != "")
-		if _portrait_rect and _portrait_frame:
-			var p_tex: Texture2D = null
-			if current_speaker.has_method("get_portrait_texture"):
-				p_tex = current_speaker.call("get_portrait_texture") as Texture2D
-			if p_tex == null and "sprite" in current_speaker and current_speaker.sprite != null:
-				if current_speaker.sprite is Sprite2D:
-					p_tex = (current_speaker.sprite as Sprite2D).texture
-				elif current_speaker.sprite is AnimatedSprite2D:
-					var aspr := current_speaker.sprite as AnimatedSprite2D
-					if aspr.sprite_frames != null and aspr.sprite_frames.has_animation(aspr.animation) and aspr.sprite_frames.get_frame_count(aspr.animation) > 0:
-						p_tex = aspr.sprite_frames.get_frame_texture(aspr.animation, clampi(aspr.frame, 0, aspr.sprite_frames.get_frame_count(aspr.animation) - 1))
-			_portrait_rect.texture = p_tex
-			_portrait_frame.visible = (p_tex != null)
-	else:
-		_speaker_label.text = "Diálogo"
-		_relation_label.text = ""
-		if _tagline_label:
-			_tagline_label.visible = false
-		if _portrait_frame:
-			_portrait_frame.visible = false
+	_espera = ESPERA_ENTRE_PULSACIONES
+	_poner_hablante()
+	_ventana.visible = true
+	_show_node(start_id)
 
 func end_dialogue() -> void:
 	active = false
-	var finished_id = current_id
-	var speaker_ref = current_speaker
 	current_choices.clear()
-	if _panel:
-		_panel.visible = false
-	if _choices_container:
-		for c in _choices_container.get_children():
-			_choices_container.remove_child(c)
-			c.queue_free()
-	dialogue_finished.emit(finished_id, speaker_ref)
+	_ventana.visible = false
+	if _tienda.visible:
+		_tienda.visible = false
+	dialogue_finished.emit(current_id, current_speaker)
+
+func _poner_hablante() -> void:
+	if not is_instance_valid(current_speaker):
+		_ventana.poner_hablante("", "", "", Color.WHITE)
+		return
+	var nombre: String = str(current_speaker.get("npc_name")) if "npc_name" in current_speaker else str(current_speaker.name)
+	var oficio: String = str(current_speaker.get("npc_role")) if "npc_role" in current_speaker else ""
+	var relacion: String = ""
+	var color: Color = Color.WHITE
+	if current_speaker.has_method("get_relationship_status_text"):
+		relacion = DialogoTexto.sin_emojis(str(current_speaker.get_relationship_status_text())).split("|")[-1].strip_edges() # sin repetir el oficio
+		color = current_speaker.get_relationship_color()
+	_ventana.poner_hablante(nombre, oficio, relacion, color)
 
 func _show_node(id: String) -> void:
 	if not graph.has(id):
 		end_dialogue()
 		return
+	current_id = id
+	var nodo: Dictionary = graph[id]
+	current_choices = nodo.get("choices", [])
+	if bool(nodo.get(NODO_TIENDA, false)):
+		_abrir_tienda(nodo)
+		return
+	_tienda.visible = false # salir de la tienda por cualquier camino devuelve la caja
+	_ventana.visible = true
+	_trozos = DialogoTexto.trozos(DialogoTexto.limpiar_texto(str(nodo.get("text", ""))))
+	_trozo = 0
+	_pintar_trozo()
 
-	_input_cooldown = 0.12
-	var node_data: Dictionary = graph[id]
+func _pintar_trozo() -> void:
+	_opciones_puestas = false
+	_ventana.poner_opciones([] as Array[String])
+	_ventana.poner_trozo(_trozos[_trozo], _trozo + 1, _trozos.size())
 
-	if _body_label:
-		_body_label.text = str(node_data.get("text", ""))
+func _poner_opciones() -> void:
+	_opciones_puestas = true
+	var etiquetas: Array[String] = []
+	for c in current_choices:
+		etiquetas.append(DialogoTexto.limpiar_etiqueta(str((c as Dictionary).get("label", "Seguir"))))
+	_ventana.poner_opciones(etiquetas)
 
-	for c in _choices_container.get_children():
-		_choices_container.remove_child(c)
-		c.queue_free()
-
-	current_choices = node_data.get("choices", [])
-	var first_btn: Button = null
-
-	for i in range(current_choices.size()):
-		var ch: Dictionary = current_choices[i]
-		var btn := Button.new()
-		var num_prefix := "[%d] " % (i + 1)
-		btn.text = num_prefix + str(ch.get("label", "Continuar"))
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.clip_text = true
-		btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		btn.custom_minimum_size = Vector2(664, 32)
-		btn.add_theme_font_size_override("font_size", 15)
-		btn.focus_mode = Control.FOCUS_ALL
-
-		var btn_normal := StyleBoxFlat.new()
-		btn_normal.bg_color = Color(0.15, 0.17, 0.22, 0.9)
-		btn_normal.corner_radius_top_left = 4
-		btn_normal.corner_radius_top_right = 4
-		btn_normal.corner_radius_bottom_left = 4
-		btn_normal.corner_radius_bottom_right = 4
-		btn_normal.content_margin_left = 12
-		btn_normal.content_margin_right = 12
-		btn_normal.content_margin_top = 4
-		btn_normal.content_margin_bottom = 4
-
-		var btn_hover := btn_normal.duplicate() as StyleBoxFlat
-		btn_hover.bg_color = Color(0.25, 0.30, 0.40, 0.95)
-		btn_hover.border_width_left = 3
-		btn_hover.border_color = Color(1.0, 0.85, 0.45)
-
-		btn.add_theme_stylebox_override("normal", btn_normal)
-		btn.add_theme_stylebox_override("hover", btn_hover)
-		btn.add_theme_stylebox_override("focus", btn_hover)
-
-		btn.pressed.connect(_on_choice_pressed.bind(i))
-		_choices_container.add_child(btn)
-		if i == 0:
-			first_btn = btn
-
-	if _choices_scroll:
-		_choices_scroll.scroll_vertical = 0
-		var rows_h: float = float(current_choices.size()) * 32.0 + float(maxi(0, current_choices.size() - 1)) * 6.0
-		_choices_scroll.custom_minimum_size = Vector2(680, clampf(rows_h, 36.0, 222.0))
-
-	if _panel:
-		var body_txt: String = _body_label.text if _body_label else ""
-		var body_lines: int = clampi(int(ceil(float( maxi(1, body_txt.length()) ) / 75.0)) + body_txt.count("\n"), 2, 6)
-		var body_h: float = float(body_lines) * 21.0 + 6.0
-		if _body_label:
-			_body_label.custom_minimum_size = Vector2(680, body_h)
-		var ch_h: float = _choices_scroll.custom_minimum_size.y if _choices_scroll else 120.0
-		var panel_h: float = 158.0 + body_h + ch_h
-		_panel.custom_minimum_size = Vector2(720, panel_h)
-		_panel.offset_left = -360
-		_panel.offset_right = 360
-		_panel.offset_bottom = -16
-		_panel.offset_top = -16 - panel_h
-		_panel.size = Vector2(720, panel_h)
-
-	if first_btn:
-		first_btn.call_deferred("grab_focus")
+## Clic en la caja, E, Espacio o Intro: termina de escribir la frase o pasa al siguiente trozo. En el último no
+## elige nada (para no escoger sin querer al pasar texto deprisa): ahí se elige con número, clic o Intro.
+func _avanzar() -> void:
+	if not active or _espera > 0.0:
+		return
+	if _ventana.revelando():
+		_ventana.revelar_todo()
+	elif _trozo < _trozos.size() - 1:
+		_trozo += 1
+		_pintar_trozo()
+	elif current_choices.is_empty():
+		end_dialogue()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not active or _input_cooldown > 0.0:
+	if not active or _espera > 0.0:
 		return
-
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
-		end_dialogue()
+		if _tienda.visible:
+			_tienda.cerrar()
+		else:
+			end_dialogue()
 		return
-
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode >= KEY_1 and event.keycode <= KEY_9:
-			var idx: int = event.keycode - KEY_1
-			if idx >= 0 and idx < current_choices.size():
-				get_viewport().set_input_as_handled()
-				_on_choice_pressed(idx)
-		elif event.physical_keycode == KEY_W or event.physical_keycode == KEY_S:
-			if _choices_container and _choices_container.get_child_count() > 0:
-				var focused := get_viewport().gui_get_focus_owner()
-				var cur_idx: int = 0
-				for i in range(_choices_container.get_child_count()):
-					if _choices_container.get_child(i) == focused:
-						cur_idx = i
-						break
-				var delta_i: int = -1 if event.physical_keycode == KEY_W else 1
-				var next_idx: int = posmod(cur_idx + delta_i, _choices_container.get_child_count())
-				var next_btn := _choices_container.get_child(next_idx) as Control
-				if next_btn:
-					next_btn.grab_focus()
-					get_viewport().set_input_as_handled()
+	if _tienda.visible:
+		return
+	if event.is_action_pressed("Interact") or event.is_action_pressed("ui_accept"):
+		get_viewport().set_input_as_handled()
+		_avanzar()
+		return
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	var tecla: InputEventKey = event
+	if tecla.keycode >= KEY_1 and tecla.keycode <= KEY_9 and _opciones_puestas:
+		get_viewport().set_input_as_handled()
+		_on_choice_pressed(tecla.keycode - KEY_1)
+	elif tecla.physical_keycode in [KEY_W, KEY_S] and _opciones_puestas:
+		get_viewport().set_input_as_handled()
+		_ventana.mover_foco(-1 if tecla.physical_keycode == KEY_W else 1)
 
 func _on_choice_pressed(index: int) -> void:
-	if not active or _input_cooldown > 0.0:
+	if not active or _espera > 0.0 or index < 0 or index >= current_choices.size():
 		return
-	if index < 0 or index >= current_choices.size():
-		return
-
-	var chosen: Dictionary = current_choices[index]
-
-	# Aplicar cambio de afinidad/relación si la opción lo define
-	if chosen.has("affinity") and is_instance_valid(current_speaker) and current_speaker.has_method("modify_affinity"):
-		var aff_before: int = int(current_speaker.get("affinity")) if current_speaker.get("affinity") != null else 0
-		current_speaker.modify_affinity(int(chosen["affinity"]))
-		if int(chosen["affinity"]) > 0 and aff_before < 100:
-			var talker = get_tree().get_first_node_in_group("player")
-			if talker and talker.has_method("add_skill_xp"):
-				talker.call("add_skill_xp", "charisma", 3)
-		_update_header()
-
-	# Ejecutar acción de diálogo si existe
-	if chosen.has("action") and str(chosen["action"]) != "":
-		var action_id := str(chosen["action"])
-		choice_action_triggered.emit(action_id, current_speaker)
-		if is_instance_valid(current_speaker) and current_speaker.has_method("on_dialogue_action"):
-			current_speaker.on_dialogue_action(action_id)
-		if is_instance_valid(current_speaker) and current_speaker.has_method("_build_dialogue"):
-			var raw_g: Dictionary = current_speaker.call("_build_dialogue")
-			if current_speaker.has_method("_inject_character_lore_into_dialogue"):
-				raw_g = current_speaker.call("_inject_character_lore_into_dialogue", raw_g)
-			graph = raw_g
-			_update_header()
-
-	var next_id := str(chosen.get("next", "END"))
-	if next_id == "" or next_id == "END":
+	var elegida: Dictionary = current_choices[index]
+	_espera = ESPERA_ENTRE_PULSACIONES
+	_aplicar(elegida)
+	var siguiente: String = str(elegida.get("next", "END"))
+	if siguiente == "" or siguiente == "END":
 		end_dialogue()
 		return
+	_show_node(siguiente)
 
-	current_id = next_id
-	_show_node(current_id)
+## Efectos de una opción: relación, acción y árbol rehecho (la acción puede cambiar lo que el vecino ofrece).
+func _aplicar(elegida: Dictionary) -> void:
+	if elegida.has("affinity") and is_instance_valid(current_speaker) and current_speaker.has_method("modify_affinity"):
+		var antes: int = int(current_speaker.get("affinity")) if current_speaker.get("affinity") != null else 0
+		current_speaker.modify_affinity(int(elegida["affinity"]))
+		if int(elegida["affinity"]) > 0 and antes < 100:
+			var jugador = get_tree().get_first_node_in_group("player")
+			if jugador and jugador.has_method("add_skill_xp"):
+				jugador.call("add_skill_xp", "charisma", XP_CARISMA_POR_CHARLA)
+		_poner_hablante()
+	var accion: String = str(elegida.get("action", ""))
+	if accion == "":
+		return
+	choice_action_triggered.emit(accion, current_speaker)
+	if is_instance_valid(current_speaker) and current_speaker.has_method("on_dialogue_action"):
+		current_speaker.on_dialogue_action(accion)
+	if is_instance_valid(current_speaker) and current_speaker.has_method("_build_dialogue"):
+		var nuevo: Dictionary = current_speaker.call("_build_dialogue")
+		if current_speaker.has_method("_inject_character_lore_into_dialogue"):
+			nuevo = current_speaker.call("_inject_character_lore_into_dialogue", nuevo)
+		graph = nuevo
+		_poner_hablante()
+
+# ---------------------------------------------------------------- tienda
+func _abrir_tienda(nodo: Dictionary) -> void:
+	_ventana.visible = false
+	var jugador = get_tree().get_first_node_in_group("player")
+	var inv: Object = jugador.get("inventory") if jugador != null else null
+	var nombre: String = str(current_speaker.get("npc_name")) if is_instance_valid(current_speaker) and "npc_name" in current_speaker else ""
+	var oficio: String = str(current_speaker.get("npc_role")) if is_instance_valid(current_speaker) and "npc_role" in current_speaker else ""
+	var titulo: String = ("%s · %s" % [nombre, oficio]) if oficio != "" else nombre
+	var frase: String = str(nodo.get("text", ""))
+	_tienda.abrir(titulo, ("«%s»" % frase) if frase != "" else "", current_choices, inv)
+
+func _on_fila_tienda(indice: int) -> void:
+	if not active or indice < 0 or indice >= current_choices.size():
+		return
+	_aplicar(current_choices[indice])
+	if graph.has(NODO_TIENDA):
+		_show_node(NODO_TIENDA) # repinta con existencias y bolsa nuevas
+	else:
+		_tienda.cerrar() # ya no vende nada (se ha ido del mostrador…)
+
+func _on_tienda_cerrada() -> void:
+	if not active:
+		return
+	_ventana.visible = true
+	_espera = ESPERA_ENTRE_PULSACIONES
+	_show_node("start")
