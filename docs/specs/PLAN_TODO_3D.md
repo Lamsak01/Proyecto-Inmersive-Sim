@@ -69,9 +69,23 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    `AnimalModel3D` sirve a dueños 3D (`poner`, en metros) y aún a los planos (`attach`, en píxeles). Contador
    2.312 → **2.302**. Prueba `fisica_3d` (9 comprobaciones nuevas «4b»). **Sigue siendo 2D:** el sitio del corral y la
    altura del suelo se preguntan al mapa plano (traductores apuntados abajo); el modelo aún mide por dentro en píxeles.
-   **4b-2, animales salvajes** (`WildAnimal.gd`, 1.235 líneas en píxeles): estudiado el 2026-11-14. No puede ser un
-   cuerpo 3D mientras los golpes lo busquen en el mapa plano (el combate usa al «dueño» de la zona de golpe como nodo
-   plano: posición, empujón, altura por pisos). **Orden corregido: primero los golpes en 3D (7a), después 4b-2.**
+   **4b-2, animales salvajes:** no podían ser un cuerpo 3D mientras los golpes los buscaran en el mapa plano; por eso
+   se hizo antes la 7a (abajo). ✅ **Hecho el 2026-11-14.** `WildAnimal` hereda de `CuerpoBase3D`, vive en el escenario
+   3D y piensa en metros sobre el suelo (`sitio`, `casa`, `andar`, `paso_m_s`, `huida_m_s`, `alerta_m`). Su archivo de
+   1.235 líneas se partió en piezas con nombre de clase, sin preloads entre ellas (`enemies/animales/`: `AnimalAlerta`,
+   `AnimalAgenda`, `AnimalComida`, `AnimalCaza`, `AnimalJabali`, `AnimalDespiece`, `AnimalRotulo`, y `VidaAnimal`). Fuera
+   su dibujo plano, su choque plano, su rótulo plano (ahora `Label3D`) y el ratón sobre el mapa. `CuerpoBase3D` ya no
+   tiene preloads de sistemas (capas en `Capas3D.gd`; suelo, relieve y paredes se cargan al usarlos) y da el paso físico
+   (`_paso_fisico`, `_pisar`, `_pedir_paredes`). `Lugar.gd` es el traductor de sitios: `Lugar.de(n)` en metros y
+   `Lugar.en_mapa(n)` en píxeles, sea `n` plano o 3D. Contador 2.274 → **2.240**. Pruebas: `animales_3d` (nueva, 22
+   comprobaciones, también con el modo demo apagado), `fisica_3d`, partida del Caso I 25/25, fotos. Arreglos de paso:
+   empezar la partida ya no da experiencia de caza (los animales de reserva «se despiezaban» al crearse y subían la caza
+   a nivel 3); un cadáver ya no estorba el paso. **Sigue siendo 2D:** la zona para despiezar con [E]
+   (`animales/ZonaDespiece.gd`, un área del mapa plano → tanda 7-E); el ecosistema guarda nidos y medidas en píxeles y
+   los pasa a metros al crear cada animal (`EcosystemManager._spawn_animal_pool`); la orilla del río se pregunta a
+   `RioLago` en píxeles (`VidaAnimal._orilla_cercana`); las plantas que comen son nodos planos (`HarvestableNode`);
+   quien aún piensa en plano los lee con `Lugar.en_mapa` (cazadores, cepos, perros, mapa del valle, cruz del ratón).
+   **Siguiente 4b-3: mascotas (`DomesticPet`) y bandidos (`Raider`, `DummyEnemy`).**
 5. **Rutas con navegación 3D** (malla de navegación del mundo y de cada edificio). Se borran las rutas y listas de
    puertas a mano y los atajos de «colocar» vecinos (guardia mensajero, custodia).
 6. **Piezas que dicen para qué sirven** (`PLAN_LO_QUE_SE_VE.md`, fases 1–4), ya en 3D: sillas, camas, puestos, la E.
@@ -138,6 +152,9 @@ rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 
 - «Cortina» de la flecha (`Diana3D.en_cortina`, `ArrowProjectile.CORTINA_M`, 2026-11-14): fuera de la 1.ª persona
   no se puede apuntar hacia abajo, así que la flecha alcanza lo que tiene debajo hasta 1,7 m → se decide con el
   usuario si la vista desde arriba se queda (pregunta apuntada).
+- `Lugar.gd` (traductor metros ↔ mapa plano, 2026-11-14) y sus usos `Lugar.en_mapa(...)` en código que aún piensa en
+  plano → se borra cuando no quede ningún personaje en el mapa plano.
+- `ZonaDespiece.gd`: área del mapa plano para despiezar un animal 3D con [E] → tanda 7-E.
 - Tabla de tamaños por grupo y especie en `TallaCuerpo3D.gd` (cada personaje debería decir el suyo) → tanda 6.
 - Dibujos 2D escondidos con capas en 1.ª persona (`WorldStage3D._ocultar_2d_tapado`) → tandas 4 y 8.
 - Cama `cama_2` de la comisaría puesta a mano; zapato del caso como «Caja_383» con etiqueta → tanda 6.

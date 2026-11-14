@@ -461,8 +461,8 @@ func take_damage(data: DamageData, zona: String = "") -> void:
 	if is_bullet_hit and data != null:
 		var f_kind: String = data.firearm_kind if data.firearm_kind != "" else ("rifle" if "fusil" in w_tag_low else "pistol")
 		var dist_px: float = data.shot_distance_px
-		if dist_px <= 0.01 and is_instance_valid(data.source) and data.source is Node2D and p_owner is Node2D:
-			dist_px = (data.source as Node2D).global_position.distance_to((p_owner as Node2D).global_position)
+		if dist_px <= 0.01 and is_instance_valid(data.source) and (data.source is Node2D or data.source is Node3D) and p_owner is Node2D:
+			dist_px = Lugar.en_mapa(data.source).distance_to((p_owner as Node2D).global_position)
 		if chosen_region == "torso" and get_metal_chest_armor_tier() >= 2:
 			var is_close_rifle: bool = (f_kind == "rifle" and dist_px < 95.0)
 			armor_dents += 1
@@ -591,9 +591,9 @@ func hit_region_weights(data: DamageData) -> Dictionary:
 		w[r_id] = float(REGION_DEFS[r_id]["weight"])
 	last_hit_context = ""
 	var o: Node = get_parent()
-	if data == null or not is_instance_valid(data.source) or not (data.source is Node2D) or not (o is Node2D):
+	if data == null or not is_instance_valid(data.source) or not (data.source is Node2D or data.source is Node3D) or not (o is Node2D):
 		return w
-	var src: Node2D = data.source as Node2D
+	var src: Node = data.source
 	var low: bool = src.is_in_group("wild_animals") or src.is_in_group("domestic_pets") or (src.is_in_group("raiders") and str(src.get("kind")) == "boar")
 	if low:
 		w["left_leg"] *= 3.0
@@ -602,7 +602,7 @@ func hit_region_weights(data: DamageData) -> Dictionary:
 		w["right_arm"] *= 0.7
 		w["head"] *= 0.15
 		last_hit_context = "bajo"
-	var to_src: Vector2 = src.global_position - (o as Node2D).global_position
+	var to_src: Vector2 = Lugar.en_mapa(src) - (o as Node2D).global_position
 	var facing: Vector2 = _owner_facing()
 	if to_src.length_squared() > 1.0 and facing.length_squared() > 0.01:
 		var d: Vector2 = to_src.normalized()

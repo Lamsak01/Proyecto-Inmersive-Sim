@@ -45,9 +45,9 @@ static func attack_feel(kind: String) -> Dictionary:
 	return ATTACK_FEEL.get(kind, ATTACK_FEEL["puño"])
 
 ## Zumbido del golpe de un rival al soltarlo (lo oyes venir aunque no mires).
-static func enemy_swing(node: Node2D, kind: String) -> void:
+static func enemy_swing(node: Node, kind: String) -> void:
 	if node != null:
-		play(node, SFX_SWING, node.global_position, float(attack_feel(kind)["pitch"]), -7.0)
+		play(node, SFX_SWING, Lugar.en_mapa(node), float(attack_feel(kind)["pitch"]), -7.0)
 
 ## Masa de quien recibe (1 = una persona): el empujón se divide por ella y el tambaleo por su raíz.
 ## Cada criatura la declara con `hit_mass` (un jabalí ~2,5: la hoz apenas lo mueve; un conejo ~0,5).
@@ -82,24 +82,24 @@ static func play(node: Node, stream: AudioStream, pos: Vector2, pitch: float = 1
 ## Reacción de quien recibe un golpe cuerpo a cuerpo: empujón (respetando paredes), tambaleo que corta su ataque,
 ## chispa en el punto del impacto y sonido. `dir` = dirección del golpe.
 static func apply_hit_reaction(target: Node, dir: Vector2, feel: Dictionary) -> void:
-	if target == null or not is_instance_valid(target) or not (target is Node2D):
+	if target == null or not is_instance_valid(target) or not (target is Node2D or target is Node3D):
 		return
-	var t2d := target as Node2D
-	if target.get("is_dead") == true:
-		play(t2d, SFX_DIE, t2d.global_position, float(feel.get("pitch", 1.0)))
-	else:
-		play(t2d, SFX_HIT, t2d.global_position, float(feel.get("pitch", 1.0)))
+	var donde: Vector2 = Lugar.en_mapa(target)
+	play(target, SFX_DIE if target.get("is_dead") == true else SFX_HIT, donde, float(feel.get("pitch", 1.0)))
 	var mass: float = mass_of(target)
 	var push: Vector2 = dir.normalized() * float(feel.get("knockback", 8.0)) / mass
-	if push != Vector2.ZERO and t2d.has_meta(_AndarMapa.META_CUERPO) and target.get("is_dead") != true and target.get("is_downed") != true:
-		_AndarMapa.empujon(t2d, push) # lo mueve su cuerpo 3D: choca con muros, no atraviesa paredes
+	if push != Vector2.ZERO and target.get("is_dead") != true and target.get("is_downed") != true:
+		if target.has_method("empujar_suelo"): # ya ES su cuerpo 3D: se empuja a sí mismo, en metros
+			target.call("empujar_suelo", Lugar.a_suelo(push))
+		elif target.has_meta(_AndarMapa.META_CUERPO):
+			_AndarMapa.empujon(target as Node2D, push) # lo mueve su cuerpo 3D: choca con muros, no atraviesa paredes
 	if target.has_method("apply_parry_stagger") and target.get("is_dead") != true:
 		target.call("apply_parry_stagger", float(feel.get("stagger", 0.2)) / sqrt(mass), true)
 	var rec_ms: int = maxi(200, int(clampf(float(feel.get("stagger", 0.24)) / sqrt(mass), 0.20, 0.55) * 1000.0))
 	target.set_meta("hit_recoil_3d_dir", dir.normalized() if dir.length_squared() > 0.001 else Vector2.RIGHT)
 	target.set_meta("hit_recoil_3d_until_ms", Time.get_ticks_msec() + rec_ms)
 	target.set_meta("hit_recoil_3d_dur_ms", rec_ms)
-	spawn_impact_spark(t2d, t2d.global_position + Vector2(0, -8) - dir.normalized() * 4.0, dir)
+	spawn_impact_spark(target, donde + Vector2(0, -8) - dir.normalized() * 4.0, dir)
 
 ## C7 fase 4c: un golpe fuerte (3.º de la cadena o cargado) que acaba en el brazo hace soltar el arma a quien lleva
 ## una (guardia, bandido). Mira la herida que acaba de dejar; sin anatomía, una de cada tres veces.

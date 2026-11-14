@@ -535,23 +535,23 @@ func _paso4c_animales() -> void:
 	grande.set_process(false)
 	var inicio: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-20, 80)
 	pl.global_position = inicio
-	grande.global_position = inicio + Vector2(30, 0)
+	grande.sitio = Lugar.a_suelo(inicio + Vector2(30, 0))
 	await _andar(pl, mc, Vector2.RIGHT, 100.0, 0.8)
 	# Te para o lo apartas poco a poco (se desplaza)
-	_ok(pl.global_position.x < inicio.x + 25.0 or grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)) > 3.0, "4c: no se atraviesa a un animal grande sin más: choca y lo aparta (animal desplazado %.1f px)" % grande.global_position.distance_to(inicio + Vector2(30.0, 0.0)))
+	_ok(pl.global_position.x < inicio.x + 25.0 or Lugar.en_mapa(grande).distance_to(inicio + Vector2(30.0, 0.0)) > 3.0, "4c: no se atraviesa a un animal grande sin más: choca y lo aparta (animal desplazado %.1f px)" % Lugar.en_mapa(grande).distance_to(inicio + Vector2(30.0, 0.0)))
 	# El ciervo, andando contra la pared de la posada, se para
 	var AndarMapa = load("res://scripts/fisica/AndarMapa.gd")
 	var pared: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-60.0, 40.0) # al suroeste de la puerta, delante de la pared sur
-	grande.global_position = pared
+	grande.sitio = Lugar.a_suelo(pared)
 	pl.global_position = pared + Vector2(0.0, 40.0)
 	for _i in range(12):
 		await physics_frame
-	_ok((grande.has_meta("cuerpo3d") and is_instance_valid(grande.get_meta("cuerpo3d"))), "B: el ciervo tiene su cuerpo 3D")
+	_ok(grande is CharacterBody3D and not grande.has_meta("cuerpo3d"), "B: el ciervo ES su cuerpo 3D (4b-2), sin doble en el mapa plano")
 	for _i in range(90):
-		grande.velocity = Vector2.UP * 60.0
-		AndarMapa.paso(grande, 1.0 / 60.0)
+		grande.andar = Lugar.a_suelo(Vector2.UP * 60.0)
+		grande._moverse(1.0 / 60.0, false)
 		await physics_frame
-	_ok(VillageTavern.al_plano(grande.global_position).y > VillageTavern.RECT.end.y - 2.0, "B: y la pared de la posada lo para (y %.0f; pared en %.0f)" % [VillageTavern.al_plano(grande.global_position).y, VillageTavern.RECT.end.y])
+	_ok(VillageTavern.al_plano(Lugar.en_mapa(grande)).y > VillageTavern.RECT.end.y - 2.0, "B: y la pared de la posada lo para (y %.0f; pared en %.0f)" % [VillageTavern.al_plano(Lugar.en_mapa(grande)).y, VillageTavern.RECT.end.y])
 	grande.set_physics_process(true)
 	grande.set_process(true)
 
@@ -754,7 +754,7 @@ func _paso5c_golpes() -> void:
 	var sitio: Vector2 = VillageTavern.al_mundo(VillageTavern.DOOR_POS) + Vector2(-20.0, 80.0)
 	vm.set_player_elevation_level(0)
 	pl.global_position = sitio
-	ciervo.global_position = sitio + Vector2(60.0, 0.0)
+	ciervo.sitio = Lugar.a_suelo(sitio + Vector2(60.0, 0.0))
 	await physics_frame
 	var vida: float = ciervo.current_hp
 	await _flechazo(pl, sitio, 0.0)
@@ -835,7 +835,7 @@ func _tanda7a_dianas() -> void:
 		for n in get_nodes_in_group(g):
 			if n.get_node_or_null("Hurtbox") != null:
 				planas += 1
-			if n.has_method("take_damage") and n is CharacterBody2D and Diana3D.de(n) == null:
+			if n.has_method("take_damage") and (n is CharacterBody2D or n is CharacterBody3D) and Diana3D.de(n) == null:
 				sin_diana.append(str(n.name))
 	_ok(planas == 0 and not ResourceLoader.exists("res://scripts/systems/combat/Hurtbox.gd"), "7a: no queda ninguna zona de golpe en el mapa plano (quedan %d)" % planas)
 	_ok(sin_diana.is_empty(), "7a: todo personaje que puede recibir daño tiene su diana 3D (sin ella: %s)" % str(sin_diana.slice(0, 5)))
@@ -859,21 +859,21 @@ func _tanda7a_dianas() -> void:
 	vm.set_player_elevation_level(0)
 	pl.global_position = sitio
 	# Delante, a 40 px: le da
-	ciervo.global_position = sitio + Vector2(40.0, 0.0)
+	ciervo.sitio = Lugar.a_suelo(sitio + Vector2(40.0, 0.0))
 	_ok(await _tajo(cc, ciervo), "7a: el tajo hiere al ciervo que tienes delante, a 40 px")
 	# Detrás, a 60 px: no
-	ciervo.global_position = sitio + Vector2(-60.0, 0.0)
+	ciervo.sitio = Lugar.a_suelo(sitio + Vector2(-60.0, 0.0))
 	_ok(not await _tajo(cc, ciervo), "7a: y no al que tienes detrás")
 	# Muy lejos delante (120 px): no
-	ciervo.global_position = sitio + Vector2(120.0, 0.0)
+	ciervo.sitio = Lugar.a_suelo(sitio + Vector2(120.0, 0.0))
 	_ok(not await _tajo(cc, ciervo), "7a: ni al que está fuera de alcance (120 px)")
 	# Un conejo en su madriguera no recibe golpes; al salir, sí
-	conejo.global_position = sitio + Vector2(30.0, 0.0)
-	conejo._enter_burrow(60.0)
+	conejo.sitio = Lugar.a_suelo(sitio + Vector2(30.0, 0.0))
+	conejo.entrar_en_madriguera(60.0)
 	_ok(not await _tajo(cc, conejo), "7a: a un conejo metido en su madriguera no se le hiere")
-	conejo.home_position = sitio + Vector2(30.0, 0.0)
-	conejo._exit_burrow()
-	conejo.global_position = sitio + Vector2(30.0, 0.0)
+	conejo.casa = Lugar.a_suelo(sitio + Vector2(30.0, 0.0))
+	conejo.salir_de_madriguera()
+	conejo.sitio = Lugar.a_suelo(sitio + Vector2(30.0, 0.0))
 	_ok(await _tajo(cc, conejo), "7a: y al salir de la madriguera, sí")
 	# Otro piso: desde el salón de la posada no se hiere a quien está en la galería, justo encima
 	var n = null
@@ -889,7 +889,7 @@ func _tanda7a_dianas() -> void:
 		n.global_position = VillageTavern.al_mundo(Vector2(440.0, VillageTavern.GALLERY_EDGE_Y - 6.0))
 		vm.set_npc_elevation_level(n, 1)
 		_ok(not await _tajo(cc, n, (n.global_position - salon).normalized()), "7a: desde el salón el tajo no llega a quien está en la galería, por su altura de verdad")
-		ciervo.global_position = salon + Vector2(0.0, -22.0) # en el salón, a la misma distancia en el mapa
+		ciervo.sitio = Lugar.a_suelo(salon + Vector2(0.0, -22.0)) # en el salón, a la misma distancia en el mapa
 		_ok(await _tajo(cc, ciervo, Vector2.UP), "7a: pero sí a quien está en tu mismo piso a esa distancia")
 		n.global_position = salon + Vector2(0, 300)
 		vm.set_npc_elevation_level(n, 0)
@@ -955,11 +955,12 @@ func _flechazo(pl, desde: Vector2, pendiente: float):
 	return acabo[1]
 
 
-## Todos los personajes con cuerpo 3D menos el protagonista (desde la tanda 4, todos lo llevan siempre).
-func _personajes() -> Array[Node2D]:
-	var out: Array[Node2D] = []
+## Todos los personajes que se pueden apartar menos el protagonista: los que aún son nodos del mapa plano (con su
+## cuerpo 3D) y los que ya SON su cuerpo y saben decir su `sitio` (animales salvajes; el ganado no sale de su corral).
+func _personajes() -> Array[Node]:
+	var out: Array[Node] = []
 	for c in get_nodes_in_group("cuerpos_3d"):
-		var n: Node2D = c.get("actor") as Node2D # quien ya ES su cuerpo (el ganado) no tiene personaje en el mapa
+		var n: Node = c.get("actor") as Node if c.get("actor") != null else (c if "sitio" in c else null)
 		if is_instance_valid(n) and not n.is_in_group("player"):
 			out.append(n)
 	return out
@@ -968,14 +969,18 @@ func _personajes() -> Array[Node2D]:
 ## Aparta (300 px al sur) a los vecinos y animales que estén a menos de `radio` de `pos`, para que no estorben a la prueba.
 func _despejar(pos: Vector2, radio: float) -> void:
 	for n in _personajes():
-		if n.global_position.distance_to(pos) < radio:
+		if Lugar.en_mapa(n).distance_to(pos) >= radio:
+			continue
+		if n is Node2D:
 			n.global_position += Vector2(0.0, 300.0)
+		else:
+			n.sitio = Lugar.a_suelo(Lugar.en_mapa(n) + Vector2(0.0, 300.0))
 
 
 ## ¿Hay algún vecino o animal dentro de `zona`?
 func _alguien_en(zona: Rect2) -> bool:
 	for n in _personajes():
-		if zona.has_point(n.global_position):
+		if zona.has_point(Lugar.en_mapa(n)):
 			return true
 	return false
 

@@ -108,7 +108,7 @@ var lodging: String = "" # V5b: "candil" si se aloja en la posada humilde
 var vagrant_camp_pos: Vector2 = Vector2.ZERO
 var _is_amateur_foraging: bool = false
 var _amateur_forage_timer: float = 0.0
-var _amateur_prey_target: Node2D = null
+var _amateur_prey_target: Node = null ## un animal salvaje (ya es un cuerpo 3D)
 var merchant_id: String = "" # "casimir" o "valeria"
 var _merchant_leaving: bool = false
 
@@ -323,7 +323,7 @@ var last_short_bubble_text: String = ""
 var last_short_bubble_duration: float = 0.0
 var _expedition_gather_timer: float = 0.0
 var _completed_expedition_day: int = -1
-var _expedition_target_node: Node2D = null
+var _expedition_target_node: Node = null ## un árbol, veta o planta del mapa, o un animal salvaje (cuerpo 3D)
 
 # Sistema de Crafteo en Tiempo Real con Barra de Progreso y Compras Físicas entre Vecinos
 var workshop_materials: Dictionary = {}

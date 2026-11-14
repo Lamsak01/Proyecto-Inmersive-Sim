@@ -203,8 +203,8 @@ func _detect_target_color() -> Color:
 			if enemy.global_position.distance_squared_to(mouse_pos) <= 256.0:
 				return Color(1.0, 0.28, 0.28, 0.98)
 	for animal in get_tree().get_nodes_in_group("wild_animals"):
-		if is_instance_valid(animal) and animal is Node2D and animal.visible:
-			if animal.global_position.distance_squared_to(mouse_pos) <= 225.0:
+		if is_instance_valid(animal) and animal.get("visible") == true:
+			if Lugar.en_mapa(animal).distance_squared_to(mouse_pos) <= 225.0:
 				return Color(1.0, 0.35, 0.25, 0.98)
 	for res in get_tree().get_nodes_in_group("destructible"):
 		if is_instance_valid(res) and res is Node2D and res.visible:

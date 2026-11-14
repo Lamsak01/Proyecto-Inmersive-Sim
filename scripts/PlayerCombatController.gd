@@ -377,12 +377,12 @@ func shove() -> bool:
 	var pl_elev_shove: int = int(vm_shove.get("player_elevation_level")) if vm_shove != null and "player_elevation_level" in vm_shove else 0
 	for g in ["npcs", "wild_animals", "raiders", "domestic_pets", "enemies"]:
 		for t in get_tree().get_nodes_in_group(g):
-			if t == player or not (t is Node2D) or not is_instance_valid(t) or t.get("is_dead") == true:
+			if t == player or not (t is Node2D or t is Node3D) or not is_instance_valid(t) or t.get("is_dead") == true:
 				continue
 			var t_elev_v = t.get("elevation_level")
-			if vm_shove != null and not vm_shove.alcanza(player.global_position, pl_elev_shove, (t as Node2D).global_position, int(t_elev_v) if t_elev_v != null else 0):
+			if vm_shove != null and not vm_shove.alcanza(player.global_position, pl_elev_shove, Lugar.en_mapa(t), int(t_elev_v) if t_elev_v != null else 0):
 				continue # paso a 3D, paso 5c: por altura de los pies, no por piso
-			var to_t: Vector2 = (t as Node2D).global_position - player.global_position
+			var to_t: Vector2 = Lugar.en_mapa(t) - player.global_position
 			if to_t.length() > SHOVE_RANGE or (to_t.length_squared() > 1.0 and to_t.normalized().dot(current_aim_dir) < 0.3):
 				continue
 			if t.has_method("take_damage"):
@@ -979,9 +979,10 @@ func _on_melee_impact(target: Node) -> void:
 	if _swing_power >= 1.3:
 		CombatFeel.try_disarm(target) # golpe fuerte al brazo: suelta el arma
 	var f: Dictionary = _swing_feel if not _swing_feel.is_empty() else CombatFeel.WEAPON_FEEL["default"]
-	if target is Node2D and is_instance_valid(player):
-		var dir: Vector2 = ((target as Node2D).global_position - player.global_position)
+	if (target is Node2D or target is Node3D) and is_instance_valid(player):
+		var dir: Vector2 = Lugar.en_mapa(target) - player.global_position
 		CombatFeel.apply_hit_reaction(target, dir if dir.length_squared() > 0.01 else current_aim_dir, f)
+		# A quien ya es un cuerpo 3D el aviso no le sabe leer el sitio: va sin objetivo (sacude la cámara igual)
 		WorldStage3DScript.notify_fp_melee_hit(player, target as Node2D, dir if dir.length_squared() > 0.01 else current_aim_dir, f, _swing_power)
 		if AudioManager:
 			var is_heavy: bool = _swing_power >= 1.3 or float(f.get("knockback", 8.0)) >= 14.0

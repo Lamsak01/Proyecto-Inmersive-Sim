@@ -1,17 +1,17 @@
-@tool
-extends CharacterBody2D
 class_name WildAnimal
-const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd") # paso a 3D, tanda 4: todos andan siempre con su cuerpo 3D
-const _CombatFeel = preload("res://scripts/systems/combat/CombatFeel.gd") # C7 fase 2: rivales con las mismas reglas
+extends "res://scripts/fisica/CuerpoBase3D.gd"
 
-## Fauna Silvestre con Simulación de Vida (Estilo RDR2), Sigilo/Salto de Cazador y Saciedad de 2 Niveles — Fase 3.5
-## - Saciedad y Día de Reserva: Cada animal puede comer hasta 2 veces al día (meals_eaten = 2/2).
-##   Con 1 comida sobrevive el día; al comer 2 veces queda 100% Saciado, gana 1 Día de Reserva sin comer
-##   al día siguiente (dejando crecer las plantas o descansar a las presas) y puede buscar pareja.
-## - Reproducción Realista (SEEK_MATE): Dos animales de la misma especie que hayan comido 2 veces (2/2)
-##   el mismo día se buscan, se juntan y tienen probabilidad de engendrar una cría al amanecer.
-## - Caza de Zorros: Acecho en sigilo (STALK_PREY) + Salto de Takedown (POUNCE) con 50% de probabilidad
-##   de que el conejo escape la primera vez que lo atrapan.
+## Fauna silvestre con simulación de vida: conejos, ciervos, zorros y jabalíes del bosque.
+## - Saciedad y día de reserva: cada animal come hasta 2 veces al día; con 2 queda saciado, gana un día sin necesidad
+##   de comer y puede buscar pareja (dos saciados de la misma especie pueden tener una cría al amanecer).
+## - El zorro acecha y salta sobre los conejos; el jabalí embiste a quien le hiere; los demás huyen del peligro.
+## - En modo demo solo hacen vida tranquila (VidaAnimal): pastar por su rincón, beber, descansar y huir del protagonista.
+## Desde la tanda 4b-2 del paso a 3D (2026-11-14) el animal ES su cuerpo 3D: vive en el escenario 3D y piensa en metros
+## sobre el suelo (x → este, y → sur). Ya no tiene nodo ni dibujo en el mapa plano. Sus piezas están en `animales/`
+## (AnimalAlerta, AnimalAgenda, AnimalComida, AnimalCaza, AnimalJabali, AnimalDespiece, AnimalRotulo) y en VidaAnimal:
+## son clases con nombre, sin preloads entre ellas, para no crear ciclos de carga.
+## TRADUCTOR (se quita con la tanda 7): la zona para despiezarlo con [E] sigue siendo un área del mapa plano
+## (animales/ZonaDespiece.gd), que es donde aún busca la tecla E.
 
 enum SpeciesType { RABBIT, DEER, FOX, BOAR }
 enum AnimalState {
@@ -19,38 +19,58 @@ enum AnimalState {
 	EATING, SEEK_MATE, RETURN_HOME, SLEEP, IN_BURROW, FLEE, CARCASS, BUTCHERED
 }
 
+const RUTA_MODELO: String = "res://scripts/visuals/AnimalModel3D.gd" ## se carga al usarlo (sin ciclo de preloads)
 const MAX_MEALS: int = 2
-const AnimalModel3DScript = preload("res://scripts/visuals/AnimalModel3D.gd")
-const VidaAnimal = preload("res://scripts/enemies/VidaAnimal.gd") # vida tranquila en modo demo (2026-11-11)
+const ESTADOS_FUERA: Array[AnimalState] = [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW] ## ni piensa ni se le hiere
+## Modelo 3D y su alto (m) de cada especie. El jabalí usa de momento el lobo y el conejo una ardilla (no hay otros).
+const MODELOS: Dictionary = {
+	SpeciesType.RABBIT: ["animals/Squirrel.glb", 0.73],
+	SpeciesType.DEER: ["animals/animated/Deer.glb", 1.12],
+	SpeciesType.FOX: ["animals/animated/Fox.glb", 0.56],
+	SpeciesType.BOAR: ["animals/animated/Wolf.glb", 0.78],
+}
+const MASAS: Dictionary = {SpeciesType.BOAR: 2.5, SpeciesType.DEER: 1.4, SpeciesType.FOX: 0.7, SpeciesType.RABBIT: 0.5}
+const LEJOS_M: float = 28.0          ## más lejos que esto del protagonista piensa más despacio y anda sin mirar paredes
+const PENSAR_S: float = 0.16         ## cada cuánto mira amenazas y decide qué hacer
+const PENSAR_LEJOS_S: float = 0.45
+const PENSAR_DEMO_S: float = 0.3
+const PAREDES_M: float = 2.7         ## pide las paredes del mundo a esta distancia a la redonda
+const REPASO_PAREDES: int = 30       ## pasos entre repasos de esas paredes
+const SUELO_CADA_M: float = 0.25     ## cada cuánto camino vuelve a mirar la altura del suelo
+const HUECO_PROTA_M: Vector2 = Vector2(0.84, 1.0)     ## (pequeños, grandes) lo que se apartan del protagonista
+const APARTARSE_M_S: Vector2 = Vector2(3.36, 2.13)    ## (pequeños, grandes) y a qué velocidad
+const ATURDIDO_FUERTE: float = 50.0  ## un golpe que aturde así lo deja quieto ATURDIDO_S
+const ATURDIDO_S: float = 3.0
+const JABALI_GOLPES_MIN: int = 3     ## un jabalí aguanta al menos estos golpes
+const JABALI_VIDA_POR_GOLPE: float = 0.25
+const JABALI_VIDA_MIN: float = 4.0
 
 @export var species: SpeciesType = SpeciesType.DEER
 @export var animal_name: String = "Venado del Valle"
 @export var max_hp: float = 25.0
-@export var graze_speed: float = 24.0
-@export var flee_speed: float = 115.0
-@export var alert_radius: float = 95.0
+@export var paso_m_s: float = 1.34    ## a lo que anda cuando pasta
+@export var huida_m_s: float = 6.44   ## a lo que corre cuando huye
+@export var alerta_m: float = 5.32    ## a qué distancia nota un peligro
 @export var meat_drop: int = 2
 @export var leather_drop: int = 1
 @export var pelt_item_id: String = "leather"
 @export var respawn_days: int = 2
 @export var persistence_id: String = ""
 @export var managed_by_ecosystem: bool = true
-
-## Despiece anatómico completo activado (huesos, astas, vísceras/tendones y grasa animal) + Genética (Nv.1..Nv.3)
+@export_group("Despiece")
 @export var enable_advanced_anatomy: bool = true
 @export var bones_drop: int = 1
 @export var antlers_drop: int = 0
 @export var viscera_drop: int = 1
 @export var fat_drop: int = 0
 @export var genetics_tier: int = 1
-var offspring_genetics_tier: int = 1
+@export var max_damage_per_hit: float = 0.0
 
+var offspring_genetics_tier: int = 1
 var current_hp: float = 25.0
 var respawn_on_day: int = -1
-
-# Simulación de Vida, Saciedad (0..2), Día de Reserva y Reproducción
 var state: AnimalState = AnimalState.GRAZE
-var vida: Dictionary = {} ## estado de la vida tranquila (VidaAnimal): modo, querencia, meta, sed
+var vida: Dictionary = {}            ## estado de la vida tranquila (VidaAnimal): modo, querencia, meta, sed
 var meals_eaten: int = 0
 var fed_today: bool = false
 var has_reserve_day: bool = false
@@ -58,34 +78,12 @@ var is_on_reserve_day: bool = false
 var mated_today: bool = false
 var pending_offspring: bool = false
 var days_hungry: int = 0
-
-# Mecánica de Emboscada (Zorro), 50% Escape Inicial (Conejo) y Embestida Agresiva (Jabalí)
-var escaped_first_pounce: bool = false
-var pounce_timer: float = 0.0
-var pounce_duration: float = 0.24
-var pounce_dir: Vector2 = Vector2.RIGHT
-var pounce_recovery_timer: float = 0.0
-
-@export var max_damage_per_hit: float = 0.0
 var hits_taken_count: int = 0
-var boar_aggressor: Node2D = null
-var boar_aggro_timer: float = 0.0
-var boar_charge_windup: float = 0.0
-var boar_charge_timer: float = 0.0
-var boar_melee_windup: float = 0.0
-var boar_recover: float = 0.0 ## C7 fase 2: el jabalí queda quieto tras un topetazo fallido (ventana para castigarle)
-## C7 fase 2: masa al recibir golpes (1 = una persona): el empujón se divide por ella
-var hit_mass: float:
-	get:
-		match species:
-			SpeciesType.BOAR: return 2.5
-			SpeciesType.DEER: return 1.4
-			SpeciesType.FOX: return 0.7
-			_: return 0.5
-var stagger_timer: float = 0.0
-var boar_charge_dir: Vector2 = Vector2.RIGHT
+var escaped_first_pounce: bool = false
 
-var home_position: Vector2 = Vector2.ZERO
+var casa: Vector2 = Vector2.ZERO     ## su nido, madriguera o claro (metros sobre el suelo)
+var andar: Vector2 = Vector2.ZERO    ## hacia dónde y a qué velocidad quiere ir (m/s sobre el suelo)
+var tumbado: bool = false            ## muerto en el suelo (lo mira su modelo 3D)
 var wander_dir: Vector2 = Vector2.ZERO
 var wander_timer: float = 0.0
 var flee_timer: float = 0.0
@@ -94,31 +92,68 @@ var eat_timer: float = 0.0
 var mate_timer: float = 0.0
 var burrow_hide_timer: float = 0.0
 var attack_cooldown: float = 0.0
-var _ai_tick_timer: float = 0.0
-var _hop_phase: float = 0.0
-
-var food_target: Node2D = null
+var stagger_timer: float = 0.0
+var pounce_timer: float = 0.0
+var pounce_dir: Vector2 = Vector2.RIGHT
+var pounce_recovery_timer: float = 0.0
+var food_target: Node = null         ## una planta del bosque o un conejo
 var mate_target: WildAnimal = null
+var boar_aggressor: Node = null
+var boar_aggro_timer: float = 0.0
+var boar_charge_windup: float = 0.0
+var boar_charge_timer: float = 0.0
+var boar_melee_windup: float = 0.0
+var boar_recover: float = 0.0        ## el jabalí queda quieto tras un topetazo fallido (ventana para castigarle)
+var boar_charge_dir: Vector2 = Vector2.RIGHT
+var rotulo: Label3D = null           ## lo que se lee sobre él («Zzz», «¡Jabalí enfurecido!», «[E] Desollar…»)
+var zona_despiece: Node = null       ## (solo cadáver) el área del mapa plano donde la E lo encuentra
 
-var sprite: Sprite2D = null
-var body_col: CollisionShape2D = null
-var butcher_area: Area2D = null
-var status_label: Label = null
+var _vm: Node = null
+var _prota: Node = null
+var _pensar_s: float = 0.0
+var _talla_paso: int = 0
+var _suelo_mirado_en: Vector3 = Vector3.INF
+
+## Dónde está, en metros sobre el suelo. Al ponerlo, va allí de golpe y pisa el suelo de ese sitio.
+var sitio: Vector2:
+	get:
+		return Vector2(global_position.x, global_position.z)
+	set(valor):
+		global_position = Vector3(valor.x, global_position.y, valor.y)
+		_posar()
+
+## Masa al recibir golpes (1 = una persona): el empujón se divide por ella.
+var hit_mass: float:
+	get:
+		return float(MASAS[species])
+
+
+## Un animal nuevo dentro del escenario 3D. Devuelve null si el escenario aún no existe.
+static func crear(arbol: SceneTree) -> WildAnimal:
+	var raiz: Node = escenario(arbol)
+	if raiz == null:
+		return null
+	var a := WildAnimal.new()
+	raiz.add_child(a)
+	return a
+
 
 func _ready() -> void:
-	set_physics_process(not Engine.is_editor_hint())
-	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
-	# En el mapa plano no bloquea a nadie (capa 0); estorbar y recibir golpes es cosa de su cuerpo 3D y su diana
-	collision_layer = 0
-	collision_mask = 1
-	if home_position == Vector2.ZERO:
-		home_position = global_position
+	_crear_forma()
+	_poner_diana(self)
+	_vm = get_tree().get_first_node_in_group("village_manager")
 	current_hp = max_hp
-	_ai_tick_timer = randf_range(0.05, 0.35)
+	_pensar_s = randf_range(0.05, 0.35)
+	WorldClock.day_passed.connect(_on_day_passed)
+	GameManager.game_loaded.connect(_on_game_loaded)
 
+
+## Lo coloca en su sitio y le da grupos, modelo y rótulo (lo llama quien lo crea, con sus datos ya puestos).
+func setup_animal(p_casa: Vector2, p_sitio: Vector2) -> void:
+	casa = p_casa
+	sitio = p_sitio
 	if persistence_id == "":
-		persistence_id = "animal_" + name + "_" + str(int(home_position.x)) + "_" + str(int(home_position.y))
-
+		persistence_id = "animal_%s_%d_%d" % [name, int(Lugar.a_mapa(casa).x), int(Lugar.a_mapa(casa).y)]
 	add_to_group("wild_animals")
 	match species:
 		SpeciesType.RABBIT:
@@ -131,1096 +166,252 @@ func _ready() -> void:
 			add_to_group("predators")
 		SpeciesType.BOAR:
 			add_to_group("ecosystem_boars")
+	_vestir(self, false)
+	(load(RUTA_MODELO) as GDScript).call("poner", self, str((MODELOS[species] as Array)[0]), float((MODELOS[species] as Array)[1]))
+	rotulo = AnimalRotulo.crear(self)
+	AnimalDespiece.mirar_lo_guardado(self)
 
-	if not Engine.is_editor_hint():
-		if WorldClock:
-			WorldClock.day_passed.connect(_on_day_passed)
-		if GameManager:
-			GameManager.game_loaded.connect(_on_game_loaded)
-
-func _add_circle_col(parent: Node, r: float, dis: bool = false) -> CollisionShape2D:
-	var col := CollisionShape2D.new()
-	var c := CircleShape2D.new()
-	c.radius = r
-	col.shape = c
-	col.disabled = dis
-	parent.add_child(col)
-	return col
-
-func _set_area_disabled(area: Area2D, dis: bool) -> void:
-	if area and area.get_child_count() > 0:
-		var col := area.get_child(0) as CollisionShape2D
-		if col:
-			col.set_deferred("disabled", dis)
-
-func _set_status_lbl(txt: String, col: Color, vis: bool = true) -> void:
-	if status_label:
-		status_label.text = txt
-		status_label.add_theme_color_override("font_color", col)
-		status_label.visible = vis
-
-func setup_animal(tex: Texture2D, spr_scale: Vector2 = Vector2.ONE, col_radius: float = 8.0) -> void:
-	sprite = Sprite2D.new()
-	sprite.name = "Sprite2D"
-	sprite.texture = tex
-	sprite.scale = spr_scale
-	add_child(sprite)
-	# Modelo 3D (solo visual). El jabalí usa provisionalmente el lobo animado (no hay jabalí del mismo estilo).
-	# El conejo usa provisionalmente una ardilla (2026-11-10, orden del usuario: no hay conejo 3D); sin animaciones.
-	match species:
-		SpeciesType.RABBIT:
-			AnimalModel3DScript.attach(self, "animals/Squirrel.glb", 13.0, 4.0)
-		SpeciesType.DEER:
-			AnimalModel3DScript.attach(self, "animals/animated/Deer.glb", 20.0, 9.0)
-		SpeciesType.FOX:
-			AnimalModel3DScript.attach(self, "animals/animated/Fox.glb", 10.0, 5.0)
-		SpeciesType.BOAR:
-			AnimalModel3DScript.attach(self, "animals/animated/Wolf.glb", 14.0, 8.0)
-
-	body_col = _add_circle_col(self, col_radius)
-
-	# Área de interacción para Desollar el cadáver con [E] (solo activa cuando `state == AnimalState.CARCASS`)
-	butcher_area = Area2D.new()
-	butcher_area.name = "ButcherArea"
-	butcher_area.collision_layer = 1
-	butcher_area.collision_mask = 2
-	butcher_area.add_to_group("interactable")
-	_add_circle_col(butcher_area, col_radius + 16.0, state != AnimalState.CARCASS)
-	butcher_area.body_entered.connect(_on_butcher_body_entered)
-	butcher_area.body_exited.connect(_on_butcher_body_exited)
-	add_child(butcher_area)
-
-	status_label = Label.new()
-	status_label.visible = false
-	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status_label.position = Vector2(-105, -34)
-	status_label.custom_minimum_size = Vector2(210, 20)
-	status_label.add_theme_font_size_override("font_size", 9)
-	status_label.add_theme_color_override("font_color", Color.ORANGE_RED)
-	status_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	status_label.add_theme_constant_override("outline_size", 3)
-	add_child(status_label)
-
-	_check_saved_state()
-
-var _cached_player: Node2D = null
 
 func is_alive_in_ecosystem() -> bool:
 	return state != AnimalState.CARCASS and state != AnimalState.BUTCHERED
 
+
 func is_fully_satiated() -> bool:
 	return is_on_reserve_day or meals_eaten >= MAX_MEALS
+
 
 func can_mate_today() -> bool:
 	return is_alive_in_ecosystem() and visible and state != AnimalState.IN_BURROW and meals_eaten >= MAX_MEALS and not mated_today
 
+
 func _physics_process(delta: float) -> void:
-	if state == AnimalState.CARCASS or state == AnimalState.BUTCHERED:
+	if not is_alive_in_ecosystem():
 		return
-	if GameManager != null and GameManager.has_method("is_demo_mode") and GameManager.is_demo_mode():
+	if GameManager.is_demo_mode():
 		_vida_tranquila(delta)
 		return
-
-	if attack_cooldown > 0.0:
-		attack_cooldown -= delta
+	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	if pounce_recovery_timer > 0.0:
 		pounce_recovery_timer -= delta
-		velocity = Vector2.ZERO
+		andar = Vector2.ZERO
 		return
-
 	if state == AnimalState.IN_BURROW:
-		_process_in_burrow(delta)
+		AnimalAlerta.en_madriguera(self, delta)
 		return
-
-	if not is_instance_valid(_cached_player):
-		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
-	var far_offscreen: bool = is_instance_valid(_cached_player) and global_position.distance_squared_to(_cached_player.global_position) > 500.0 * 500.0
-
+	var lejos: bool = _lejos_del_prota()
 	if state == AnimalState.POUNCE:
-		_process_pounce(delta)
-		if far_offscreen:
-			global_position += velocity * delta
-		else:
-			AndarMapa.paso(self, delta) # con su cuerpo 3D
-			_update_sprite_motion(delta)
+		AnimalCaza.salto(self, delta)
+		_moverse(delta, lejos)
 		return
+	_pensar_s -= delta
+	if _pensar_s <= 0.0:
+		_pensar_s = PENSAR_LEJOS_S if lejos else PENSAR_S
+		AnimalAlerta.mirar_amenazas(self)
+		AnimalAgenda.decidir(self)
+		AnimalRotulo.poner_al_dia(self, lejos)
+	_hacer_lo_suyo(delta)
+	if not lejos and state != AnimalState.SLEEP:
+		_guardar_distancia_al_prota()
+	_moverse(delta, lejos)
 
-	_ai_tick_timer -= delta
-	if _ai_tick_timer <= 0.0:
-		_ai_tick_timer = 0.45 if far_offscreen else 0.16
-		_check_threats()
-		_evaluate_life_schedule()
-		if far_offscreen:
-			if status_label and status_label.visible:
-				status_label.visible = false
-		else:
-			_update_observation_label()
 
+## Lo que toca según su estado: cada pieza deja en `andar` hacia dónde quiere ir.
+func _hacer_lo_suyo(delta: float) -> void:
 	match state:
-		AnimalState.GRAZE: _process_graze(delta)
-		AnimalState.SEEK_FOOD: _process_seek_food(delta)
-		AnimalState.STALK_PREY: _process_stalk_prey(delta)
-		AnimalState.CHASE_PREY: _process_chase_prey(delta)
-		AnimalState.CHARGE_ATTACK: _process_boar_charge_attack(delta)
-		AnimalState.EATING: _process_eating(delta)
-		AnimalState.SEEK_MATE: _process_seek_mate(delta)
-		AnimalState.RETURN_HOME: _process_return_home(delta)
-		AnimalState.SLEEP: _process_sleep(delta)
-		AnimalState.FLEE: _process_flee(delta)
+		AnimalState.GRAZE: AnimalAgenda.pastar(self, delta)
+		AnimalState.SEEK_FOOD: AnimalComida.ir_a_comer(self)
+		AnimalState.STALK_PREY: AnimalCaza.acechar(self)
+		AnimalState.CHASE_PREY: AnimalCaza.perseguir(self)
+		AnimalState.CHARGE_ATTACK: AnimalJabali.embestir(self, delta)
+		AnimalState.EATING: AnimalComida.comer(self, delta)
+		AnimalState.SEEK_MATE: AnimalAgenda.buscar_pareja(self, delta)
+		AnimalState.RETURN_HOME: AnimalAgenda.volver_a_casa(self)
+		AnimalState.SLEEP: andar = Vector2.ZERO
+		AnimalState.FLEE: AnimalAlerta.huir(self, delta)
 
-	if far_offscreen:
-		if velocity.length_squared() > 0.1:
-			global_position += velocity * delta
-	else:
-		if state != AnimalState.SLEEP and is_instance_valid(_cached_player):
-			var min_r: float = 15.0 if (species == SpeciesType.RABBIT or species == SpeciesType.FOX) else 18.0
-			var d_sq: float = global_position.distance_squared_to(_cached_player.global_position)
-			if d_sq < min_r * min_r:
-				var d: float = sqrt(d_sq)
-				var away: Vector2 = (global_position - _cached_player.global_position) / maxf(0.01, d) if d >= 0.01 else Vector2.RIGHT
-				var push_spd: float = 60.0 if (species == SpeciesType.RABBIT or species == SpeciesType.FOX) else 38.0
-				velocity += away * ((min_r - d) / min_r) * push_spd
-		AndarMapa.paso(self, delta) # con su cuerpo 3D
-		_update_sprite_motion(delta)
 
-## Modo demo (2026-11-11): la simulación completa está en pausa, pero el animal pasta por su rincón, bebe, descansa y
-## huye del protagonista (antes se quedaba clavado junto a su nido).
+## Modo demo: la simulación completa está en pausa, pero el animal pasta por su rincón, bebe, descansa y huye.
 func _vida_tranquila(delta: float) -> void:
 	if state == AnimalState.IN_BURROW:
-		_process_in_burrow(delta)
+		AnimalAlerta.en_madriguera(self, delta)
 		return
-	if not is_instance_valid(_cached_player):
-		_cached_player = get_tree().get_first_node_in_group("player") as Node2D
-	_ai_tick_timer -= delta
-	if _ai_tick_timer <= 0.0:
-		_ai_tick_timer = 0.3
-		_check_threats()
+	_pensar_s -= delta
+	if _pensar_s <= 0.0:
+		_pensar_s = PENSAR_DEMO_S
+		AnimalAlerta.mirar_amenazas(self)
 	if state == AnimalState.FLEE:
-		_process_flee(delta)
+		AnimalAlerta.huir(self, delta)
 	else:
 		state = AnimalState.GRAZE # cualquier estado de la simulación completa se ignora aquí
 		VidaAnimal.paso(self, delta)
-	var lejos: bool = is_instance_valid(_cached_player) and global_position.distance_squared_to(_cached_player.global_position) > 500.0 * 500.0
+	_moverse(delta, _lejos_del_prota())
+
+
+## Da el paso de este fotograma hacia `andar`. Cerca del protagonista, con su cuerpo: choca con paredes y cuerpos.
+## Lejos, donde nadie mira, avanza sin más (simulación barata).
+func _moverse(delta: float, lejos: bool) -> void:
+	var paso: int = Engine.get_physics_frames()
+	if paso - _talla_paso >= TALLA_CADA:
+		_talla_paso = paso
+		_vestir(self, false)
 	if lejos:
-		global_position += velocity * delta
-	else:
-		AndarMapa.paso(self, delta)
-		_update_sprite_motion(delta)
-
-
-func _update_sprite_motion(delta: float) -> void:
-	if not sprite:
+		toca_pared = false
+		if andar.length_squared() > 0.0001:
+			global_position += Vector3(andar.x, 0.0, andar.y) * delta
+			_posar_si_ha_andado()
 		return
+	_suelo_y = suelo_y(global_position.x, global_position.z, 0, _vm)
+	_pedir_paredes(_vm, PAREDES_M, REPASO_PAREDES)
+	_paso_fisico(andar, delta)
+	_pisar()
 
-	if state == AnimalState.POUNCE:
-		# Arco parabólico de salto del zorro en el aire
-		var progress: float = 1.0 - clampf(pounce_timer / maxf(0.01, pounce_duration), 0.0, 1.0)
-		sprite.position.y = -sin(progress * PI) * 11.5
-		sprite.scale.y = 1.22
-		sprite.modulate = Color.WHITE
-		if abs(velocity.x) > 2.0:
-			sprite.flip_h = velocity.x > 0.0
+
+## Los pies, a la altura del suelo (al aire libre: piso 0).
+func _posar() -> void:
+	_suelo_y = suelo_y(global_position.x, global_position.z, 0, _vm)
+	global_position.y = _suelo_y
+	velocity = Vector3.ZERO
+	_suelo_mirado_en = global_position
+
+
+func _posar_si_ha_andado() -> void:
+	if _suelo_mirado_en == Vector3.INF or global_position.distance_squared_to(_suelo_mirado_en) > SUELO_CADA_M * SUELO_CADA_M:
+		_posar()
+
+
+func _protagonista() -> Node:
+	if not is_instance_valid(_prota):
+		_prota = get_tree().get_first_node_in_group("player")
+	return _prota
+
+
+func _lejos_del_prota() -> bool:
+	var pl: Node = _protagonista()
+	return pl != null and sitio.distance_squared_to(Lugar.de(pl)) > LEJOS_M * LEJOS_M
+
+
+## No se queda pegado al protagonista: si lo tiene encima, se aparta un poco.
+func _guardar_distancia_al_prota() -> void:
+	var pl: Node = _protagonista()
+	if pl == null:
 		return
-
-	if state == AnimalState.SLEEP:
-		sprite.position = Vector2(0, 2.5)
-		sprite.scale.y = lerpf(sprite.scale.y, 0.82, 8.0 * delta)
-		sprite.modulate = Color.WHITE
+	var pequeno: bool = species == SpeciesType.RABBIT or species == SpeciesType.FOX
+	var hueco: float = HUECO_PROTA_M.x if pequeno else HUECO_PROTA_M.y
+	var de_el: Vector2 = sitio - Lugar.de(pl)
+	var d: float = de_el.length()
+	if d >= hueco:
 		return
-	elif state == AnimalState.STALK_PREY:
-		# Sigilo del zorro: cuerpo agachado pegado al suelo y tinte sigiloso
-		sprite.scale.y = lerpf(sprite.scale.y, 0.78, 10.0 * delta)
-		sprite.modulate = Color(0.84, 0.86, 0.94, 0.92)
-	else:
-		var base_sy: float = 1.15 if species != SpeciesType.RABBIT else 1.1
-		sprite.scale.y = lerpf(sprite.scale.y, base_sy, 8.0 * delta)
-		sprite.modulate = Color.WHITE
+	var fuera: Vector2 = de_el / d if d >= 0.001 else Vector2.RIGHT
+	andar += fuera * ((hueco - d) / hueco) * (APARTARSE_M_S.x if pequeno else APARTARSE_M_S.y)
 
-	if abs(velocity.x) > 2.0:
-		sprite.flip_h = velocity.x > 0.0
-	if velocity.length_squared() > 16.0:
-		var hop_freq: float = 18.0 if (state == AnimalState.FLEE or state == AnimalState.CHASE_PREY) else (6.5 if state == AnimalState.STALK_PREY else 9.0)
-		_hop_phase += delta * hop_freq
-		var hop_amp: float = 1.0 if state == AnimalState.STALK_PREY else (3.2 if state == AnimalState.FLEE else 2.2)
-		sprite.position.y = -abs(sin(_hop_phase)) * hop_amp
-	else:
-		sprite.position.y = 0.0
 
-## Detecta amenazas (los conejos casi no detectan al zorro si este se acerca en modo sigilo STALK_PREY; los jabalíes no huyen salvo ser provocados)
-func _check_threats() -> void:
-	if state in [AnimalState.IN_BURROW, AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.POUNCE, AnimalState.CHARGE_ATTACK, AnimalState.EATING]:
-		return
-	if species == SpeciesType.BOAR:
-		# Baja probabilidad (~1.5%) de disputa territorial entre Jabalíes y Zorros cercanos
-		if attack_cooldown <= 0.0 and randf() < 0.015:
-			for fx in get_tree().get_nodes_in_group("ecosystem_foxes"):
-				if fx is WildAnimal and fx.is_alive_in_ecosystem() and fx.visible and global_position.distance_squared_to(fx.global_position) <= 54.0 * 54.0:
-					_start_boar_aggro(fx)
-					if randf() < 0.55 and fx.attack_cooldown <= 0.0:
-						var bite := DamageData.new()
-						bite.amount = 10.0
-						bite.type = CombatConstants.DamageType.BLUNT
-						bite.source = fx
-						take_damage(bite)
-					break
-		return
+## Alguien que anda contra él lo aparta un poco (lo llama el cuerpo del protagonista). Choca con las paredes.
+func apartar(desplazamiento: Vector3) -> void:
+	move_and_collide(desplazamiento)
 
-	# 1. Los conejos detectan a los Zorros cercanos (si el zorro acecha en STALK_PREY, tienen margen de alerta de 46 px para intentar escapar)
-	if species == SpeciesType.RABBIT:
-		var predators := get_tree().get_nodes_in_group("predators")
-		for pred in predators:
-			if pred is WildAnimal and pred.is_alive_in_ecosystem() and pred.visible:
-				if pred.is_fully_satiated() and pred.state == AnimalState.GRAZE:
-					continue
-				var d_sq := global_position.distance_squared_to(pred.global_position)
-				var pred_alert: float = 46.0 if pred.state == AnimalState.STALK_PREY else (alert_radius * 0.95)
-				if d_sq <= pred_alert * pred_alert:
-					_start_flee_from(pred.global_position)
-					return
 
-	# 2. Detección del Jugador según sigilo, ruido y hora del día
-	var player = get_tree().get_first_node_in_group("player")
-	if not player:
-		return
+## Un empujón de golpe (el de un golpe recibido), en metros sobre el suelo: choca con las paredes.
+func empujar_suelo(desplazamiento: Vector2) -> void:
+	move_and_collide(Vector3(desplazamiento.x, 0.0, desplazamiento.y))
 
-	var dist_sq := global_position.distance_squared_to(player.global_position)
-	var eff_alert := alert_radius
-	if WorldClock:
-		eff_alert *= WorldClock.get_vision_multiplier()
-	if state == AnimalState.SLEEP:
-		eff_alert *= 0.38
 
-	if player.has_method("is_stealthing") and player.is_stealthing():
-		eff_alert *= 0.35
-		if player.has_method("get_stealth_detection_multiplier"):
-			eff_alert *= float(player.call("get_stealth_detection_multiplier"))
-	elif player.has_method("get_noise_multiplier"):
-		var noise: float = player.get_noise_multiplier()
-		if noise > 1.2:
-			eff_alert *= 1.55
-
-	if dist_sq <= eff_alert * eff_alert:
-		_start_flee_from(player.global_position)
-
-## Rutina de vida conectada al WorldClock, Saciedad (2 comidas) y Reproducción (SEEK_MATE)
-func _evaluate_life_schedule() -> void:
-	if state in [AnimalState.FLEE, AnimalState.EATING, AnimalState.POUNCE, AnimalState.CHARGE_ATTACK, AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
-		return
-
-	var is_night_time := false
-	if WorldClock:
-		var h: int = WorldClock.current_hour
-		if species == SpeciesType.FOX:
-			is_night_time = (h >= 1 and h < 6)
-		else:
-			is_night_time = (h >= 20 or h < 6)
-
-	if is_night_time:
-		var dist_home := global_position.distance_to(home_position)
-		if dist_home > 18.0:
-			state = AnimalState.RETURN_HOME
-		elif species == SpeciesType.RABBIT:
-			_enter_burrow(0.0)
-		else:
-			state = AnimalState.SLEEP
-		return
-	else:
-		if state == AnimalState.SLEEP:
-			state = AnimalState.GRAZE
-		elif state == AnimalState.RETURN_HOME and global_position.distance_to(home_position) <= 85.0:
-			state = AnimalState.GRAZE
-
-	# 1. Si ya comió sus 2 raciones hoy (meals_eaten >= 2) y aún no se ha emparejado hoy, buscar pareja con 2/2
-	if can_mate_today():
-		var potential_mate := _find_ready_mate()
-		if is_instance_valid(potential_mate):
-			mate_target = potential_mate
-			state = AnimalState.SEEK_MATE
-			return
-
-	# 2. Si está Saciado (2/2 comidas hoy) o en su Día de Reserva, regresa a su propio hábitat y pasea allí sin mezclarse
-	if is_fully_satiated():
-		if state in [AnimalState.SEEK_FOOD, AnimalState.STALK_PREY, AnimalState.CHASE_PREY]:
-			food_target = null
-			state = AnimalState.GRAZE
-		if state == AnimalState.GRAZE and global_position.distance_to(home_position) > 420.0:
-			state = AnimalState.RETURN_HOME
-		return
-
-	# 3. Si aún no llega a 2/2 comidas y no está en día de reserva, busca su siguiente ración
-	if state == AnimalState.GRAZE:
-		var target := _find_best_food_target()
-		if is_instance_valid(target):
-			food_target = target
-			if species == SpeciesType.FOX and target is WildAnimal and target.state != AnimalState.CARCASS:
-				state = AnimalState.STALK_PREY
-			else:
-				state = AnimalState.SEEK_FOOD
-		elif global_position.distance_to(home_position) > 450.0:
-			state = AnimalState.RETURN_HOME
-
-func _find_ready_mate() -> WildAnimal:
-	var group_name := "ecosystem_deer" if species == SpeciesType.DEER else ("ecosystem_foxes" if species == SpeciesType.FOX else ("ecosystem_boars" if species == SpeciesType.BOAR else "ecosystem_rabbits"))
-	var best_mate: WildAnimal = null
-	var best_dist_sq: float = 380.0 * 380.0
-	for node in get_tree().get_nodes_in_group(group_name):
-		if node != self and node is WildAnimal and node.can_mate_today():
-			var d_sq := global_position.distance_squared_to(node.global_position)
-			if d_sq < best_dist_sq:
-				best_dist_sq = d_sq
-				best_mate = node
-	return best_mate
-
-func _find_best_food_target() -> Node2D:
-	var best_node: Node2D = null
-	var best_dist_sq: float = 1250.0 * 1250.0
-
-	if species in [SpeciesType.RABBIT, SpeciesType.DEER, SpeciesType.BOAR]:
-		# Primero priorizar la flora dentro de su propio hábitat amplio (<= 520 px de su madriguera/claro)
-		var local_habitat_sq: float = 520.0 * 520.0
-		var best_local_sq: float = 1650.0 * 1650.0
-		for node in get_tree().get_nodes_in_group("wild_flora"):
-			if node is HarvestableNode and not node.is_depleted:
-				if home_position.distance_squared_to(node.global_position) <= local_habitat_sq:
-					var d_sq := global_position.distance_squared_to(node.global_position)
-					if d_sq < best_local_sq:
-						best_local_sq = d_sq
-						best_node = node
-		# Solo si la flora local de su zona se agotó busca en el resto del bosque
-		if not best_node:
-			for node in get_tree().get_nodes_in_group("wild_flora"):
-				if node is HarvestableNode and not node.is_depleted:
-					var d_sq := global_position.distance_squared_to(node.global_position)
-					if d_sq < best_dist_sq:
-						best_dist_sq = d_sq
-						best_node = node
-	elif species == SpeciesType.FOX:
-		var best_prey_sq: float = 1850.0 * 1850.0
-		var live_rabbits: int = 0
-		for node in get_tree().get_nodes_in_group("ecosystem_rabbits"):
-			if node is WildAnimal:
-				if node.state == AnimalState.CARCASS and node.visible:
-					var d_sq := global_position.distance_squared_to(node.global_position)
-					if d_sq < best_prey_sq:
-						best_prey_sq = d_sq
-						best_node = node
-				elif node.is_alive_in_ecosystem():
-					live_rabbits += 1
-		if best_node:
-			return best_node
-
-		if live_rabbits > 4:
-			var all_foxes := get_tree().get_nodes_in_group("ecosystem_foxes")
-			for rab in get_tree().get_nodes_in_group("herbivore_prey"):
-				if rab is WildAnimal and rab.is_alive_in_ecosystem() and rab.state != AnimalState.IN_BURROW and rab.visible:
-					var d_sq := global_position.distance_squared_to(rab.global_position)
-					for fx in all_foxes:
-						if fx != self and fx is WildAnimal and fx.food_target == rab:
-							d_sq += 260.0 * 260.0
-					if d_sq < best_prey_sq:
-						best_prey_sq = d_sq
-						best_node = rab
-
-	return best_node
-
-func _start_flee_from(danger_pos: Vector2) -> void:
-	if state in [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
-		return
-	var away := (global_position - danger_pos).normalized()
-	if away.length_squared() < 0.01:
-		away = Vector2.LEFT
-	if species == SpeciesType.RABBIT:
-		var to_burrow := (home_position - global_position)
-		if to_burrow.length() < 190.0 and to_burrow.normalized().dot(away) > -0.25:
-			away = to_burrow.normalized()
-	flee_dir = away
-	flee_timer = 3.2
-	state = AnimalState.FLEE
-
-func _process_graze(delta: float) -> void:
-	wander_timer -= delta
-	if wander_timer <= 0.0:
-		if randf() < 0.20:
-			wander_timer = randf_range(1.2, 2.4)
-			wander_dir = Vector2.ZERO
-		else:
-			wander_timer = randf_range(2.8, 5.8)
-			var to_home := home_position - global_position
-			var dir := Vector2.RIGHT.rotated(randf() * TAU)
-			if to_home.length() > 380.0:
-				dir = to_home.normalized().rotated(randf_range(-0.55, 0.55))
-			elif to_home.length() < 55.0:
-				# Si está muy pegado al nido/madriguera, sale a explorar hacia fuera
-				var away_home := (global_position - home_position)
-				dir = (away_home.normalized() if away_home.length_squared() > 4.0 else dir).rotated(randf_range(-0.7, 0.7))
-			# Dispersión suave respecto a otros animales cercanos para que no vayan siempre juntos
-			var sep := Vector2.ZERO
-			for other in get_tree().get_nodes_in_group("wild_animals"):
-				if other != self and other is WildAnimal and other.is_alive_in_ecosystem():
-					var diff: Vector2 = global_position - (other as Node2D).global_position
-					var d2: float = diff.length_squared()
-					if d2 > 1.0 and d2 < 120.0 * 120.0:
-						sep += diff.normalized() * (1.0 - sqrt(d2) / 120.0)
-			if sep.length_squared() > 0.04:
-				dir = (dir + sep * 0.85).normalized()
-			wander_dir = dir
-	velocity = wander_dir * graze_speed
-
-func _get_herd_anchor() -> Vector2:
-	var sum_pos := home_position
-	var count := 1
-	for d in get_tree().get_nodes_in_group("ecosystem_deer"):
-		if d != self and d is WildAnimal and d.is_alive_in_ecosystem():
-			if global_position.distance_squared_to(d.global_position) < 220.0 * 220.0:
-				sum_pos += d.global_position
-				count += 1
-	return sum_pos / float(count)
-
-func _process_seek_food(_delta: float) -> void:
-	if is_fully_satiated():
-		food_target = null
-		state = AnimalState.GRAZE
-		return
-
-	if not is_instance_valid(food_target) or not food_target.visible:
-		food_target = _find_best_food_target()
-		if not is_instance_valid(food_target):
-			state = AnimalState.RETURN_HOME if global_position.distance_to(home_position) > 380.0 else AnimalState.GRAZE
-			velocity = Vector2.ZERO
-			return
-
-	if food_target is HarvestableNode and food_target.is_depleted:
-		food_target = null
-		state = AnimalState.GRAZE
-		return
-
-	var to_food := food_target.global_position - global_position
-	var dist := to_food.length()
-	if dist <= 15.0:
-		velocity = Vector2.ZERO
-		eat_timer = 2.6
-		state = AnimalState.EATING
-	else:
-		velocity = to_food.normalized() * (graze_speed * 1.25)
-
-func _validate_prey_target() -> bool:
-	if is_fully_satiated() or not is_instance_valid(food_target) or not (food_target is WildAnimal) or not food_target.visible or food_target.state == AnimalState.IN_BURROW:
-		food_target = null
-		state = AnimalState.GRAZE
-		return false
-	if food_target.state == AnimalState.CARCASS:
-		state = AnimalState.SEEK_FOOD
-		return false
-	return true
-
-## El zorro se acerca en sigilo (STALK_PREY) para cortar distancia antes de que el conejo corra
-func _process_stalk_prey(_delta: float) -> void:
-	if not _validate_prey_target():
-		return
-
-	var to_prey := food_target.global_position - global_position
-	var dist := to_prey.length()
-
-	# Si está a distancia de salto (<= 40 px), lanza el Salto de Takedown (POUNCE)
-	if dist <= 40.0 and attack_cooldown <= 0.0:
-		_start_pounce(food_target)
-		return
-
-	# Si el conejo ya descubrió al zorro y está corriendo, el zorro intenta perseguirlo brevemente
-	if food_target.state == AnimalState.FLEE and dist > 52.0:
-		state = AnimalState.CHASE_PREY
-		return
-
-	# Avanza agachado en sigilo recortando distancia
-	velocity = to_prey.normalized() * (graze_speed * 1.38)
-
-func _start_pounce(target: WildAnimal) -> void:
-	state = AnimalState.POUNCE
-	pounce_duration = 0.24
-	pounce_timer = pounce_duration
-	pounce_dir = (target.global_position - global_position).normalized()
-	if pounce_dir.length_squared() < 0.01:
-		pounce_dir = Vector2.RIGHT
-
-func _process_pounce(delta: float) -> void:
-	pounce_timer -= delta
-	if is_instance_valid(food_target) and food_target is WildAnimal and food_target.visible and food_target.state != AnimalState.IN_BURROW:
-		var to_prey := food_target.global_position - global_position
-		if to_prey.length_squared() > 4.0:
-			pounce_dir = to_prey.normalized()
-		if to_prey.length() <= 16.5:
-			_resolve_pounce_hit(food_target)
-			return
-
-	velocity = pounce_dir * 245.0
-	if pounce_timer <= 0.0:
-		velocity = Vector2.ZERO
-		if is_instance_valid(food_target) and food_target is WildAnimal and global_position.distance_to(food_target.global_position) <= 20.0:
-			_resolve_pounce_hit(food_target)
-		else:
-			pounce_recovery_timer = 0.45
-			state = AnimalState.GRAZE
-
-## Resuelve el Salto de Takedown del Zorro sobre el Conejo (con 50% de escape la primera vez)
-func _resolve_pounce_hit(prey: WildAnimal) -> void:
-	velocity = Vector2.ZERO
-	if sprite:
-		sprite.position.y = 0.0
-
-	if not is_instance_valid(prey) or not prey.is_alive_in_ecosystem() or prey.state == AnimalState.IN_BURROW:
-		state = AnimalState.GRAZE
-		return
-
-	# 50% de probabilidad de que el conejo se zafe del agarre la primera vez que lo atrapan
-	if not prey.escaped_first_pounce and randf() < 0.50:
-		prey.escaped_first_pounce = true
-		prey._start_flee_from(global_position)
-		prey.global_position += prey.flee_dir * 10.0
-		prey._set_status_lbl("¡Se zafó!", Color.SPRING_GREEN)
-		# El zorro queda 0.65s recuperándose del salto fallido mientras el conejo corre más rápido
-		attack_cooldown = 1.2
-		pounce_recovery_timer = 0.65
-		state = AnimalState.GRAZE
-		return
-
-	# ¡Takedown exitoso! El zorro sujeta y abate al conejo en el acto
-	prey.take_pounce_takedown()
-	eat_timer = 3.0
-	state = AnimalState.EATING
-
-func _process_chase_prey(_delta: float) -> void:
-	if not _validate_prey_target():
-		return
-
-	var to_prey := food_target.global_position - global_position
-	var dist := to_prey.length()
-	if dist <= 36.0 and attack_cooldown <= 0.0:
-		_start_pounce(food_target)
-		return
-	# Como el conejo corre más rápido (132 vs 122), si se aleja demasiado el zorro desiste y vuelve a acechar
-	if dist > 145.0:
-		food_target = null
-		state = AnimalState.GRAZE
-		return
-	velocity = to_prey.normalized() * flee_speed
-
-func _process_eating(delta: float) -> void:
-	velocity = Vector2.ZERO
-	eat_timer -= delta
-	if eat_timer <= 0.0:
-		var ate_successfully := false
-		if is_instance_valid(food_target):
-			if food_target is HarvestableNode and food_target.has_method("consume_by_animal"):
-				if food_target.consume_by_animal():
-					ate_successfully = true
-			elif food_target is WildAnimal and food_target.state in [AnimalState.CARCASS, AnimalState.BUTCHERED]:
-				if food_target.state == AnimalState.CARCASS:
-					food_target.consume_by_predator()
-				ate_successfully = true
-
-		if ate_successfully:
-			_register_meal_eaten()
-
-		food_target = null
-		state = AnimalState.RETURN_HOME if global_position.distance_to(home_position) > 120.0 else AnimalState.GRAZE
-
-func _register_meal_eaten() -> void:
-	meals_eaten = MAX_MEALS if species == SpeciesType.FOX else (meals_eaten + 1)
-	fed_today = true
-	days_hungry = 0
-	if meals_eaten >= MAX_MEALS:
-		# ¡Estómago lleno (2/2)! Gana 1 Día de Reserva sin necesidad de comer mañana
-		has_reserve_day = true
-
-## Encuentro de dos animales de la misma especie que comieron 2 veces hoy (2/2 + 2/2 -> Cría)
-func _process_seek_mate(delta: float) -> void:
-	if not is_instance_valid(mate_target) or not mate_target.can_mate_today():
-		mate_target = null
-		state = AnimalState.GRAZE
-		return
-
-	var to_mate := mate_target.global_position - global_position
-	if to_mate.length() <= 20.0:
-		velocity = Vector2.ZERO
-		mate_timer += delta
-		_set_status_lbl("%s [Cortejo ♥]" % animal_name, Color(1.0, 0.65, 0.82))
-		if mate_timer >= 1.6:
-			mate_timer = 0.0
-			mated_today = true
-			mate_target.mated_today = true
-			offspring_genetics_tier = mini(3, maxi(genetics_tier, mate_target.genetics_tier) + 1)
-			if randf() <= 0.75:
-				pending_offspring = true
-			mate_target = null
-			state = AnimalState.GRAZE
-	else:
-		velocity = to_mate.normalized() * (graze_speed * 1.15)
-
-func _process_return_home(_delta: float) -> void:
-	var to_home := home_position - global_position
-	if to_home.length() <= 14.0:
-		velocity = Vector2.ZERO
-		var is_night: bool = WorldClock != null and (WorldClock.current_hour >= 20 or WorldClock.current_hour < 6)
-		if not is_night:
-			state = AnimalState.GRAZE
-		elif species == SpeciesType.RABBIT:
-			_enter_burrow(0.0)
-		else:
-			state = AnimalState.SLEEP
-	else:
-		velocity = to_home.normalized() * (graze_speed * 1.15)
-
-func _process_sleep(_delta: float) -> void:
-	velocity = Vector2.ZERO
-
-func _enter_burrow(duration: float = 0.0) -> void:
-	state = AnimalState.IN_BURROW
-	burrow_hide_timer = duration
-	velocity = Vector2.ZERO
-	visible = false
-	if body_col:
-		body_col.set_deferred("disabled", true)
-	Diana3D.poner_activa(self, false)
-
-func _exit_burrow() -> void:
-	if state != AnimalState.IN_BURROW:
-		return
-	state = AnimalState.GRAZE
-	global_position = home_position + Vector2.RIGHT.rotated(randf() * TAU) * 10.0
-	visible = true
-	if not is_in_group("wild_animals"):
-		add_to_group("wild_animals")
-	if body_col:
-		body_col.set_deferred("disabled", false)
-	Diana3D.poner_activa(self, true)
-
-func _process_in_burrow(delta: float) -> void:
-	if burrow_hide_timer > 0.0:
-		burrow_hide_timer -= delta
-		if burrow_hide_timer <= 0.0:
-			_exit_burrow()
-		return
-	if WorldClock:
-		var h: int = WorldClock.current_hour
-		if h >= 6 and h < 20:
-			_exit_burrow()
-
-func _process_flee(delta: float) -> void:
-	flee_timer -= delta
-	velocity = flee_dir * flee_speed
-	if species == SpeciesType.RABBIT and global_position.distance_squared_to(home_position) <= 18.0 * 18.0:
-		_enter_burrow(7.0)
-		return
-	if AndarMapa.ha_chocado(self): # su cuerpo 3D chocó con algo en el último paso
-		flee_dir = flee_dir.rotated(randf_range(1.0, 2.2))
-	if flee_timer <= 0.0:
-		state = AnimalState.GRAZE
-		velocity = Vector2.ZERO
-
+## Un golpe lo deja un rato desequilibrado: corta su ataque y no se mueve.
 func apply_parry_stagger(duration: float = 0.8, quiet: bool = false) -> void:
 	stagger_timer = maxf(stagger_timer, duration)
 	boar_charge_windup = 0.0
 	boar_charge_timer = 0.0
 	boar_melee_windup = 0.0
 	attack_cooldown = maxf(attack_cooldown, duration)
-	velocity = Vector2.ZERO
-	if sprite:
-		sprite.modulate = Color(0.65, 0.88, 1.35)
-	if status_label:
-		status_label.text = "💫 ¡Desequilibrado!"
-		status_label.add_theme_color_override("font_color", Color.AQUA)
-		status_label.visible = true
+	andar = Vector2.ZERO
+	if not quiet:
+		AnimalRotulo.decir(self, "¡Desequilibrado!", Color.AQUA)
 
-## Provocación y Embestida Agresiva del Jabalí (`SpeciesType.BOAR`) al ser atacado
-func _start_boar_aggro(attacker: Node2D) -> void:
-	if state in [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
-		return
-	boar_aggressor = attacker
-	boar_aggro_timer = 11.5
-	boar_charge_windup = 0.40
-	boar_charge_timer = 0.0
-	boar_melee_windup = 0.0
-	if is_instance_valid(attacker):
-		var dir := (attacker.global_position - global_position).normalized()
-		boar_charge_dir = dir if dir.length_squared() > 0.01 else Vector2.RIGHT
-	state = AnimalState.CHARGE_ATTACK
-	if status_label:
-		status_label.text = "🐗💢 ¡Jabalí Enfurecido!"
-		status_label.add_theme_color_override("font_color", Color.ORANGE_RED)
-		status_label.visible = true
 
-func _process_boar_charge_attack(delta: float) -> void:
-	if stagger_timer > 0.0:
-		stagger_timer = maxf(0.0, stagger_timer - delta)
-		boar_charge_windup = 0.0
-		boar_charge_timer = 0.0
-		boar_melee_windup = 0.0
-		velocity = Vector2.ZERO
-		if stagger_timer <= 0.0 and sprite:
-			sprite.modulate = Color.WHITE
-		return
-
-	boar_aggro_timer -= delta
-	var target_dead: bool = (not is_instance_valid(boar_aggressor)) or ("is_dead" in boar_aggressor and bool(boar_aggressor.get("is_dead"))) or ("is_downed" in boar_aggressor and bool(boar_aggressor.get("is_downed"))) or (boar_aggressor is WildAnimal and not (boar_aggressor as WildAnimal).is_alive_in_ecosystem())
-	if boar_aggro_timer <= 0.0 or target_dead or global_position.distance_to(boar_aggressor.global_position) > 275.0:
-		boar_aggressor = null
-		boar_charge_windup = 0.0
-		boar_charge_timer = 0.0
-		boar_melee_windup = 0.0
-		velocity = Vector2.ZERO
-		state = AnimalState.GRAZE
-		return
-
-	var to_target: Vector2 = boar_aggressor.global_position - global_position
-	var dist: float = to_target.length()
-
-	if boar_recover > 0.0:
-		boar_recover = maxf(0.0, boar_recover - delta)
-		velocity = Vector2.ZERO
-		return
-	if boar_melee_windup > 0.0:
-		boar_melee_windup = maxf(0.0, boar_melee_windup - delta)
-		velocity = Vector2.ZERO
-		if boar_melee_windup <= 0.0:
-			if sprite:
-				sprite.modulate = Color.WHITE
-			_CombatFeel.enemy_swing(self, "colmillos")
-			if is_instance_valid(boar_aggressor) and global_position.distance_to(boar_aggressor.global_position) <= 26.0:
-				_deliver_boar_ram_hit(boar_aggressor)
-				boar_recover = float(_CombatFeel.attack_feel("colmillos")["recover"])
-			else:
-				attack_cooldown = 1.0
-				boar_recover = float(_CombatFeel.attack_feel("colmillos")["miss_recover"])
-		return
-
-	# 1. Fase de Embestida a toda velocidad
-	if boar_charge_timer > 0.0:
-		boar_charge_timer -= delta
-		velocity = boar_charge_dir * 168.0
-		if dist <= 22.0 and attack_cooldown <= 0.0:
-			_deliver_boar_ram_hit(boar_aggressor)
-			boar_charge_timer = 0.0
-			velocity = Vector2.ZERO
-		return
-
-	# 2. Fase de Preparación (escarbando el suelo antes de embestir, ~0.4 s)
-	if boar_charge_windup > 0.0:
-		boar_charge_windup -= delta
-		velocity = Vector2.ZERO
-		if dist > 1.0:
-			boar_charge_dir = to_target.normalized()
-		if boar_charge_windup <= 0.0:
-			boar_charge_timer = 0.50
-			if sprite:
-				sprite.modulate = Color.WHITE
-			if status_label:
-				status_label.text = "🐗💥 ¡EMBESTIDA!"
-				status_label.add_theme_color_override("font_color", Color(1.0, 0.30, 0.20))
-				status_label.visible = true
-		return
-
-	# 3. Persecución agresiva hasta entrar en rango de embestida
-	if dist <= 20.0 and attack_cooldown <= 0.0:
-		boar_melee_windup = 0.40
-		boar_charge_dir = to_target.normalized() if dist > 1.0 else Vector2.RIGHT
-		velocity = Vector2.ZERO
-		if sprite:
-			sprite.modulate = Color(1.35, 0.88, 0.42)
-		if status_label:
-			status_label.text = "🐗❗"
-			status_label.add_theme_color_override("font_color", Color.ORANGE_RED)
-			status_label.visible = true
-		return
-	elif dist <= 115.0 and attack_cooldown <= 0.0:
-		boar_charge_windup = 0.40
-		boar_charge_dir = to_target.normalized() if dist > 1.0 else Vector2.RIGHT
-		velocity = Vector2.ZERO
-		if sprite:
-			sprite.modulate = Color(1.35, 0.88, 0.42)
-		if status_label:
-			status_label.text = "🐗❗"
-			status_label.add_theme_color_override("font_color", Color.ORANGE_RED)
-			status_label.visible = true
-		return
-
-	velocity = (to_target.normalized() if dist > 1.0 else Vector2.ZERO) * 86.0
-
-func _deliver_boar_ram_hit(target: Node2D) -> void:
-	attack_cooldown = 1.35
-	if not is_instance_valid(target):
-		return
-	if target.has_method("take_damage"):
-		var dmg := DamageData.new()
-		dmg.amount = 18.0
-		dmg.type = CombatConstants.DamageType.BLUNT
-		dmg.stun_buildup = 32.0
-		dmg.knockback_force = float(_CombatFeel.attack_feel("colmillos")["push"])
-		dmg.source = self
-		target.call("take_damage", dmg)
-	if target.has_method("apply_push"):
-		target.call("apply_push", boar_charge_dir * 180.0)
-
-func _update_observation_label() -> void:
-	if not status_label or state in [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
-		return
-
-	var cursor_near := global_position.distance_squared_to(get_global_mouse_position()) <= 32.0 * 32.0
-	if state == AnimalState.FLEE and not cursor_near:
-		_set_status_lbl("!", Color.ORANGE_RED)
-		return
-	if state == AnimalState.SLEEP and not cursor_near:
-		_set_status_lbl("Zzz", Color(0.75, 0.85, 1.0, 0.85))
-		return
-	if not cursor_near:
-		status_label.visible = false
-		return
-
-	var food_badge: String = "Reserva" if is_on_reserve_day else ("%d/%d" % [meals_eaten, MAX_MEALS])
-	var action_txt := "Pastando"
-	match state:
-		AnimalState.GRAZE:
-			action_txt = "Saciado - Descansando" if (is_on_reserve_day or meals_eaten >= MAX_MEALS) else ("En manada" if species == SpeciesType.DEER else ("Merodeando" if species == SpeciesType.FOX else "Pastando"))
-		AnimalState.SEEK_FOOD:
-			action_txt = "Buscando presa" if species == SpeciesType.FOX else "Buscando plantas"
-		AnimalState.STALK_PREY: action_txt = "Acechando en sigilo"
-		AnimalState.POUNCE: action_txt = "¡Salto de caza!"
-		AnimalState.CHASE_PREY: action_txt = "Persiguiendo presa"
-		AnimalState.CHARGE_ATTACK: action_txt = "¡Embistiendo agresivo!"
-		AnimalState.EATING: action_txt = "Devorando presa" if species == SpeciesType.FOX else "Comiendo brotes"
-		AnimalState.SEEK_MATE: action_txt = "Buscando pareja ♥"
-		AnimalState.RETURN_HOME: action_txt = "Volviendo a su refugio"
-		AnimalState.SLEEP: action_txt = "Durmiendo (Zzz)"
-		AnimalState.FLEE: action_txt = "Huyendo asustado"
-
-	var gen_tag: String = (" | 🧬Nv.%d" % genetics_tier) if genetics_tier >= 2 else ""
-	_set_status_lbl("%s [%s | %s%s]" % [animal_name, action_txt, food_badge, gen_tag], Color(1.0, 0.90, 0.45) if genetics_tier >= 2 else Color(0.95, 0.92, 0.72))
-
+## El zorro lo ha atrapado: cae en el acto.
 func take_pounce_takedown() -> void:
-	if state in [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
+	if state in ESTADOS_FUERA:
 		return
 	current_hp = 0.0
-	_become_carcass()
+	AnimalDespiece.caer_muerto(self)
+
 
 func take_damage(data: DamageData) -> void:
-	if state in [AnimalState.CARCASS, AnimalState.BUTCHERED, AnimalState.IN_BURROW]:
+	if state in ESTADOS_FUERA:
 		return
-	var raw_dmg: float = data.amount if data else 10.0
-	var eff_dmg: float = minf(raw_dmg, max_damage_per_hit) if max_damage_per_hit > 0.0 else raw_dmg
+	var golpe: float = data.amount if data != null else 10.0
 	hits_taken_count += 1
-	current_hp -= eff_dmg
-
-	# Garantía de resistencia para Jabalíes: deben aguantar al menos 3 golpes antes de caer abatidos
-	if species == SpeciesType.BOAR and hits_taken_count < 3 and current_hp <= 0.0:
-		current_hp = maxf(4.0, max_hp * float(3 - hits_taken_count) * 0.25)
-
-	if sprite:
-		var tween := create_tween()
-		tween.tween_property(sprite, "modulate", Color(3.0, 1.0, 1.0), 0.06)
-		tween.tween_property(sprite, "modulate", Color.WHITE, 0.08)
-
+	current_hp -= minf(golpe, max_damage_per_hit) if max_damage_per_hit > 0.0 else golpe
+	if species == SpeciesType.BOAR and hits_taken_count < JABALI_GOLPES_MIN and current_hp <= 0.0:
+		current_hp = maxf(JABALI_VIDA_MIN, max_hp * float(JABALI_GOLPES_MIN - hits_taken_count) * JABALI_VIDA_POR_GOLPE)
 	if current_hp <= 0.0:
-		_become_carcass()
+		AnimalDespiece.caer_muerto(self)
+		return
+	if data != null and data.stun_buildup >= ATURDIDO_FUERTE:
+		pounce_recovery_timer = maxf(pounce_recovery_timer, ATURDIDO_S)
+	var atacante: Node = _quien_ataca(data)
+	if species == SpeciesType.BOAR and atacante != null:
+		AnimalJabali.enfurecer(self, atacante)
 	else:
-		if data and data.stun_buildup >= 50.0:
-			pounce_recovery_timer = maxf(pounce_recovery_timer, 3.0)
-		var attacker_node: Node2D = data.source as Node2D if (data and is_instance_valid(data.source) and data.source is Node2D and not data.source.is_in_group("player_trap")) else (get_tree().get_first_node_in_group("player") as Node2D)
-		if species == SpeciesType.BOAR and is_instance_valid(attacker_node):
-			_start_boar_aggro(attacker_node)
-		else:
-			var danger_pos: Vector2 = attacker_node.global_position if is_instance_valid(attacker_node) else global_position
-			_start_flee_from(danger_pos)
+		AnimalAlerta.huir_de(self, Lugar.de(atacante) if atacante != null else sitio)
 
-func _become_carcass() -> void:
-	state = AnimalState.CARCASS
-	velocity = Vector2.ZERO
-	remove_from_group("wild_animals")
 
-	if body_col:
-		body_col.set_deferred("disabled", true)
-	Diana3D.poner_activa(self, false)
-	_set_area_disabled(butcher_area, false)
+## Quién le ha hecho daño: el autor del golpe o, si fue un cepo, el protagonista que lo puso.
+func _quien_ataca(data: DamageData) -> Node:
+	var autor: Node = data.source if data != null and is_instance_valid(data.source) else null
+	if autor == null or autor.is_in_group("player_trap") or not (autor is Node2D or autor is Node3D):
+		return _protagonista()
+	return autor
 
-	if sprite:
-		sprite.position = Vector2(0, 3)
-		sprite.rotation_degrees = 90.0
-		sprite.modulate = Color(0.75, 0.68, 0.68, 0.95)
 
-	var player = get_tree().get_first_node_in_group("player")
-	_set_status_lbl("[E] Desollar %s" % animal_name, Color(0.95, 0.92, 0.65), player != null and global_position.distance_squared_to(player.global_position) <= 900.0)
+## Huye del peligro que hay en `peligro` (metros sobre el suelo). Lo usan también los perros guardianes.
+func huir_de(peligro: Vector2) -> void:
+	AnimalAlerta.huir_de(self, peligro)
+
+
+func entrar_en_madriguera(segundos: float = 0.0) -> void:
+	AnimalAlerta.entrar_en_madriguera(self, segundos)
+
+
+func salir_de_madriguera() -> void:
+	AnimalAlerta.salir_de_madriguera(self)
+
+
+## Sale del mundo hasta que le toque renacer (ya despiezado, o de reserva en el ecosistema).
+func retirar() -> void:
+	AnimalDespiece.acabar_despiece(self)
+
 
 func consume_by_predator() -> void:
-	if state != AnimalState.CARCASS:
-		return
-	_finish_butchering()
+	if state == AnimalState.CARCASS:
+		AnimalDespiece.acabar_despiece(self)
 
-func _on_butcher_body_entered(body: Node) -> void:
-	if state == AnimalState.CARCASS and body.is_in_group("player"):
-		_set_status_lbl("[E] Desollar %s" % animal_name, Color(0.95, 0.92, 0.65))
-
-func _on_butcher_body_exited(body: Node) -> void:
-	if state == AnimalState.CARCASS and body.is_in_group("player") and status_label:
-		status_label.visible = false
 
 func get_anatomy_yields() -> Dictionary:
-	var gen_bonus: int = maxi(0, genetics_tier - 1)
-	var yields: Dictionary = {
-		"raw_meat": meat_drop + gen_bonus,
-		pelt_item_id: leather_drop + (1 if genetics_tier >= 3 else 0)
-	}
-	if enable_advanced_anatomy:
-		if bones_drop > 0:
-			yields["bones"] = bones_drop + (1 if genetics_tier >= 2 else 0)
-		if antlers_drop > 0:
-			yields["antlers"] = antlers_drop
-		if viscera_drop > 0:
-			yields["sinew_viscera"] = viscera_drop
-		if fat_drop > 0:
-			yields["animal_fat"] = fat_drop + (1 if genetics_tier >= 2 else 0)
-	return yields
+	return AnimalDespiece.piezas(self)
 
+
+## El protagonista lo despieza con [E] (le llega desde su ZonaDespiece).
 func interact(player: Node) -> void:
-	if state != AnimalState.CARCASS or not player:
-		return
+	AnimalDespiece.despiezar(self, player)
 
-	var yields := get_anatomy_yields()
-	var summary_parts: Array[String] = []
-
-	if "inventory" in player and player.inventory:
-		for item_id in yields.keys():
-			var qty: int = int(yields[item_id])
-			if qty > 0:
-				player.inventory.add_item(str(item_id), qty)
-				summary_parts.append("+%d %s" % [qty, player.inventory.get_item_name(str(item_id))])
-
-	if player.has_method("_spawn_floating_text") and not summary_parts.is_empty():
-		player._spawn_floating_text("🔪 Desollado: " + ", ".join(summary_parts), Color.GOLD, -44.0)
-
-	_finish_butchering()
-
-func _finish_butchering() -> void:
-	state = AnimalState.BUTCHERED
-	if is_inside_tree() and not Engine.is_editor_hint():
-		var hunter = get_tree().get_first_node_in_group("player")
-		if hunter and hunter.has_method("add_skill_xp"):
-			hunter.call("add_skill_xp", "hunting", 12)
-	if not Engine.is_editor_hint():
-		var cur_day: int = WorldClock.current_day if WorldClock else 1
-		respawn_on_day = cur_day + max(1, respawn_days)
-		if GameManager and persistence_id != "":
-			GameManager.set_flag(persistence_id, respawn_on_day)
-	_apply_hidden_state(true)
-
-func _apply_hidden_state(hidden_state: bool) -> void:
-	visible = not hidden_state
-	set_physics_process(not hidden_state and not Engine.is_editor_hint())
-	if hidden_state and state == AnimalState.BUTCHERED:
-		remove_from_group("wild_animals")
-	if status_label:
-		status_label.visible = false
-	if body_col:
-		body_col.set_deferred("disabled", hidden_state)
-	Diana3D.poner_activa(self, not hidden_state)
-	_set_area_disabled(butcher_area, hidden_state or state != AnimalState.CARCASS)
-
-func _reset_alive_state() -> void:
-	hits_taken_count = 0
-	boar_aggressor = null
-	boar_aggro_timer = 0.0
-	boar_charge_windup = 0.0
-	boar_charge_timer = 0.0
-	pounce_timer = 0.0
-	pounce_recovery_timer = 0.0
-	flee_timer = 0.0
-	eat_timer = 0.0
-	mate_timer = 0.0
-	food_target = null
-	mate_target = null
-	if not is_in_group("wild_animals"):
-		add_to_group("wild_animals")
-	if sprite:
-		sprite.position = Vector2.ZERO
-		sprite.rotation_degrees = 0.0
-		sprite.modulate = Color(1.08, 1.04, 0.88) if genetics_tier >= 2 else Color.WHITE
 
 func respawn_from_ecosystem(new_genetics: int = 1) -> void:
 	genetics_tier = clampi(new_genetics, 1, 3)
-	_respawn_animal()
+	AnimalDespiece.renacer(self)
 
-func _respawn_animal() -> void:
-	state = AnimalState.GRAZE
-	respawn_on_day = -1
-	current_hp = max_hp + float((genetics_tier - 1) * 5)
-	meals_eaten = 0
-	fed_today = false
-	has_reserve_day = false
-	is_on_reserve_day = false
-	mated_today = false
-	pending_offspring = false
-	escaped_first_pounce = false
-	days_hungry = 0
-	global_position = home_position + Vector2.RIGHT.rotated(randf() * TAU) * randf_range(6.0, 20.0)
-	_reset_alive_state()
-	if GameManager and persistence_id != "":
-		GameManager.set_flag(persistence_id, -1)
-	_apply_hidden_state(false)
 
 func _on_day_passed(new_day: int) -> void:
-	if not managed_by_ecosystem:
-		if state == AnimalState.BUTCHERED and respawn_on_day > 0 and new_day >= respawn_on_day:
-			_respawn_animal()
+	if not managed_by_ecosystem and state == AnimalState.BUTCHERED and respawn_on_day > 0 and new_day >= respawn_on_day:
+		AnimalDespiece.renacer(self)
+
 
 func _on_game_loaded(_filepath: String) -> void:
-	_check_saved_state()
+	AnimalDespiece.mirar_lo_guardado(self)
 
-func _check_saved_state() -> void:
-	if Engine.is_editor_hint() or managed_by_ecosystem or not GameManager or persistence_id == "":
-		return
-	var saved_val: Variant = GameManager.get_flag(persistence_id, -1)
-	var saved_day: int = int(saved_val) if typeof(saved_val) in [TYPE_INT, TYPE_FLOAT] else -1
-	var cur_day: int = WorldClock.current_day if WorldClock else 1
-	if saved_day > cur_day:
-		state = AnimalState.BUTCHERED
-		respawn_on_day = saved_day
-		_apply_hidden_state(true)
-	elif not managed_by_ecosystem and state == AnimalState.BUTCHERED:
-		_respawn_animal()
 
 func to_save_dict() -> Dictionary:
-	return {
-		"state": int(state), "hp": current_hp, "genetics_tier": genetics_tier,
-		"meals_eaten": meals_eaten, "fed_today": fed_today, "has_reserve_day": has_reserve_day,
-		"is_on_reserve_day": is_on_reserve_day, "mated_today": mated_today, "pending_offspring": pending_offspring,
-		"offspring_genetics_tier": offspring_genetics_tier, "days_hungry": days_hungry, "respawn_on_day": respawn_on_day,
-		"pos_x": global_position.x, "pos_y": global_position.y
-	}
+	return AnimalDespiece.guardar(self)
+
 
 func from_save_dict(data: Dictionary) -> void:
-	var st: int = int(data.get("state", int(AnimalState.GRAZE)))
-	genetics_tier = clampi(int(data.get("genetics_tier", 1)), 1, 3)
-	current_hp = float(data.get("hp", max_hp))
-	meals_eaten = int(data.get("meals_eaten", 0))
-	fed_today = bool(data.get("fed_today", false))
-	has_reserve_day = bool(data.get("has_reserve_day", false))
-	is_on_reserve_day = bool(data.get("is_on_reserve_day", false))
-	mated_today = bool(data.get("mated_today", false))
-	pending_offspring = bool(data.get("pending_offspring", false))
-	offspring_genetics_tier = clampi(int(data.get("offspring_genetics_tier", 1)), 1, 3)
-	days_hungry = int(data.get("days_hungry", 0))
-	respawn_on_day = int(data.get("respawn_on_day", -1))
-
-	if st == int(AnimalState.BUTCHERED):
-		state = AnimalState.BUTCHERED
-		_apply_hidden_state(true)
-	elif st == int(AnimalState.CARCASS):
-		if data.has("pos_x") and data.has("pos_y"):
-			global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
-		_apply_hidden_state(false)
-		_become_carcass()
-	else:
-		if state == AnimalState.IN_BURROW:
-			_exit_burrow()
-		state = AnimalState.GRAZE
-		if data.has("pos_x") and data.has("pos_y"):
-			global_position = Vector2(float(data["pos_x"]), float(data["pos_y"]))
-		_reset_alive_state()
-		_apply_hidden_state(false)
+	AnimalDespiece.cargar(self, data)

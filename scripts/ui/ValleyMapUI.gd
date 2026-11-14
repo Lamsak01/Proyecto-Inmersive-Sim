@@ -438,7 +438,7 @@ func _draw_valley_cartography(canvas: Control, detailed: bool) -> void:
 	# 7. Puntos en Vivo de Fauna del Bosque
 	for animal in get_tree().get_nodes_in_group("wild_animals"):
 		if animal is WildAnimal and animal.is_alive_in_ecosystem() and animal.visible:
-			var ap := _world_to_map(animal.global_position, csize)
+			var ap := _world_to_map(Lugar.en_mapa(animal), csize)
 			var acol := Color(0.28, 0.52, 0.28)
 			if animal.species == WildAnimal.SpeciesType.DEER:
 				acol = Color(0.58, 0.42, 0.22)

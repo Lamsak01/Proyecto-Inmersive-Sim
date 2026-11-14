@@ -772,14 +772,14 @@ func _update_deployed_bear_traps(delta: float, player: Node2D) -> void:
 			t_entry["arm_delay"] = maxf(0.0, arm_d - delta)
 			continue
 		var t_pos: Vector2 = t_node.global_position
-		var triggered_target: Node2D = null
+		var triggered_target: Node = null
 
 		# 1. ¿Un animal salvaje pisó el cepo?
 		for w in get_tree().get_nodes_in_group("wild_animals"):
 			if w is WildAnimal:
 				var wa := w as WildAnimal
 				if wa.visible and not (wa.state in [WildAnimal.AnimalState.CARCASS, WildAnimal.AnimalState.BUTCHERED, WildAnimal.AnimalState.IN_BURROW]):
-					if wa.global_position.distance_squared_to(t_pos) <= 16.0 * 16.0:
+					if Lugar.en_mapa(wa).distance_squared_to(t_pos) <= 16.0 * 16.0:
 						triggered_target = wa
 						break
 

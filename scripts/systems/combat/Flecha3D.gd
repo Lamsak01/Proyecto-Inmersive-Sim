@@ -109,20 +109,20 @@ func _herir(a: Vector3, b: Vector3) -> bool:
 	dano.shot_distance_px = (_recorrido + a.distance_to(b)) / Mapa3D.ESCALA # HealthComponent aún mide en el mapa plano
 	var herido: Node = diana.duenio
 	diana.recibir(dano)
-	if es_bala and herido is Node2D:
-		_sacudir(herido as Node2D)
+	if es_bala and (herido is Node2D or herido is Node3D):
+		_sacudir(herido)
 	queue_free()
 	return true
 
 
 ## El balazo empuja y aturde a quien alcanza (CombatFeel aún trabaja en el mapa plano).
-func _sacudir(herido: Node2D) -> void:
+func _sacudir(herido: Node) -> void:
 	var hacia := Vector2(_velocidad.x, _velocidad.z).normalized()
 	var fuerza: Dictionary = EMPUJE_BALA.duplicate()
 	fuerza["knockback"] = EMPUJE_FUSIL_PX if dano.firearm_kind == "rifle" else EMPUJE_PISTOLA_PX
 	CombatFeel.apply_hit_reaction(herido, hacia, fuerza)
 	if is_instance_valid(tirador) and tirador is Node2D and tirador.is_in_group("player"):
-		load("res://scripts/visuals/WorldStage3D.gd").call("notify_fp_melee_hit", tirador, herido, hacia, fuerza, 1.35)
+		load("res://scripts/visuals/WorldStage3D.gd").call("notify_fp_melee_hit", tirador, herido as Node2D, hacia, fuerza, 1.35)
 
 
 ## La pared (o el objeto) del mundo que corta el tramo; vacío si no hay ninguna.

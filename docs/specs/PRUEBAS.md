@@ -13,6 +13,8 @@ timeout 120 flatpak run org.godotengine.Godot --headless --path . --check-only -
 
 # Física 3D (cuerpos, pisos, agua, buceo, vista; ~2 min) → «FISICA 3D: PASSED»
 timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/fisica_3d.gd 2>&1 | grep "FISICA 3D"
+# Animales salvajes como cuerpos 3D: pastar, huir, jabalí, zorro, despiece con [E], guardado (~1,5 min) → «ANIMALES 3D: PASSED»
+timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/animales_3d.gd 2>&1 | grep "ANIMALES 3D"
 # Entrar y salir por las 29 puertas (~2 min) → «PUERTAS 3D: PASSED»
 timeout 600 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/puertas_3d.gd 2>&1 | grep "PUERTAS 3D"
 # Todo el juego (~8–15 min) → «...TESTS PASSED!». La sección «S2: un testigo convierte la infidelidad en chisme» falla al azar: repite.

@@ -18,7 +18,7 @@ const QUIETO_PX_S_2: float = 4.0               ## por debajo de esta velocidad (
 
 ## Radio y alto (m) del cuerpo de `n`.
 static func de(n: Node) -> Vector2:
-	if n.is_in_group("wild_animals"):
+	if n.has_method("is_alive_in_ecosystem"): # un animal salvaje (vivo o cadáver: muerto ya no está en su grupo)
 		return ANIMAL if int(n.get("species")) in ESPECIES_GRANDES else PEQUENO
 	if n.is_in_group("livestock_animals"):
 		var adulto: bool = str(n.get("species")) in GANADO_GRANDE and not (str(n.get("stage")) in GANADO_CRIA)
@@ -43,7 +43,7 @@ static func apagado(n: Node) -> bool:
 		return true
 	if n is Node3D and not (n as Node3D).visible: # lo mismo para quien ya es un cuerpo 3D
 		return true
-	if n.is_in_group("wild_animals") and n.has_method("is_alive_in_ecosystem") and not bool(n.call("is_alive_in_ecosystem")):
+	if n.has_method("is_alive_in_ecosystem") and not bool(n.call("is_alive_in_ecosystem")): # un cadáver no estorba
 		return true
 	if not n.has_method("_is_seated_on_furniture"): # solo los vecinos se sientan
 		return false

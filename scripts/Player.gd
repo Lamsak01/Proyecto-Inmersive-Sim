@@ -946,8 +946,8 @@ func take_damage(data: DamageData) -> void:
 		_CombatFeel.play(self, _CombatFeel.SFX_HURT, global_position, 1.0, -4.0)
 		if hp_lost >= 6.0 and AudioManager:
 			AudioManager.emit_noise(global_position, 155.0, -999, "pain_scream")
-		if not is_ranged_hit and data != null and is_instance_valid(data.source) and data.source is Node2D:
-			var away: Vector2 = global_position - (data.source as Node2D).global_position
+		if not is_ranged_hit and data != null and is_instance_valid(data.source) and (data.source is Node2D or data.source is Node3D):
+			var away: Vector2 = global_position - Lugar.en_mapa(data.source)
 			if away.length_squared() > 0.01:
 				var push_px: float = data.knockback_force if data.knockback_force > 0.0 else clampf(hp_lost * 0.6, 3.0, 10.0)
 				_AndarMapa.empujon(self, away.normalized() * push_px) # C7 fase 2: el empujón depende del arma del rival

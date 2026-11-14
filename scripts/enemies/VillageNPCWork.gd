@@ -722,15 +722,15 @@ func _process_physical_morning_expedition(delta: float) -> void:
 
 		# Si la presa ya ha caído abatida (`CARCASS`), acercarse físicamente a desollarla
 		if prey.state == WildAnimal.AnimalState.CARCASS:
-			if global_position.distance_to(prey.global_position) > 22.0:
-				_move_towards_point(prey.global_position, 64.0, delta)
+			if global_position.distance_to(Lugar.en_mapa(prey)) > 22.0:
+				_move_towards_point(Lugar.en_mapa(prey), 64.0, delta)
 			else:
 				velocity = Vector2.ZERO
 				_expedition_gather_timer += delta
 				if _expedition_gather_timer >= (0.85 / maxf(0.35, eff)):
 					_expedition_gather_timer = 0.0
 					var p_name: String = prey.animal_name
-					prey._finish_butchering()
+					prey.retirar()
 					_expedition_target_node = null
 					_completed_expedition_day = cur_day
 					var meat_yield: int = 3 if eff >= 0.85 else (2 if eff >= 0.60 else 1)
@@ -746,12 +746,12 @@ func _process_physical_morning_expedition(delta: float) -> void:
 			return
 
 		# La presa está viva: acercarse a rango de arco y disparar flechas físicas hasta abatirla
-		var dist_prey: float = global_position.distance_to(prey.global_position)
+		var dist_prey: float = global_position.distance_to(Lugar.en_mapa(prey))
 		if dist_prey > 95.0:
-			_move_towards_point(prey.global_position, 68.0, delta)
+			_move_towards_point(Lugar.en_mapa(prey), 68.0, delta)
 		else:
 			if dist_prey > 48.0:
-				_move_towards_point(prey.global_position, 52.0, delta)
+				_move_towards_point(Lugar.en_mapa(prey), 52.0, delta)
 			else:
 				velocity = Vector2.ZERO
 			_expedition_gather_timer += delta
@@ -829,7 +829,7 @@ func _process_physical_morning_expedition(delta: float) -> void:
 func _fire_hunter_arrow_at_prey(prey: WildAnimal) -> void:
 	if not is_instance_valid(prey):
 		return
-	_spawn_shot_tracer(prey.global_position, Color(0.92, 0.78, 0.45, 0.92), 1.8, 16, -4.0, 0.16)
+	_spawn_shot_tracer(Lugar.en_mapa(prey), Color(0.92, 0.78, 0.45, 0.92), 1.8, 16, -4.0, 0.16)
 	var d := DamageData.new()
 	d.amount = 18.0 * get_job_efficiency()
 	d.type = CombatConstants.DamageType.CUT
@@ -879,15 +879,15 @@ func _process_amateur_survival_hunting(delta: float) -> void:
 
 	# Si la presa ya cayó (`CARCASS`), acercarse y hacer un despiece amateur torpe (desperdiciando piel y 70% de carne)
 	if prey.state == WildAnimal.AnimalState.CARCASS:
-		if global_position.distance_to(prey.global_position) > 20.0:
-			_move_towards_point(prey.global_position, 52.0, delta)
+		if global_position.distance_to(Lugar.en_mapa(prey)) > 20.0:
+			_move_towards_point(Lugar.en_mapa(prey), 52.0, delta)
 		else:
 			velocity = Vector2.ZERO
 			_expedition_gather_timer += delta
 			if _expedition_gather_timer >= 2.2:
 				_expedition_gather_timer = 0.0
 				var p_name: String = prey.animal_name
-				prey._finish_butchering()
+				prey.retirar()
 				_amateur_prey_target = null
 				_is_amateur_foraging = false
 				_amateur_forage_timer = 0.0
@@ -901,9 +901,9 @@ func _process_amateur_survival_hunting(delta: float) -> void:
 		return
 
 	# Perseguir al animal a pie sin arco (ineficiente y agotador)
-	var dist_p: float = global_position.distance_to(prey.global_position)
+	var dist_p: float = global_position.distance_to(Lugar.en_mapa(prey))
 	if dist_p > 24.0:
-		_move_towards_point(prey.global_position, 54.0, delta)
+		_move_towards_point(Lugar.en_mapa(prey), 54.0, delta)
 	else:
 		velocity = Vector2.ZERO
 		_expedition_gather_timer += delta

@@ -382,7 +382,7 @@ func take_damage(data: DamageData) -> void:
 		add_to_group("enemies")
 	else:
 		_flee_timer = 6.0
-		_flee_from_pos = data.source.global_position if (data and is_instance_valid(data.source)) else global_position
+		_flee_from_pos = Lugar.en_mapa(data.source) if (data and is_instance_valid(data.source) and (data.source is Node2D or data.source is Node3D)) else global_position
 
 	if health_comp:
 		health_comp.take_damage(data)
@@ -429,11 +429,11 @@ func _check_for_fox_intruders() -> void:
 		var sp_val: int = int(anim_node.get("species")) if "species" in anim_node else -1
 		var is_alive_flag: bool = bool(anim_node.call("is_alive_in_ecosystem")) if anim_node.has_method("is_alive_in_ecosystem") else true
 		if sp_val == 2 and is_alive_flag:
-			var dist_to_coop: float = anim_node.global_position.distance_to(guard_center)
+			var dist_to_coop: float = Lugar.en_mapa(anim_node).distance_to(guard_center)
 			if dist_to_coop <= 98.0:
-				_wander_target = anim_node.global_position
-				if anim_node.has_method("_start_flee_from"):
-					anim_node.call("_start_flee_from", global_position)
+				_wander_target = Lugar.en_mapa(anim_node)
+				if anim_node.has_method("huir_de"):
+					anim_node.call("huir_de", Lugar.de(self))
 				if _bark_cooldown <= 0.0:
 					_bark_cooldown = 4.5
 					_spawn_floating_text("🐕💢 ¡GUAU GUAU! (Zorro ahuyentado)", Color.GOLD)

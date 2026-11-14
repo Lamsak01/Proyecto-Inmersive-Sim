@@ -1,6 +1,7 @@
 @tool
 extends Node2D
 class_name EcosystemManager
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Simulador de Ecosistema del Bosque ("La Cadena Trófica") — Fase 3.5
 ## - Ubica el Bosque Profundo alejado de la zona inicial (al Sur/Suroeste de la aldea, y = 350..1050).
@@ -74,7 +75,7 @@ func _on_demo_mode_changed(enabled: bool) -> void:
 	for pool in [rabbit_pool, deer_pool, fox_pool, boar_pool]:
 		for a in pool:
 			if is_instance_valid(a):
-				a.velocity = Vector2.ZERO
+				a.andar = Vector2.ZERO
 				if enabled:
 					a.vida.clear()
 				else:
@@ -95,10 +96,6 @@ func _load_tex(res_path: String) -> Texture2D:
 	return null
 
 func _spawn_distant_forest() -> void:
-	var tex_deer: Texture2D = _load_tex("res://assests/world/harvest/wild_deer.png")
-	var tex_rabbit: Texture2D = _load_tex("res://assests/world/harvest/wild_rabbit.png")
-	var tex_fox: Texture2D = _load_tex("res://assests/world/harvest/wild_fox.png")
-	var tex_boar: Texture2D = _load_tex("res://assests/world/harvest/wild_boar.png")
 
 	# Carteles de Entrada al Bosque y de los 4 Hábitats Separados
 	var carteles: Array[Vector2] = Sitio.serie(SERIE_CARTEL)
@@ -117,10 +114,10 @@ func _spawn_distant_forest() -> void:
 
 	_spawn_harvest_batch("WildMushroom", Sitio.serie("seta"), HarvestableNode.HarvestType.FORAGE, "Hongos Silvestres", "mushroom", 2, "", 0, 15.0, 1, 2, 8.0)
 
-	_spawn_animal_pool(rabbit_pool, "WildRabbit", WildAnimal.SpeciesType.RABBIT, "Conejo Silvestre", 16, 10, burrow_positions, 45.0, 175.0, 12.0, 999.0, 28.0, 134.0, 85.0, [1, 1, "leather", 1, 0, 0, 1], tex_rabbit, Vector2(1.1, 1.1), 6.0)
-	_spawn_animal_pool(deer_pool, "WildDeer", WildAnimal.SpeciesType.DEER, "Venado del Valle", 9, 6, deer_clearing_positions, 55.0, 210.0, 26.0, 999.0, 22.0, 118.0, 95.0, [2, 1, "leather", 2, 1, 1, 1], tex_deer, Vector2(1.15, 1.15), 9.0)
-	_spawn_animal_pool(fox_pool, "WildFox", WildAnimal.SpeciesType.FOX, "Zorro del Bosque", 6, 3, fox_den_positions, 50.0, 190.0, 20.0, 999.0, 32.0, 122.0, 78.0, [1, 1, "fox_pelt", 1, 0, 1, 0], tex_fox, Vector2(1.15, 1.15), 7.5)
-	_spawn_animal_pool(boar_pool, "WildBoar", WildAnimal.SpeciesType.BOAR, "Jabalí del Bosque", 7, 5, boar_rooting_positions, 55.0, 195.0, 66.0, 22.0, 24.0, 138.0, 85.0, [3, 2, "leather", 2, 0, 1, 2], tex_boar, Vector2(1.22, 1.22), 9.5)
+	_spawn_animal_pool(rabbit_pool, "WildRabbit", WildAnimal.SpeciesType.RABBIT, "Conejo Silvestre", 16, 10, burrow_positions, 45.0, 175.0, 12.0, 999.0, 28.0, 134.0, 85.0, [1, 1, "leather", 1, 0, 0, 1])
+	_spawn_animal_pool(deer_pool, "WildDeer", WildAnimal.SpeciesType.DEER, "Venado del Valle", 9, 6, deer_clearing_positions, 55.0, 210.0, 26.0, 999.0, 22.0, 118.0, 95.0, [2, 1, "leather", 2, 1, 1, 1])
+	_spawn_animal_pool(fox_pool, "WildFox", WildAnimal.SpeciesType.FOX, "Zorro del Bosque", 6, 3, fox_den_positions, 50.0, 190.0, 20.0, 999.0, 32.0, 122.0, 78.0, [1, 1, "fox_pelt", 1, 0, 1, 0])
+	_spawn_animal_pool(boar_pool, "WildBoar", WildAnimal.SpeciesType.BOAR, "Jabalí del Bosque", 7, 5, boar_rooting_positions, 55.0, 195.0, 66.0, 22.0, 24.0, 138.0, 85.0, [3, 2, "leather", 2, 0, 1, 2])
 
 func _spawn_harvest_batch(prefix: String, positions: Array[Vector2], h_type: HarvestableNode.HarvestType, title: String, p_id: String, p_amt: int, b_id: String, b_amt: int, hp: float, r_days: int, bites: int, rad: float) -> void:
 	for i in range(positions.size()):
@@ -204,22 +201,27 @@ static func _en_cauce_del_rio(p: Vector2) -> bool:
 	var b: Vector2 = RioLago.river_banks_at(p.y)
 	return p.x >= b.x - 4.0 and p.x <= b.y + 4.0
 
-func _spawn_animal_pool(pool: Array[WildAnimal], prefix: String, sp: WildAnimal.SpeciesType, a_name: String, max_cnt: int, init_cnt: int, homes: Array[Vector2], r_min: float, r_max: float, hp: float, max_hit: float, g_spd: float, f_spd: float, alert_r: float, drops: Array, tex: Texture2D, sc: Vector2, rad: float) -> void:
+## Crea los animales de una especie alrededor de sus nidos. Los `init_cnt` primeros empiezan vivos; el resto quedan de
+## reserva (fuera del mundo) para las crías. TRADUCTOR: los nidos y las medidas de esta tabla siguen escritos en las
+## unidades del mapa plano y aquí se pasan a metros; se quita cuando el ecosistema lea sus nidos de piezas del mapa 3D.
+func _spawn_animal_pool(pool: Array[WildAnimal], prefix: String, sp: WildAnimal.SpeciesType, a_name: String, max_cnt: int, init_cnt: int, homes: Array[Vector2], r_min: float, r_max: float, hp: float, max_hit: float, g_spd: float, f_spd: float, alert_r: float, drops: Array) -> void:
 	for i in range(max_cnt):
-		var home_pos: Vector2 = homes[i % homes.size()]
-		var offset := Vector2.RIGHT.rotated((TAU / float(max_cnt)) * float(i)) * randf_range(r_min, r_max)
-		var a := WildAnimal.new()
+		var a: WildAnimal = WildAnimal.crear(get_tree())
+		if a == null:
+			push_error("EcosystemManager: no hay escenario 3D donde poner los animales")
+			return
+		var casa: Vector2 = Lugar.a_suelo(homes[i % homes.size()])
+		var separado: Vector2 = Vector2.RIGHT.rotated((TAU / float(max_cnt)) * float(i)) * randf_range(r_min, r_max) * Mapa3D.ESCALA
 		a.name = "%s_%d" % [prefix, i]
 		a.species = sp
-		a.home_position = home_pos
-		a.global_position = home_pos + offset
 		a.animal_name = a_name
 		a.max_hp = hp
+		a.current_hp = hp
 		if max_hit < 500.0:
 			a.max_damage_per_hit = max_hit
-		a.graze_speed = g_spd
-		a.flee_speed = f_spd
-		a.alert_radius = alert_r
+		a.paso_m_s = g_spd * Mapa3D.ESCALA
+		a.huida_m_s = f_spd * Mapa3D.ESCALA
+		a.alerta_m = alert_r * Mapa3D.ESCALA
 		a.meat_drop = int(drops[0])
 		a.leather_drop = int(drops[1])
 		a.pelt_item_id = str(drops[2])
@@ -228,10 +230,9 @@ func _spawn_animal_pool(pool: Array[WildAnimal], prefix: String, sp: WildAnimal.
 		a.viscera_drop = int(drops[5])
 		a.fat_drop = int(drops[6])
 		a.managed_by_ecosystem = true
-		entities_root.add_child(a)
-		a.setup_animal(tex, sc, rad)
+		a.setup_animal(casa, casa + separado)
 		if i >= init_cnt:
-			a._finish_butchering()
+			a.retirar()
 		pool.append(a)
 
 ## Evaluación ecológica cada nuevo día (06:00 AM)
@@ -314,7 +315,7 @@ func find_sustainable_hunt_prey(from_pos: Vector2) -> WildAnimal:
 	for a in candidates:
 		if a.state == WildAnimal.AnimalState.IN_BURROW or not a.visible:
 			continue
-		var d2: float = from_pos.distance_squared_to(a.global_position)
+		var d2: float = from_pos.distance_squared_to(Lugar.en_mapa(a))
 		if d2 < best_d2:
 			best_d2 = d2
 			best_prey = a
@@ -355,7 +356,7 @@ func _process_species_daily_cycle(pool: Array[WildAnimal], max_starvation_days: 
 			# Ayer no comió nada (0/2)
 			animal.days_hungry += 1
 			if animal.days_hungry >= max_starvation_days:
-				animal._finish_butchering()
+				animal.retirar()
 
 		animal.mated_today = false
 		animal.pending_offspring = false
