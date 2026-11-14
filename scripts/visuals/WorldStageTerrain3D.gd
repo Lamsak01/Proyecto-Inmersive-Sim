@@ -1046,16 +1046,25 @@ func _hacer_veta(pieza: Node3D, eco: Node, nombre: String) -> void:
 func _choques_del_decorado(dec: Node) -> void:
 	if vm == null or not vm.has_method("add_choque_mundo"):
 		return
-	for zona: Node in dec.get_children():
-		for pieza: Node in zona.get_children():
-			if pieza is Node3D and pieza.has_meta(META_CHOQUE):
-				_choque_de_decorado(pieza as Node3D)
+	_choques_recursivo(dec, Transform3D.IDENTITY)
 
 
-func _choque_de_decorado(pieza: Node3D) -> void:
-	var giro: float = -deg_to_rad(pieza.rotation_degrees.y) # en el plano el giro va al revés que en 3D
+func _choques_recursivo(nodo: Node, xf_padre: Transform3D) -> void:
+	for hijo: Node in nodo.get_children():
+		if not (hijo is Node3D):
+			continue
+		var n3: Node3D = hijo as Node3D
+		var xf: Transform3D = xf_padre * n3.transform
+		if n3.has_meta(META_CHOQUE):
+			_choque_de_decorado(n3, xf)
+		if n3.get_child_count() > 0:
+			_choques_recursivo(n3, xf)
+
+
+func _choque_de_decorado(pieza: Node3D, xf: Transform3D) -> void:
+	var giro: float = -xf.basis.orthonormalized().get_euler().y # en el plano el giro va al revés que en 3D
 	var desplaz: Vector2 = pieza.get_meta(META_CHOQUE_DESPLAZ, Vector2.ZERO)
-	var centro: Vector2 = _a_mapa_2d(pieza.position) + desplaz.rotated(giro)
+	var centro: Vector2 = _a_mapa_2d(xf.origin) + desplaz.rotated(giro)
 	giro += deg_to_rad(float(pieza.get_meta(META_CHOQUE_GIRO, 0.0)))
 	vm.call("add_choque_mundo", centro, pieza.get_meta(META_CHOQUE) as Vector2, giro)
 
