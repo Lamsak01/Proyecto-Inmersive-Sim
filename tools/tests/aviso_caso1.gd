@@ -1,14 +1,15 @@
 extends SceneTree
 
-## Caso I, día 2 al alba: el guardia mensajero alcanza al jugador aunque este no pare de andar (en círculo, a paso
-## normal) y con el tiempo adelantado (Ctrl+T) en menos de una hora de juego y le da el recado de Vane con la caja de diálogo, no con una línea suelta. Uso (~1–2 min):
+## Caso I, día 2 al alba, con el tiempo adelantado (Ctrl+T) y el jugador quieto: el guardia mensajero llega ANDANDO
+## (antes de que salte el seguro de los 20 min, que lo pondría a tu espalda) y da el recado de Vane con la caja de
+## diálogo, aunque venga cansado y con hambre de la noche. Antes su turno de las 06:00 le hacía ir y venir y nunca llegaba (usuario, 2026-11-14). Uso (~1 min):
 ##   timeout 240 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/aviso_caso1.gd 2>&1 | grep "AVISO CASO1"
 
 const ESCENA_JUEGO: String = "uid://dsoiuct8kdsk3"
 const FRAMES_ARRANQUE: int = 35
-const MINUTOS_MAX: int = 60 ## de juego, desde las 06:00
-const PASO_PX_S: float = 100.0  ## el jugador anda sin parar (andar normal: 120)
-const CIRCULO_PX: float = 600.0 ## radio de la vuelta que da (~34 m)
+const MINUTOS_MAX: int = 18 ## de juego, desde las 06:00: antes del seguro de los 20 min
+const ENERGIA_TRAS_LA_NOCHE: float = 8.0 ## el guardia viene de la ronda nocturna: muy cansado…
+const HAMBRE_TRAS_LA_NOCHE: float = 20.0 ## …y con hambre (en una partida nueva empieza descansado y saciado)
 const MINUTOS_ADELANTO: int = 120 ## lo que adelanta Ctrl+T
 const RUTA_CASO1: String = "res://scripts/systems/VillageCase1.gd" ## con load() tras arrancar: usa autoloads
 
@@ -25,13 +26,13 @@ func _initialize() -> void:
 	var dm: Node = jugador.get("dialogue_manager")
 	var vm: Node = get_first_node_in_group("village_manager")
 	var limite: int = 6 * 60 + MINUTOS_MAX
+	for n in get_nodes_in_group("village_npcs"):
+		if int(n.trade_role) == int(load("res://scripts/enemies/VillageNPC.gd").TradeRole.GUARD):
+			n.need_energy = ENERGIA_TRAS_LA_NOCHE
+			n.need_hunger = HAMBRE_TRAS_LA_NOCHE
 	reloj.call("start_organic_fast_forward_duration", MINUTOS_ADELANTO) # como pulsar Ctrl+T a las 05:50
-	var centro: Vector2 = (jugador as Node2D).global_position + Vector2(CIRCULO_PX, 0.0)
-	var angulo: float = PI
 	while _minutos(reloj) < limite and not bool(dm.call("is_active")):
 		await physics_frame
-		angulo += PASO_PX_S / CIRCULO_PX / float(Engine.physics_ticks_per_second)
-		(jugador as Node2D).global_position = centro + Vector2.RIGHT.rotated(angulo) * CIRCULO_PX
 	var st: Dictionary = load(RUTA_CASO1).state(vm)
 	var hablante: Node = dm.get("current_speaker")
 	var guardia_habla: bool = bool(dm.call("is_active")) and is_instance_valid(hablante) and str(hablante.get("npc_name")) == str(st.get("guardia", ""))

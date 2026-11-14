@@ -9,7 +9,9 @@
   iba andando a un tercio de tu paso y, si te movías, no te alcanzaba; a las 2 h salía una línea que se pierde. Ahora va
   corriendo, vuelve a salir a ~50 m si te alejas, te llama a ~4 m y, si aun así no llega, un chico te lo dice en la caja. 2.ª vez (el usuario, quieto fuera): no se
   reprodujo; ahora, si a los 20 min de juego no te ha alcanzado, aparece a tu espalda y te habla. Causa real: el usuario
-  adelanta con Ctrl+T; el recado de reserva salía en mitad del adelanto y se perdía. Ahora el crimen corta el adelanto.)*
+  adelanta con Ctrl+T; el recado de reserva salía en mitad del adelanto y se perdía. Ahora el crimen corta el adelanto. 3.ª vez: el guardia iba y
+  venía y llegaba por el seguro (06:20): tras la noche, cansado y con hambre, su turno y sus ganas de comer le quitaban el
+  recado y andaba a un tercio. Ahora el recado urgente manda sobre todo eso; probado cansado y hambriento: llega a las 06:12.)*
 - ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **Las pistas del caso salen desde el día antes** · zapato del
   Puente Viejo el lunes 13:23. *(Ninguna pista del Caso I se puede examinar antes del día 2, ni apuntando ni de cerca, y el
   zapato, que es una pieza del mapa (grupo «pista_caso1»), no se ve hasta entonces.)*

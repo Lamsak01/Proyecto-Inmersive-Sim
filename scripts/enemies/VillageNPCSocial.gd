@@ -893,6 +893,8 @@ func _move_towards_point(target_pos: Vector2, speed: float, delta: float = 0.016
 	var is_escorting_player: bool = vm != null and bool(vm.get("player_being_escorted_to_jail")) and vm.get("escorting_officer") == self
 	var leg_mult: float = health_comp.get_moving_capacity() if health_comp else 1.0
 	var eff_speed: float = maxf(62.0, speed) if is_escorting_player else (speed * get_nutrition_speed_multiplier() * get_sleep_speed_multiplier() * leg_mult)
+	if errand_kind in URGENT_ERRANDS: # con prisa, el cansancio y el hambre apenas le frenan (el guardia del día 2 se arrastraba)
+		eff_speed = maxf(eff_speed, speed * URGENT_MIN_SPEED_FACTOR * leg_mult)
 
 	var in_doorway_now: bool = vm != null and vm.has_method("get_doorway_clearance_nudge") and (vm.call("get_doorway_clearance_nudge", global_position, 24.0) as Vector2).length_squared() > 0.01
 	var is_seat_target: bool = _is_seated_on_furniture(target_pos)

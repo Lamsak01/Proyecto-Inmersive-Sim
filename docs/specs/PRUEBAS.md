@@ -25,7 +25,7 @@ flatpak run org.godotengine.Godot --headless --path . -s tools/tests/atascos_vec
 timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/menu_probe.gd 2>&1 | grep "MENU PROBE"
 # Charla en primera persona: el reloj se para y la frase sale entera (~1 min) → «PAUSA DIALOGO: PASSED»
 timeout 180 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/pausa_dialogo.gd 2>&1 | grep "PAUSA DIALOGO"
-# Caso I, día 2: con Ctrl+T y andando sin parar, el guardia te alcanza y te habla antes de las 07:00 (~1 min) → «AVISO CASO1: PASSED»
+# Caso I, día 2: con Ctrl+T y el guardia cansado de la noche, llega andando y te habla antes de las 06:18 (~1 min) → «AVISO CASO1: PASSED»
 timeout 240 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/aviso_caso1.gd 2>&1 | grep "AVISO CASO1"
 # Dormir: quieto hasta el alba y un golpe te despierta (~40 s) → «DORMIR QUIETO: PASSED»
 timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dormir_quieto.gd 2>&1 | grep "DORMIR QUIETO"

@@ -180,13 +180,16 @@ func _update_needs_and_decisions(delta: float) -> void:
 	var is_night_env: bool = WorldClock != null and (WorldClock.current_hour >= 22 or WorldClock.current_hour < 6)
 	var in_work_shift: bool = _is_mandatory_work_hours()
 	var busy_eating: bool = (current_activity == ActivityState.EATING and not _is_amateur_foraging and _sitting_meal_ingested < 36.0 and (need_hunger + digestion_buffer) < 96.0)
+	# Un recado urgente (el guardia que te busca el día 2) manda sobre el turno, el hambre y el sueño: antes el turno de
+	# las 06:00 le mandaba a trabajar cada pocos segundos y el recado le volvía a mandar a ti (iba y venía, usuario 2026-11-14)
+	var urgente: bool = errand_kind in URGENT_ERRANDS
 
-	if in_work_shift and current_activity != ActivityState.WORKING and not busy_eating and (need_hunger > 22.0 or digestion_buffer > 5.0):
+	if in_work_shift and not urgente and current_activity != ActivityState.WORKING and not busy_eating and (need_hunger > 22.0 or digestion_buffer > 5.0):
 		is_sleeping = false
 		_is_amateur_foraging = false
 		_social_partner = null
 		current_activity = ActivityState.WORKING
-	elif in_work_shift and need_hunger <= 22.0 and digestion_buffer <= 2.0 and current_activity == ActivityState.WORKING:
+	elif in_work_shift and not urgente and need_hunger <= 22.0 and digestion_buffer <= 2.0 and current_activity == ActivityState.WORKING:
 		current_activity = ActivityState.EATING
 		_eat_at_tavern = _choose_preferred_meal_location()
 
@@ -378,7 +381,7 @@ func _update_needs_and_decisions(delta: float) -> void:
 			return # G2: en el Oficio se quedan hasta que termina, salvo hambre o cansancio fuertes
 		if rite_pos != Vector2.ZERO:
 			leave_rite()
-		if errand_kind != "" and need_energy > 12.0 and need_hunger >= 30.0 and (not is_night_env or errand_kind in NIGHT_ERRANDS):
+		if urgente or (errand_kind != "" and need_energy > 12.0 and need_hunger >= 30.0 and (not is_night_env or errand_kind in NIGHT_ERRANDS)):
 			return # E: termina su encargo (lavarse, taberna, limosna, redada) antes de cambiar de idea
 		if errand_kind != "":
 			end_errand()
