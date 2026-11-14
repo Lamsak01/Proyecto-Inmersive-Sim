@@ -92,6 +92,7 @@ static func _today() -> int:
 
 ## Un día de margen (decisión del usuario, 2026-11-11): el día 1 llegas y conoces el pueblo; el caso estalla el día 2.
 const DIA_DE_MARGEN: int = 1
+const GRUPO_PISTAS_MAPA: String = "pista_caso1" ## grupo de las pistas puestas a mano en Mundo3D.tscn
 
 
 ## Bandeja de informes de la comisaría, en el mundo: su cruz «informe» en la escena del edificio.
@@ -113,6 +114,13 @@ static func caso_abierto(vm) -> bool:
 
 ## El cuerpo del claro existe desde el principio (así se guarda y carga como un vecino más), pero hasta que empieza el
 ## caso está escondido: ni se ve, ni se examina, ni lo descubre nadie.
+## Pistas puestas a mano en el mapa (grupo «pista_caso1», p. ej. el zapato del Puente Viejo): no se ven hasta el día 2.
+static func mostrar_pistas_del_mapa(vm, visible: bool) -> void:
+	for pista in vm.get_tree().get_nodes_in_group(GRUPO_PISTAS_MAPA):
+		if pista is Node3D:
+			(pista as Node3D).visible = visible
+
+
 static func mostrar_cuerpo(vm, visible: bool) -> void:
 	var cuerpo = vm.entities_root.get_node_or_null("NPC_Case1_Victim")
 	if cuerpo == null:
@@ -235,12 +243,14 @@ static func sync(vm) -> void:
 		return
 	if not empezado():
 		mostrar_cuerpo(vm, false)
+		mostrar_pistas_del_mapa(vm, false)
 		return
 	_assign_roles(vm)
 	var st: Dictionary = state(vm)
 	if (st["roles"] as Dictionary).is_empty():
 		return
 	mostrar_cuerpo(vm, true)
+	mostrar_pistas_del_mapa(vm, true)
 	if int(WorldClock.current_hour) >= 6: # el aviso llega al amanecer, no a medianoche mientras duermes
 		Case1Aviso.empezar(vm, st, cuerpo_pos())
 	Case1Aviso.vigilar(vm, st, cuerpo_pos())

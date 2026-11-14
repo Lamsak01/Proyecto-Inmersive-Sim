@@ -3,6 +3,7 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
+- 2026-11-14 · Caso I: las pistas no se pueden examinar antes del día 2 y el zapato del Puente Viejo no se ve hasta entonces. Prueba `tools/tests/pistas_dia1.gd`.
 - 2026-11-14 · Pozos: el cuadrado con tejadillo se cambia por uno clásico (brocal redondo de piedra, dos postes, rodillo con manivela, cuerda y cubo), hecho con `tools/hornear_pozo.gd`; foto `docs/capturas_arreglos/pozo_clasico.png`.
 - 2026-11-14 · Comisaría: segunda cama en el dormitorio de la guardia; Vane y Rodric ya no duermen uno encima del otro (foto `docs/capturas_arreglos/comisaria_dos_camas.png`).
 - 2026-11-14 · Primera persona: la cruz alcanza los objetos grandes (tablón, trampillas) por su borde y en todo su ancho; las trampillas apagadas en la demo dicen que están cerradas. Prueba `tools/tests/apuntar_fp.gd`.

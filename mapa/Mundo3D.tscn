@@ -18797,7 +18797,7 @@ transform = Transform3D(2.8, 0, 0, 0, 2.8, 0, 0, 0, 2.3745346, 0.9518803, 0.0951
 material_override = SubResource("StandardMaterial3D_62f8m")
 mesh = SubResource("BoxMesh_psoda")
 
-[node name="Caja_383" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1989298807]
+[node name="Caja_383" type="Node3D" parent="Decorado/Zona_0_0" unique_id=1989298807 groups=["pista_caso1"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.3264, 0.225091, 13.328)
 metadata/pos_original = Vector2(116.52147, 38)
 metadata/radio = 9.52314805984497

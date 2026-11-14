@@ -31,6 +31,8 @@ timeout 240 flatpak run org.godotengine.Godot --headless --path . -s tools/tests
 timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/dormir_quieto.gd 2>&1 | grep "DORMIR QUIETO"
 # 1.ª persona: apuntar al centro del tablón y a una trampilla a 1,6 m (~40 s) → «APUNTAR FP: PASSED»
 timeout 120 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/apuntar_fp.gd 2>&1 | grep "APUNTAR FP"
+# Caso I: el día 1 el zapato del puente ni se ve ni se examina; el día 2 sí (~1 min) → «PISTAS DIA1: PASSED»
+timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/pistas_dia1.gd 2>&1 | grep "PISTAS DIA1"
 # Nombres (~2 s) → «NAMES CHECK PASSED» · Simulador social de 60 días → «SOCIAL SIM CHECK PASSED»
 timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3
 timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd 2>&1 | tail -3

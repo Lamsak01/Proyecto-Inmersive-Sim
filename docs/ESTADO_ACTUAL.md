@@ -32,7 +32,7 @@ Hablar para el reloj (`WorldClock.set_dialogue_pause`, prueba `pausa_dialogo.gd`
 
 ## c) Siguiente paso técnico inmediato (lista dada al usuario el 2026-11-13, en este orden)
 1. **Que el usuario juegue el Caso I desde el día 2** (guardia que habla, dormir, tablón y trampillas arreglados el 14).
-   Todo lo de su partida del 13 está arreglado (también camas de la comisaría y pozo clásico); falta que lo vea.
+   Partida del 14: pistas antes de tiempo arregladas; pendiente clientes del restaurante sentados en el aire.
 2. **Rendimiento**: sombras del sol (duplican el dibujo). Medio. 3. **Vecinos atascados**: a 0; falta que lo confirme él.
 4. **Interiores que faltan** (taberna 0b, cantera, restaurante). 5. **Herrero arriba** (pregunta 1). 6. **Beta**.
 **Contexto:** ×5 (`Mapa3D.E`) invisible; pesca, huerto, corral y campamento se rehacen en 3D tras el Caso I.

@@ -49,6 +49,14 @@ const STATION_LABELS: Dictionary = {
 	"case1_report_desk": "Entregar informe del caso",
 }
 
+## Pistas del Caso I: no se pueden examinar antes de que empiece el caso (día 2); antes salían el día de llegada
+const PISTAS_CASO1: Array[String] = [
+	"case1_clearing", "case1_forced_cabinet", "case1_grave", "case1_relative_page", "case1_report_desk",
+	"mill_hayloft", "mill_hearth", "mill_hemp_cord", "mill_table_paper", "mill_cellar_grate", "mill_red_clay",
+	"police_archived_report", "library_book_lever", "library_secret_ledger", "library_torn_book", "old_bridge_left_shoe",
+]
+const RUTA_CASO1: String = "res://scripts/systems/VillageCase1.gd" ## se carga al usarlo: evita un ciclo de preload
+
 var player: Node2D = null
 var candidates: Array = [] # [{key, area, target, pos, label}] ordenadas por distancia
 var _index: int = 0
@@ -125,6 +133,8 @@ func refresh() -> void:
 			# Paso a 3D, paso 5d: se llega a lo que está a tu altura (Vista.alcanza), no «a lo de tu piso»
 			if vm_chk != null and not vm_chk.alcanza(pp, int(vm_chk.player_elevation_level), (a as Node2D).global_position, _nivel_de(a, tgt, int(vm_chk.player_elevation_level))):
 				continue
+			if _pista_antes_de_tiempo(a):
+				continue
 			var lbl: String = _label_for(a, tgt)
 			if lbl == "":
 				continue
@@ -155,6 +165,13 @@ func refresh() -> void:
 		_last_keys = keys
 		_index = 0
 	candidates = out
+
+
+## ¿Es una pista del Caso I y el caso aún no ha empezado?
+func _pista_antes_de_tiempo(a: Area2D) -> bool:
+	if not a.has_meta("village_station") or not (str(a.get_meta("village_station")) in PISTAS_CASO1):
+		return false
+	return not bool(load(RUTA_CASO1).empezado())
 
 
 ## En 1.ª persona, [E] solo apunta a lo que está bajo la cruz del centro (en horizontal y vertical) y a poca distancia.

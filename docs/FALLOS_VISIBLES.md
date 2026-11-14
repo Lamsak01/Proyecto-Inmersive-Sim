@@ -5,6 +5,11 @@
 > Formato: `- [ ] Qué se ve mal · dónde · cuándo (hora del juego, 2D/3D/primera persona)`.
 
 ## Pendientes
+- ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **Las pistas del caso salen desde el día antes** · zapato del
+  Puente Viejo el lunes 13:23. *(Ninguna pista del Caso I se puede examinar antes del día 2, ni apuntando ni de cerca, y el
+  zapato, que es una pieza del mapa (grupo «pista_caso1»), no se ve hasta entonces.)*
+- [ ] (2026-11-14, usuario, 3 capturas) **Los clientes del restaurante se sientan en el aire**, al lado de la silla y no
+  encima · terraza y comedor de «El Fogón del Valle», lunes 12:24–12:42, 1.ª persona.
 - ✅ (2026-11-13, usuario, captura; falta que lo veas jugando) **El día 2 nadie te habla de la misión** · 1.ª persona. A las 10:22 dos guardias
   iguales, uno encima del otro, de pie sobre la cama de una casa. *(El recado hoy es solo una línea de aviso que se
   pierde; el guardia mensajero quizá se atasca o se queda en la casa.)*

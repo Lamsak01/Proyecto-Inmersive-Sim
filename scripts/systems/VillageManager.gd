@@ -582,8 +582,8 @@ func interact(player: Node2D) -> void:
 		_use_hospital_emergency_bed(player)
 		return
 
-	# 5. Celda de la Comisaría y Archivo de Pruebas (Caso I)
-	if pos.distance_squared_to(Marca.mundo(ID_COMISARIA, Marca.ARCHIVO)) <= 26.0 * 26.0 or pos.distance_squared_to(EdificioEditor.a_mundo(ID_COMISARIA, Vector2(856.0, 107.0))) <= 24.0 * 24.0:
+	# 5. Celda de la Comisaría y Archivo de Pruebas (Caso I) · pide que el caso haya empezado
+	if VillageCase1.empezado() and (pos.distance_squared_to(Marca.mundo(ID_COMISARIA, Marca.ARCHIVO)) <= 26.0 * 26.0 or pos.distance_squared_to(EdificioEditor.a_mundo(ID_COMISARIA, Vector2(856.0, 107.0))) <= 24.0 * 24.0):
 		_record_case_clue(
 			player,
 			"📋 Carpeta de archivo",
@@ -600,7 +600,8 @@ func interact(player: Node2D) -> void:
 		return
 
 	# 5b. Pistas del Caso I en el Molino Viejo Abandonado y Claro del Arroyo
-	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.SOTANO)) <= 28.0 * 28.0:
+	# (Todas las pistas del caso piden que haya empezado, día 2: el día de llegada no hay nada que encontrar)
+	if VillageCase1.empezado() and (pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.SOTANO)) <= 28.0 * 28.0):
 		_record_case_clue(
 			player,
 			"🔩 Reja de hierro",
@@ -611,7 +612,7 @@ func interact(player: Node2D) -> void:
 			Color(0.76, 0.88, 0.96)
 		)
 		return
-	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.MESA_PAPEL)) <= 28.0 * 28.0 and pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.MESA_PAPEL)) <= pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.HOGAR)):
+	if VillageCase1.empezado() and (pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.MESA_PAPEL)) <= 28.0 * 28.0 and pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.MESA_PAPEL)) <= pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.HOGAR))):
 		_record_case_clue(
 			player,
 			"📄 Papel sobre la mesa",
@@ -622,7 +623,7 @@ func interact(player: Node2D) -> void:
 			Color(0.96, 0.90, 0.72)
 		)
 		return
-	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.CORDEL)) <= 26.0 * 26.0:
+	if VillageCase1.empezado() and (pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.CORDEL)) <= 26.0 * 26.0):
 		_record_case_clue(
 			player,
 			"🪢 Rollo de cordel",
@@ -633,7 +634,7 @@ func interact(player: Node2D) -> void:
 			Color(0.90, 0.80, 0.58)
 		)
 		return
-	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.HOGAR)) <= 26.0 * 26.0:
+	if VillageCase1.empezado() and (pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.HOGAR)) <= 26.0 * 26.0):
 		_record_case_clue(
 			player,
 			"🪨 Hogar de piedra",
@@ -644,7 +645,7 @@ func interact(player: Node2D) -> void:
 			Color(0.78, 0.78, 0.82)
 		)
 		return
-	if pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.PAJAR)) <= 26.0 * 26.0:
+	if VillageCase1.empezado() and (pos.distance_squared_to(Marca.mundo(ID_MOLINO, Marca.PAJAR)) <= 26.0 * 26.0):
 		_record_case_clue(
 			player,
 			"🌾 Pajar",
@@ -656,7 +657,7 @@ func interact(player: Node2D) -> void:
 		)
 		return
 	# El barro rojo va después de las pistas de dentro del molino (por si algún día se acercan a la orilla)
-	if pos.distance_squared_to(Sitio.mundo(SITIO_BARRO_ROJO_PISTA)) <= BARRO_ROJO_RADIO * BARRO_ROJO_RADIO:
+	if VillageCase1.empezado() and (pos.distance_squared_to(Sitio.mundo(SITIO_BARRO_ROJO_PISTA)) <= BARRO_ROJO_RADIO * BARRO_ROJO_RADIO):
 		_record_case_clue(
 			player,
 			"🧱 Orilla de arcilla",
@@ -683,7 +684,7 @@ func interact(player: Node2D) -> void:
 		return
 	# El zapato está donde lo puso VillageWorldBuilder (junto al cruce del río del editor): se mira su zona de verdad
 	var shoe_area: Node2D = entities_root.get_node_or_null("OldBridgeVictimShoeArea") as Node2D
-	if shoe_area != null and pos.distance_squared_to(shoe_area.global_position) <= 26.0 * 26.0:
+	if VillageCase1.empezado() and (shoe_area != null and pos.distance_squared_to(shoe_area.global_position) <= 26.0 * 26.0):
 		_anotar_zapato_puente(player)
 		return
 
