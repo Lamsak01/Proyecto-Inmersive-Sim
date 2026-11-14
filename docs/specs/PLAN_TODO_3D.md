@@ -15,6 +15,13 @@ La vista desde arriba ya no cuenta: no se diseña, prueba ni arregla nada para e
 mapa plano; en la 7, el apuntado y los rótulos con el ratón sobre el mapa (`Crosshair2D`, familia «Ratón sobre el mapa
 2D» del contador) y la rama «desde arriba» del selector de la E (`Tocable3D.cerca`). Se borran al tocar cada archivo.
 Quitada ya la «cortina» de la flecha (era solo para esa vista): la flecha da siempre justo donde se apunta.
+Desde el 2026-11-14 el juego arranca ya en 1.ª persona (`WorldStage3D.setup_stage`; sin ventana, en las pruebas, no:
+varias pruebas aún usan la rama «desde arriba» del selector de la E y habrá que pasarlas a 1.ª persona al tocarlas).
+**Pendiente con el usuario (tacto, no se hace a ciegas):** que la E elija TODO con un rayo de la mirada (7e-2). Medido el
+2026-11-14: las áreas de uso se crean en pocos sitios (una función del pueblo para las «estaciones», vecinos, objetos,
+caballo y carro), así que cabe hacerlo en `InteractionSelector` con el volumen 3D de cada cosa en vez de la tabla de
+ángulos de `_fp_crosshair_score`; lo que hay que decidir jugando es cuánta puntería exige (sobre todo en lo del suelo).
+No se puede tapar con paredes todavía: los muebles chocan a toda la altura y un mostrador taparía al tendero (→ 3a-v).
 
 ## Reglas de honestidad (obligatorias para cualquier agente)
 1. Nadie escribe «migrado», «terminado» o «3D de verdad» sin dar el número del contador antes y después.

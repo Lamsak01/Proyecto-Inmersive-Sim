@@ -194,6 +194,8 @@ func setup_stage(village_manager: Node2D) -> void:
 	_sync_2d_flat_visuals()
 	if not _is_headless and AudioManager != null and AudioManager.has_method("conectar_escenario_3d"):
 		AudioManager.conectar_escenario_3d(self, stage_root_3d, oyente_3d, clima_3d)
+	if not _is_headless:
+		set_first_person.call_deferred(true) # el juego es solo en 1.ª persona (usuario, 2026-11-14): se arranca ya en ella
 
 
 func rebuild_all_3d() -> void:
