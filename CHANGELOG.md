@@ -3,6 +3,7 @@
 Cambios del juego, del más nuevo al más antiguo. Añade una entrada al cerrar cada bloque, en lenguaje sencillo.
 El historial completo está en `git log`. Lo anterior al 2026-11-09 está en `docs/archivo/CHANGELOG_hasta_2026-11-08.md`.
 
+- 2026-11-14 · Caso I: el día 2 el guardia mensajero aparece a ~50 m de ti (no en agua ni en casas), llega en ~30 min de juego y te da el recado de Vane con la caja de diálogo; antes cruzaba el valle andando (~5 h) y el recado era una línea suelta. Prueba nueva `tools/tests/aviso_caso1.gd`.
 - 2026-11-13 · Hablar con un vecino para el reloj del pueblo (vecinos, hambre y animales quietos) hasta que te despides; antes el pueblo seguía y se perdían minutos leyendo. La frase sale entera también en primera persona (el juego nunca se pausaba). Prueba nueva `tools/tests/pausa_dialogo.gd`.
 - 2026-11-13 · Diálogos (a medias, sin probar jugando): el vecino ya no hace el gesto de golpear al hablar; la tienda dice si compraste o por qué no (fuera del mostrador, sin dinero); las compras sueltas (armas, pólvora) van a la tienda. Duda abierta: en primera persona la frase a veces no termina de salir (¿pausa del juego?).
 - 2026-11-13 · Diálogos (versión provisional): caja oscura abajo con la frase letra a letra y en trozos; opciones limpias (sin emojis, «+Relación» ni corchetes); menú fijo Charlar / Preguntar por… / Comerciar / Más… / adiós; comprar y vender en una ventana de tienda aparte; charla de 2-3 intercambios con frases por oficio, hora, tiempo y crimen (archivo de texto editable). Caso I 25/25.
