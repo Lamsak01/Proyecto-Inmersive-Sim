@@ -172,15 +172,37 @@ func _despiece() -> void:
 	var zona: Node = ciervo.zona_despiece
 	_ok(int(ciervo.state) == int(ciervo.AnimalState.CARCASS) and ciervo.tumbado and not ciervo.is_in_group("wild_animals"), "un golpe mortal lo deja como cadáver tumbado")
 	_ok(not Diana3D.de(ciervo).activa and ciervo._forma.disabled, "al cadáver ya no se le hiere ni estorba el paso")
-	_ok(is_instance_valid(zona) and zona.is_in_group("interactable") and zona.global_position.distance_to(Lugar.a_mapa(donde)) < 1.0, "y deja su zona de despiece en su sitio")
+	_ok(zona is Tocable3D and zona.duenio == ciervo, "y lleva su zona 3D para la tecla E (ya no hay área en el mapa plano)")
 	var sel = _pl.interaction_selector
 	sel.refresh()
-	var opcion: Array = sel.candidates.filter(func(c): return c["target"] == zona)
-	_ok(not opcion.is_empty() and str(opcion[0]["label"]).begins_with("Despiezar"), "la tecla E lo ofrece: «%s»" % (str(opcion[0]["label"]) if not opcion.is_empty() else "nada"))
+	var opcion: Array = sel.candidates.filter(func(c): return c["target"] == ciervo)
+	_ok(not opcion.is_empty() and str(opcion[0]["label"]).begins_with("Despiezar"), "desde arriba, a 0,8 m, la E lo ofrece: «%s»" % (str(opcion[0]["label"]) if not opcion.is_empty() else "nada"))
+	_prota_a(donde + Vector2(6.0, 0.0))
+	await _esperar(0.2)
+	sel.refresh()
+	_ok(sel.candidates.filter(func(c): return c["target"] == ciervo).is_empty(), "a 6 m ya no")
+	# En 1.ª persona manda la mirada: un rayo desde los ojos. Mirando al cadáver lo ofrece; mirando al horizonte o de espaldas, no.
+	_prota_a(donde + Vector2(-1.3, 0.0))
+	await _esperar(0.2)
+	var escenario = _vm.world_stage_3d
+	var Stage = load("res://scripts/visuals/WorldStage3D.gd")
+	Stage.first_person_active = true
+	_mirar(escenario, 0.0, -0.75)
+	sel.refresh()
+	_ok(not sel.candidates.filter(func(c): return c["target"] == ciervo).is_empty() and sel.selected().get("target") == ciervo, "en 1.ª persona, mirando al cadáver (al este y hacia abajo), la E lo ofrece")
+	_mirar(escenario, 0.0, 0.0)
+	sel.refresh()
+	_ok(sel.candidates.filter(func(c): return c["target"] == ciervo).is_empty(), "mirando al horizonte por encima de él, no")
+	_mirar(escenario, PI, -0.75)
+	sel.refresh()
+	_ok(sel.candidates.filter(func(c): return c["target"] == ciervo).is_empty(), "y de espaldas tampoco")
+	Stage.first_person_active = false
+	_prota_a(donde + Vector2(0.8, 0.0))
+	await _esperar(0.2)
 	var carne_antes: int = int(_pl.inventory.get_count("raw_meat"))
 	var xp_antes: int = int(_pl.call("get_skill_xp", "hunting"))
-	if is_instance_valid(zona):
-		zona.interact(_pl)
+	sel.refresh()
+	sel.use_selected()
 	await process_frame
 	var carne: int = int(_pl.inventory.get_count("raw_meat"))
 	_ok(int(ciervo.state) == int(ciervo.AnimalState.BUTCHERED) and not ciervo.visible and not is_instance_valid(ciervo.zona_despiece), "al despiezarlo desaparece del mundo, y su zona con él")
@@ -189,6 +211,12 @@ func _despiece() -> void:
 	ciervo.respawn_from_ecosystem(1)
 	await physics_frame
 	_ok(ciervo.is_alive_in_ecosystem() and ciervo.visible and not ciervo.tumbado and ciervo.sitio.distance_to(ciervo.casa) < 2.0 and Diana3D.de(ciervo).activa, "al renacer vuelve junto a su nido, en pie y otra vez herible")
+
+
+## Pone la mirada de la 1.ª persona: `rumbo` (0 = este, PI/2 = sur) y `pendiente` (negativa: hacia abajo), en radianes.
+func _mirar(escenario, rumbo: float, pendiente: float) -> void:
+	escenario.set("fp_yaw", rumbo)
+	escenario.set("fp_pitch", pendiente)
 
 
 ## Sin modo demo: con hambre van a por comida, y nadie da errores ni sale volando.

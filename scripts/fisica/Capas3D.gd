@@ -9,3 +9,4 @@ const MUROS: int = 4     ## las paredes del mundo: frenan al protagonista y a lo
 const PEQUENO: int = 8   ## los animales pequeños: nadie choca con ellos; ellos sí con las paredes
 const AGUA: int = 16     ## el agua: solo frena a los demás (el protagonista entra y nada)
 const DIANAS: int = 32   ## las zonas donde se puede herir a alguien (solo las miran las búsquedas de golpes)
+const TOCABLES: int = 64 ## las zonas de lo que se puede usar con [E] (solo las mira el selector de la E)

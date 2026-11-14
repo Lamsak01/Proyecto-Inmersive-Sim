@@ -80,8 +80,7 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    `Lugar.en_mapa(n)` en píxeles, sea `n` plano o 3D. Contador 2.274 → **2.240**. Pruebas: `animales_3d` (nueva, 22
    comprobaciones, también con el modo demo apagado), `fisica_3d`, partida del Caso I 25/25, fotos. Arreglos de paso:
    empezar la partida ya no da experiencia de caza (los animales de reserva «se despiezaban» al crearse y subían la caza
-   a nivel 3); un cadáver ya no estorba el paso. **Sigue siendo 2D:** la zona para despiezar con [E]
-   (`animales/ZonaDespiece.gd`, un área del mapa plano → tanda 7-E); el ecosistema guarda nidos y medidas en píxeles y
+   a nivel 3); un cadáver ya no estorba el paso. **Sigue siendo 2D:** (la zona para despiezar con [E] dejó de serlo en la 7e-1); el ecosistema guarda nidos y medidas en píxeles y
    los pasa a metros al crear cada animal (`EcosystemManager._spawn_animal_pool`); la orilla del río se pregunta a
    `RioLago` en píxeles (`VidaAnimal._orilla_cercana`); las plantas que comen son nodos planos (`HarvestableNode`);
    quien aún piensa en plano los lee con `Lugar.en_mapa` (cazadores, cepos, perros, mapa del valle, cruz del ratón).
@@ -109,7 +108,16 @@ miles de números de píxeles a metros rompería cosas sin ganar nada; cada arch
    cuerpo traído de lejos junto al protagonista llegaba hasta 10 pasos tarde (`Cuerpo3D._seguir`): arreglado.
    **Sigue siendo 2D:** la flecha pide las paredes a `ChoquesMundo3D` con su sitio en el mapa plano y pregunta las losas
    a `Vista.gd` (traductores); `DamageData.shot_distance_px` y `CombatFeel` siguen midiendo en el mapa plano.
-   **Siguiente: 4b-2** (animales salvajes).
+   ✅ **7e-1 (2026-11-14): la tecla E ya sabe buscar en el mundo 3D.** `ui/Tocable3D.gd` (un `Area3D` en la capa
+   `Capas3D.TOCABLES` con su dueño): `InteractionSelector._candidatas_3d` añade lo que el protagonista tiene al alcance
+   del cuerpo (vista desde arriba) o lo que cruza un rayo desde sus ojos (1.ª persona, `Tocable3D.en_la_mira`; las
+   paredes lo tapan), a su altura de verdad y sin reglas de ángulos. Primer usuario: el cadáver de un animal salvaje
+   (borrada `animales/ZonaDespiece.gd`, el área plana provisional). Contador 2.240 → **2.239**. Pruebas: `animales_3d`
+   (27), `apuntar_fp`, `fisica_3d`, partida del Caso I (3 de 4 pasadas limpias; en una salió 1 paso pendiente que no se
+   repitió: vigilar, pasándola con `grep "❌"`). **Sigue siendo 2D:** todo lo demás que se usa con E (vecinos, puertas,
+   camas, pistas, objetos: áreas «interactable» del mapa plano y sus reglas de ángulos en `_fp_crosshair_score`).
+   **Siguiente 7e-2:** que cada cosa que se use con E ponga su `Tocable3D` (por clases: mascotas y vecinos al pasar a 3D;
+   puertas y sitios fijos con las piezas de la tanda 6) y borrar el selector por ángulos.
 8. **Escena raíz 3D:** el mundo deja de pintarse como imagen dentro de una escena 2D; cámara, luz de día y noche,
    lluvia y sonido en 3D.
 9. **Datos fuera del código y objetos gigantes partidos**, según se toque cada sistema (auditoría B y C).
@@ -159,7 +167,7 @@ rutas, vista), sus paredes planas hacen falta; se borran al final de las tandas 
   usuario si la vista desde arriba se queda (pregunta apuntada).
 - `Lugar.gd` (traductor metros ↔ mapa plano, 2026-11-14) y sus usos `Lugar.en_mapa(...)` en código que aún piensa en
   plano → se borra cuando no quede ningún personaje en el mapa plano.
-- `ZonaDespiece.gd`: área del mapa plano para despiezar un animal 3D con [E] → tanda 7-E.
+- ✅ (quitado en la 7e-1) `ZonaDespiece.gd`: área del mapa plano para despiezar un animal 3D con [E].
 - Tabla de tamaños por grupo y especie en `TallaCuerpo3D.gd` (cada personaje debería decir el suyo) → tanda 6.
 - Dibujos 2D escondidos con capas en 1.ª persona (`WorldStage3D._ocultar_2d_tapado`) → tandas 4 y 8.
 - Cama `cama_2` de la comisaría puesta a mano; zapato del caso como «Caja_383» con etiqueta → tanda 6.

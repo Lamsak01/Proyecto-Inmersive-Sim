@@ -10,8 +10,7 @@ extends "res://scripts/fisica/CuerpoBase3D.gd"
 ## sobre el suelo (x → este, y → sur). Ya no tiene nodo ni dibujo en el mapa plano. Sus piezas están en `animales/`
 ## (AnimalAlerta, AnimalAgenda, AnimalComida, AnimalCaza, AnimalJabali, AnimalDespiece, AnimalRotulo) y en VidaAnimal:
 ## son clases con nombre, sin preloads entre ellas, para no crear ciclos de carga.
-## TRADUCTOR (se quita con la tanda 7): la zona para despiezarlo con [E] sigue siendo un área del mapa plano
-## (animales/ZonaDespiece.gd), que es donde aún busca la tecla E.
+## Su cadáver se despieza con [E] a través de un Tocable3D: la E lo encuentra en el mundo 3D (tanda 7-E).
 
 enum SpeciesType { RABBIT, DEER, FOX, BOAR }
 enum AnimalState {
@@ -107,7 +106,7 @@ var boar_melee_windup: float = 0.0
 var boar_recover: float = 0.0        ## el jabalí queda quieto tras un topetazo fallido (ventana para castigarle)
 var boar_charge_dir: Vector2 = Vector2.RIGHT
 var rotulo: Label3D = null           ## lo que se lee sobre él («Zzz», «¡Jabalí enfurecido!», «[E] Desollar…»)
-var zona_despiece: Node = null       ## (solo cadáver) el área del mapa plano donde la E lo encuentra
+var zona_despiece: Tocable3D = null  ## (solo cadáver) donde la tecla E lo encuentra
 
 var _vm: Node = null
 var _prota: Node = null
@@ -404,7 +403,7 @@ func get_anatomy_yields() -> Dictionary:
 	return AnimalDespiece.piezas(self)
 
 
-## El protagonista lo despieza con [E] (le llega desde su ZonaDespiece).
+## El protagonista lo despieza con [E] (la E lo encuentra por su Tocable3D).
 func interact(player: Node) -> void:
 	AnimalDespiece.despiezar(self, player)
 

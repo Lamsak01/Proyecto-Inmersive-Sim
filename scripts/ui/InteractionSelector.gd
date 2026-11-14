@@ -3,6 +3,8 @@ extends Node2D
 const WorldStage3DScript = preload("res://scripts/visuals/WorldStage3D.gd")
 const VillageTavern = preload("res://scripts/systems/VillageTavern.gd")
 const PisosCasas = preload("res://scripts/fisica/PisosCasas.gd")
+const AndarMapa = preload("res://scripts/fisica/AndarMapa.gd")
+const Mapa3D = preload("res://scripts/fisica/Mapa3D.gd")
 
 ## Selector de la tecla [E] (2026-11-05). Antes, con varias cosas cerca (puerta, mostrador, vecino, cofre, caballo…),
 ## el juego elegía una por su cuenta. Ahora:
@@ -15,6 +17,11 @@ const REFRESH_S: float = 0.05
 const MOUSE_PICK_PX: float = 16.0
 const MOUSE_REACH_PX: float = 55.0
 const RADIO_OBJETO_MAX_PX: float = 20.0 ## ~1,1 m: tope del medio ancho de un objeto al apuntarle en 1.ª persona
+## Lo que ya se usa en el mundo 3D (Tocable3D, tanda 7-E): al alcance del cuerpo o, en 1.ª persona, bajo la mirada.
+const ALCANCE_3D_M: float = 1.9   ## esfera alrededor del pecho del protagonista (vista desde arriba)
+const ALTURA_PECHO_M: float = 1.1
+const ALCANCE_MIRA_M: float = 2.6 ## largo del rayo desde los ojos (1.ª persona)
+const PUNTOS_EN_LA_MIRA: float = 100.0
 
 const STATION_LABELS: Dictionary = {
 	"well": "Sacar agua del pozo",
@@ -146,6 +153,7 @@ func refresh() -> void:
 					continue
 			var st_tag: String = str(a.get_meta("village_station")) if a.has_meta("village_station") else ""
 			out.append({"key": str(a.get_instance_id()), "area": a, "target": tgt, "pos": c_pos, "label": lbl, "fp_score": fp_sc, "station": st_tag})
+	out.append_array(_candidatas_3d())
 	# Montado, «bajar del caballo» va la última: así puedes hablar o abrir puertas sin bajarte.
 	var rank := func(c: Dictionary) -> float:
 		if WorldStage3DScript.first_person_active:
@@ -165,6 +173,44 @@ func refresh() -> void:
 		_last_keys = keys
 		_index = 0
 	candidates = out
+
+
+## Lo que se puede usar ahora en el mundo 3D (Tocable3D): en 1.ª persona, solo lo que cruza la mirada; desde arriba, lo
+## que el protagonista tiene al alcance del cuerpo. La altura es la de verdad: lo de otro piso queda fuera solo.
+func _candidatas_3d() -> Array:
+	var cuerpo: Node3D = AndarMapa.cuerpo(player) as Node3D
+	if cuerpo == null:
+		return []
+	var tocables: Array[Tocable3D] = []
+	if WorldStage3DScript.first_person_active:
+		var mirado: Tocable3D = _tocable_en_la_mira(cuerpo)
+		if mirado != null:
+			tocables.append(mirado)
+	else:
+		tocables = Tocable3D.cerca(cuerpo.get_world_3d(), cuerpo.global_position + Vector3.UP * ALTURA_PECHO_M, ALCANCE_3D_M)
+	var out: Array = []
+	for t: Tocable3D in tocables:
+		if not is_instance_valid(t.duenio) or not t.duenio.has_method("interact"):
+			continue
+		out.append({"key": str(t.get_instance_id()), "area": t, "target": t.duenio, "pos": Lugar.en_mapa(t), "label": _label_for(t, t.duenio), "fp_score": PUNTOS_EN_LA_MIRA, "station": ""})
+	return out
+
+
+## Lo que el protagonista tiene bajo la cruz en 1.ª persona: el primer Tocable3D que cruza un rayo desde sus ojos.
+func _tocable_en_la_mira(cuerpo: Node3D) -> Tocable3D:
+	var llano: Vector2 = WorldStage3DScript.get_fp_forward_2d()
+	var pendiente: float = WorldStage3DScript.fp_pitch
+	var hacia := Vector3(llano.x * cos(pendiente), sin(pendiente), llano.y * cos(pendiente))
+	var ojos: Vector3 = cuerpo.global_position + Vector3.UP * Mapa3D.alto_a_3d(WorldStage3DScript.FP_EYE_HEIGHT_PX)
+	return Tocable3D.en_la_mira(cuerpo.get_world_3d(), ojos, hacia, ALCANCE_MIRA_M)
+
+
+## Puntos de una opción en 1.ª persona (negativo: no está bajo la cruz). Lo del mundo 3D ya se eligió con el rayo de la
+## mirada; lo que aún es del mapa plano se adivina por ángulos.
+func _puntos_fp(c: Dictionary, pp: Vector2) -> float:
+	if c.get("area") is Tocable3D:
+		return PUNTOS_EN_LA_MIRA
+	return _fp_crosshair_score(c.get("area") as Area2D, c.get("target") as Node, c.get("pos", pp), pp)
 
 
 ## ¿Es una pista del Caso I y el caso aún no ha empezado?
@@ -318,12 +364,12 @@ func selected() -> Dictionary:
 		var pp: Vector2 = player.global_position
 		if _index > 0 and _index < candidates.size():
 			var c_idx: Dictionary = candidates[_index]
-			if _fp_crosshair_score(c_idx.get("area") as Area2D, c_idx.get("target") as Node, c_idx.get("pos", pp), pp) >= 0.0:
+			if _puntos_fp(c_idx, pp) >= 0.0:
 				return c_idx
 		var best_fp: Dictionary = {}
 		var best_score: float = -1.0
 		for c in candidates:
-			var score: float = _fp_crosshair_score(c.get("area") as Area2D, c.get("target") as Node, c.get("pos", pp), pp)
+			var score: float = _puntos_fp(c, pp)
 			if score >= 0.0 and score > best_score:
 				best_score = score
 				best_fp = c
@@ -352,9 +398,9 @@ func use_selected() -> bool:
 	if c.is_empty() or not is_instance_valid(c["target"]):
 		return false
 	var tgt: Node = c["target"]
-	var area: Area2D = c["area"]
+	var area: Area2D = c["area"] as Area2D # null si es del mundo 3D (Tocable3D): esos no son «estaciones» del pueblo
 	var vm = player.get_tree().get_first_node_in_group("village_manager")
-	if tgt == vm and area.has_meta("village_station"):
+	if tgt == vm and area != null and area.has_meta("village_station"):
 		_use_station(vm, area)
 	else:
 		tgt.call("interact", player)

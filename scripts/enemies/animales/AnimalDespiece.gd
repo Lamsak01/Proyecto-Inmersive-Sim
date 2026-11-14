@@ -10,6 +10,7 @@ const RENACE_A_M: Vector2 = Vector2(0.34, 1.12) ## (mín., máx.) a qué distanc
 const VIDA_POR_SANGRE: float = 5.0     ## vida de más por cada nivel de buena sangre
 const SANGRE_MAX: int = 3
 const SIN_FECHA: int = -1
+const ZONA_M: float = 0.7            ## radio de la zona donde la E encuentra el cadáver
 
 
 ## Cae muerto donde está: queda su cadáver, que ya no se puede herir, y la zona para despiezarlo.
@@ -23,7 +24,7 @@ static func caer_muerto(a: WildAnimal) -> void:
 	a._vestir(a, false) # un cadáver no estorba el paso
 	AnimalRotulo.callar(a)
 	_quitar_zona(a)
-	a.zona_despiece = ZonaDespiece.poner(a)
+	a.zona_despiece = Tocable3D.poner(a, a, ZONA_M)
 
 
 ## Lo que da al despiezarlo: carne y piel siempre; huesos, astas, vísceras y grasa según la especie y su sangre.
