@@ -9,7 +9,7 @@
 aspecto de molino y junto al río (lo dejó para después).
 **Diálogos provisionales (2026-11-13)**: ventana `scripts/ui/dialogo/` (caja, tienda, limpieza de texto), menú
 `NPCMenuDialogo.gd`, charla `NPCCharla.gd` + `resources/dialogos/frases_vecinos.json`. El usuario la revisa; no es la final.
-**Interiores de tamaño real**: todos hechos salvo la taberna (pregunta 0b), la casa de la cantera y el restaurante.
+Hablar para el reloj (`WorldClock.set_dialogue_pause`, prueba `pausa_dialogo.gd`).
 **Casas de dos plantas** (2026-11-13): campos «…_ARRIBA» y `ESCALERA` en el plano (`planta_alta.gd`); en el juego
 `scripts/fisica/PisosCasas.gd`; el trozo alto de los muros va en «PisoAlto» (se esconde desde arriba).
 

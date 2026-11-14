@@ -23,6 +23,8 @@ flatpak run org.godotengine.Godot --path . -s tools/tests/capturas_fijas.gd -- <
 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/atascos_vecinos.gd -- [horas] [hora_inicio] [cocinero] [jugador:x,y|jugador:puerta:<id>]
 # Menú, ajustes, teclas, guardado y pausa (~2 min) → «MENU PROBE: PASSED»
 timeout 300 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/menu_probe.gd 2>&1 | grep "MENU PROBE"
+# Charla en primera persona: el reloj se para y la frase sale entera (~1 min) → «PAUSA DIALOGO: PASSED»
+timeout 180 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/pausa_dialogo.gd 2>&1 | grep "PAUSA DIALOGO"
 # Nombres (~2 s) → «NAMES CHECK PASSED» · Simulador social de 60 días → «SOCIAL SIM CHECK PASSED»
 timeout 60 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/names_check.gd 2>&1 | tail -3
 timeout 150 flatpak run org.godotengine.Godot --headless --path . -s tools/tests/social_sim.gd 2>&1 | tail -3

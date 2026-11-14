@@ -33,6 +33,8 @@ var current_minute: int = 0
 var current_weather: WeatherType = WeatherType.CLEAR
 var is_paused: bool = false
 var is_paused_by_activity: bool = false
+## Pausa aparte para las charlas: así cerrar una charla no suelta la pausa de un juego de taberna abierto desde ella
+var is_paused_by_dialogue: bool = false
 
 var _accumulated_seconds: float = 0.0
 var _current_phase: DayPhase = DayPhase.MORNING
@@ -64,11 +66,16 @@ func set_activity_pause(paused: bool) -> void:
 	is_paused_by_activity = paused
 	time_updated.emit(current_day, current_hour, current_minute)
 
+## Mientras hablas con un vecino el reloj del pueblo no avanza (leer despacio no debe costar horas del caso)
+func set_dialogue_pause(paused: bool) -> void:
+	is_paused_by_dialogue = paused
+	time_updated.emit(current_day, current_hour, current_minute)
+
 func is_time_frozen() -> bool:
-	return is_paused or is_paused_by_activity
+	return is_paused or is_paused_by_activity or is_paused_by_dialogue
 
 func _process(delta: float) -> void:
-	if is_paused or is_paused_by_activity:
+	if is_time_frozen():
 		return
 
 	var seconds_per_minute: float = real_seconds_per_game_hour / 60.0
@@ -384,6 +391,7 @@ func to_dict() -> Dictionary:
 func from_dict(data: Dictionary) -> void:
 	stop_organic_fast_forward(false)
 	is_paused_by_activity = false
+	is_paused_by_dialogue = false
 	current_day = int(data.get("day", 1))
 	current_hour = clampi(int(data.get("hour", 8)), 0, 23)
 	current_minute = clampi(int(data.get("minute", 0)), 0, 59)

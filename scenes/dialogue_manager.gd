@@ -76,6 +76,12 @@ func _hablante_puede_seguir() -> bool:
 			return false
 	return sedado <= 0.0
 
+## El reloj del pueblo se para mientras dura la charla (incluida la tienda, que va dentro de ella)
+func _parar_reloj(parar: bool) -> void:
+	var reloj: Node = get_node_or_null("/root/WorldClock")
+	if reloj != null and reloj.has_method("set_dialogue_pause"):
+		reloj.call("set_dialogue_pause", parar)
+
 func is_active() -> bool:
 	return active
 
@@ -84,12 +90,14 @@ func start_dialogue(new_graph: Dictionary, start_id: String, speaker: Node = nul
 	current_speaker = speaker
 	active = true
 	_espera = ESPERA_ENTRE_PULSACIONES
+	_parar_reloj(true)
 	_poner_hablante()
 	_ventana.visible = true
 	_show_node(start_id)
 
 func end_dialogue() -> void:
 	active = false
+	_parar_reloj(false)
 	current_choices.clear()
 	_ventana.visible = false
 	if _tienda.visible:
