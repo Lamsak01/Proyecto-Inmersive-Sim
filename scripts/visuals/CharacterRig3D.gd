@@ -110,7 +110,11 @@ const WALK_BASE_PX_S: float = 21.65
 const RUN_CYCLE_PX: float = 52.40
 const RUN_BASE_PX_S: float = 56.15
 const CARRY_BASE_PX_S: float = 14.37
+## En Sitting_Idle_Loop la pelvis queda en z ≈ -0.293 respecto al origen de los pies; adelantamos la raíz del modelo
+## para centrar la cadera sobre el asiento de la silla sin atravesar el respaldo.
+const SIT_ROOT_OFFSET: Vector3 = Vector3(0.0, -0.05, 0.28)
 static var _anim_lib_cache: Dictionary = {} # ruta -> AnimationLibrary
+var _char_root: Node3D = null
 var _anim_player: AnimationPlayer = null
 var _current_clip: String = ""
 var _speed_ratio: float = 1.0
@@ -414,15 +418,18 @@ func _rebuild_meshes() -> void:
 			return
 
 	_using_real_mesh = false
+	_char_root = null
 	_skeleton = null
 	_rebuild_procedural_fallback()
 	_rebuild_tools()
 
 
 func _rebuild_real_quaternius_character() -> bool:
-	# Limpiar modelo previo
-	for c in get_children():
+	# Sacar del árbol antes de liberar: si no, "RealCharRoot" sigue ocupado este fotograma y Godot renombra el nuevo nodo.
+	_char_root = null
+	for c: Node in get_children():
 		if c.has_meta("real_char_root"):
+			remove_child(c)
 			c.queue_free()
 	pelvis.visible = false
 
@@ -446,9 +453,11 @@ func _rebuild_real_quaternius_character() -> bool:
 
 	_skeleton = char_root.find_child("Skeleton3D", true, false) as Skeleton3D
 	if _skeleton == null:
+		remove_child(char_root)
 		char_root.queue_free()
 		return false
 
+	_char_root = char_root
 	_using_real_mesh = true
 	_bone_idx.clear()
 	_bone_rest_q.clear()
@@ -1031,7 +1040,7 @@ func _pick_clip() -> Array:
 
 
 func _apply_real_animation() -> void:
-	var char_root := get_node_or_null("RealCharRoot") as Node3D
+	var char_root: Node3D = _char_root if is_instance_valid(_char_root) else null
 	if char_root != null:
 		char_root.rotation_degrees = Vector3.ZERO
 		char_root.position = Vector3.ZERO
@@ -1041,9 +1050,7 @@ func _apply_real_animation() -> void:
 	if not _anim_player.has_animation(clip):
 		clip = "idle"
 	if clip == "sit" and char_root != null:
-		# En Sitting_Idle_Loop la pelvis queda en z = -0.294 respecto al origen de los pies;
-		# adelantamos char_root +0.26 en Z y bajamos -0.05 en Y para que la cadera apoye sobre el asiento de la silla.
-		char_root.position = Vector3(0.0, -0.05, 0.26)
+		char_root.position = SIT_ROOT_OFFSET
 	if clip != _current_clip:
 		_current_clip = clip
 		_anim_player.play(clip, 0.18)
@@ -1064,7 +1071,7 @@ func _set_bone_delta_euler(bname: String, rx_deg: float, ry_deg: float, rz_deg: 
 func _apply_skeleton_pose(_delta: float) -> void:
 	if _skeleton == null:
 		return
-	var char_root := get_node_or_null("RealCharRoot") as Node3D
+	var char_root: Node3D = _char_root if is_instance_valid(_char_root) else null
 	if char_root != null:
 		char_root.rotation_degrees = Vector3.ZERO
 		char_root.position = Vector3.ZERO

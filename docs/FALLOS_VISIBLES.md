@@ -30,8 +30,8 @@
 - ✅ (2026-11-14, usuario, captura; falta que lo veas jugando) **Las pistas del caso salen desde el día antes** · zapato del
   Puente Viejo el lunes 13:23. *(Ninguna pista del Caso I se puede examinar antes del día 2, ni apuntando ni de cerca, y el
   zapato, que es una pieza del mapa (grupo «pista_caso1»), no se ve hasta entonces.)*
-- [ ] (2026-11-14, usuario, 3 capturas) **Los clientes del restaurante se sientan en el aire**, al lado de la silla y no
-  encima · terraza y comedor de «El Fogón del Valle», lunes 12:24–12:42, 1.ª persona.
+- ✅ (2026-11-14, usuario, 3 capturas; falta que lo veas jugando) **Los clientes del restaurante se sientan en el aire**, al lado de la silla y no
+  encima · terraza y comedor de «El Fogón del Valle», lunes 12:24–12:42, 1.ª persona. *(Antigravity: las sillas 3D ya coincidían con los sitios del mapa, pero al vestir al muñeco se renombraba su raíz y nunca se aplicaba el adelanto de la cadera al sentarse (~33 cm atrás), además de un desvío de 5,6 cm al sur. Arreglado en restaurante y posada; fotos `docs/capturas_arreglos/2026-11-14_restaurante_terraza_despues_1p.png`, `_comedor_despues_1p.png` y `2026-11-14_posada_sillas_despues_1p.png`.)*
 - ✅ (2026-11-13, usuario, captura; falta que lo veas jugando) **El día 2 nadie te habla de la misión** · 1.ª persona. A las 10:22 dos guardias
   iguales, uno encima del otro, de pie sobre la cama de una casa. *(El recado hoy es solo una línea de aviso que se
   pierde; el guardia mensajero quizá se atasca o se queda en la casa.)*

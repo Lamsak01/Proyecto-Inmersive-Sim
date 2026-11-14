@@ -29,6 +29,8 @@ var _last_equipped_sig: String = ""
 const STAGE_K: float = 0.40 * Mapa3D.K ## escala del muñeco en el escenario: una persona mide ~1,75 m (paso 0b)
 ## Los pies del muñeco quedan unos píxeles por debajo del origen de la entidad (donde estaba la sombra 2D).
 const FOOT_OFFSET_PX: float = 4.0
+## Velocidad al cuadrado máxima para considerar que el vecino ya está quieto en su silla.
+const SEAT_STILL_VEL_SQ: float = 4.0
 ## Altura del asiento sobre el lomo del caballo (px del mapa).
 const MOUNT_SEAT_PX: float = 11.5
 static var _stage_ref: Node = null
@@ -198,8 +200,9 @@ func _sync_holder_position() -> void:
 	var foot_off := Vector2(0.0, FOOT_OFFSET_PX)
 	if not is_player_avatar and (tav_gd.is_at_seat(pos_2d) or rest_gd.is_at_seat(pos_2d)):
 		var v_chk: Vector2 = target_entity.get("velocity") if "velocity" in target_entity else Vector2.ZERO
-		if v_chk.length_squared() < 4.0:
-			foot_off = Vector2(0.0, 1.0)
+		if v_chk.length_squared() < SEAT_STILL_VEL_SQ:
+			# La marca del asiento ya cae sobre el centro exacto de la silla 3D; sin desvío lateral hacia el sur.
+			foot_off = Vector2.ZERO
 	if is_player_avatar and is_nan(pies_px) and target_entity.has_method("get_jump_height"):
 		seat_h += float(target_entity.call("get_jump_height"))
 	var base_pos_3d: Vector3 = _stage.call("to_3d", pos_2d + foot_off, seat_h)
